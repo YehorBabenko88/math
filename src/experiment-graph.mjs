@@ -16,6 +16,8 @@ export function createExperimentGraph({adapters=[]}={}){
    if(!Array.isArray(inputs)||inputs.length!==adapter.inputs.length||inputs.some((ref,i)=>!nodes.has(ref)||nodes.get(ref).type!==adapter.inputs[i]))throw Error('Incompatible input ports');
    nodes.set(id,{id,type:adapter.output,adapterId,inputs:inputs.slice(),parameters,kind:'transform'});return id;
   },
+  remove(id){if(!nodes.has(id))throw Error('Unknown node');if([...nodes.values()].some(n=>n.inputs?.includes(id)))throw Error('Cannot remove node with dependents');nodes.delete(id);return true},
+  exportJSON(){return JSON.stringify({schemaVersion:1,nodes:[...nodes.values()].map(n=>structuredClone(n))})},
   execute(id){
    if(!nodes.has(id))throw Error('Unknown node');
    const cache=new Map(),active=new Set();
@@ -40,4 +42,22 @@ export function createScientificExperimentGraph(){
   {id:'series-average',inputs:['time-series','time-series'],output:'time-series',description:'Arithmetic mean of index-aligned observations (same units required)',run:([a,b],p)=>{if(p.unitsA!==p.unitsB||typeof p.unitsA!=='string'||!p.unitsA)throw Error('Matching units must be declared');if(!Array.isArray(a)||!Array.isArray(b)||a.length!==b.length||a.some(v=>!Number.isFinite(v))||b.some(v=>!Number.isFinite(v)))throw Error('Series must be finite and aligned');return a.map((v,i)=>(v+b[i])/2)}},
   {id:'comparison-energy',inputs:['comparison-series'],output:'scalar',description:'Mean squared difference of aligned observations',run:([a])=>{if(!Array.isArray(a)||a.length===0||a.some(v=>!Number.isFinite(v)))throw Error('Invalid comparison series');return a.reduce((s,v)=>s+v*v,0)/a.length}}
  ]});
+}
+
+// Import through public add methods: no unknown adapters, dangling references,
+// duplicate ids, invalid types, or executable source strings are accepted.
+export function importScientificExperimentGraph(json){
+ const document=typeof json==='string'?JSON.parse(json):json;
+ if(!document||document.schemaVersion!==1||!Array.isArray(document.nodes)||document.nodes.length>500)throw Error('Invalid graph document');
+ const graph=createScientificExperimentGraph();
+ for(const n of document.nodes){
+  if(!n||typeof n!=='object'||Array.isArray(n))throw Error('Invalid graph node');
+  if(n.kind==='source'){
+   if(!Array.isArray(n.value)||n.value.length>20000||n.value.some(v=>typeof v!=='number'||!Number.isFinite(v)))throw Error('Invalid source observations');
+   if(n.type!=='time-series')throw Error('Unsupported source type');
+   graph.addSource(n.id,n.type,n.value,{metadata:n.metadata??{}});
+  }else if(n.kind==='transform')graph.addTransform(n.id,n.adapterId,n.inputs,{parameters:n.parameters??{}});
+  else throw Error('Unsupported graph node kind');
+ }
+ return graph;
 }
