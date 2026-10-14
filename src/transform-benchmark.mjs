@@ -8,7 +8,9 @@ export function benchmarkTransformations(series,{warmup=60,step=5,torusSteps=10}
  const errors={persistence:[],mean:[],torusCycle:[],torusSurface:[]},samples=[];
  for(let t=warmup;t<series.length;t+=step){
   const history=series.slice(0,t),truth=series[t],recent=history.slice(-Math.min(240,history.length)),last=history.at(-1),mean=recent.reduce((a,b)=>a+b,0)/recent.length;
-  // Constant windows carry no shape information; all transform candidates reduce to persistence.\n  if(Math.max(...recent)-Math.min(...recent)<1e-12){for(const key of Object.keys(errors))errors[key].push((last-truth)**2);samples.push({index:t,actual:truth,forecasts:{persistence:last,mean:last,torusCycle:last,torusSurface:last}});continue}\n  const embedding=embedSeriesOnTorus(recent);
+  // Constant windows carry no shape information; all transform candidates reduce to persistence. 
+  if(Math.max(...recent)-Math.min(...recent)<1e-12){for(const key of Object.keys(errors))errors[key].push((last-truth)**2);samples.push({index:t,actual:truth,forecasts:{persistence:last,mean:last,torusCycle:last,torusSurface:last}});continue} 
+  const embedding=embedSeriesOnTorus(recent);
   const cyclic=diffuseTorusSignal(embedding.points.map(p=>p.value),{steps:torusSteps});
   const cyclicSeries=recoverSeriesFromTorus(embedding,{values:cyclic});
   const surface=runTorusFieldExperiment(embedding,{steps:torusSteps,nu:24,nv:16});
