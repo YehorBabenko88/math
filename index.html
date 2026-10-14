@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Universe — mathematical laboratory</title><link rel="stylesheet" href="./style.css"></head>
+<body><header><h1>◈ Math Universe</h1><p>Исследуй структуру математики через интерактивные сцены</p></header>
+<main><aside><h2>Библиотека</h2><nav id="sceneList" aria-label="Математические сцены"></nav><div class="note">Первая версия: открытые демонстрации. Универсальный парсер формул и ИИ-консультант — следующие этапы.</div></aside>
+<section class="work"><div class="headline"><h2 id="sceneTitle"></h2><code id="formula"></code></div><canvas id="plot" role="img" aria-label="Интерактивное математическое пространство"></canvas>
+<div id="settingsSets"><label>Операция <select id="setMode"><option value="intersection">Пересечение</option><option value="union">Объединение</option><option value="symmetric">Симметрическая разность</option></select></label></div>
+<div id="settingsFunctions" hidden><label>Функция <select id="functionKind"><option value="polynomial">Кубическая</option><option value="sine">Синус</option><option value="gaussian">Гауссова</option></select></label><label>Параметр a <input id="parameter" type="range" min="-3" max="3" step=".1" value="1"><output id="parameterValue">1.0</output></label></div>
+<div id="settingsRoots" hidden><p>Иллюстративные данные: [64, 66, 65, 70, 73, 71, 76, 74]. Никаких рыночных данных автоматически не загружается.</p></div>
+</section><aside><h2>Смысл и интерпретация</h2><p id="explanation" aria-live="polite"></p><div class="note">Важно: математическая визуализация, физическая интерпретация и финансовый прогноз — разные уровни утверждений.</div></aside></main>
+<script type="module" src="./src/app.mjs"></script></body></html>
