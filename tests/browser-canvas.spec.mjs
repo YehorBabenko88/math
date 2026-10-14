@@ -30,8 +30,9 @@ test('camera drag changes rendered pixels and reset restores view',async({page})
  await expect(page.locator('#equationStatus')).toContainText('треугольников');
  const original=await canvasSignature(page);
  const canvas=page.locator('#equationPlot'),box=await canvas.boundingBox();expect(box).not.toBeNull();
- await page.mouse.move(box.x+box.width*.5,box.y+box.height*.5);
- await page.mouse.down();await page.mouse.move(box.x+box.width*.65,box.y+box.height*.6,{steps:6});await page.mouse.up();
+ await canvas.dispatchEvent('pointerdown',{pointerId:1,clientX:100,clientY:100});
+ await canvas.dispatchEvent('pointermove',{pointerId:1,clientX:240,clientY:180});
+ await canvas.dispatchEvent('pointerup',{pointerId:1,clientX:240,clientY:180});
  const moved=await canvasSignature(page);expect(moved).not.toBe(original);
  await page.locator('#cameraReset').click();
  await expect.poll(()=>canvasSignature(page)).toBe(original);
