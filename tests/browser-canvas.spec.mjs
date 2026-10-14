@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 async function canvasSignature(page){
  return page.locator('#equationPlot').evaluate(canvas=>{
   const ctx=canvas.getContext('2d'),{data}=ctx.getImageData(0,0,canvas.width,canvas.height);
-  let hash=2166136261;for(let i=0;i<data.length;i+=97){hash=Math.imul(hash^data[i],16777619);hash=Math.imul(hash^data[i+1],16777619);hash=Math.imul(hash^data[i+2],16777619)}
+  let hash=2166136261;for(let i=0;i<data.length;i+=4){hash=Math.imul(hash^data[i],16777619);hash=Math.imul(hash^data[i+1],16777619);hash=Math.imul(hash^data[i+2],16777619)}
   return hash>>>0;
  });
 }
@@ -31,5 +31,5 @@ test('camera drag changes rendered pixels and reset restores view',async({page})
  await page.mouse.down();await page.mouse.move(box.x+box.width*.65,box.y+box.height*.6,{steps:6});await page.mouse.up();
  const moved=await canvasSignature(page);expect(moved).not.toBe(original);
  await page.locator('#cameraReset').click();
- expect(await canvasSignature(page)).toBe(original);
+ await expect.poll(()=>canvasSignature(page)).toBe(original);
 });
