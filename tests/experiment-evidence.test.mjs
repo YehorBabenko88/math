@@ -1,0 +1,5 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createExperimentEvidenceIndex,importExperimentEvidenceIndex} from '../src/experiment-evidence.mjs';
+test('links source claims to exact pages and roundtrips',()=>{const index=createExperimentEvidenceIndex();index.attach('velocity',{bookId:'yavorskiy-detlaf-1990'},{locator:'printed p. 9, §1.1.3',claim:'Instantaneous velocity is a time derivative of position'});const restored=importExperimentEvidenceIndex(index.exportJSON(),{knownNodes:['velocity'],knownReferences:['yavorskiy-detlaf-1990']});assert.equal(restored.forNode('velocity')[0].status,'untested')});
+test('rejects missing locators, unrecognized statuses and dangling references',()=>{const index=createExperimentEvidenceIndex();assert.throws(()=>index.attach('n',{bookId:'b'},{claim:'claim'}));assert.throws(()=>index.attach('n',{bookId:'b'},{locator:'p.1',claim:'claim',status:'proven'}));assert.throws(()=>importExperimentEvidenceIndex({schemaVersion:1,links:[{nodeId:'unknown',referenceId:'b',locator:'p.1',claim:'claim'}]},{knownNodes:['n']}))});
