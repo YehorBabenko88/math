@@ -24,6 +24,9 @@ test('canvas changes when equation changes and recovers after syntax error',asyn
 });
 test('camera drag changes rendered pixels and reset restores view',async({page})=>{
  await page.goto('/');
+ await page.locator('#equationInput').fill('x+2*y+3*z=0');
+ await page.locator('#equationSecond').fill('');
+ await page.locator('#equationRender').click();
  await expect(page.locator('#equationStatus')).toContainText('треугольников');
  const original=await canvasSignature(page);
  const canvas=page.locator('#equationPlot'),box=await canvas.boundingBox();expect(box).not.toBeNull();
