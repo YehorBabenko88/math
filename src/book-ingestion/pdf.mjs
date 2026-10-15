@@ -22,7 +22,7 @@ export function assessTextQuality(value,method='text'){
  return {score,method,needsVisualReview:method!=='text'||length<40||score<0.8};
 }
 export async function intakePdf({path,edition,version,license,scope,parser}={}){
- edition=text(edition,'edition');version=text(version,'source version',128);license=text(license,'license');checkScope(scope,10000);
+ edition=text(edition,'edition');version=text(version,'source version',128);license=text(license,'license');scope=checkScope(scope,10000);
  if(typeof parser?.inspect!=='function')throw Error('Trusted local PDF parser required');
  const input=await bytesAt(path),hash=sha256(input.bytes),result=safeJson(await parser.inspect(Buffer.from(input.bytes)));
  if(sha256((await bytesAt(input.path)).bytes)!==hash)throw Error('Source hash changed during intake');
@@ -37,11 +37,11 @@ export async function extractPdfPage(input,page,{parser,extractionVersion,includ
  if(region!==null){region=safeJson(region);if(!Array.isArray(region)||region.length!==4||region.some(n=>!Number.isFinite(n)||n<0||n>1)||region[2]<=0||region[3]<=0||region[0]+region[2]>1||region[1]+region[3]>1)throw Error('Invalid formula region')}
  text(extractionVersion,'extraction version',128);if(typeof parser?.extract!=='function')throw Error('Trusted local parser required');
  const file=await bytesAt(book.path);if(sha256(file.bytes)!==book.hash)throw Error('Source hash mismatch');
- const parsed=safeJson(await parser.extract(Buffer.from(file.bytes),{page,render,region}),{maxBytes:6_000_000});
+ const parsed=safeJson(await parser.extract(Buffer.from(file.bytes),{page,render:render||region!==null,region}),{maxBytes:6_000_000});
  if(sha256((await bytesAt(book.path)).bytes)!==book.hash)throw Error('Source hash changed during extraction');
  const quality=assessTextQuality(parsed.text,parsed.method);if(parsed.rasterPresent===true||region!==null)quality.needsVisualReview=true;
  if(!Array.isArray(parsed.regions)||parsed.regions.length>200||!Array.isArray(parsed.references)||parsed.references.length>100)throw Error('Invalid page regions');
- for(const region of parsed.regions){if(!['text','table','figure'].includes(region.kind)||!Array.isArray(region.bounds)||region.bounds.length!==4||region.bounds.some(n=>!Number.isFinite(n)||n<0||n>1)||region.bounds[0]+region.bounds[2]>1.000001||region.bounds[1]+region.bounds[3]>1.000001)throw Error('Invalid page bounds')}
+ for(const region of parsed.regions){if(!['text','table','figure'].includes(region.kind)||!Array.isArray(region.bounds)||region.bounds.length!==4||region.bounds.some(n=>!Number.isFinite(n)||n<0||n>1)||region.bounds[2]<=0||region.bounds[3]<=0||region.bounds[0]+region.bounds[2]>1.000001||region.bounds[1]+region.bounds[3]>1.000001)throw Error('Invalid page bounds')}
  for(const ref of parsed.references)if(!['table','figure'].includes(ref.kind)||typeof ref.label!=='string'||ref.label.length>80)throw Error('Invalid page reference');
  if(parsed.image!==null&&(typeof parsed.image!=='string'||parsed.image.length>5_000_000||!/^iVBOR[A-Za-z0-9+/=]*$/.test(parsed.image)))throw Error('Invalid PNG page image');
  return freezeJson({source:{hash64hex:book.hash,edition:book.edition,version:book.version,license:book.license},locator:{pdfPage1based:page,printedPage,region},extractionVersion,text:parsed.text,textHash:sha256(parsed.text),textScope:region?'whole-page-context-with-focused-image':'whole-page',quality,regions:parsed.regions,references:parsed.references,image:parsed.image,...(includeExcerpt?{excerpt:parsed.text.slice(0,scope.maxExcerptChars)}:{})});
@@ -51,6 +51,12 @@ export function createLocalPdfParser({pythonPath,timeoutMs=15000,maxOutputBytes=
  const script=fileURLToPath(new URL('../../scripts/book-ingestion-pdf.py',import.meta.url));
  async function run(bytes,options){
   if(!Buffer.isBuffer(bytes)||bytes.length>MAX_PDF)throw Error('Invalid PDF bytes');
+  if(options!==undefined){
+   options=safeJson(options);
+   const region=options.region;
+   if(!Number.isInteger(options.page)||options.page<1||options.page>10000||options.render!==undefined&&typeof options.render!=='boolean'||region!==undefined&&region!==null&&(!Array.isArray(region)||region.length!==4||region.some(n=>!Number.isFinite(n)||n<0||n>1)||region[2]<=0||region[3]<=0||region[0]+region[2]>1||region[1]+region[3]>1))throw Error('Invalid PDF parser options');
+   if(region)options.render=true;
+  }
   const dir=await mkdtemp(join(tmpdir(),'math-book-parser-'));
   try{
    const path=join(dir,'source.pdf');await writeFile(path,bytes,{mode:0o600});

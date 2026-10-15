@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {intakePdf,extractPdfPage,assessTextQuality} from '../src/book-ingestion/pdf.mjs';
+import {intakePdf,extractPdfPage,assessTextQuality,createLocalPdfParser} from '../src/book-ingestion/pdf.mjs';
 const scope={pages:[1,2],allowLocalProcessing:true,allowExternalProcessing:false,allowExcerpts:false,maxExcerptChars:0};
 const source=async(t,content='%PDF-1.4\nfixture')=>{const dir=await mkdtemp(join(tmpdir(),'book-pdf-'));t.after(()=>rm(dir,{recursive:true,force:true}));const path=join(dir,'source.pdf');await writeFile(path,content);return path};
 const parser={inspect:async()=>({pageCount:2}),extract:async(_,{page})=>({text:page===1?'A sufficiently readable mathematical definition with symbols and exact context.':'',method:'text',regions:[],references:[],image:null})};
@@ -38,4 +38,23 @@ test('operator-selected formula region and printed page are explicit pinned loca
  const region=[0.1,0.2,0.4,0.3],page=await extractPdfPage(book,1,{extractionVersion:'1',printedPage:'9',region,parser:{...parser,extract:async(bytes,args)=>{received=args;return parser.extract(bytes,args)}}});
  assert.deepEqual(page.locator.region,region);assert.equal(page.locator.printedPage,'9');assert.deepEqual(received.region,region);assert.equal(page.quality.needsVisualReview,true);
  await assert.rejects(extractPdfPage(book,1,{parser,extractionVersion:'1',region:[0.9,0,0.5,1]}));
+});
+
+test('focused regions request a rendered image and reject zero-area parser bounds',async t=>{
+ const book=await intakePdf({path:await source(t),edition:'E',version:'1',license:'private',scope,parser});let received;
+ await extractPdfPage(book,1,{extractionVersion:'1',region:[0,0,0.5,1],parser:{...parser,extract:async(bytes,args)=>{received=args;return parser.extract(bytes,args)}}});
+ assert.equal(received.render,true);
+ await assert.rejects(extractPdfPage(book,1,{extractionVersion:'1',parser:{...parser,extract:async()=>({...await parser.extract(null,{page:1}),regions:[{kind:'text',bounds:[0,0,0,0]}]})}}),/bounds/);
+});
+
+test('native parser rejects invalid page and region options before launching',async()=>{
+ const local=createLocalPdfParser({pythonPath:'this-executable-does-not-exist'});
+ for(const options of [{page:0},{page:1.5},{page:1,render:'yes'},{page:1,region:[0,0,2,1]}])
+  await assert.rejects(local.extract(Buffer.from('%PDF-1.4'),options),/options/);
+});
+
+test('intake snapshots processing permission before awaiting parser work',async t=>{
+ const mutableScope={...scope,pages:[1,2]};
+ const book=await intakePdf({path:await source(t),edition:'E',version:'1',license:'private',scope:mutableScope,parser:{...parser,inspect:async()=>{mutableScope.allowExternalProcessing=true;mutableScope.pages=[2];return {pageCount:2}}}});
+ assert.equal(book.scope.allowExternalProcessing,false);assert.deepEqual(book.scope.pages,[1,2]);
 });

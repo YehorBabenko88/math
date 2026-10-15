@@ -11,6 +11,48 @@ try:
 except ImportError:
     pass  # Windows deployment needs host-level memory/filesystem/network containment.
 
+def contains_raster(page):
+    from pypdf.generic import ContentStream
+    # Images may live inside nested Form XObjects. Bound traversal and detect cycles.
+    pending = [(page.get('/Resources', {}), 0, page.get_contents())]
+    visited = set()
+    budget = 200
+    content_bytes = 0
+    operation_count = 0
+    raster = False
+    while pending:
+        resources, depth, contents = pending.pop()
+        if depth > 32:
+            raise ValueError('Resource depth limit')
+        if contents is not None:
+            data = contents.get_data()
+            content_bytes += len(data)
+            if content_bytes > 4 * 1024**2:
+                raise ValueError('Content stream limit')
+            stream = ContentStream(contents, page.pdf)
+            operation_count += len(stream.operations)
+            if operation_count > 100000:
+                raise ValueError('Content operation limit')
+            if any(operator == b'INLINE IMAGE' for _, operator in stream.operations):
+                raster = True
+        resources = resources.get_object() if hasattr(resources, 'get_object') else resources
+        xobjects = resources.get('/XObject', {})
+        xobjects = xobjects.get_object() if hasattr(xobjects, 'get_object') else xobjects
+        for ref in xobjects.values():
+            budget -= 1
+            if budget < 0:
+                raise ValueError('Image resource limit')
+            obj = ref.get_object()
+            identity = id(obj)
+            if identity in visited:
+                continue
+            visited.add(identity)
+            if obj.get('/Subtype') == '/Image':
+                raster = True
+            elif obj.get('/Subtype') == '/Form':
+                pending.append((obj.get('/Resources', {}), depth + 1, obj))
+    return raster
+
 def main():
     import pypdf
     if tuple(int(x) for x in pypdf.__version__.split('.')[:3]) < (6, 20, 0):
@@ -68,13 +110,7 @@ def main():
         picture.save(output, format='PNG')
         image = base64.b64encode(output.getvalue()).decode('ascii')
         bitmap.close(); pdf_page.close(); document.close()
-    resources = page.get('/Resources', {})
-    resources = resources.get_object() if hasattr(resources, 'get_object') else resources
-    xobjects = resources.get('/XObject', {})
-    xobjects = xobjects.get_object() if hasattr(xobjects, 'get_object') else xobjects
-    if len(xobjects) > 200:
-        raise ValueError('Image resource limit')
-    raster = any(obj.get_object().get('/Subtype') == '/Image' for obj in xobjects.values())
+    raster = contains_raster(page)
     return {'text': text, 'method': 'text', 'regions': [], 'references': references, 'image': image, 'rasterPresent': raster}
 
 if __name__ == '__main__':
