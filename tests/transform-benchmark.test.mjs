@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {benchmarkTransformations} from '../src/transform-benchmark.mjs';
+const series=Array.from({length:92},(_,i)=>100+Math.sin(i*.2)*4+i*.01);
+test('benchmark compares models against persistence without future access',()=>{const r=benchmarkTransformations(series,{warmup:60,step:10,torusSteps:2});assert.equal(r.samples,4);assert.equal(r.protocol.forecastHorizon,1);assert.ok(Object.values(r.rmse).every(Number.isFinite));assert.equal(r.relativeToPersistence.persistence,0)});
+test('changing unseen future does not affect earlier comparison',()=>{const a=benchmarkTransformations(series,{warmup:60,step:20,torusSteps:1});const altered=series.slice();altered[altered.length-1]+=1000;const b=benchmarkTransformations(altered,{warmup:60,step:20,torusSteps:1});assert.deepEqual(a.rmse,b.rmse)});
+test('invalid settings rejected',()=>{assert.throws(()=>benchmarkTransformations(series,{warmup:92}));assert.throws(()=>benchmarkTransformations(series,{step:0}))});
