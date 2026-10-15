@@ -1,0 +1,56 @@
+name: PostgreSQL Integration
+
+on:
+  push:
+    branches: [feat/math-universe-foundation]
+    paths:
+      - 'src/ingestion-*.mjs'
+      - 'src/postgres-migrations.mjs'
+      - 'sql/**'
+      - 'tests/postgres-live.test.mjs'
+      - '.github/workflows/postgres-integration.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    paths:
+      - 'src/ingestion-*.mjs'
+      - 'src/postgres-migrations.mjs'
+      - 'sql/**'
+      - 'tests/postgres-live.test.mjs'
+      - '.github/workflows/postgres-integration.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: math_universe_test
+          POSTGRES_USER: math_test
+          POSTGRES_PASSWORD: math_test_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U math_test -d math_universe_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MATH_UNIVERSE_TEST_DATABASE_URL: postgres://math_test:math_test_ci_only@127.0.0.1:5432/math_universe_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated PostgreSQL client
+        run: npm install --no-save --package-lock=false pg@8.16.3
+      - name: Exercise real PostgreSQL queue and migrations
+        run: node --test tests/postgres-live.test.mjs
