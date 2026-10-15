@@ -1,7 +1,7 @@
 // Explicit, opt-in PostgreSQL migrations. Never invoked by service startup.
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-const migrations=['001_adapter_snapshots.sql','002_ingestion_jobs.sql'];
+const migrations=['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql'];
 export async function applyMathMigrations(pool,{readSql=async name=>readFile(fileURLToPath(new URL('../sql/'+name,import.meta.url)),'utf8')}={}){
  if(!pool||typeof pool.connect!=='function')throw Error('PostgreSQL pool with connect() required');
  const client=await pool.connect();
