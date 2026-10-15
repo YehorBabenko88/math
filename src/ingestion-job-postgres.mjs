@@ -34,6 +34,16 @@ FROM candidate WHERE job.job_id=candidate.job_id
 RETURNING job.job_id,job.kind,job.payload,job.attempts,job.lease_until`,[workerId,leaseSeconds]);
    return result.rows[0]??null;
   },
+  async renew({jobId,workerId,leaseSeconds=120}){
+   workerId=str(workerId,'worker id');
+   if(!Number.isSafeInteger(jobId)||jobId<1||!Number.isInteger(leaseSeconds)||leaseSeconds<10||leaseSeconds>3600)throw Error('Invalid lease renewal');
+   const res=await pool.query(
+    "UPDATE mu_ingestion_jobs SET lease_until=now()+($3::int*interval '1 second'),updated_at=now() WHERE job_id=$1 AND state='running' AND worker_id=$2 AND lease_until>now() RETURNING job_id,lease_until",
+    [jobId,workerId,leaseSeconds]
+   );
+   if(!res.rows.length)throw Error('Job lease expired or not owned');
+   return res.rows[0];
+  },
   async complete({jobId,workerId,result={}}){
    workerId=str(workerId,'worker id');
    if(!Number.isSafeInteger(jobId)||jobId<1||!result||typeof result!=='object'||Array.isArray(result))throw Error('Invalid completion');
