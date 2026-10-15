@@ -1,7 +1,8 @@
 import {createServer} from 'node:http';
 import {readFile,stat} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
-const root=resolve(new URL('../',import.meta.url).pathname);
+import {fileURLToPath} from 'node:url';
+const root=resolve(fileURLToPath(new URL('../',import.meta.url)));
 const port=Number(process.env.MATH_PORT??8787);
 const host=process.env.MATH_HOST??'127.0.0.1';
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('Invalid port');
