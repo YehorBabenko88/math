@@ -2,12 +2,12 @@ name: PostgreSQL Integration
 
 on:
   push:
-    branches: [feat/math-universe-foundation]
+    branches: [feat/math-universe-foundation, feat/book-knowledge-integration-review]
     paths:
       - 'src/ingestion-*.mjs'
       - 'src/postgres-migrations.mjs'
       - 'sql/**'
-      - 'tests/postgres-live.test.mjs'
+      - 'tests/postgres-*.test.mjs'
       - '.github/workflows/postgres-integration.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -16,7 +16,7 @@ on:
       - 'src/ingestion-*.mjs'
       - 'src/postgres-migrations.mjs'
       - 'sql/**'
-      - 'tests/postgres-live.test.mjs'
+      - 'tests/postgres-*.test.mjs'
       - '.github/workflows/postgres-integration.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -53,4 +53,4 @@ jobs:
       - name: Install isolated PostgreSQL client
         run: npm install --no-save --package-lock=false pg@8.16.3
       - name: Exercise real PostgreSQL queue and migrations
-        run: node --test tests/postgres-live.test.mjs
+        run: node --test tests/postgres-live.test.mjs tests/postgres-fencing-live.test.mjs
