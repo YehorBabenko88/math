@@ -1,10 +1,18 @@
-import {readFile,open,lstat} from 'node:fs/promises';
+import {open,lstat} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {intakePdf,createLocalPdfParser,extractPdfPage} from '../src/book-ingestion/pdf.mjs';
 import {openBookQueue} from '../src/book-ingestion/queue.mjs';
 import {makeCodexBookTask,createLocalCodexAdapter} from '../src/book-ingestion/codex.mjs';
 import {enqueueBookPages,runBookJob} from '../src/book-ingestion/worker.mjs';
-async function boundedFile(path,max){const info=await lstat(path);if(!info.isFile()||info.isSymbolicLink()||info.size>max)throw Error('Invalid local input');const bytes=await readFile(path);if(bytes.length>max)throw Error('Input too large');return bytes.toString('utf8')}
+async function boundedFile(path,max){
+ const info=await lstat(path);if(!info.isFile()||info.isSymbolicLink()||info.size>max)throw Error('Invalid local input');
+ const handle=await open(path,'r');try{
+  const current=await handle.stat();if(!current.isFile()||current.size>max||current.dev!==info.dev||current.ino!==info.ino)throw Error('Invalid local input');
+  const bytes=Buffer.alloc(max+1);let total=0;
+  while(total<bytes.length){const {bytesRead}=await handle.read(bytes,total,bytes.length-total,null);if(!bytesRead)break;total+=bytesRead}
+  if(total>max)throw Error('Input too large');return new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(0,total));
+ }finally{await handle.close()}
+}
 async function exclusive(path,data){const handle=await open(path,'wx',0o600);try{await handle.writeFile(data);await handle.sync()}finally{await handle.close()}}
 export async function runBookIngestion(args,{stdout=process.stdout}={}){
  const [command,...rest]=args,options={},allowed=['--queue','--pdf','--edition','--version','--license','--scope','--python','--extraction-version','--job','--output','--response','--worker'];
@@ -19,7 +27,9 @@ export async function runBookIngestion(args,{stdout=process.stdout}={}){
   const jobs=await enqueueBookPages(queue,book,{extractionVersion:options['--extraction-version']});summary={sourceHash:book.hash,pageCount:book.pageCount,jobs:jobs.map(j=>({id:j.id,state:j.state}))};
  }else if(command==='task'){
   required(['--job','--output','--python']);const job=await queue.get(options['--job']);if(!job)throw Error('Unknown job');
-  const page=await extractPdfPage(job.payload.book,job.page,{parser:createLocalPdfParser({pythonPath:options['--python']}),extractionVersion:job.extractionVersion,render:true,...job.payload.locator});
+  const locator=job.payload.locator??{};
+  if(!locator||typeof locator!=='object'||Array.isArray(locator)||Object.keys(locator).some(k=>!['region','printedPage'].includes(k)))throw Error('Invalid stored locator');
+  const page=await extractPdfPage(job.payload.book,job.page,{parser:createLocalPdfParser({pythonPath:options['--python']}),extractionVersion:job.extractionVersion,render:true,region:locator.region??null,printedPage:locator.printedPage??null});
   await exclusive(options['--output'],JSON.stringify(makeCodexBookTask(page,{requestId:job.id}))+'\n');summary={id:job.id,taskWritten:true};
  }else if(command==='run-one'){
   required(['--python','--response','--worker','--job']);const response=await boundedFile(options['--response'],256000);

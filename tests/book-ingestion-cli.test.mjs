@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {openBookQueue} from '../src/book-ingestion/queue.mjs';
@@ -15,4 +15,21 @@ test('queue CLI lists redacted metadata, writes exclusive backup and restores id
  const restored=join(dir,'restored');await runBookIngestion(['restore','--queue',restored,'--response',backup],{stdout});assert.equal((await (await openBookQueue({directory:restored})).enqueue(entry)).id,job.id);
  await assert.rejects(runBookIngestion(['run-one','--queue',qdir,'--python','python','--response',backup,'--worker','user'],{stdout}),/Required/);
  await assert.rejects(runBookIngestion(['list','--queue',qdir,'--unknown','secret'],{stdout}),/Invalid/);
+});
+
+test('restore rejects invalid UTF-8 without silently changing snapshot provenance',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'book-cli-utf8-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const queue=await openBookQueue({directory:join(dir,'source')});
+ await queue.enqueue({sourceHash:'a'.repeat(64),edition:'Edition',page:1,extractionVersion:'1',payload:{provenance:'CORRUPTED'}});
+ const raw=Buffer.from(JSON.stringify(await queue.exportSnapshot()));raw[raw.indexOf('CORRUPTED')]=255;
+ const backup=join(dir,'invalid.json');await writeFile(backup,raw);
+ await assert.rejects(runBookIngestion(['restore','--queue',join(dir,'target'),'--response',backup],{stdout:{write:()=>{}}}),/UTF|encoded|Invalid/);
+ assert.deepEqual(await (await openBookQueue({directory:join(dir,'target')})).list(),[]);
+});
+
+test('task export rejects persisted option injection before invoking a parser',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'book-cli-options-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const queue=await openBookQueue({directory:dir});
+ const job=await queue.enqueue({sourceHash:'a'.repeat(64),edition:'Edition',page:1,extractionVersion:'expected',payload:{book:{},locator:{extractionVersion:'forged'}}});
+ await assert.rejects(runBookIngestion(['task','--queue',dir,'--job',job.id,'--python','not-invoked','--output',join(dir,'task.json')],{stdout:{write:()=>{}}}),/Invalid stored locator/);
 });
