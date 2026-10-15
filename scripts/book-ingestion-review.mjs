@@ -37,6 +37,17 @@ export async function runBookReview(args,{stdout=process.stdout}={}){
    const {openBookQueue}=await import('../src/book-ingestion/queue.mjs');
    queue=await openBookQueue({directory:values['--queue']});const job=await queue.get(values['--job']);
    if(!job||job.state!=='completed'||job.result?.digest!==receipt.candidateDigest)throw Error('Completed queue job candidate digest mismatch');
+   // A stored digest is not evidence that the proposal belongs to this queue job.
+   const context={expectedSource:{...verified.candidate.source,hash64hex:job.sourceHash,edition:job.edition},expectedLocator:{...verified.candidate.locator,pdfPage1based:job.page},expectedExtractionVersion:job.extractionVersion};
+   if(job.payload?.book!==undefined){
+    const book=job.payload.book;
+    if(book.hash!==job.sourceHash||book.edition!==job.edition)throw Error('Queue Book source pin mismatch');
+    context.expectedSource={hash64hex:book.hash,edition:book.edition,version:book.version,license:book.license};
+    context.expectedLocator={pdfPage1based:job.page,printedPage:job.payload.locator?.printedPage??null,region:job.payload.locator?.region??null};
+   }
+   if(job.result.candidate!==undefined){context.expectedTextHash=job.result.candidate.extraction?.textHash64hex;context.expectedExtractionQuality=job.result.candidate.extraction?.quality;}
+   verifyCandidate(candidate,context);
+   if(job.result.candidate!==undefined&&verifyCandidate(job.result.candidate,context).digest!==receipt.candidateDigest)throw Error('Completed queue job candidate digest mismatch');
   }
   const file=await open(values['--output'],'wx',0o600);
   try{await file.writeFile(JSON.stringify(receipt)+'\n','utf8');await file.sync()}finally{await file.close()}
