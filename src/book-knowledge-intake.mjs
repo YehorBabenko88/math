@@ -19,7 +19,7 @@ export function createBookKnowledgeIntake(){
    if(stage==='approved'||stage==='rejected'){r.reviewer=bounded(reviewer,'reviewer',128);r.reviewNote=bounded(note,'review note',1000)}
    r.stage=stage;return structuredClone(r);
   },
-  list({stage}={}){if(stage&&!stages.has(stage))throw Error('Unknown stage');return [...records.values()].filter(r=>!stage||r.stage===stage).map(structuredClone)},
+  list({stage}={}){if(stage&&!stages.has(stage))throw Error('Unknown stage');return [...records.values()].filter(r=>!stage||r.stage===stage).map(record=>structuredClone(record))},
   exportJSON(){return JSON.stringify({schema:'math-universe-book-intake/v1',records:[...records.values()]})}
  });
 }
