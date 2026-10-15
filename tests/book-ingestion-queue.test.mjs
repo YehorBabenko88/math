@@ -10,6 +10,12 @@ import {once} from 'node:events';
 import {openBookQueue} from '../src/book-ingestion/queue.mjs';
 const input={sourceHash:'a'.repeat(64),edition:'Synthetic 2026',page:1,extractionVersion:'v1',payload:{documentId:'local-fixture'}};
 function directory(t){const d=mkdtempSync(join(tmpdir(),'math-book-queue-'));t.after(()=>rmSync(d,{recursive:true,force:true}));return d;}
+
+test('snapshot import enforces individual checkpoint and result bounds',async t=>{
+ const q=await openBookQueue({directory:directory(t)});await q.enqueue(input);const lease=await q.acquire({workerId:'x',leaseMs:10000});await q.complete(lease.id,lease.token,{result:{},metrics:{}});
+ const snapshot=await q.exportSnapshot(),target=await openBookQueue({directory:directory(t)});
+ for(const field of ['checkpoint','result']){const bad=structuredClone(snapshot);bad.jobs[0][field]={large:'x'.repeat(262144)};await assert.rejects(target.importSnapshot(bad),/Invalid queue state/);assert.deepEqual(await target.list(),[]);}
+});
 test('dedup persists original payload and completion across instances and restart',async t=>{
  const d=directory(t),a=await openBookQueue({directory:d}),b=await openBookQueue({directory:d});
  const [first,duplicate]=await Promise.all([a.enqueue(input),b.enqueue({...input,payload:{changed:true}})]);

@@ -62,12 +62,12 @@ function state(document,maxAttempts){
    assert(integer(j.createdAt,0,Number.MAX_SAFE_INTEGER)&&integer(j.updatedAt,j.createdAt,Number.MAX_SAFE_INTEGER));
    if(j.state==='leased'){assert(integer(j.attempts,1,maxAttempts)&&typeof j.token==='string'&&/^[a-f0-9]{64}$/.test(j.token)&&text(j.workerId,100)&&integer(j.leaseUntil,j.updatedAt+1,Number.MAX_SAFE_INTEGER));}
    else assert(j.token===undefined&&j.workerId===undefined&&j.leaseUntil===undefined);
-   if(j.state==='completed'){assert(j.attempts>0);plain(j.result);metrics(j.metrics);assert(j.errorCode===undefined);}
+   if(j.state==='completed'){assert(j.attempts>0);plain(j.result);json(j.result);metrics(j.metrics);assert(j.errorCode===undefined);}
    else assert(j.result===undefined&&j.metrics===undefined);
    if(j.state==='queued')assert(j.attempts<maxAttempts);
    if(j.state==='failed')assert(j.attempts>0&&j.errorCode!==undefined);
    if(j.errorCode!==undefined)assert(typeof j.errorCode==='string'&&/^[A-Z][A-Z0-9_]{0,63}$/.test(j.errorCode));
-   if(j.checkpoint!==undefined)plain(j.checkpoint);
+   if(j.checkpoint!==undefined){plain(j.checkpoint);json(j.checkpoint);}
   }
   return json(document,MAX_BYTES);
  }catch{throw Error('Invalid queue state');}

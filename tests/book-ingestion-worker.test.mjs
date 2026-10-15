@@ -68,3 +68,35 @@ test('interrupted after candidate checkpoint reuses verified suggestion on lease
  const attempt=await runBookJob({queue:interrupted,parser,adapter,workerId:'first'});assert.equal(attempt.state,'queued');
  const reopened=await openBookQueue({directory:join(dir,'queue')});const recovered=await runBookJob({queue:reopened,parser,adapter,workerId:'second'});assert.equal(recovered.state,'completed');assert.equal(calls,1);
 });
+
+test('duplicate page rejects a conflicting render or page-count policy',async t=>{
+ const {book,queue}=await setup(t);await enqueueBookPages(queue,book,{extractionVersion:'1'});
+ await assert.rejects(enqueueBookPages(queue,book,{extractionVersion:'1',render:true}),/Conflicting/);
+ await assert.rejects(enqueueBookPages(queue,{...book,pageCount:2},{extractionVersion:'1'}),/Conflicting/);
+});
+
+test('worker independently verifies fresh adapter output and contains malformed checkpoint metrics',async t=>{
+ const {book,queue}=await setup(t);const [job]=await enqueueBookPages(queue,book,{extractionVersion:'1'});
+ const result=await runBookJob({queue,parser,adapter:{extract:async page=>{const p=structuredClone(candidate({sourceData:page}));p.source.hash64hex='b'.repeat(64);return {candidate:p,digest:'a'.repeat(64),report:{status:'valid'},cost:0}}},workerId:'test'});
+ assert.equal(result.state,'failed');
+ const second=await setup(t);const [next]=await enqueueBookPages(second.queue,second.book,{extractionVersion:'1'}),lease=await second.queue.acquire({workerId:'old',leaseMs:60000});
+ await second.queue.checkpoint(next.id,lease.token,{metrics:{cost:-10,pagesAttempted:'private'}});await second.queue.fail(next.id,lease.token,{code:'INTERRUPTED'});
+ let calls=0;const rejected=await runBookJob({queue:second.queue,parser,adapter:{extract:()=>{calls++;throw Error('must not run')}},workerId:'test'});
+ assert.equal(rejected.state,'failed');assert.equal(calls,0);assert.equal((await queue.get(job.id)).state,'failed');
+});
+
+test('invalid explicit job IDs never acquire another job and null adapter errors fail safely',async t=>{
+ const {book,queue}=await setup(t);const [job]=await enqueueBookPages(queue,book,{extractionVersion:'1'});
+ await assert.rejects(runBookJob({queue,parser,adapter:{},workerId:'test',jobId:''}));assert.equal((await queue.get(job.id)).attempts,0);
+ const failed=await runBookJob({queue,parser,adapter:{extract:async()=>{throw null}},workerId:'test',jobId:job.id});
+ assert.equal(failed.state,'failed');assert.equal(failed.errorCode,'INGESTION_REJECTED');
+});
+
+test('restored locator data cannot override extraction policy or parser options',async t=>{
+ for(const locator of [{extractionVersion:'forged'},{render:true},{parser:{}},[]]){
+  const {book,queue}=await setup(t);let calls=0;
+  const job=await queue.enqueue({sourceHash:book.hash,edition:book.edition,page:1,extractionVersion:'expected',payload:{book,render:false,locator}});
+  const result=await runBookJob({queue,parser,adapter:createLocalCodexAdapter({extract:task=>{calls++;return candidate(task)}}),workerId:'test',jobId:job.id});
+  assert.equal(result.state,'failed');assert.equal(calls,0);
+ }
+});
