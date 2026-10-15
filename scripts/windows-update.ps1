@@ -72,9 +72,15 @@ Set-Location (Join-Path (Join-Path $root 'releases') $sha)
   if(!$healthy){throw 'Health check failed'}
   Write-Output "Activated $sha"
  }catch{
-  if($old -match '^[a-f0-9]{40}$'){
+  if($old -match '^[a-f0-9]{40}
+ }
+}finally{Pop-Location}
+){
    Set-Content -Path $active -Value $old -NoNewline
    & $nssm restart $service | Out-Null
+  }else{
+   Remove-Item -Path $active -ErrorAction SilentlyContinue
+   & $nssm stop $service | Out-Null
   }
   throw
  }
