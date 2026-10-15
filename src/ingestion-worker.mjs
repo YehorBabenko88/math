@@ -17,13 +17,14 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
   const job=await store.claim({workerId,leaseSeconds});
   if(!job)return false;
   const fn=Object.hasOwn(handlers,job.kind)?handlers[job.kind]:undefined;
+  const claimArgs=Object.hasOwn(job,'claim_token')?{claimToken:job.claim_token}:{};
   const abortController=new AbortController();
   let lostLease=false;
   let heartbeatInFlight=Promise.resolve();
   const timer=setInterval(()=>{
    heartbeatInFlight=heartbeatInFlight.then(async()=>{
     if(lostLease||abortController.signal.aborted)return;
-    try{await store.renew({jobId:job.job_id,workerId,leaseSeconds})}
+    try{await store.renew({jobId:job.job_id,workerId,leaseSeconds,...claimArgs})}
     catch(error){lostLease=true;abortController.abort();onError(error)}
    }).catch(error=>{lostLease=true;abortController.abort();onError(error)});
   },heartbeatMs);
@@ -35,13 +36,13 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
    clearInterval(timer);
    await heartbeatInFlight;
    if(lostLease)throw Error('Job lease renewal failed');
-   await store.complete({jobId:job.job_id,workerId,result:output});
+   await store.complete({jobId:job.job_id,workerId,result:output,...claimArgs});
   }catch(error){
    clearInterval(timer);
    abortController.abort();
    await heartbeatInFlight;
    if(lostLease){onError(error);return true}
-   try{await store.fail({jobId:job.job_id,workerId,error:String(error?.message??error).slice(0,1000)})}
+   try{await store.fail({jobId:job.job_id,workerId,error:String(error?.message??error).slice(0,1000),...claimArgs})}
    catch(failure){onError(failure)}
    onError(error);
   }finally{clearInterval(timer)}
