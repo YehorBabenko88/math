@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 const migrations=['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql'];
 // Lex statement boundaries without touching comments, strings or dollar-quoted
 // function bodies. These are trusted repository scripts, not arbitrary SQL input.
-function migrationBody(sql,name){
+export function migrationBody(sql,name){
  // UTF-8 files may begin with a BOM, which PostgreSQL does not accept as SQL whitespace.
  if(sql.charCodeAt(0)===0xFEFF)sql=sql.slice(1);
  const statements=[];let tokens=[];let start=-1;let i=0;
