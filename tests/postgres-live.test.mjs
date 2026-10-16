@@ -5,16 +5,19 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {applyMathMigrations} from '../src/postgres-migrations.mjs';
 import {createIngestionJobStore} from '../src/ingestion-job-postgres.mjs';
+import {createFencedIngestionJobStore} from '../src/ingestion-job-postgres-fenced.mjs';
+import {withIsolatedPostgres} from './helpers/postgres-isolation.mjs';
 
 const url=process.env.MATH_UNIVERSE_TEST_DATABASE_URL;
 test('real PostgreSQL: migrate, deduplicate, claim, renew, complete and recover expired lease',{skip:!url},async()=>{
- const {default:pg}=await import('pg');
- const pool=new pg.Pool({connectionString:url,max:4,connectionTimeoutMillis:5000});
- try{
+ await withIsolatedPostgres(url,async({pool})=>{
   // Deliberately refuse databases with existing application objects.
   const tables=await pool.query("SELECT tablename FROM pg_tables WHERE schemaname=current_schema() AND tablename LIKE 'mu_%'");
   assert.equal(tables.rows.length,0,'Test database must be empty of mu_* tables');
-  assert.deepEqual(await applyMathMigrations(pool),['001_adapter_snapshots.sql','002_ingestion_jobs.sql']);
+  const applied=await applyMathMigrations(pool);
+  assert.ok(applied.every(name=>['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql'].includes(name)));
+  const migrationRows=await pool.query('SELECT filename FROM mu_schema_migrations ORDER BY filename');
+  assert.deepEqual(migrationRows.rows.map(row=>row.filename),['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql']);
   assert.deepEqual(await applyMathMigrations(pool),[]);
   const q=createIngestionJobStore(pool);
   const sourceHash=randomUUID();
@@ -38,8 +41,5 @@ test('real PostgreSQL: migrate, deduplicate, claim, renew, complete and recover 
   assert.equal(recovered.attempts,2);
   await assert.rejects(q.complete({jobId:Number(crashed.job_id),workerId:'crashed'}),/expired or not owned/);
   await q.complete({jobId:Number(recovered.job_id),workerId:'recovered',result:{ok:true}});
- }finally{
-  // Disposable database is intentionally NOT dropped automatically.
-  await pool.end();
- }
+ });
 });
