@@ -90,3 +90,44 @@ test('worker passes fencing token on failed handler',async()=>{
  assert.equal(calls.length,1);
  assert.equal(calls[0].claimToken,token);
 });
+
+test('lease rejection at checkpoint or completion aborts without a stale failure transition',async()=>{
+ for(const stage of ['checkpoint','complete']){
+  const errors=[];let failures=0,completions=0,signal;
+  const lost=Object.assign(Error('lease no longer owned'),{code:'JOB_LEASE_LOST'});
+  const store={claim:async()=>({job_id:1,kind:'verify-candidate',payload:{},claim_token:token}),renew:async()=>{},checkpoint:async()=>{throw lost},complete:async()=>{completions++;throw lost},fail:async()=>{failures++}};
+  const worker=createIngestionWorker({store,workerId:'test',onError:e=>errors.push(e),handlers:{'verify-candidate':async(_,context)=>{signal=context.signal;if(stage==='checkpoint')await assert.rejects(context.saveCheckpoint({step:1}));return {}}}});
+  await worker.tick();assert.equal(signal.aborted,true);assert.equal(failures,0);assert.equal(completions,stage==='complete'?1:0);assert.ok(errors.includes(lost));
+ }
+});
+
+test('successful completion closes the handler AbortSignal',async()=>{
+ let signal;const store={claim:async()=>({job_id:1,kind:'verify-candidate',payload:{}}),renew:async()=>{},complete:async()=>{},fail:async()=>{}};
+ const worker=createIngestionWorker({store,workerId:'test',handlers:{'verify-candidate':async(_,context)=>{signal=context.signal;return {}}}});
+ await worker.tick();assert.equal(signal.aborted,true);
+});
+
+test('heartbeat loss drains an in-flight renewal and contains throwing error observers',async()=>{
+ let finishRenew,handlerDone;const handlerReady=new Promise(r=>{handlerDone=r});let finishHandler;
+ const handlerGate=new Promise(r=>{finishHandler=r});let terminalWrites=0,signal;
+ const store={claim:async()=>({job_id:1,kind:'verify-candidate',payload:{}}),renew:async()=>{handlerDone();await new Promise(r=>{finishRenew=r});throw Error('renew rejected')},complete:async()=>{terminalWrites++},fail:async()=>{terminalWrites++}};
+ const worker=createIngestionWorker({store,workerId:'test',heartbeatMs:100,onError:()=>{throw Error('observer failed')},handlers:{'verify-candidate':async(_,context)=>{signal=context.signal;await handlerGate;return {}}}});
+ const running=worker.tick();await handlerReady;finishHandler();await new Promise(r=>setImmediate(r));assert.equal(terminalWrites,0);finishRenew();await running;assert.equal(signal.aborted,true);assert.equal(terminalWrites,0);
+});
+
+test('failure-transition lease rejection leaves the handler signal aborted',async()=>{
+ let signal,failures=0;const errors=[];const lost=Object.assign(Error('lease rejected at fail'),{code:'JOB_LEASE_LOST'});
+ const store={claim:async()=>({job_id:1,kind:'verify-candidate',payload:{},claim_token:token}),renew:async()=>{},complete:async()=>assert.fail('must not complete'),fail:async()=>{failures++;throw lost}};
+ const worker=createIngestionWorker({store,workerId:'test',onError:e=>errors.push(e),handlers:{'verify-candidate':async(_,context)=>{signal=context.signal;throw Error('handler failed')}}});
+ await worker.tick();assert.equal(signal.aborted,true);assert.equal(failures,1);assert.ok(errors.includes(lost));
+});
+
+test('ignored checkpoint rejections and rejecting observers do not cause unhandled promises',()=>{
+ const moduleURL=new URL('../src/ingestion-worker.mjs',import.meta.url).href;
+ const source=`import {createIngestionWorker} from ${JSON.stringify(moduleURL)};
+ const store={claim:async()=>({job_id:1,kind:'verify-candidate',payload:{}}),renew:async()=>{},checkpoint:async()=>{throw Error('checkpoint failed')},complete:async()=>{throw Error('must not complete')},fail:async()=>{process.stdout.write('failed')}};
+ const worker=createIngestionWorker({store,workerId:'child',onError:async()=>{throw Error('observer rejected')},handlers:{'verify-candidate':async(_,context)=>{context.saveCheckpoint(null);context.saveCheckpoint({step:1});return {}}}});
+ await worker.tick();await new Promise(r=>setImmediate(r));`;
+ const child=spawnSync(process.execPath,['--unhandled-rejections=strict','--input-type=module','--eval',source],{encoding:'utf8',timeout:5000,windowsHide:true});
+ assert.equal(child.error,undefined);assert.equal(child.status,0,child.stderr);assert.equal(child.stdout,'failed');
+});

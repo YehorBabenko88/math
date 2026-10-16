@@ -15,6 +15,8 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
  if(!Number.isInteger(leaseSeconds)||leaseSeconds<10||leaseSeconds>3600)throw Error('Invalid lease duration');
  if(typeof store.renew!=='function')throw Error('Job store must support lease renewal');
  for(const [name,fn] of Object.entries(handlers))if(!allowed.has(name)||typeof fn!=='function')throw Error('Invalid job handler');
+ // Error observers must not turn background renewal into an unhandled rejection.
+ const reportError=error=>{try{Promise.resolve(onError(error)).catch(()=>{})}catch{}};
  let stopped=false;
  let active=0;
  const tasks=new Set();
@@ -23,11 +25,12 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
   const job=await store.claim({workerId,leaseSeconds});
   if(!job)return false;
   const jobId=typeof job.job_id==='string'&&/^[1-9]\d*$/.test(job.job_id)?Number(job.job_id):job.job_id;
-  if(!Number.isSafeInteger(jobId)||jobId<1){onError(Error('Invalid claimed job ID'));return true;}
+  if(!Number.isSafeInteger(jobId)||jobId<1){reportError(Error('Invalid claimed job ID'));return true;}
   const fn=Object.hasOwn(handlers,job.kind)?handlers[job.kind]:undefined;
   const claimArgs=Object.hasOwn(job,'claim_token')?{claimToken:job.claim_token}:{};
   const abortController=new AbortController();
   let lostLease=false,handlerCompleted=false;
+  const markLeaseLost=error=>{if(error?.code==='JOB_LEASE_LOST'){lostLease=true;abortController.abort();}};
   const checkpointWrites=new Set();let checkpointFailed=false,checkpointError;
   const settleCheckpoints=()=>Promise.allSettled([...checkpointWrites]);
   let heartbeatInFlight=Promise.resolve();
@@ -35,8 +38,8 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
    heartbeatInFlight=heartbeatInFlight.then(async()=>{
     if(lostLease||abortController.signal.aborted)return;
     try{await store.renew({jobId,workerId,leaseSeconds,...claimArgs})}
-    catch(error){lostLease=true;abortController.abort();onError(error)}
-   }).catch(error=>{lostLease=true;abortController.abort();onError(error)});
+    catch(error){lostLease=true;abortController.abort();reportError(error)}
+   }).catch(error=>{lostLease=true;abortController.abort();reportError(error)});
   },heartbeatMs);
   try{
    if(typeof fn!=='function')throw Error('No registered handler for job kind');
@@ -45,9 +48,12 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
      if(handlerCompleted||lostLease||abortController.signal.aborted)throw Error('Checkpoint requires an active job lease');
      if(typeof store.checkpoint!=='function')throw Error('Job store does not support checkpoints');
      const data=checkpointData(checkpoint);
-     const operation=Promise.resolve().then(()=>store.checkpoint({jobId,workerId,...claimArgs,checkpoint:data}));
+     const operation=Promise.resolve().then(()=>{
+      if(lostLease||abortController.signal.aborted)throw Error('Checkpoint requires an active job lease');
+      return store.checkpoint({jobId,workerId,...claimArgs,checkpoint:data});
+     });
      checkpointWrites.add(operation);
-     operation.then(()=>checkpointWrites.delete(operation),error=>{checkpointWrites.delete(operation);checkpointFailed=true;checkpointError=error});
+     operation.then(()=>checkpointWrites.delete(operation),error=>{checkpointWrites.delete(operation);checkpointFailed=true;checkpointError=error;markLeaseLost(error)});
      return operation;
     }catch(error){const rejected=Promise.reject(error);rejected.catch(()=>{});return rejected;}
    };
@@ -62,15 +68,16 @@ export function createIngestionWorker({store,handlers,workerId,concurrency=1,onE
    if(lostLease)throw Error('Job lease renewal failed');
    await store.complete({jobId,workerId,result:output,...claimArgs});
   }catch(error){
+   markLeaseLost(error);
    abortController.abort();
    await settleCheckpoints();
    clearInterval(timer);
    await heartbeatInFlight;
-   if(lostLease){onError(error);return true}
+   if(lostLease){reportError(error);return true}
    try{await store.fail({jobId,workerId,error:String(error?.message??error).slice(0,1000),...claimArgs})}
-   catch(failure){onError(failure)}
-   onError(error);
-  }finally{clearInterval(timer)}
+   catch(failure){markLeaseLost(failure);reportError(failure)}
+   reportError(error);
+  }finally{clearInterval(timer);abortController.abort()}
   return true;
  }
  async function tick(){
