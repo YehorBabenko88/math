@@ -1,12 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,rm,realpath,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join,dirname} from 'node:path';
 import {intakePdf,extractPdfPage,assessTextQuality,createLocalPdfParser} from '../src/book-ingestion/pdf.mjs';
 const scope={pages:[1,2],allowLocalProcessing:true,allowExternalProcessing:false,allowExcerpts:false,maxExcerptChars:0};
 const source=async(t,content='%PDF-1.4\nfixture')=>{const dir=await mkdtemp(join(tmpdir(),'book-pdf-'));t.after(()=>rm(dir,{recursive:true,force:true}));const path=join(dir,'source.pdf');await writeFile(path,content);return path};
 const parser={inspect:async()=>({pageCount:2}),extract:async(_,{page})=>({text:page===1?'A sufficiently readable mathematical definition with symbols and exact context.':'',method:'text',regions:[],references:[],image:null})};
+
+test('intake canonicalizes ordinary filesystem aliases including Windows DOS short names',async t=>{
+ const path=await source(t),book=await intakePdf({path,edition:'Edition',version:'1',license:'CC0 synthetic',scope,parser});
+ assert.equal(book.path,await realpath(path));
+});
+
+test('intake rejects symlink or junction ancestors even when the final file is regular',async t=>{
+ const path=await source(t),alias=join(dirname(path),'alias');
+ try{await symlink(dirname(path),alias,process.platform==='win32'?'junction':'dir')}catch(error){if(['EPERM','EACCES'].includes(error.code)){t.skip('Symlink creation privileges unavailable');return}throw error}
+ await assert.rejects(intakePdf({path:join(alias,'source.pdf'),edition:'Edition',version:'1',license:'CC0 synthetic',scope,parser}),/Invalid PDF/);
+});
 test('intake pins bytes/edition/scope; extraction preserves 1-based PDF page and quality',async t=>{
  const path=await source(t),book=await intakePdf({path,edition:'Edition 1',version:'scan-1',license:'user-owned',scope,parser});
  assert.match(book.hash,/^[a-f0-9]{64}$/);assert.equal(book.pageCount,2);

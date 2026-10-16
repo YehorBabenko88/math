@@ -1,6 +1,6 @@
 import {readFile,stat,lstat,realpath,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve} from 'node:path';
+import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {safeJson,freezeJson,sha256} from './json.mjs';
@@ -11,9 +11,13 @@ function checkScope(scope,pageCount){
 }
 async function bytesAt(path){
  if(typeof path!=='string'||path.length>2048||path.includes('\0')||/^\w+:\/\//.test(path))throw Error('Local PDF path required');
- const absolute=resolve(path),actual=await realpath(absolute),info=await lstat(absolute);
- if(info.isSymbolicLink()||actual.toLowerCase()!==absolute.toLowerCase()||!info.isFile()||info.size<8||info.size>MAX_PDF)throw Error('Invalid PDF file or size');
- const bytes=await readFile(absolute);if(bytes.length>MAX_PDF||!bytes.subarray(0,1024).includes(Buffer.from('%PDF-')))throw Error('Invalid PDF header');return {path:absolute,bytes};
+ const absolute=resolve(path),info=await lstat(absolute);
+ if(!info.isFile()||info.size<8||info.size>MAX_PDF)throw Error('Invalid PDF file or size');
+ // String inequality is not a link test on Windows: ADMINI~1 and Administrator
+ // may identify the same ordinary directory. Inspect every ancestor instead.
+ for(let current=absolute;;){if((await lstat(current)).isSymbolicLink())throw Error('Invalid PDF linked path');const parent=dirname(current);if(parent===current)break;current=parent;}
+ const actual=await realpath(absolute);
+ const bytes=await readFile(actual);if(bytes.length>MAX_PDF||!bytes.subarray(0,1024).includes(Buffer.from('%PDF-')))throw Error('Invalid PDF header');return {path:actual,bytes};
 }
 export function assessTextQuality(value,method='text'){
  if(typeof value!=='string'||value.length>100000||!['text','ocr','visual'].includes(method))throw Error('Invalid extracted text');
