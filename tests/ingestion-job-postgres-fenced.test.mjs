@@ -69,3 +69,61 @@ test('checkpoint serializes the exact 256 KiB boundary and rejects unsafe return
  const unsafe=createFencedIngestionJobStore({async query(){return {rows:[{job_id:'9007199254740992'}]}}});
  await assert.rejects(unsafe.claim({workerId:'same'}),/job id/);
 });
+
+test('complete rejects non-inert and oversized results without executing hooks or querying',async()=>{
+ let queries=0,touched=0;
+ const store=createFencedIngestionJobStore({async query(){queries++;return {rows:[{job_id:'1'}]}}});
+ const getter=Object.defineProperty({},'secret',{enumerable:true,get(){touched++;return 'secret'}});
+ const hook={toJSON(){touched++;return {}}};
+ const cyclic={};cyclic.self=cyclic;
+ let deep={};for(let i=0;i<30;i++)deep={next:deep};
+ for(const result of [getter,hook,{bad:NaN},{bad:Infinity},{bad:undefined},{bad:1n},{bad:()=>{}},{bad:new Date()},cyclic,deep,{huge:'x'.repeat(256*1024)}]){
+  await assert.rejects(store.complete({jobId:1,workerId:'same',claimToken:fresh,result}),/result|JSON/i);
+ }
+ assert.equal(touched,0);assert.equal(queries,0);
+});
+
+test('complete serializes inert results at the exact byte limit',async()=>{
+ let encoded;
+ const store=createFencedIngestionJobStore({async query(_sql,args){encoded=args[3];return {rows:[{job_id:'1'}]}}});
+ const result={x:'x'.repeat(256*1024-8)};
+ assert.deepEqual(await store.complete({jobId:1,workerId:'same',claimToken:fresh,result}),{job_id:1});
+ assert.equal(Buffer.byteLength(encoded),256*1024);assert.deepEqual(JSON.parse(encoded),result);
+});
+
+test('fenced mutations distinguish lost ownership from database failures',async()=>{
+ const missing=createFencedIngestionJobStore({async query(){return {rows:[]}}});
+ const databaseError=Object.assign(Error('database unavailable'),{code:'08006'});
+ const unavailable=createFencedIngestionJobStore({async query(){throw databaseError}});
+ const input={jobId:1,workerId:'same',claimToken:fresh,checkpoint:{},error:'FAILED'};
+ for(const method of ['renew','checkpoint','complete','fail']){
+  await assert.rejects(missing[method](input),error=>error.code==='JOB_LEASE_LOST'&&/expired or not owned/.test(error.message));
+  await assert.rejects(unavailable[method](input),error=>error===databaseError);
+ }
+ await assert.rejects(unavailable.claim({workerId:'same'}),error=>error===databaseError);
+});
+
+test('JSON validation rejects proxies before executing reflective traps',async()=>{
+ let touched=0,queries=0;
+ const store=createFencedIngestionJobStore({async query(){queries++;return {rows:[{job_id:'1'}]}}});
+ const proxy=new Proxy({value:1},{getPrototypeOf(){touched++;return Object.prototype},ownKeys(){touched++;return ['value']}});
+ for(const method of ['checkpoint','complete']){
+  const input={jobId:1,workerId:'same',claimToken:fresh};
+  input[method==='checkpoint'?'checkpoint':'result']={nested:proxy};
+  await assert.rejects(store[method](input),/JSON/);
+ }
+ assert.equal(touched,0);assert.equal(queries,0);
+});
+
+test('claim excludes unsupported bigint IDs from both cleanup and acquisition before mutation',async()=>{
+ let calls=0;
+ const store=createFencedIngestionJobStore({async query(sql){
+  calls++;
+  const cleanup=sql.slice(sql.indexOf('WITH exhausted AS ('),sql.indexOf('), candidate AS ('));
+  const candidate=sql.slice(sql.indexOf('), candidate AS ('),sql.indexOf('UPDATE mu_ingestion_jobs AS job'));
+  for(const selection of [cleanup,candidate])assert.match(selection,/job_id BETWEEN 1 AND 9007199254740991/);
+  return {rows:[]};
+ }});
+ assert.equal(await store.claim({workerId:'same'}),null);
+ assert.equal(calls,1);
+});
