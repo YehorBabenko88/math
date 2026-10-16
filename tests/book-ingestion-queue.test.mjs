@@ -11,6 +11,27 @@ import {openBookQueue} from '../src/book-ingestion/queue.mjs';
 const input={sourceHash:'a'.repeat(64),edition:'Synthetic 2026',page:1,extractionVersion:'v1',payload:{documentId:'local-fixture'}};
 function directory(t){const d=mkdtempSync(join(tmpdir(),'math-book-queue-'));t.after(()=>rmSync(d,{recursive:true,force:true}));return d;}
 
+test('queue rejects sparse arrays disguised with non-index numeric properties without data loss',async t=>{
+ const q=await openBookQueue({directory:directory(t)}),values=[1];values.length=2;values[4294967295]='extra';
+ await assert.rejects(q.enqueue({...input,payload:{values}}));assert.deepEqual(await q.list(),[]);
+ const job=await q.enqueue(input),lease=await q.acquire({workerId:'test',leaseMs:10000});
+ await assert.rejects(q.checkpoint(job.id,lease.token,{values}));assert.equal((await q.get(job.id)).checkpoint,undefined);
+ await assert.rejects(q.complete(job.id,lease.token,{result:{values},metrics:{}}));assert.equal((await q.get(job.id)).state,'leased');
+});
+
+test('renew preserves acquisition identity and checkpoint, rejects exact expiry and stale reclaimed token',async t=>{
+ let time=100;const d=directory(t),q=await openBookQueue({directory:d,now:()=>time});const job=await q.enqueue(input),first=await q.acquire({workerId:'same',leaseMs:10});
+ await q.checkpoint(job.id,first.token,{stage:'parsed'});time=105;
+ const renewed=await q.renew(job.id,first.token,{leaseMs:20});assert.equal(renewed.leaseUntil,125);assert.equal(renewed.token,first.token);assert.equal(renewed.attempts,1);assert.deepEqual(renewed.checkpoint,{stage:'parsed'});
+ const reopened=await openBookQueue({directory:d,now:()=>time});assert.deepEqual(await reopened.get(job.id),renewed);
+ for(const leaseMs of [0,86400001,1.5])await assert.rejects(q.renew(job.id,first.token,{leaseMs}));
+ await assert.rejects(q.renew(job.id,'f'.repeat(64),{leaseMs:20}),/Lease rejected/);
+ time=125;await assert.rejects(q.renew(job.id,first.token,{leaseMs:20}),/Lease rejected/);
+ const next=await q.acquire({workerId:'same',leaseMs:20});assert.notEqual(next.token,first.token);assert.equal(next.attempts,2);assert.deepEqual(next.checkpoint,{stage:'parsed'});
+ await assert.rejects(q.renew(job.id,first.token,{leaseMs:20}),/Lease rejected/);await q.complete(job.id,next.token,{result:{},metrics:{}});
+ await assert.rejects(q.renew(job.id,next.token,{leaseMs:20}),/Lease rejected/);
+});
+
 test('snapshot import enforces individual checkpoint and result bounds',async t=>{
  const q=await openBookQueue({directory:directory(t)});await q.enqueue(input);const lease=await q.acquire({workerId:'x',leaseMs:10000});await q.complete(lease.id,lease.token,{result:{},metrics:{}});
  const snapshot=await q.exportSnapshot(),target=await openBookQueue({directory:directory(t)});

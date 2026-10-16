@@ -14,7 +14,7 @@ export function safeJson(input,{maxBytes=2_000_000}={}){
   const keys=Reflect.ownKeys(value);
   if(array&&(keys.length!==value.length+1||!keys.includes('length')))throw Error('Dense JSON array required');
   for(const key of keys){if(array&&key==='length')continue;
-   if(typeof key!=='string'||['__proto__','constructor','prototype'].includes(key)||array&&!/^(0|[1-9]\d*)$/.test(key))throw Error('Invalid JSON key');
+   if(typeof key!=='string'||['__proto__','constructor','prototype'].includes(key)||array&&(!/^(0|[1-9]\d*)$/.test(key)||Number(key)>=value.length))throw Error('Invalid JSON key');
    const descriptor=Object.getOwnPropertyDescriptor(value,key);if(!Object.hasOwn(descriptor,'value'))throw Error('JSON accessors forbidden');
    result[key]=visit(descriptor.value,depth+1);
   }active.delete(value);return result;

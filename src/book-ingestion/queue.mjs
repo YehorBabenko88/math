@@ -30,7 +30,7 @@ function json(value,maxBytes=262144){
    bytes+=Buffer.byteLength(name);assert(bytes<=maxBytes);
    const d=descriptors[name];assert(Object.hasOwn(d,'value'));
    if(array&&name==='length')continue;
-   assert(d.enumerable&&(!array||/^(0|[1-9]\d*)$/.test(name)));
+   assert(d.enumerable&&(!array||/^(0|[1-9]\d*)$/.test(name)&&Number(name)<v.length));
    visit(d.value,depth+1);
   }
   seen.delete(v);
@@ -135,6 +135,7 @@ export async function openBookQueue(options={}){
  return {
   async enqueue(input){const data=json(input,70000);object(data,['sourceHash','edition','page','extractionVersion','payload']);source(data);return transaction((d,time)=>{const id=key(data),old=d.jobs.find(j=>j.id===id);if(old)return old;assert(d.jobs.length<MAX_JOBS,'Queue capacity reached');const job={...data,id,state:'queued',attempts:0,createdAt:time,updatedAt:time};d.jobs.push(job);return job;});},
   async acquire(options){const opts=json(options);object(opts,['workerId','leaseMs','jobId']);assert(text(opts.workerId,100)&&integer(opts.leaseMs,1,86400000));if(Object.hasOwn(opts,'jobId'))assert(typeof opts.jobId==='string'&&/^[a-f0-9]{64}$/.test(opts.jobId));return transaction((d,time)=>{recover(d.jobs,time,maxAttempts);const j=d.jobs.find(j=>j.state==='queued'&&(opts.jobId===undefined||j.id===opts.jobId));if(!j)return null;Object.assign(j,{state:'leased',attempts:j.attempts+1,token:randomBytes(32).toString('hex'),workerId:opts.workerId,leaseUntil:time+opts.leaseMs,updatedAt:Math.max(time,j.updatedAt)});return j;});},
+  async renew(id,token,options){const opts=json(options);object(opts,['leaseMs']);assert(integer(opts.leaseMs,1,86400000));return transaction((d,time)=>{const j=fenced(d,id,token,time);j.leaseUntil=time+opts.leaseMs;j.updatedAt=Math.max(time,j.updatedAt);return j;});},
   async checkpoint(id,token,data){const checkpoint=json(data);plain(checkpoint);return transaction((d,time)=>{const j=fenced(d,id,token,time);j.checkpoint=checkpoint;j.updatedAt=Math.max(time,j.updatedAt);return j;});},
   async complete(id,token,data){const input=json(data);object(input,['result','metrics']);plain(input.result);metrics(input.metrics);return transaction((d,time)=>{const j=fenced(d,id,token,time);Object.assign(j,{state:'completed',result:input.result,metrics:input.metrics,updatedAt:Math.max(time,j.updatedAt)});clearLease(j);delete j.errorCode;return j;});},
   async fail(id,token,options){const opts=json(options);object(opts,['code','retryable']);assert(typeof opts.code==='string'&&/^[A-Z][A-Z0-9_]{0,63}$/.test(opts.code)&&(opts.retryable===undefined||typeof opts.retryable==='boolean'));return transaction((d,time)=>{const j=fenced(d,id,token,time);Object.assign(j,{state:opts.retryable!==false&&j.attempts<maxAttempts?'queued':'failed',errorCode:opts.code,updatedAt:Math.max(time,j.updatedAt)});clearLease(j);return j;});},
