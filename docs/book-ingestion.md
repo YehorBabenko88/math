@@ -45,7 +45,7 @@ Only reviewed candidates can produce graph patches through the injected transact
 
 The bounded SQLite pilot persists leases, fenced tokens, attempts, checkpoints, results, numeric metrics and reviews. Recovery rejects expired tokens and reuses a validated candidate checkpoint. A crash during a remote call before checkpoint persistence can repeat that call; the transport must enforce its stable idempotency key. Unknown remote costs are marked unknown, never assumed zero. Work is at least once, with idempotent completed-job and graph-import guards.
 
-Use the async queue repository interface as the migration boundary. Export a validated snapshot, stop writers, import into an empty destination, invalidate old leases and verify counts/digests before switching. A PostgreSQL implementation should use a unique job ID, row transactions, `FOR UPDATE SKIP LOCKED`, server-time lease expiry and token-fenced updates; it must pass the same contract tests. It is not implemented or connected in this change. SQLite is limited to one host, 1,000 jobs and 8 MiB of state; no lease renewal or multi-host operation is provided.
+Use the async queue repository interface as the migration boundary. Export a validated snapshot, stop writers, import into an empty destination, invalidate old leases and verify counts/digests before switching. The separate fenced PostgreSQL queue now supports checkpoints and lease renewal; it still does not implement the full Book store contract or a reviewed migration bridge. Do not substitute it for the SQLite repository. SQLite is limited to one host, 1,000 jobs and 8 MiB of state; fenced manual renewal is available, but multi-host operation is unsupported. See [common lease contract](book-postgres-lease-contract.md).
 
 ## Tests
 

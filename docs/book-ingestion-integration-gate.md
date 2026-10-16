@@ -1,5 +1,7 @@
 # Book ingestion integration gate — 2026-10-15
 
+Update 2026-10-16: the histories are now merged on the separate local `feat/book-postgres-integration-test` branch. [Current audit](book-postgres-integration.md) documents the lease contract, fenced checkpoints, tests and remaining substitution gate. The baseline and pending-stage list below are the original review record, not the current implementation status.
+
 ## Inputs and baseline
 - Baseline: `feat/math-universe-foundation` at `18e50d855bd3be4bc50da8062f346b8026d01655`.
 - Codex deliverables received separately: `book-ingestion.bundle`, `book-ingestion.patch`, `book-ingestion-source.zip`. Bundle head `5eee980951fc33f3fd0396250f24e52b350fd1aa`.

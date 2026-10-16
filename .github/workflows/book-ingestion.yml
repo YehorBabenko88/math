@@ -2,7 +2,7 @@ name: Book Ingestion Native PDF
 
 on:
   push:
-    branches: [feat/book-knowledge-ingestion]
+    branches: [feat/book-knowledge-ingestion, feat/book-postgres-integration-test]
     paths:
       - 'src/book-ingestion/**'
       - 'scripts/book-ingestion*'
