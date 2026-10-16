@@ -44,3 +44,58 @@ test('migration failure rolls back and releases client',async()=>{
  await assert.rejects(applyMathMigrations({async connect(){return client}},{readSql:async()=> 'BEGIN; CREATE TABLE broken; COMMIT;'}),/invalid sql/);
  assert.ok(calls.includes('ROLLBACK'));assert.equal(released,true);
 });
+
+test('wrapper removal preserves nested comments, BOM and quoted transaction text',async()=>{
+ const script='\uFEFF/* outer /* nested */ header */ BEGIN;\nCREATE FUNCTION sample() RETURNS text AS $fn$ BEGIN RETURN \'COMMIT;\'; END $fn$ LANGUAGE plpgsql;\nCOMMIT; -- misleading COMMIT;\n/* footer COMMIT; */';
+ const bodies=[];
+ const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.includes('CREATE FUNCTION'))bodies.push(sql);return {rows:[]}},release(){}};
+ await applyMathMigrations({async connect(){return client}},{readSql:async()=>script});
+ assert.equal(bodies.length,4);
+ for(const body of bodies){assert.equal(body.startsWith('\uFEFF'),false);assert.ok(body.includes('/* outer /* nested */ header */'));assert.ok(body.includes("$fn$ BEGIN RETURN 'COMMIT;'; END $fn$"));assert.ok(body.includes('/* footer COMMIT; */'));assert.doesNotMatch(body,/header \*\/ BEGIN;/);assert.doesNotMatch(body,/\nCOMMIT;/)}
+});
+
+test('extra transaction commands are rejected before script execution',async()=>{
+ for(const command of ['COMMIT','ROLLBACK','END','ABORT','START TRANSACTION','PREPARE TRANSACTION \'escape\'']){
+  const calls=[];
+  const client={async query(sql){calls.push(sql);return {rows:[]}},release(){}};
+  await assert.rejects(applyMathMigrations({async connect(){return client}},{readSql:async()=>`BEGIN; CREATE TABLE example(id int); ${command}; SELECT 1; COMMIT;`}),/transaction control/i);
+  assert.equal(calls.some(sql=>sql.includes('CREATE TABLE example')),false);assert.equal(calls.at(-1),'ROLLBACK');
+ }
+});
+
+test('comment-only COMMIT is preserved and never treated as a wrapper',async()=>{
+ const script="SELECT 'COMMIT;', E'escaped\\\' COMMIT;', \"COMMIT;\"; -- COMMIT;\n/* nested /* COMMIT; */ COMMIT; */";
+ const bodies=[];const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.startsWith('SELECT \'COMMIT;'))bodies.push(sql);return {rows:[]}},release(){}};
+ await applyMathMigrations({async connect(){return client}},{readSql:async()=>script});
+ assert.deepEqual(bodies,[script,script,script,script]);
+});
+
+test('unmatched wrappers and malformed lexical constructs fail closed',async()=>{
+ for(const script of ['BEGIN; SELECT 1;', 'SELECT 1; COMMIT;', 'BEGIN; COMMIT; COMMIT;', "SELECT 'unfinished", '/* unfinished', 'SELECT $fn$unfinished']){
+  const calls=[];const client={async query(sql){calls.push(sql);return {rows:[]}},release(){}};
+  await assert.rejects(applyMathMigrations({async connect(){return client}},{readSql:async()=>script}),/transaction control|Unterminated migration/);
+  assert.equal(calls.at(-1),'ROLLBACK');assert.equal(calls.includes(script),false);
+ }
+});
+
+test('rollback failure preserves original error and discards the client',async()=>{
+ const original=Error('migration failed');const rollback=Error('connection lost');const released=[];
+ const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql==='ROLLBACK')throw rollback;if(sql.includes('CREATE TABLE broken'))throw original;return {rows:[]}},release(error){released.push(error)}};
+ await assert.rejects(applyMathMigrations({async connect(){return client}},{readSql:async()=> 'BEGIN; CREATE TABLE broken; COMMIT;'}),error=>error===original);
+ assert.deepEqual(released,[rollback]);
+});
+
+test('successful rollback preserves original error and releases normally',async()=>{
+ const original=Error('migration failed');const released=[];
+ const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.includes('CREATE TABLE broken'))throw original;return {rows:[]}},release(error){released.push(error)}};
+ await assert.rejects(applyMathMigrations({async connect(){return client}},{readSql:async()=> 'BEGIN; CREATE TABLE broken; COMMIT;'}),error=>error===original);
+ assert.deepEqual(released,[undefined]);
+});
+
+
+test('leading BOM is removed while quoted BOM content is preserved',async()=>{
+ const script="\uFEFFSELECT '\uFEFF';";const bodies=[];
+ const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.includes("SELECT '\uFEFF'"))bodies.push(sql);return {rows:[]}},release(){}};
+ await applyMathMigrations({async connect(){return client}},{readSql:async()=>script});
+ assert.deepEqual(bodies,Array(4).fill("SELECT '\uFEFF';"));
+});
