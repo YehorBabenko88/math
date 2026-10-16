@@ -30,3 +30,42 @@ test('missing claim token fails before database access',async()=>{
  const store=createFencedIngestionJobStore({async query(){throw Error('must not query')}});
  await assert.rejects(store.complete({jobId:1,workerId:'same',result:{}}),/claim token/);
 });
+
+test('claim returns checkpoint and owner, isolates optional job and recovers exact-expiry exhausted leases',async()=>{
+ const calls=[];const store=createFencedIngestionJobStore({async query(sql,args){calls.push({sql,args});return {rows:[{job_id:'42',worker_id:'worker',checkpoint:{stage:'candidate'},claim_token:args[2]}]}}});
+ const job=await store.claim({workerId:'worker',jobId:42});
+ assert.equal(job.job_id,42);assert.equal(job.worker_id,'worker');assert.deepEqual(job.checkpoint,{stage:'candidate'});
+ const {sql,args}=calls[0];assert.equal(args[3],42);assert.match(sql,/\$4::bigint/);assert.match(sql,/lease_until<=now\(\)/);assert.match(sql,/attempts>=max_attempts/);assert.match(sql,/state='failed'/);assert.match(sql,/claim_token=NULL/);assert.match(sql,/worker_id=NULL/);assert.match(sql,/lease_until=NULL/);assert.match(sql,/RETURNING[\s\S]*job\.checkpoint/);assert.match(sql,/RETURNING[\s\S]*job\.worker_id/);
+ await store.claim({workerId:'worker'});assert.equal(calls[1].args[3],null);
+ for(const jobId of [0,-1,1.5,'42',Number.MAX_SAFE_INTEGER+1,null])await assert.rejects(store.claim({workerId:'worker',jobId}),/job id/);
+ assert.equal(calls.length,2);
+});
+
+test('checkpoint uses owner token and unexpired running lease fences and normalizes bigint result',async()=>{
+ const calls=[];const store=createFencedIngestionJobStore({async query(sql,args){calls.push({sql,args});return {rows:args[2]===fresh?[{job_id:'42',checkpoint:JSON.parse(args[3])}]:[]}}});
+ await assert.rejects(store.checkpoint({jobId:42,workerId:'same',claimToken:old,checkpoint:{stage:'candidate'}}),/expired or not owned/);
+ const value=await store.checkpoint({jobId:42,workerId:'same',claimToken:fresh,checkpoint:{stage:'candidate',nested:[1,true,null]}});
+ assert.equal(value.job_id,42);assert.equal(value.checkpoint.stage,'candidate');
+ for(const {sql,args} of calls){assert.match(sql,/checkpoint=\$4::jsonb/);assert.match(sql,/job_id=\$1/);assert.match(sql,/worker_id=\$2/);assert.match(sql,/claim_token=\$3::uuid/);assert.match(sql,/state='running'/);assert.match(sql,/lease_until>now\(\)/);assert.equal(args[0],42)}
+});
+
+test('checkpoint rejects non-inert, oversized and malformed JSON before database access',async()=>{
+ let queries=0,touched=0;const store=createFencedIngestionJobStore({async query(){queries++;throw Error('must not query')}});
+ const cyclic={};cyclic.self=cyclic;
+ const getter=Object.defineProperty({},'secret',{enumerable:true,get(){touched++;return 'secret'}});
+ const hook={toJSON(){touched++;return {}}};
+ const sparse=[];sparse.length=2;
+ const disguisedSparse=[1];disguisedSparse.length=2;disguisedSparse[4294967295]=2;
+ let deep={};for(let i=0;i<30;i++)deep={next:deep};
+ for(const checkpoint of [null,[],1,'{}',undefined,{bad:NaN},{bad:Infinity},{bad:1n},{bad:undefined},{bad:()=>{}},{bad:Symbol('x')},{bad:new Date()},getter,hook,cyclic,{sparse},{disguisedSparse},deep,{huge:'x'.repeat(256*1024)},{escape:'\u0000'.repeat(50000)}]){
+  await assert.rejects(store.checkpoint({jobId:1,workerId:'same',claimToken:fresh,checkpoint}),/checkpoint|JSON/i);
+ }
+ assert.equal(touched,0);assert.equal(queries,0);
+});
+
+test('checkpoint serializes the exact 256 KiB boundary and rejects unsafe returned bigint IDs',async()=>{
+ const store=createFencedIngestionJobStore({async query(_sql,args){assert.equal(Buffer.byteLength(args[3]),256*1024);return {rows:[{job_id:'1'}]}}});
+ await store.checkpoint({jobId:1,workerId:'same',claimToken:fresh,checkpoint:{x:'x'.repeat(256*1024-8)}});
+ const unsafe=createFencedIngestionJobStore({async query(){return {rows:[{job_id:'9007199254740992'}]}}});
+ await assert.rejects(unsafe.claim({workerId:'same'}),/job id/);
+});

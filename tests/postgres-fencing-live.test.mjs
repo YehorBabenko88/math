@@ -6,13 +6,11 @@ import {randomUUID} from 'node:crypto';
 import {applyMathMigrations} from '../src/postgres-migrations.mjs';
 import {createIngestionJobStore} from '../src/ingestion-job-postgres.mjs';
 import {createFencedIngestionJobStore} from '../src/ingestion-job-postgres-fenced.mjs';
+import {withIsolatedPostgres} from './helpers/postgres-isolation.mjs';
 const url=process.env.MATH_UNIVERSE_TEST_DATABASE_URL;
 test('real PostgreSQL: same worker cannot finalize stale claim after reclaim',{skip:!url},async()=>{
- const {default:pg}=await import('pg');
- const pool=new pg.Pool({connectionString:url,max:3,connectionTimeoutMillis:5000});
- try{
-  // The existing smoke test and this test share the same database in CI.
-  // Migration runner is serialized via advisory lock and is idempotent.
+ await withIsolatedPostgres(url,async({pool})=>{
+  // Each live test owns a schema; simultaneous claims cannot steal other jobs.
   await applyMathMigrations(pool);
   const q=createIngestionJobStore(pool), fenced=createFencedIngestionJobStore(pool);
   const sourceHash=randomUUID();
@@ -32,5 +30,5 @@ test('real PostgreSQL: same worker cannot finalize stale claim after reclaim',{s
   const result=await pool.query('SELECT state,result FROM mu_ingestion_jobs WHERE job_id=$1',[second.job_id]);
   assert.equal(result.rows[0].state,'completed');
   assert.deepEqual(result.rows[0].result,{accepted:true});
- }finally{await pool.end()}
+ });
 });
