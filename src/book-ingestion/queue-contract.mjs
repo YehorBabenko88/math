@@ -93,4 +93,6 @@ export function createBookQueueAPI({transaction,maxAttempts}){
 export function validateBookSnapshot(input,maxAttempts){
  try{if(typeof input==='string')assert(Buffer.byteLength(input)<=MAX_BYTES);return state(json(typeof input==='string'?JSON.parse(input):input,MAX_BYTES),maxAttempts)}catch{throw Error('Invalid queue state')}
 }
+// Match SQLite load's ORDER BY createdAt,id, including equal-clock jobs.
+export function orderBookJobs(jobs){return jobs.sort((a,b)=>a.createdAt-b.createdAt||(a.id<b.id?-1:a.id>b.id?1:0));}
 export {json,state,recover,assert,integer,reviewReceipt};

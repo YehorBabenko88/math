@@ -13,16 +13,16 @@ import {planBookTransfer,applyBookTransfer} from '../src/book-ingestion/postgres
 const url=process.env.MATH_UNIVERSE_TEST_DATABASE_URL;
 const input={sourceHash:'a'.repeat(64),edition:'synthetic',page:1,extractionVersion:'1',payload:{sourceVersion:'scan-1',allowExternalProcessing:false}};
 
-test('native SQLite text is never stripped to fit PostgreSQL jsonb',{skip:!url},async t=>{
+test('native SQLite text roundtrips through PostgreSQL wire without changes',{skip:!url},async t=>{
  const directory=realpathSync(mkdtempSync(join(tmpdir(),'book-json-parity-')));t.after(()=>rmSync(directory,{recursive:true,force:true}));
  const source=await openBookQueue({directory,now:()=>100});
  for(const [i,raw] of ['a\0b','\ud800','\udfff'].entries())await source.enqueue({...input,page:i+1,payload:{raw}});
  const snapshot=await source.exportSnapshot(),before=JSON.stringify(snapshot),plan=planBookTransfer({snapshot});
- assert.equal(plan.unsupportedIds.length,3);assert.ok(plan.blockers.includes('native-json-text-parity'));
+ assert.equal(plan.unsupportedIds.length,0);assert.ok(plan.blockers.includes('operator-cutover-prerequisites'));
  await withIsolatedPostgres(url,async({pool})=>{
-  await applyBookMigrations(pool);await assert.rejects(applyBookTransfer({pool,snapshot,expectedHash:plan.snapshotHash}),/lossless JSON/);
-  const target=await openPostgresBookQueue({pool,now:()=>100});await assert.rejects(target.enqueue({...input,payload:{raw:'a\0b'}}),/lossless JSON/);
-  assert.deepEqual(await target.list(),[]);assert.equal((await pool.query('SELECT * FROM mu_book_imports')).rowCount,0);
+  await applyBookMigrations(pool);await applyBookTransfer({pool,snapshot,expectedHash:plan.snapshotHash});
+  const target=await openPostgresBookQueue({pool,now:()=>100});assert.deepEqual((await target.list()).map(j=>j.payload),snapshot.jobs.map(j=>j.payload));
+  assert.equal((await target.enqueue({...input,payload:{raw:'a\0b'}})).id,snapshot.jobs.find(j=>j.page===1).id);assert.equal((await pool.query('SELECT * FROM mu_book_imports')).rowCount,1);
  });
  assert.equal(JSON.stringify(await source.exportSnapshot()),before);
 });
