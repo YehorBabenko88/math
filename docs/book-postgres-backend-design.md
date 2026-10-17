@@ -43,3 +43,11 @@ establish the required contracts, the gate remains closed.
 
 Only synthetic data and disposable PostgreSQL schemas are used. Production
 migration, push, merge, main and Cluster Grid changes are excluded.
+
+## Verified architectural blocker (2026-10-17)
+
+Native SQLite JSON supports U+0000/lone surrogates that jsonb cannot represent.
+The staging backend detects unsupported records without altering evidence.
+`native-json-text-parity` keeps the gate globally closed, regardless of operator
+confirmation. Lossless storage and complete parity regressions are prerequisites
+for a later cutover. See `book-postgres-backend-runbook.md` for exact API/status.

@@ -11,13 +11,17 @@ dedicated relational persistence and migration ledger; no automatic switch.
 
 ## Steps
 
-- [ ] Test then extract shared Book validation/transition contract; existing SQLite regressions unchanged.
-- [ ] Test then add separate Book schema runner with constraints/idempotence/concurrency.
-- [ ] Test then implement PostgreSQL transaction adapter with every native Book method and ID mapping.
-- [ ] Test then implement hashed migration plan/dry-run/apply/verify/pre-switch rollback and explicit compatibility gate.
-- [ ] Cross-review security, provenance/review semantics, interruption/idempotence and corrupted snapshots.
-- [ ] Full Node22/24 with PDF and live PostgreSQL; parallel database tests; Browser E2E.
-- [ ] Local commits, clean worktree, bundle and report with exact separate push command.
+- [x] Test then extract shared Book validation/transition contract; existing SQLite regressions unchanged.
+- [x] Test then add separate Book schema runner with constraints/idempotence/concurrency.
+- [x] Test then implement PostgreSQL transaction adapter with every native Book method and ID mapping.
+- [x] Test then implement hashed migration plan/dry-run/apply/verify/pre-switch rollback and explicit compatibility gate.
+- [x] Cross-review security, provenance/review semantics, interruption/idempotence and corrupted snapshots.
+- [x] Full Node22/24 with PDF and live PostgreSQL; parallel database tests; Browser E2E.
+- [x] Local commits, clean worktree, bundle and report with exact separate push command.
+
+Ruling 2026-10-17: the jsonb/native-string mismatch is a confirmed architecture
+blocker. Preserve the native SQLite contract and original evidence; close the gate
+globally rather than strip data or claim complete backend interchangeability.
 
 ## Review focus
 
