@@ -16,7 +16,7 @@ live('atomic transfer restarts, invalidates leases and requires quiescent source
  const q=await openPostgresBookQueue({pool,now:()=>100});assert.equal((await q.get(snapshot.jobs[0].id)).errorCode,'RESTORED_LEASE');await assert.rejects(q.complete(snapshot.jobs[0].id,snapshot.jobs[0].token,{result:{},metrics:{}}),/Lease rejected/);
  assert.equal((await assessBookPostgresGate({pool,snapshotHash:expectedHash})).compatible,false);
  const operatorConfirmation=`SOURCE SQLITE QUIESCED; ACTIVATE BOOK POSTGRES ${expectedHash} ${evidence.targetHash} ${evidence.targetHeadHash}`;
- const gate=await assessBookPostgresGate({pool,snapshotHash:expectedHash,operatorConfirmation});assert.equal(gate.compatible,false);assert.ok(gate.blockers.includes('native-json-text-parity'));
+ const gate=await assessBookPostgresGate({pool,snapshotHash:expectedHash,operatorConfirmation});assert.equal(gate.compatible,false);assert.ok(gate.blockers.includes('operator-cutover-prerequisites'));
  // Exercise the rollback safety check independently; production activation is blocked.
  await pool.query("UPDATE mu_book_imports SET manifest=jsonb_set(manifest,'{activated}','true') WHERE snapshot_hash=$1",[expectedHash]);
  await assert.rejects(rollbackBookTransfer({pool,snapshotHash:expectedHash}),/activated/);

@@ -1,8 +1,8 @@
-import {validateBookSnapshot,reviewReceipt} from './queue-contract.mjs';
+import {validateBookSnapshot,reviewReceipt,orderBookJobs} from './queue-contract.mjs';
 import {sha256} from './json.mjs';
 import {hashCandidate} from './candidate.mjs';
 import {transactionBookSnapshot} from './postgres-queue.mjs';
-import {bookPostgresJSONCompatible,BOOK_POSTGRES_BLOCKERS} from './postgres-json.mjs';
+import {bookPostgresJSONCompatible,BOOK_POSTGRES_BLOCKERS,BOOK_POSTGRES_JSON_PARITY} from './postgres-json.mjs';
 // Only detached, fully checked queue JSON reaches this canonical encoder.
 // Use the shared queue bounds rather than imposing the generic helper's limits.
 const canonical=v=>JSON.stringify(sort(v));
@@ -19,7 +19,7 @@ function checked(input,maxAttempts){
  }
  return s;
 }
-function normalized(s){const n=structuredClone(s);for(const j of n.jobs)if(j.state==='leased'){delete j.token;delete j.workerId;delete j.leaseUntil;j.state=j.attempts>=n.maxAttempts?'failed':'queued';j.errorCode='RESTORED_LEASE';}return n;}
+function normalized(s){const n=structuredClone(s);for(const j of n.jobs)if(j.state==='leased'){delete j.token;delete j.workerId;delete j.leaseUntil;j.state=j.attempts>=n.maxAttempts?'failed':'queued';j.errorCode='RESTORED_LEASE';}orderBookJobs(n.jobs);return n;}
 export function planBookTransfer({snapshot,expectedHash,targetSnapshot,maxAttempts=3}={}){
  const s=checked(snapshot,maxAttempts),snapshotHash=digest(s);if(expectedHash!==undefined&&(!hashOk(expectedHash)||expectedHash!==snapshotHash))throw Error('Snapshot hash mismatch');
  const n=normalized(s),target=targetSnapshot===undefined?{schemaVersion:1,maxAttempts,jobs:[]}:checked(targetSnapshot,maxAttempts),ids=new Map(target.jobs.map(j=>[j.id,j]));
@@ -37,6 +37,7 @@ export async function applyBookTransfer({pool,snapshot,expectedHash,maxAttempts=
   const old=await receipt(client,plan.snapshotHash);if(old&&!old.manifest.rolledBack){if(old.target_hash!==plan.targetHash)throw Error('Transfer receipt unavailable');return {...old.manifest.report,repeated:true};}
   const p=planBookTransfer({snapshot,expectedHash,targetSnapshot:d,maxAttempts});if(p.conflictIds.length)throw Error('Transfer identity conflict');
   const inserted=new Set(p.insertedIds);d.jobs.push(...n.jobs.filter(j=>inserted.has(j.id)));
+  orderBookJobs(d.jobs);
   const manifest={version:1,report:p,inserted:p.insertedIds.map(id=>({id,hash:digest(d.jobs.find(j=>j.id===id))})),targetHeadHash:digest(d),activated:false,rolledBack:false};
   await client.query(`INSERT INTO mu_book_imports(snapshot_hash,target_hash,manifest) VALUES($1,$2,$3::jsonb)
    ON CONFLICT(snapshot_hash) DO UPDATE SET target_hash=EXCLUDED.target_hash,manifest=EXCLUDED.manifest
@@ -50,7 +51,7 @@ export async function verifyBookTransfer({pool,snapshotHash,maxAttempts=3,now}={
   const current=new Map(d.jobs.map(j=>[j.id,j]));const records=[...m.report.insertedIds,...m.report.skippedIds];
   // Require the complete recorded target head: any later queue work invalidates pre-cutover evidence.
   const verified=sameHead(d,m)&&records.every(id=>current.has(id))&&m.inserted.every(x=>current.has(x.id)&&digest(current.get(x.id))===x.hash);
-  return {verified,snapshotHash,targetHash:r.target_hash,targetHeadHash:digest(d),activated:m.activated,blockers:[...BOOK_POSTGRES_BLOCKERS],contracts:{identity:verified,provenance:verified,review:verified,snapshots:verified,fencing:verified,nativeJsonParity:BOOK_POSTGRES_BLOCKERS.length===0}};
+  return {verified,snapshotHash,targetHash:r.target_hash,targetHeadHash:digest(d),activated:m.activated,blockers:[...BOOK_POSTGRES_BLOCKERS],contracts:{identity:verified,provenance:verified,review:verified,snapshots:verified,fencing:verified,nativeJsonParity:BOOK_POSTGRES_JSON_PARITY}};
  });
 }
 export async function rollbackBookTransfer({pool,snapshotHash,maxAttempts=3,now}={}){

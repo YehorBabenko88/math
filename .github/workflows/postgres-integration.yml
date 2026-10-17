@@ -2,7 +2,7 @@ name: PostgreSQL Integration
 
 on:
   push:
-    branches: [feat/math-universe-foundation, feat/book-knowledge-integration-review, feat/book-postgres-integration-test, feat/book-postgres-backend]
+    branches: [feat/math-universe-foundation, feat/book-knowledge-integration-review, feat/book-postgres-integration-test, feat/book-postgres-backend, feat/book-postgres-lossless-json]
     paths:
       - 'src/ingestion-*.mjs'
       - 'src/book-ingestion/**'
@@ -11,6 +11,7 @@ on:
       - 'tests/postgres-*.test.mjs'
       - 'tests/book-postgres-*.test.mjs'
       - 'tests/book-shared-contract.test.mjs'
+      - 'tests/book-sqlite-text.test.mjs'
       - '.github/workflows/postgres-integration.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -23,6 +24,7 @@ on:
       - 'tests/postgres-*.test.mjs'
       - 'tests/book-postgres-*.test.mjs'
       - 'tests/book-shared-contract.test.mjs'
+      - 'tests/book-sqlite-text.test.mjs'
       - '.github/workflows/postgres-integration.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -36,11 +38,12 @@ jobs:
     strategy:
       matrix:
         node: ['22', '24']
+        postgres: ['16', '18']
     runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
       postgres:
-        image: postgres:16
+        image: postgres:${{ matrix.postgres }}
         env:
           POSTGRES_DB: math_universe_test
           POSTGRES_USER: math_test

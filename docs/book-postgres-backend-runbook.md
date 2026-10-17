@@ -1,5 +1,11 @@
 # Book PostgreSQL staging backend and transfer runbook
 
+**Historical staging runbook for de94d08.** The current lossless v1 successor is
+documented in [book-postgres-lossless-json.md](book-postgres-lossless-json.md).
+Migration 002 resolves native JSON text parity; the gate now remains closed for
+`operator-cutover-prerequisites`, not JSON parity. The historical test counts and
+blocker analysis below describe the starting point, not the current release.
+
 Audit completed 2026-10-17 on `feat/book-postgres-backend`, based on
 `bd53ee7486f145dbcc1fc2db8fb13eb04cd7999f`. No production migration, automatic
 switch, push or merge was performed.

@@ -3,10 +3,12 @@ import {mkdirSync,lstatSync,realpathSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 
 import {json,state,recover,assert,integer,createBookQueueAPI} from './queue-contract.mjs';
+import {encodeSQLiteText,decodeSQLiteText} from './sqlite-text.mjs';
 const FIELDS=['id','sourceHash','edition','page','extractionVersion','payload','state','attempts','token','leaseUntil','workerId','createdAt','updatedAt','checkpoint','result','metrics','errorCode'];
 const JSON_FIELDS=['payload','checkpoint','result','metrics'];
 const OPTIONAL=['token','leaseUntil','workerId','checkpoint','result','metrics','errorCode'];
 const MAX_BYTES=8*1024*1024;
+const LOSSLESS_TEXT=['edition','extractionVersion','workerId'];
 function safePath(directory){
  assert(typeof directory==='string'&&directory.length>0);
  const path=resolve(directory);mkdirSync(path,{recursive:true,mode:0o700});
@@ -27,14 +29,14 @@ function load(db,maxAttempts){
  assert(db.prepare('SELECT count(*) AS n FROM queue_metadata').get().n===1,'Invalid queue state');
  const meta=db.prepare('SELECT version,maxAttempts FROM queue_metadata WHERE singleton=1').get();assert(meta?.version===1&&meta.maxAttempts===maxAttempts,'Invalid queue state');
  const jobs=db.prepare('SELECT * FROM jobs ORDER BY createdAt,id').all().map(row=>{
-  const j={};for(const field of FIELDS){if(row[field]===null&&OPTIONAL.includes(field))continue;j[field]=JSON_FIELDS.includes(field)?JSON.parse(row[field]):row[field];}return j;
+  const j={};for(const field of FIELDS){if(row[field]===null&&OPTIONAL.includes(field))continue;j[field]=JSON_FIELDS.includes(field)?JSON.parse(row[field]):LOSSLESS_TEXT.includes(field)?decodeSQLiteText(row[field]):row[field];}return j;
  });
  return state({schemaVersion:1,maxAttempts,jobs},maxAttempts);
 }
 function save(db,document){
  db.exec('DELETE FROM jobs');
  const insert=db.prepare(`INSERT INTO jobs (${FIELDS.join(',')}) VALUES (${FIELDS.map(()=>'?').join(',')})`);
- for(const job of document.jobs)insert.run(...FIELDS.map(field=>job[field]===undefined?null:JSON_FIELDS.includes(field)?JSON.stringify(job[field]):job[field]));
+ for(const job of document.jobs)insert.run(...FIELDS.map(field=>job[field]===undefined?null:JSON_FIELDS.includes(field)?JSON.stringify(job[field]):LOSSLESS_TEXT.includes(field)?encodeSQLiteText(job[field]):job[field]));
 }
 export async function openBookQueue(options={}){
  assert(options&&typeof options==='object'&&Object.getPrototypeOf(options)===Object.prototype);
@@ -47,7 +49,7 @@ export async function openBookQueue(options={}){
  function transaction(fn,{initialize=false}={}){
   let db;
   try{
-   checkFiles(path);let exists=true;try{lstatSync(join(path,'queue.sqlite'));}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
+   checkFiles(path);let exists=true,existingSize;try{existingSize=lstatSync(join(path,'queue.sqlite')).size;}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
    db=new DatabaseSync(join(path,'queue.sqlite'));db.exec('PRAGMA busy_timeout=5000; PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; BEGIN IMMEDIATE');
    if(initialize&&!exists){
     db.exec(`CREATE TABLE IF NOT EXISTS queue_metadata(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL,maxAttempts INTEGER NOT NULL);
@@ -55,12 +57,24 @@ export async function openBookQueue(options={}){
      CREATE INDEX IF NOT EXISTS jobs_state_lease ON jobs(state,leaseUntil);`);
     const meta=db.prepare('SELECT count(*) AS n FROM queue_metadata').get();if(meta.n===0)db.prepare('INSERT INTO queue_metadata VALUES (1,1,?)').run(maxAttempts);
    }
+   // Another creator may have opened the file but not acquired the schema lock
+   // yet. Release our transaction and wait; never initialize an existing orphan
+   // or repair missing metadata ourselves.
+   if(initialize&&exists&&existingSize===0&&db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table'").get().n===0)throw Object.assign(Error('Invalid queue state'),{code:'BOOK_QUEUE_INITIALIZING'});
    const document=load(db,maxAttempts),before=JSON.stringify(document),time=clock();const result=fn(document,time);state(document,maxAttempts);if(JSON.stringify(document)!==before)save(db,document);db.exec('COMMIT');return result===undefined?undefined:json(result,MAX_BYTES);
   }catch(e){if(db){try{db.exec('ROLLBACK')}catch{}}// Never include SQL, paths, payloads or parser errors.
    if(['Invalid queue input','Invalid queue state','Invalid queue clock','Lease rejected','Queue is not empty','Queue capacity reached'].includes(e.message))throw e;
    throw Error('Invalid queue state');
   }finally{db?.close();}
  }
- transaction((d,time)=>recover(d.jobs,time,maxAttempts),{initialize:true});
+ const initializationDeadline=performance.now()+5000;
+ for(;;){
+  try{transaction((d,time)=>recover(d.jobs,time,maxAttempts),{initialize:true});break}
+  catch(error){
+   if(error.code!=='BOOK_QUEUE_INITIALIZING')throw error;
+   if(performance.now()>=initializationDeadline)throw Error('Invalid queue state');
+   await new Promise(resolve=>setTimeout(resolve,10));
+  }
+ }
  return createBookQueueAPI({transaction,maxAttempts});
 }
