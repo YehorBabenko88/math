@@ -40,4 +40,3 @@ test('Book schema live: a failed migration rolls back DDL and ledger atomically'
   assert.deepEqual(await applyBookMigrations(pool),['001_book_queue.sql']);
  });
 });
-

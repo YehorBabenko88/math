@@ -60,5 +60,3 @@ export async function openPostgresBookQueue(options={}){
  await transaction((document,time)=>recover(document.jobs,time,maxAttempts));
  return {...createBookQueueAPI({transaction,maxAttempts}),async identityMap(){return transaction(async(d,time,client)=>(await client.query('SELECT sqlite_id,postgres_id::text FROM mu_book_jobs ORDER BY ordinal')).rows.map(r=>({sqliteId:r.sqlite_id,postgresId:r.postgres_id})))}};
 }
-
-

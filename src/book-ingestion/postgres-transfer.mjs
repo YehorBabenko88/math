@@ -72,7 +72,3 @@ export async function activateBookTransfer({pool,snapshotHash,operatorConfirmati
   r.manifest.activated=true;await client.query('UPDATE mu_book_imports SET manifest=$2::jsonb WHERE snapshot_hash=$1',[snapshotHash,JSON.stringify(r.manifest)]);return true;
  });
 }
-
-
-
-

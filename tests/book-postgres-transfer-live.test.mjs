@@ -38,4 +38,3 @@ live('digest pinned review receipt survives migration without promotion',async p
  const snapshot=source(),j=snapshot.jobs[0];delete j.token;delete j.workerId;delete j.leaseUntil;j.state='completed';j.result={digest:'d'.repeat(64),stage:'review_required',reviewReceipt:{candidateDigest:'d'.repeat(64),decision:'approved',reviewer:'synthetic operator',reason:'synthetic review',reviewedAt:'2026-10-16T10:00:00.000Z',visualVerified:false}};j.metrics={reviewDecisions:1};
  const expectedHash=planBookTransfer({snapshot}).snapshotHash;await applyBookTransfer({pool,snapshot,expectedHash});const q=await openPostgresBookQueue({pool});const saved=await q.get(j.id);assert.deepEqual(saved.result,j.result);assert.equal(saved.result.stage,'review_required');assert.equal((await pool.query('SELECT * FROM mu_book_reviews')).rowCount,1);await q.recordReview(j.id,j.result.reviewReceipt);assert.equal((await q.get(j.id)).metrics.reviewDecisions,1);
 });
-

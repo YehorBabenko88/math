@@ -11,5 +11,3 @@ export async function assessBookPostgresGate({pool,snapshotHash,operatorConfirma
   const activated=await activateBookTransfer({pool,snapshotHash,operatorConfirmation,maxAttempts,now});return {compatible:activated,evidence:{...evidence,activated}};
  }catch{return {compatible:false,reason:'Migration verification failed'}}
 }
-
-
