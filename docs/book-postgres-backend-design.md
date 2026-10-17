@@ -46,6 +46,9 @@ migration, push, merge, main and Cluster Grid changes are excluded.
 
 ## Verified architectural blocker (2026-10-17)
 
+Historical de94d08 finding: resolved by the lossless v1 successor documented in
+`book-postgres-lossless-json.md`. Operational cutover prerequisites remain blocked.
+
 Native SQLite JSON supports U+0000/lone surrogates that jsonb cannot represent.
 The staging backend detects unsupported records without altering evidence.
 `native-json-text-parity` keeps the gate globally closed, regardless of operator
