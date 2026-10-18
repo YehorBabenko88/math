@@ -5,7 +5,7 @@ test('Book migrations have their own ledger and lock and apply exactly once',asy
  const calls=[],done=[];let released;
  const client={async query(sql,args){calls.push(sql);if(sql==='SELECT filename FROM mu_book_schema_migrations')return {rows:done.map(filename=>({filename}))};if(sql.startsWith('INSERT INTO mu_book_schema_migrations'))done.push(args[0]);return {rows:[]}},release(error){released=error??true}};
  const pool={async connect(){return client}};
- assert.deepEqual(await applyBookMigrations(pool),['001_book_queue.sql','002_lossless_json.sql']);
+ assert.deepEqual(await applyBookMigrations(pool),['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql']);
  assert.deepEqual(await applyBookMigrations(pool),[]);
  assert.ok(calls.includes('SELECT pg_advisory_xact_lock(732814,2)'));
  assert.equal(calls.filter(s=>s.includes('CREATE TABLE mu_book_jobs')).length,1);
