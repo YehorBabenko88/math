@@ -30,6 +30,7 @@ export function createOperatorSessionVerifier({publicKey,issuer,audience,now=Dat
  if(publicKey?.type==='private')invalid();
  let key;try{key=publicKey?.type==='public'?createPublicKey({key:publicKey.export({type:'spki',format:'der'}),type:'spki',format:'der'}):createPublicKey(publicKey);}catch{invalid();}
  if(key.type!=='public'||key.asymmetricKeyType!=='ed25519')invalid();
+ let lastTime=-1;
  return Object.freeze({verify(input,context){
   try{
    const session=inert(input),binding=inert(context);
@@ -38,7 +39,8 @@ export function createOperatorSessionVerifier({publicKey,issuer,audience,now=Dat
    if(session.version!=='book-operator-session/v1'||session.issuer!==issuer||session.audience!==audience||!identifier(session.subject)||!identifier(session.sessionId))invalid();
    if(!uuid(session.runId)||!hash(session.resourceId)||session.runId!==binding.runId||session.resourceId!==binding.resourceId||!allowedScopes.has(binding.scope))invalid();
    if(!Array.isArray(session.scopes)||!session.scopes.length||session.scopes.length>6||new Set(session.scopes).size!==session.scopes.length||session.scopes.some(scope=>!allowedScopes.has(scope))||!session.scopes.includes(binding.scope))invalid();
-   const time=now();if(!Number.isSafeInteger(time)||!Number.isSafeInteger(session.issuedAt)||!Number.isSafeInteger(session.expiresAt)||session.issuedAt<0||session.issuedAt>time||time>=session.expiresAt||session.expiresAt-session.issuedAt>maxTtlMs)invalid();
+   const time=now();if(!Number.isSafeInteger(time)||time<0||time<lastTime)invalid();lastTime=time;
+   if(!Number.isSafeInteger(session.issuedAt)||!Number.isSafeInteger(session.expiresAt)||session.issuedAt<0||session.issuedAt>time||time>=session.expiresAt||session.expiresAt-session.issuedAt>maxTtlMs)invalid();
    if(typeof session.signature!=='string'||!/^[A-Za-z0-9_-]{86}$/.test(session.signature))invalid();
    const signature=Buffer.from(session.signature,'base64url');if(signature.toString('base64url')!==session.signature)invalid();
    const bytes=operatorSessionSigningBytes(session);if(!verifySignature(null,bytes,key,signature))invalid();
