@@ -25,7 +25,7 @@ function checkFiles(directory){
   try{const s=lstatSync(join(directory,name));assert(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1,'Unsafe queue storage');assert(s.size<=32*1024*1024,'Invalid queue state');}catch(e){if(e.code!=='ENOENT')throw e;}
  }
 }
-function load(db,maxAttempts){
+export function readBookSnapshot(db,maxAttempts){
  assert(db.prepare('SELECT count(*) AS n FROM queue_metadata').get().n===1,'Invalid queue state');
  const meta=db.prepare('SELECT version,maxAttempts FROM queue_metadata WHERE singleton=1').get();assert(meta?.version===1&&meta.maxAttempts===maxAttempts,'Invalid queue state');
  const jobs=db.prepare('SELECT * FROM jobs ORDER BY createdAt,id').all().map(row=>{
@@ -46,7 +46,7 @@ export async function openBookQueue(options={}){
  assert(typeof now==='function'&&integer(maxAttempts,1,10));let path;
  try{path=safePath(directory);checkFiles(path);}catch{throw Error('Invalid queue directory');}
  function clock(){const n=now();assert(integer(n,0,Number.MAX_SAFE_INTEGER-86400000),'Invalid queue clock');return n;}
- function transaction(fn,{initialize=false}={}){
+ function transaction(fn,{initialize=false,readOnly=false}={}){
   let db;
   try{
    checkFiles(path);let exists=true,existingSize;try{existingSize=lstatSync(join(path,'queue.sqlite')).size;}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
@@ -61,9 +61,14 @@ export async function openBookQueue(options={}){
    // yet. Release our transaction and wait; never initialize an existing orphan
    // or repair missing metadata ourselves.
    if(initialize&&exists&&existingSize===0&&db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table'").get().n===0)throw Object.assign(Error('Invalid queue state'),{code:'BOOK_QUEUE_INITIALIZING'});
-   const document=load(db,maxAttempts),before=JSON.stringify(document),time=clock();const result=fn(document,time);state(document,maxAttempts);if(JSON.stringify(document)!==before)save(db,document);db.exec('COMMIT');return result===undefined?undefined:json(result,MAX_BYTES);
+   // The durable control table also fences no-op API mutations, which SQLite
+   // row triggers cannot observe. Initialization of a frozen store only reads;
+   // expired leases remain intact for the explicit restore path to invalidate.
+   const frozen=db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='book_cutover_control'").get().n!==0;
+   if(frozen&&!readOnly&&!initialize)throw Error('Book source frozen');
+   const document=readBookSnapshot(db,maxAttempts),before=JSON.stringify(document),time=clock();const result=frozen&&initialize?undefined:fn(document,time);state(document,maxAttempts);if(JSON.stringify(document)!==before)save(db,document);db.exec('COMMIT');return result===undefined?undefined:json(result,MAX_BYTES);
   }catch(e){if(db){try{db.exec('ROLLBACK')}catch{}}// Never include SQL, paths, payloads or parser errors.
-   if(['Invalid queue input','Invalid queue state','Invalid queue clock','Lease rejected','Queue is not empty','Queue capacity reached'].includes(e.message))throw e;
+   if(['Invalid queue input','Invalid queue state','Invalid queue clock','Lease rejected','Queue is not empty','Queue capacity reached','Book source frozen'].includes(e.message))throw e;
    throw Error('Invalid queue state');
   }finally{db?.close();}
  }
@@ -76,5 +81,8 @@ export async function openBookQueue(options={}){
    await new Promise(resolve=>setTimeout(resolve,10));
   }
  }
- return createBookQueueAPI({transaction,maxAttempts});
+ const api=createBookQueueAPI({transaction,maxAttempts});
+ const reads=createBookQueueAPI({transaction:fn=>transaction(fn,{readOnly:true}),maxAttempts});
+ for(const method of ['get','list','exportSnapshot'])api[method]=reads[method];
+ return api;
 }

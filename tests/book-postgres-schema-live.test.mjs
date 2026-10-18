@@ -18,7 +18,7 @@ test('Book schema live: legacy upgrades preserve IDs and JSON while mixed wire v
   await pool.query("INSERT INTO mu_book_schema_migrations(filename) VALUES ('001_book_queue.sql')");
   const legacy={...job,payload:{text:'λ',nested:{kept:true}}};
   const before=(await pool.query('INSERT INTO mu_book_jobs(sqlite_id,ordinal,document) VALUES($1,0,$2) RETURNING *',[id,legacy])).rows[0];
-  assert.deepEqual(await applyBookMigrations(pool),['002_lossless_json.sql']);
+  assert.deepEqual(await applyBookMigrations(pool),['002_lossless_json.sql','003_cutover_guard.sql']);
   const after=(await pool.query('SELECT * FROM mu_book_jobs')).rows[0];
   assert.equal(after.postgres_id,before.postgres_id);assert.equal(after.sqlite_id,id);
   assert.deepEqual(after.document,legacy);assert.equal(after.document_encoding,0);assert.equal(after.document_wire,null);
@@ -48,8 +48,8 @@ test('Book schema live: legacy upgrades preserve IDs and JSON while mixed wire v
 test('Book schema live: concurrent migration is idempotent and invalid documents cannot bypass checks',{skip:!enabled},async()=>{
  await withIsolatedPostgres(url,async({pool})=>{
   const applied=await Promise.all([applyBookMigrations(pool),applyBookMigrations(pool)]);
-  assert.deepEqual(applied.map(a=>a.length).sort(),[0,2]);
-  assert.equal((await pool.query('SELECT * FROM mu_book_schema_migrations')).rows.length,2);
+  assert.deepEqual(applied.map(a=>a.length).sort(),[0,3]);
+  assert.equal((await pool.query('SELECT * FROM mu_book_schema_migrations')).rows.length,3);
   await pool.query('INSERT INTO mu_book_queue(max_attempts) VALUES (3)');
   await assert.rejects(pool.query('INSERT INTO mu_book_queue(singleton,max_attempts) VALUES(false,3)'));
   await assert.rejects(pool.query('UPDATE mu_book_queue SET max_attempts=11'));
@@ -77,6 +77,6 @@ test('Book schema live: a failed migration rolls back DDL and ledger atomically'
   assert.equal((await pool.query("SELECT to_regclass('mu_book_probe') AS probe,to_regclass('mu_book_schema_migrations') AS ledger")).rows[0].probe,null);
   assert.equal((await pool.query("SELECT to_regclass('mu_book_schema_migrations') AS ledger,to_regclass('mu_book_jobs') AS jobs")).rows[0].ledger,null);
   assert.equal((await pool.query("SELECT to_regclass('mu_book_jobs') AS jobs")).rows[0].jobs,null);
-  assert.deepEqual(await applyBookMigrations(pool),['001_book_queue.sql','002_lossless_json.sql']);
+  assert.deepEqual(await applyBookMigrations(pool),['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql']);
  });
 });
