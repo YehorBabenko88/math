@@ -9,7 +9,7 @@ export async function applyBookMigrations(pool,{readSql=async name=>readFile(new
   await client.query('SELECT pg_advisory_xact_lock(732814,2)');
   await client.query('CREATE TABLE IF NOT EXISTS mu_book_schema_migrations (filename text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())');
   const done=new Set((await client.query('SELECT filename FROM mu_book_schema_migrations')).rows.map(r=>r.filename)),executed=[];
-  for(const name of ['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql']){
+  for(const name of ['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql','004_cutover_snapshot_fence.sql']){
    if(done.has(name))continue;
    const sql=await readSql(name);if(typeof sql!=='string'||!sql.trim())throw Error('Empty migration: '+name);
    await client.query(migrationBody(sql,name));

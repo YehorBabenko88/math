@@ -41,12 +41,12 @@ test('controller refuses modified backup after verify and keeps fences closed',{
  await assert.rejects(controller.advance({session}),/failed closed/);assert.equal(controller.status().state,'FAILED');await assert.rejects(pool.query('DELETE FROM mu_book_jobs'),/fenced/);
 }));
 
-test('controller rechecks scope after a concurrent state transition',{skip:!url},async()=>scenario(async({controller,options,session})=>{
+test('controller rejects a stale state before claiming another scope',{skip:!url},async()=>scenario(async({controller,options,session})=>{
  controller.prepare({session});const {openCutoverJournal}=await import('../src/book-ingestion/cutover-journal.mjs');
  const status=controller.status();const other=openCutoverJournal({directory:options.directory,runId:options.runId,configHash:status.configHash,now:options.now});let moved=false,backupScopeChecked=false;
  const verifier={verify(s,context){if(context.scope==='backup'){backupScopeChecked=true;throw Error('scope denied');}const proof=options.verifier.verify(s,context);if(context.scope==='quiesce'&&!moved){moved=true;const c=other.claim(proof);other.commit(c,'QUIESCE',{},proof);}return proof;}};
  const {openBookCutoverController}=await import('../src/book-ingestion/cutover-controller.mjs');const racing=openBookCutoverController({...options,verifier});
- try{await assert.rejects(racing.advance({session}),/failed closed/);assert.equal(racing.status().state,'FAILED');assert.equal(backupScopeChecked,true);}finally{racing.close();other.close();}
+ try{await assert.rejects(racing.advance({session}),/CUTOVER_JOURNAL_REJECTED/);assert.equal(racing.status().state,'QUIESCE');assert.equal(backupScopeChecked,false);}finally{racing.close();other.close();}
 }));
 
 
@@ -76,4 +76,18 @@ test('source snapshot tampering after verify blocks simulated activation',{skip:
  const {DatabaseSync}=await import('node:sqlite');const db=new DatabaseSync(join(options.directory,'queue.sqlite'));
  try{db.exec('DROP TRIGGER book_cutover_jobs_update');db.exec('UPDATE jobs SET updatedAt=updatedAt+1');}finally{db.close();}
  await assert.rejects(controller.advance({session}),/failed closed/);assert.equal(controller.status().state,'FAILED');
+}));
+test('crash after source effect but before journal commit resumes with a fresh generation',{skip:!url},async()=>scenario(async({controller,options,session,setTime})=>{
+ controller.prepare({session});const {spawnSync}=await import('node:child_process');const {pathToFileURL}=await import('node:url');const {resolve}=await import('node:path');
+ const proof=options.verifier.verify(session,{runId:options.runId,resourceId:options.resourceId,scope:'quiesce'});
+ const script=`const {openCutoverJournal}=await import(${JSON.stringify(pathToFileURL(resolve('src/book-ingestion/cutover-journal.mjs')).href)});const {freezeBookSource}=await import(${JSON.stringify(pathToFileURL(resolve('src/book-ingestion/cutover-source.mjs')).href)});const input=JSON.parse(process.argv[1]);const journal=openCutoverJournal({...input.options,now:()=>1000});journal.claim(input.proof);await freezeBookSource({directory:input.options.directory,runId:input.options.runId});process.exit(71);`;
+ const crashed=spawnSync(process.execPath,['--input-type=module','-e',script,JSON.stringify({options:{directory:options.directory,runId:options.runId,configHash:controller.status().configHash},proof})],{windowsHide:true,encoding:'utf8',timeout:10000});
+ assert.equal(crashed.status,71);assert.equal(controller.status().state,'PREPARE');assert.equal(controller.status().generation,1);
+ setTime(31001);const recovered=await controller.advance({session});assert.equal(recovered.state,'QUIESCE');assert.equal(recovered.generation,2);assert.equal(recovered.evidence.source.workerProcessesStopped,false);
+}));
+test('a stale scope-limited observer cannot claim or fail the next stage',{skip:!url},async()=>scenario(async({controller,options,session})=>{
+ controller.prepare({session});const {openCutoverJournal}=await import('../src/book-ingestion/cutover-journal.mjs');const other=openCutoverJournal({directory:options.directory,runId:options.runId,configHash:controller.status().configHash,now:options.now});let raced=false;
+ const verifier={verify(s,context){if(context.scope==='backup')throw Error('scope denied');const proof=options.verifier.verify(s,context);if(context.scope==='quiesce'&&!raced){raced=true;const owner=other.claim(proof);other.commit(owner,'QUIESCE',{},proof);}return proof;}};
+ const {openBookCutoverController}=await import('../src/book-ingestion/cutover-controller.mjs');const stale=openBookCutoverController({...options,verifier});
+ try{await assert.rejects(stale.advance({session}));assert.equal(controller.status().state,'QUIESCE');assert.equal(controller.status().generation,1);}finally{stale.close();other.close();}
 }));

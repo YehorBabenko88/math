@@ -26,3 +26,10 @@ test('physical database corruption fails an actual restore verification',async()
  try{const {writeFileSync}=await import('node:fs');await openBookQueue({directory,now:()=>100});const {freezeBookSource}=await import('../src/book-ingestion/cutover-source.mjs');const {createBookCutoverBackup,verifyBookCutoverBackup}=await import('../src/book-ingestion/cutover-backup.mjs');await freezeBookSource({directory,runId:'corrupt'});const evidence=await createBookCutoverBackup({directory,backupDirectory,runId:'corrupt'});writeFileSync(join(backupDirectory,'queue.sqlite'),Buffer.alloc(4096));await assert.rejects(verifyBookCutoverBackup({directory,backupDirectory,runId:'corrupt',evidence}),/^Error: Book cutover backup verification failed$/);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+test('single-file backup verification rejects SQLite sidecars',async()=>{
+ const {writeFileSync,unlinkSync}=await import('node:fs');const root=mkdtempSync(join(tmpdir(),'book-backup-sidecar-')),directory=join(root,'source'),backupDirectory=join(root,'backup');
+ try{await openBookQueue({directory,now:()=>100});const {freezeBookSource}=await import('../src/book-ingestion/cutover-source.mjs');const {createBookCutoverBackup,verifyBookCutoverBackup}=await import('../src/book-ingestion/cutover-backup.mjs');
+ await freezeBookSource({directory,runId:'sidecars'});const evidence=await createBookCutoverBackup({directory,backupDirectory,runId:'sidecars'});
+ for(const suffix of ['-wal','-shm','-journal']){const file=join(backupDirectory,'queue.sqlite'+suffix);writeFileSync(file,'unexpected sidecar');try{await assert.rejects(verifyBookCutoverBackup({directory,backupDirectory,runId:'sidecars',evidence}));}finally{unlinkSync(file);}}
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

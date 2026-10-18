@@ -50,7 +50,10 @@ export async function openBookQueue(options={}){
   let db;
   try{
    checkFiles(path);let exists=true,existingSize;try{existingSize=lstatSync(join(path,'queue.sqlite')).size;}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
-   db=new DatabaseSync(join(path,'queue.sqlite'));db.exec('PRAGMA busy_timeout=5000; PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; BEGIN IMMEDIATE');
+   db=new DatabaseSync(join(path,'queue.sqlite'));
+   // Existing files may be WAL databases with live readers. Reconfiguring their
+   // journal mode is a persistent write, including on a frozen read/reopen.
+   db.exec('PRAGMA busy_timeout=5000; PRAGMA synchronous=FULL; BEGIN IMMEDIATE');
    if(initialize&&!exists){
     db.exec(`CREATE TABLE IF NOT EXISTS queue_metadata(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL,maxAttempts INTEGER NOT NULL);
      CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, sourceHash TEXT NOT NULL,edition TEXT NOT NULL,page INTEGER NOT NULL,extractionVersion TEXT NOT NULL,payload TEXT NOT NULL,state TEXT NOT NULL,attempts INTEGER NOT NULL,token TEXT,leaseUntil INTEGER,workerId TEXT,createdAt INTEGER NOT NULL,updatedAt INTEGER NOT NULL,checkpoint TEXT,result TEXT,metrics TEXT,errorCode TEXT);

@@ -39,7 +39,7 @@ export function openBookCutoverController({directory,backupRoot,pool,runId,resou
    let scope=scopes[current.state];if(!scope)throw Error('Cutover failed closed');
    const proof=authorize(session,scope);
    if(current.state==='ACTIVATED')return current; // Rehearsal record only, no backend was activated.
-   const claim=journal.claim(proof);let next,evidence={};
+   const claim=journal.claim(proof,{expectedState:current.state});let next,evidence={};
    try{
     scope=scopes[claim.state];authorize(session,scope);
     if(claim.state==='PREPARE'){

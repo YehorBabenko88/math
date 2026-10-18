@@ -32,6 +32,10 @@ export async function fenceBookPostgres(options){
  const client=await pool.connect();let broken;
  try{
   await client.query('BEGIN');
+  // A permanent row exists even before the first guard. Its lock/version is
+  // visible to old snapshots, whereas a newly inserted guard may be invisible.
+  const epochs=(await client.query('SELECT generation::text FROM mu_book_cutover_epoch WHERE singleton FOR UPDATE')).rows;
+  if(epochs.length!==1)throw Error('Book fence epoch missing');
   // Existing guards are locked before metadata, matching trigger lock order.
   await client.query('SELECT singleton FROM mu_book_cutover_guard WHERE singleton FOR UPDATE');
   // The metadata lock is the serialization point shared by every native writer.
@@ -41,16 +45,21 @@ export async function fenceBookPostgres(options){
   if(meta.length!==1||meta[0].version!==1||meta[0].max_attempts!==maxAttempts)throw Error('Invalid queue state');
   const guards=(await client.query(`SELECT ${columns} FROM mu_book_cutover_guard WHERE singleton FOR UPDATE`)).rows;
   if(guards.length){const old=guards[0];if(old.run_id!==runId.toLowerCase()||old.source_id!==sourceId)throw Error('Book fence owner conflict');if(Number(old.generation)>=generation)throw Error('Book fence generation must increase');}
+  if(epochs[0].generation!==(guards[0]?.generation??'0'))throw Error('Book fence epoch mismatch');
   if((await client.query("SELECT 1 FROM mu_book_jobs WHERE document->>'state'='leased' LIMIT 1")).rows.length)throw Error('Book target has active leased jobs');
   const token=randomBytes(32).toString('hex');
   const row=(await client.query(`INSERT INTO mu_book_cutover_guard(singleton,run_id,source_id,generation,capability_hash,mode) VALUES(true,$1,$2,$3,$4,'STAGING') ON CONFLICT(singleton) DO UPDATE SET run_id=EXCLUDED.run_id,source_id=EXCLUDED.source_id,generation=EXCLUDED.generation,capability_hash=EXCLUDED.capability_hash,mode=EXCLUDED.mode RETURNING ${columns}`,[runId,sourceId,generation,hash(token)])).rows[0];
+  await client.query('UPDATE mu_book_cutover_epoch SET generation=$1 WHERE singleton',[generation]);
   const proof=await witness(client,row);await client.query('COMMIT');return {pool:guardedPool(pool,token),witness:proof};
  }catch(error){try{await client.query('ROLLBACK')}catch(e){broken=e}throw error}finally{client.release(broken)}
 }
 export async function assertBookPostgresFence(options){
  validate(options);const {pool,runId,sourceId,generation}=options;const client=await pool.connect();let broken;
  try{
-  await client.query('BEGIN');const rows=(await client.query(`SELECT ${columns} FROM mu_book_cutover_guard FOR SHARE`)).rows;
+  await client.query('BEGIN');
+  const epochs=(await client.query('SELECT generation::text FROM mu_book_cutover_epoch WHERE singleton FOR SHARE')).rows;
+  if(epochs.length!==1||Number(epochs[0].generation)!==generation)throw Error('Book fence epoch mismatch');
+  const rows=(await client.query(`SELECT ${columns} FROM mu_book_cutover_guard FOR SHARE`)).rows;
   const row=rows[0];if(rows.length!==1||row.run_id!==runId.toLowerCase()||row.source_id!==sourceId||Number(row.generation)!==generation||row.mode!=='STAGING'||!/^[a-f0-9]{64}$/.test(row.capability_hash))throw Error('Book fence mismatch');
   const metadata=(await client.query('SELECT version,max_attempts FROM mu_book_queue FOR SHARE')).rows;
   if(metadata.length!==1||metadata[0].version!==1||!Number.isInteger(metadata[0].max_attempts)||metadata[0].max_attempts<1||metadata[0].max_attempts>10||(options.maxAttempts!==undefined&&metadata[0].max_attempts!==options.maxAttempts))throw Error('Book fence metadata mismatch');

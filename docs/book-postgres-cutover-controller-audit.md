@@ -1,5 +1,7 @@
 # Book Operator Cutover Controller audit
 
+This is the historical baseline report. Confirmed security/concurrency defects and their fixes are documented in [the hardening audit](book-cutover-hardening-audit.md).
+
 ## Scope and status
 
 Base: `8f666159da165e04999133fbe76bd0805a36b617`; branch `feat/book-postgres-cutover-controller`.
@@ -7,7 +9,7 @@ This implementation is an explicit **isolated rehearsal** API, not a production 
 
 ## Existing guarantees and gaps
 
-Existing SQLite and PostgreSQL queues share native job identity, bounded JSON, provenance, review receipts and strict live claim tokens. Transfers validate source/target hashes, clear restored leases, preserve unapproved candidates, and support idempotent rollback. Lossless encoding preserves the SQLite JSON contract. Migration checksums and advisory locks already protect migration reapplication.
+Existing SQLite and PostgreSQL queues share native job identity, bounded JSON, provenance, review receipts and strict live claim tokens. Transfers validate source/target hashes, clear restored leases, preserve unapproved candidates, and support idempotent rollback. Lossless encoding preserves the SQLite JSON contract. The Book filename ledger and advisory locks protect migration reapplication; the runner does not store migration content checksums.
 
 Existing plaintext confirmation was unreachable behind the closed gate and is not accepted by this controller. There was no durable operator-session verifier, cross-connection source barrier, tested physical restore witness or cutover journal. Worker stop/drain is process-local; no global Book worker supervisor or trusted deployment identity provider exists.
 

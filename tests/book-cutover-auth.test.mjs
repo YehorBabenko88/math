@@ -54,3 +54,9 @@ test('requires an Ed25519 public verification key',async()=>{
  assert.throws(()=>createOperatorSessionVerifier({...options,publicKey:privateKey}));
  assert.throws(()=>createOperatorSessionVerifier({...options,publicKey:generateKeyPairSync('rsa',{modulusLength:2048}).publicKey}));
 });
+test('clock rollback cannot resurrect an observed expired operator session',async()=>{
+ const {createOperatorSessionVerifier}=await load();let time=1500;
+ const verifier=createOperatorSessionVerifier({...options,now:()=>time});
+ assert.ok(verifier.verify(validSession,context));time=2000;assert.throws(()=>verifier.verify(validSession,context));
+ time=1500;assert.throws(()=>verifier.verify(validSession,context));
+});
