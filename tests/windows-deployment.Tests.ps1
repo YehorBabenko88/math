@@ -9,6 +9,12 @@ function Assert-Throws([scriptblock]$Operation) {
     $caught | Should Be $true
 }
 
+function New-FixtureJunction([string]$Path,[string]$Target) {
+    # Windows PowerShell resolves the Target parameter as a wildcard path.
+    if ($PSVersionTable.PSVersion.Major -le 5) { $Target=[WildcardPattern]::Escape($Target) }
+    New-Item -ItemType Junction -Path $Path -Target $Target
+}
+
 Describe 'Windows script syntax' {
     It 'parses every shipped PowerShell script without executing it' {
         Get-ChildItem (Join-Path $repository 'scripts') -Filter '*.ps1' | ForEach-Object {
@@ -297,14 +303,14 @@ Describe 'Release source association' {
         $f=New-ReleaseFixture; $original=$f.Target; $f.Target=$original+'\..\release'
         Assert-Throws { Assert-Release $f }
         $alias=Join-Path $f.Root 'alias'
-        New-Item -ItemType Junction -Path $alias -Target $original | Out-Null
+        New-FixtureJunction -Path $alias -Target $original | Out-Null
         try {$f.Target=$alias; Assert-Throws { Assert-Release $f }} finally { [IO.Directory]::Delete($alias) }
     }
     It 'rejects a reparse point inside tracked source' {
         $f=New-ReleaseFixture; $directory=Join-Path $f.Root 'elsewhere'
         New-Item -ItemType Directory $directory | Out-Null
         $alias=Join-Path $f.Target 'injected'
-        New-Item -ItemType Junction -Path $alias -Target $directory | Out-Null
+        New-FixtureJunction -Path $alias -Target $directory | Out-Null
         try { Assert-Throws { Assert-Release $f } } finally { [IO.Directory]::Delete($alias) }
     }
 }

@@ -113,3 +113,11 @@ report/helper/test files were re-materialized from their committed Git contents;
 no SQL files were touched. The complete source association then passed. This
 strict checkout-policy rejection is deliberate; mixed-EOL release files require
 a fresh canonical checkout rather than automatic source/ledger normalization.
+
+The first exact-head Windows CI run (39320758368) passed all 39 pwsh tests but
+failed two PS5 fixture-construction steps: New-Item treated bracketed junction
+targets as wildcard paths. The test utility now escapes targets only on PS5;
+all junction/source assertions remain. A normal native PS5 inline filesystem
+probe confirmed escaped-target construction works, without importing blocked
+Pester, changing policy, or running service/updater actions. Final CI must use
+the subsequent exact HEAD; the earlier failed run is retained as evidence.
