@@ -13,4 +13,3 @@ export function compileExpression(source){
  function calc(a,x){switch(a.type){case "number":return a.value;case "symbol":return a.name==="x"?x:a.name==="pi"?Math.PI:Math.E;case "neg":return -calc(a.arg,x);case "call":return ({sin:Math.sin,cos:Math.cos,exp:Math.exp,log:Math.log,sqrt:Math.sqrt,abs:Math.abs})[a.name](calc(a.arg,x));case "binary":{const l=calc(a.left,x),r=calc(a.right,x);return ({"+":()=>l+r,"-":()=>l-r,"*":()=>l*r,"/":()=>l/r,"^":()=>l**r})[a.op]()}}}
  return {ast,evaluate:x=>{if(!Number.isFinite(x))throw Error("x must be finite");return calc(ast,x)}};
 }
-
