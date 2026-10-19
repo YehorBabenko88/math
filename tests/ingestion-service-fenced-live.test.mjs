@@ -1,3 +1,4 @@
+import {expireFencedFixture} from './helpers/fenced-expiry.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {withIsolatedPostgres} from './helpers/postgres-isolation.mjs';
@@ -33,7 +34,7 @@ live('service fenced wiring rejects old completion after same-worker reacquisiti
  try{
   old=await startIngestionService({env,loadPg:pgFor(pool),onError:e=>errors.push(e),handlers:{'verify-candidate':async()=>{entered();await hold;return {old:true};}}});
   await began;const row=(await pool.query('SELECT * FROM mu_ingestion_jobs')).rows[0];
-  const c=await pool.connect();try{await c.query('BEGIN');await c.query("SELECT set_config('math_universe.claim_token',$1,true)",[row.claim_token]);await c.query("UPDATE mu_ingestion_jobs SET lease_until=now()-interval '1 second' WHERE job_id=$1",[row.job_id]);await c.query('COMMIT');}finally{c.release();}
+  await expireFencedFixture(pool,row);
   fresh=await startIngestionService({env,loadPg:pgFor(pool),onError:e=>errors.push(e),handlers:{'verify-candidate':async()=>{completed();return {fresh:true};}}});
   await finished;await fresh.stop();releaseOld();await old.stop();
   const saved=(await pool.query('SELECT * FROM mu_ingestion_jobs')).rows[0];assert.equal(saved.state,'completed');assert.deepEqual(saved.result,{fresh:true});assert.ok(errors.some(e=>e.code==='JOB_LEASE_LOST'));

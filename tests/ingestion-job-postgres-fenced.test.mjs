@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createFencedIngestionJobStore as productionStore} from '../src/ingestion-job-postgres-fenced.mjs';
-function createFencedIngestionJobStore(pool){return productionStore({async connect(){return {release(){},async query(sql,args){if(/^(BEGIN|COMMIT|ROLLBACK|SELECT pg_catalog)/.test(sql))return {rows:[]};return pool.query(sql,args);}};}});}
+function createFencedIngestionJobStore(pool){return productionStore({async connect(){return {release(){},async query(sql,args){if(/^(BEGIN|COMMIT|ROLLBACK|SELECT pg_catalog|SELECT job_id)/.test(sql))return {rows:[]};return pool.query(sql,args);}};}});}
 const old='11111111-1111-4111-8111-111111111111';
 const fresh='22222222-2222-4222-8222-222222222222';
 test('claim issues a per-acquisition UUID and returns token',async()=>{
@@ -36,7 +36,7 @@ test('claim returns checkpoint and owner, isolates optional job and recovers exa
  const calls=[];const store=createFencedIngestionJobStore({async query(sql,args){calls.push({sql,args});return {rows:[{job_id:'42',worker_id:'worker',checkpoint:{stage:'candidate'},claim_token:args[2]}]}}});
  const job=await store.claim({workerId:'worker',jobId:42});
  assert.equal(job.job_id,42);assert.equal(job.worker_id,'worker');assert.deepEqual(job.checkpoint,{stage:'candidate'});
- const {sql,args}=calls[0];assert.equal(args[3],42);assert.match(sql,/\$4::bigint/);assert.match(sql,/lease_until<=now\(\)/);assert.match(sql,/attempts>=max_attempts/);assert.match(sql,/state='failed'/);assert.match(sql,/claim_token=NULL/);assert.match(sql,/worker_id=NULL/);assert.match(sql,/lease_until=NULL/);assert.match(sql,/RETURNING[\s\S]*job\.checkpoint/);assert.match(sql,/RETURNING[\s\S]*job\.worker_id/);
+ const {sql,args}=calls[0];assert.equal(args[3],42);assert.match(sql,/\$4::bigint/);assert.match(sql,/lease_until<=clock_timestamp\(\)/);assert.match(sql,/attempts>=max_attempts/);assert.match(sql,/state='failed'/);assert.match(sql,/claim_token=NULL/);assert.match(sql,/worker_id=NULL/);assert.match(sql,/lease_until=NULL/);assert.match(sql,/RETURNING[\s\S]*job\.checkpoint/);assert.match(sql,/RETURNING[\s\S]*job\.worker_id/);
  await store.claim({workerId:'worker'});assert.equal(calls[1].args[3],null);
  for(const jobId of [0,-1,1.5,'42',Number.MAX_SAFE_INTEGER+1,null])await assert.rejects(store.claim({workerId:'worker',jobId}),/job id/);
  assert.equal(calls.length,2);
@@ -47,7 +47,7 @@ test('checkpoint uses owner token and unexpired running lease fences and normali
  await assert.rejects(store.checkpoint({jobId:42,workerId:'same',claimToken:old,checkpoint:{stage:'candidate'}}),/expired or not owned/);
  const value=await store.checkpoint({jobId:42,workerId:'same',claimToken:fresh,checkpoint:{stage:'candidate',nested:[1,true,null]}});
  assert.equal(value.job_id,42);assert.equal(value.checkpoint.stage,'candidate');
- for(const {sql,args} of calls){assert.match(sql,/checkpoint=\$4::jsonb/);assert.match(sql,/job_id=\$1/);assert.match(sql,/worker_id=\$2/);assert.match(sql,/claim_token=\$3::uuid/);assert.match(sql,/state='running'/);assert.match(sql,/lease_until>now\(\)/);assert.equal(args[0],42)}
+ for(const {sql,args} of calls){assert.match(sql,/checkpoint=\$4::jsonb/);assert.match(sql,/job_id=\$1/);assert.match(sql,/worker_id=\$2/);assert.match(sql,/claim_token=\$3::uuid/);assert.match(sql,/state='running'/);assert.match(sql,/lease_until>clock_timestamp\(\)/);assert.equal(args[0],42)}
 });
 
 test('checkpoint rejects non-inert, oversized and malformed JSON before database access',async()=>{

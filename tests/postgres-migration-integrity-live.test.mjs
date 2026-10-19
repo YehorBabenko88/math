@@ -42,7 +42,7 @@ live('known four-script checksum history upgrades additively from exact executed
  const c=await pool.connect();try{await c.query('BEGIN');await c.query("CREATE TABLE mu_schema_migrations(filename text PRIMARY KEY,applied_at timestamptz NOT NULL DEFAULT now(),sha256 text NOT NULL,hash_contract text NOT NULL)");
  for(const filename of names){const bytes=await source(filename);await c.query(migrationBody(bytes.toString('utf8'),filename));await c.query("INSERT INTO mu_schema_migrations(filename,sha256,hash_contract) VALUES($1,$2,'sha256-raw-utf8/v1')",[filename,createHash('sha256').update(bytes).digest('hex')]);}
  await c.query('COMMIT');}finally{c.release();}
- assert.deepEqual(await applyMathMigrations(pool),['005_ingestion_service_protocol.sql']);
+ assert.deepEqual(await applyMathMigrations(pool),['005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql']);
  assert.equal((await pool.query('SELECT mu_ingestion_protocol_status() AS mode')).rows[0].mode,'legacy');
 });
 live('generic raw BOM, CRLF and trailing-byte changes cannot reuse an applied checksum',async({pool})=>{
@@ -64,5 +64,31 @@ live('generic migration process crash before and after COMMIT preserves replay i
  const script=`import pg from 'pg';const {applyMathMigrations}=await import(${JSON.stringify(pathToFileURL(resolve('src/postgres-migrations.mjs')).href)});const input=JSON.parse(process.argv[1]);const pool=new pg.Pool({connectionString:input.url,options:'-c search_path='+input.schema,max:1});await applyMathMigrations({async connect(){const c=await pool.connect();return {release:e=>c.release(e),async query(sql,args){if(sql==='COMMIT'){if(input.phase==='before')process.exit(71);await c.query(sql,args);process.exit(72);}return c.query(sql,args);}};}});process.exit(3);`;
  for(const [phase,status] of [['before',71],['after',72]]){const result=spawnSync(process.execPath,['--input-type=module','-e',script,JSON.stringify({schema,url,phase})],{windowsHide:true,encoding:'utf8',timeout:15000});assert.equal(result.status,status);
  if(phase==='before')assert.equal((await pool.query("SELECT to_regclass('mu_schema_migrations') AS ledger")).rows[0].ledger,null);
- else{assert.deepEqual(await applyMathMigrations(pool),[]);assert.equal((await pool.query('SELECT count(*) AS n FROM mu_schema_migrations')).rows[0].n,'5');}}
+ else{assert.deepEqual(await applyMathMigrations(pool),[]);assert.equal((await pool.query('SELECT count(*) AS n FROM mu_schema_migrations')).rows[0].n,'6');}}
+});
+
+for(const mode of ['legacy','fenced'])live(`verified SQL001-005 upgrade serializes with old writers and preserves ${mode} mode and historical hashes`,async({pool})=>{
+ const {migrationBody,MATH_MIGRATIONS}=await import('../src/postgres-migrations.mjs');const {createHash}=await import('node:crypto');
+ const c=await pool.connect();try{
+  await c.query('BEGIN');await c.query("CREATE TABLE mu_schema_migrations(filename text PRIMARY KEY,applied_at timestamptz NOT NULL DEFAULT now(),sha256 text NOT NULL,hash_contract text NOT NULL)");
+  for(const filename of MATH_MIGRATIONS.slice(0,5)){const bytes=await source(filename);await c.query(migrationBody(bytes.toString('utf8'),filename));await c.query("INSERT INTO mu_schema_migrations(filename,sha256,hash_contract) VALUES($1,$2,'sha256-raw-utf8/v1')",[filename,createHash('sha256').update(bytes).digest('hex')]);}
+  await c.query('COMMIT');
+ }finally{c.release();}
+ if(mode==='fenced')await pool.query('SELECT mu_enable_fenced_ingestion()');
+ const before=(await pool.query('SELECT * FROM mu_schema_migrations ORDER BY filename')).rows;
+ const blocker=await pool.connect();let upgrade,settled=false;
+ try{
+  await blocker.query('BEGIN');await blocker.query('SELECT pg_advisory_xact_lock_shared(732814,3)');
+  upgrade=applyMathMigrations(pool).finally(()=>{settled=true});
+  await new Promise(r=>setTimeout(r,100));assert.equal(settled,false,'SQL006 must wait for old guarded writers');
+  await blocker.query('COMMIT');assert.deepEqual(await upgrade,['006_ingestion_lease_clock.sql']);
+ }finally{await blocker.query('ROLLBACK');blocker.release();await upgrade;}
+
+ assert.deepEqual((await pool.query('SELECT * FROM mu_schema_migrations ORDER BY filename LIMIT 5')).rows,before);
+ assert.equal((await pool.query('SELECT mu_ingestion_protocol_status() AS mode')).rows[0].mode,mode);
+ const guard=(await pool.query("SELECT proconfig,prosecdef,has_function_privilege('public','mu_ingestion_protocol_guard()','EXECUTE') AS public_execute FROM pg_proc WHERE oid='mu_ingestion_protocol_guard()'::regprocedure")).rows[0];
+ assert.equal(guard.prosecdef,true);assert.equal(guard.public_execute,false);assert.ok(guard.proconfig.some(x=>x.startsWith('search_path=pg_catalog, mu_it_')&&x.endsWith(', pg_temp')));
+ await assert.rejects(applyMathMigrations(pool,{readSql:async name=>name==='006_ingestion_lease_clock.sql'?Buffer.concat([await source(name),Buffer.from(' ') ]):source(name)}),/MATH_MIGRATION_CONTENT_CHANGED: 006/);
+ await pool.query("UPDATE mu_schema_migrations SET hash_contract='unknown' WHERE filename='006_ingestion_lease_clock.sql'");
+ await assert.rejects(applyMathMigrations(pool),/MATH_MIGRATION_LEDGER_INVALID/);
 });

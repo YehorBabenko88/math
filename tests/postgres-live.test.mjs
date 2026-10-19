@@ -15,9 +15,9 @@ test('real PostgreSQL: migrate, deduplicate, claim, renew, complete and recover 
   const tables=await pool.query("SELECT tablename FROM pg_tables WHERE schemaname=current_schema() AND tablename LIKE 'mu_%'");
   assert.equal(tables.rows.length,0,'Test database must be empty of mu_* tables');
   const applied=await applyMathMigrations(pool);
-  assert.ok(applied.every(name=>['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql'].includes(name)));
+  assert.ok(applied.every(name=>['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql'].includes(name)));
   const migrationRows=await pool.query('SELECT filename FROM mu_schema_migrations ORDER BY filename');
-  assert.deepEqual(migrationRows.rows.map(row=>row.filename),['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql']);
+  assert.deepEqual(migrationRows.rows.map(row=>row.filename),['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql']);
   assert.deepEqual(await applyMathMigrations(pool),[]);
   const q=createIngestionJobStore(pool);
   const sourceHash=randomUUID();
