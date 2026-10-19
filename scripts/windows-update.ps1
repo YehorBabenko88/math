@@ -1,3 +1,4 @@
+#requires -Version 5.1
 param(
  [string]$Root = 'C:\ProgramData\MathUniverse',
  [string]$Branch = 'feat/math-universe-foundation',
@@ -5,6 +6,8 @@ param(
  [switch]$CheckOnly
 )
 $ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'windows-deployment.ps1')
+$Root=[IO.Path]::GetFullPath($Root)
 $repo='YehorBabenko88/math'
 $origin="https://github.com/$repo.git"
 $gitDir=Join-Path $Root 'repository'
@@ -13,8 +16,43 @@ $active=Join-Path $Root 'active.txt'
 $service='MathUniverse'
 $node=(Get-Command node -ErrorAction Stop).Source
 $git=(Get-Command git -ErrorAction Stop).Source
-$nssm=(Get-Command nssm -ErrorAction Stop).Source
-New-Item -ItemType Directory -Force $Root,$releases | Out-Null
+$headers=@{Accept='application/vnd.github+json';'User-Agent'='MathUniverse-Updater';'X-GitHub-Api-Version'='2022-11-28'}
+function Get-GitHubPages([string]$Path,[string]$Property) {
+ $items=@()
+ for($page=1;$page -le 10;$page++){
+  $separator=if($Path.Contains('?')){'&'}else{'?'}
+  $response=Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/$Path${separator}per_page=100&page=$page" -Headers $headers -TimeoutSec 20
+  $batch=@($response.$Property)
+  if(!$response.PSObject.Properties[$Property]){throw 'Invalid GitHub response'}
+  $items+=$batch
+  if($batch.Count -lt 100){return $items}
+ }
+ throw 'GitHub evidence exceeds bounded pagination; refusing incomplete evidence'
+}
+function Assert-CandidateChecks([string]$Sha) {
+ $runs=Get-GitHubPages "actions/runs?head_sha=$Sha" 'workflow_runs'
+ $jobEvidence=@{}
+ Assert-DeploymentChecks -Sha $Sha -Branch $Branch -Runs $runs -GetJobs {
+  param($run)
+  $jobs=Get-GitHubPages "actions/runs/$($run.id)/attempts/$($run.run_attempt)/jobs" 'jobs'
+  $current=Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/actions/runs/$($run.id)" -Headers $headers -TimeoutSec 20
+  if($current.head_sha -cne $Sha -or $current.run_attempt -ne $run.run_attempt -or $current.status -cne 'completed' -or $current.conclusion -cne 'success'){throw 'Workflow changed during verification'}
+  $jobEvidence["$($run.id):$($run.run_attempt)"]=$jobs
+  $jobs
+ }
+ # Refresh newest-run selection after gathering jobs; never reuse evidence for a new run/attempt.
+ $latest=Get-GitHubPages "actions/runs?head_sha=$Sha" 'workflow_runs'
+ Assert-DeploymentChecks -Sha $Sha -Branch $Branch -Runs $latest -GetJobs {
+  param($run)
+  $key="$($run.id):$($run.run_attempt)"
+  if(!$jobEvidence.ContainsKey($key)){throw 'Workflow selection changed during verification'}
+  $jobEvidence[$key]
+ }
+}
+New-Item -ItemType Directory -Force $Root | Out-Null
+$deploymentLock=Enter-DeploymentLock -Root $Root
+try {
+New-Item -ItemType Directory -Force $releases | Out-Null
 if(!(Test-Path (Join-Path $gitDir '.git'))){
  & $git clone --no-checkout $origin $gitDir
  if($LASTEXITCODE -ne 0){throw 'Clone failed'}
@@ -24,16 +62,13 @@ try {
  & $git fetch --prune origin "+refs/heads/$($Branch):refs/remotes/origin/$($Branch)"
  if($LASTEXITCODE -ne 0){throw 'Fetch failed'}
  $sha=(& $git rev-parse "refs/remotes/origin/$Branch").Trim()
- if($sha -notmatch '^[a-f0-9]{40}$'){throw 'Invalid commit SHA'}
- $url="https://api.github.com/repos/$repo/actions/runs?head_sha=$sha&per_page=100"
- $runs=(Invoke-RestMethod -Uri $url -Headers @{Accept='application/vnd.github+json';'User-Agent'='MathUniverse-Updater'} -TimeoutSec 20).workflow_runs
- foreach($name in @('Validate Math Universe','Browser E2E')){
-  $matching=@($runs | Where-Object {$_.name -eq $name -and $_.head_sha -eq $sha})
-  if(!$matching.Count -or !(@($matching | Where-Object {$_.status -eq 'completed' -and $_.conclusion -eq 'success'}).Count)){throw "Missing green CI: $name"}
- }
+ if($LASTEXITCODE -ne 0 -or $sha -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid commit SHA'}
+ Assert-CandidateChecks $sha
  $old=if(Test-Path $active){(Get-Content $active -Raw).Trim()}else{''}
+ if($old -and $old -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid previous release pointer'}
  if($old -eq $sha){Write-Output "Already current: $sha";exit 0}
  if($CheckOnly){Write-Output "Verified candidate: $sha";exit 0}
+ $nssm=(Get-Command nssm -ErrorAction Stop).Source
  $target=Join-Path $releases $sha
  if(!(Test-Path $target)){
   & $git worktree add --detach $target $sha
@@ -41,47 +76,38 @@ try {
  }
  Push-Location $target
  try {
-  & $node --test (Get-ChildItem 'tests\*.test.mjs' | ForEach-Object FullName)
-  if($LASTEXITCODE -ne 0){throw 'Candidate tests failed'}
+  # Fail closed without disposable test DB + PDF runtime and reject every skip/todo.
+  & $node 'scripts/test-full-ci.mjs'
+  if($LASTEXITCODE -ne 0){throw 'Candidate full tests failed'}
  }finally{Pop-Location}
  if($Install){
-  if(!(Test-Path $active)){Set-Content -Path $active -Value $sha -NoNewline}
   $launcher=Join-Path $Root 'launch.ps1'
-  $launchContent=@'
-$ErrorActionPreference='Stop'
-$root='C:\ProgramData\MathUniverse'
-$sha=(Get-Content (Join-Path $root 'active.txt') -Raw).Trim()
-if($sha -notmatch '^[a-f0-9]{40}$'){throw 'Invalid active release'}
-Set-Location (Join-Path (Join-Path $root 'releases') $sha)
-& node 'src/local-server.mjs'
-'@
-  Set-Content -Path $launcher -Value $launchContent -Encoding UTF8
-  & $nssm install $service 'powershell.exe' "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$launcher`""
+  Set-Content -LiteralPath $launcher -Value (Get-DeploymentLauncher) -Encoding UTF8
+  & $nssm install $service 'powershell.exe' "-NoProfile -NonInteractive -File `"$launcher`""
   if($LASTEXITCODE -ne 0){throw 'NSSM install failed'}
   & $nssm set $service Start SERVICE_AUTO_START | Out-Null
+  if($LASTEXITCODE -ne 0){throw 'NSSM configuration failed'}
  }
  if(!(Get-Service $service -ErrorAction SilentlyContinue)){throw 'Service missing; run -Install as administrator'}
- Set-Content -Path $active -Value $sha -NoNewline
- try {
+ # Local testing and installation may take minutes. Require fresh evidence before activation.
+ Assert-CandidateChecks $sha
+ Invoke-DeploymentActivation -Sha $sha -Old $old -WritePointer {
+  param($value)
+  # Same-volume atomic replacement: a failed write never truncates the known-good pointer.
+  Write-DeploymentPointer -Path $active -Sha $value
+ } -RemovePointer {Remove-Item -LiteralPath $active -ErrorAction Stop} -Restart {
   & $nssm restart $service | Out-Null
-  $healthy=$false
+  if($LASTEXITCODE -ne 0){throw 'NSSM restart failed'}
+ } -Stop {
+  & $nssm stop $service | Out-Null
+  if($LASTEXITCODE -ne 0){throw 'NSSM stop failed'}
+ } -Healthy {
   for($i=0;$i -lt 20;$i++){
    Start-Sleep -Seconds 1
-   try{$response=Invoke-RestMethod 'http://127.0.0.1:8787/healthz' -TimeoutSec 2;if($response.status -eq 'ok'){$healthy=$true;break}}catch{}
+   try{$response=Invoke-RestMethod 'http://127.0.0.1:8787/healthz' -TimeoutSec 2;if($response.status -eq 'ok'){return $true}}catch{}
   }
-  if(!$healthy){throw 'Health check failed'}
-  Write-Output "Activated $sha"
- }catch{
-  if($old -match '^[a-f0-9]{40}
+  return $false
  }
+ Write-Output "Activated $sha"
 }finally{Pop-Location}
-){
-   Set-Content -Path $active -Value $old -NoNewline
-   & $nssm restart $service | Out-Null
-  }else{
-   Remove-Item -Path $active -ErrorAction SilentlyContinue
-   & $nssm stop $service | Out-Null
-  }
-  throw
- }
-}finally{Pop-Location}
+}finally{$deploymentLock.Dispose()}
