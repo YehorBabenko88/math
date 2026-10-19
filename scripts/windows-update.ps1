@@ -53,28 +53,28 @@ New-Item -ItemType Directory -Force $Root | Out-Null
 $deploymentLock=Enter-DeploymentLock -Root $Root
 try {
 New-Item -ItemType Directory -Force $releases | Out-Null
-if(!(Test-Path (Join-Path $gitDir '.git'))){
+if(!(Test-Path -LiteralPath (Join-Path $gitDir '.git'))){
  & $git clone --no-checkout $origin $gitDir
  if($LASTEXITCODE -ne 0){throw 'Clone failed'}
 }
-Push-Location $gitDir
+Push-Location -LiteralPath $gitDir
 try {
  & $git fetch --prune origin "+refs/heads/$($Branch):refs/remotes/origin/$($Branch)"
  if($LASTEXITCODE -ne 0){throw 'Fetch failed'}
  $sha=(& $git rev-parse "refs/remotes/origin/$Branch").Trim()
  if($LASTEXITCODE -ne 0 -or $sha -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid commit SHA'}
  Assert-CandidateChecks $sha
- $old=if(Test-Path $active){(Get-Content $active -Raw).Trim()}else{''}
+ $old=if(Test-Path -LiteralPath $active){(Get-Content -LiteralPath $active -Raw).Trim()}else{''}
  if($old -and $old -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid previous release pointer'}
  if($old -eq $sha){Write-Output "Already current: $sha";exit 0}
  if($CheckOnly){Write-Output "Verified candidate: $sha";exit 0}
  $nssm=(Get-Command nssm -ErrorAction Stop).Source
  $target=Join-Path $releases $sha
- if(!(Test-Path $target)){
+ if(!(Test-Path -LiteralPath $target)){
   & $git worktree add --detach $target $sha
   if($LASTEXITCODE -ne 0){throw 'Worktree creation failed'}
  }
- Push-Location $target
+ Push-Location -LiteralPath $target
  try {
   # Fail closed without disposable test DB + PDF runtime and reject every skip/todo.
   & $node 'scripts/test-full-ci.mjs'

@@ -23,9 +23,9 @@ jobs:
           persist-credentials: false
       - name: Prepare pinned fixture framework
         shell: pwsh
-        run: Save-Module Pester -RequiredVersion 3.4.0 -Path "$env:RUNNER_TEMP/pester" -Force
+        run: Save-Module Pester -RequiredVersion 4.10.1 -Path "$env:RUNNER_TEMP/pester" -Force
       - name: Parse scripts and run synthetic deployment fixtures
         shell: pwsh
         run: |
-          & '${{ matrix.shell }}' -NoProfile -Command "Import-Module '$env:RUNNER_TEMP/pester/Pester/3.4.0/Pester.psd1' -ErrorAction Stop; Invoke-Pester -Script tests/windows-deployment.Tests.ps1 -EnableExit"
+          & '${{ matrix.shell }}' -NoProfile -Command "Import-Module '$env:RUNNER_TEMP/pester/Pester/4.10.1/Pester.psd1' -ErrorAction Stop; Invoke-Pester -Script tests/windows-deployment.Tests.ps1 -EnableExit"
           exit $LASTEXITCODE

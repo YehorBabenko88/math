@@ -27,28 +27,45 @@ function Get-RequiredDeploymentWorkflows {
     )
 }
 
+function Get-DeploymentUpdatedAt {
+    param($Value)
+    if ($Value -is [DateTimeOffset]) { return $Value.ToUniversalTime() }
+    if ($Value -is [DateTime]) {
+        if ($Value.Kind -eq [DateTimeKind]::Unspecified) { throw 'Workflow timestamp has no timezone' }
+        return [DateTimeOffset]($Value.ToUniversalTime())
+    }
+    $timestamp=[DateTimeOffset]::MinValue
+    if ($Value -isnot [string] -or $Value -cnotmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$' -or
+        ![DateTimeOffset]::TryParse($Value,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::AdjustToUniversal,[ref]$timestamp)) {
+        throw 'Invalid workflow update timestamp'
+    }
+    return $timestamp
+}
+
 function Assert-DeploymentChecks {
     param([string]$Sha, [string]$Branch, [object[]]$Runs, [scriptblock]$GetJobs)
     if ($Sha -cnotmatch '^[a-f0-9]{40}$' -or [string]::IsNullOrWhiteSpace($Branch)) { throw 'Invalid deployment identity' }
     foreach ($workflow in (Get-RequiredDeploymentWorkflows)) {
         $relevant = @($Runs | Where-Object { $_.workflow_id -eq $workflow.Id -and $_.head_sha -ceq $Sha })
+        $candidates=@()
         foreach ($entry in $relevant) {
             foreach ($field in @('id','run_number','run_attempt')) {
                 $number=0L
                 if (![long]::TryParse([string]$entry.$field,[ref]$number) -or $number -lt 1) { throw "Invalid workflow metadata: $field" }
             }
-            $timestamp=[DateTimeOffset]::MinValue
-            if (![DateTimeOffset]::TryParse([string]$entry.updated_at,[ref]$timestamp)) { throw 'Invalid workflow update timestamp' }
+            # PS 5.1 JSON dates are strings; PS 7 may deserialize them to DateTime.
+            # Normalize once, without stringify/reparse, for both validation and ordering.
+            $candidates+=@([pscustomobject]@{Run=$entry; UpdatedAt=(Get-DeploymentUpdatedAt $entry.updated_at)})
         }
         # A rerun of an older run can be the newest activity. Never fall back to old green.
-        $matching = @($relevant | Sort-Object -Property @{Expression={[DateTimeOffset]$_.updated_at}; Descending=$true},
-            @{Expression={[long]$_.run_number}; Descending=$true}, @{Expression={[long]$_.id}; Descending=$true}, @{Expression={[long]$_.run_attempt}; Descending=$true})
+        $matching = @($candidates | Sort-Object -Property @{Expression={$_.UpdatedAt}; Descending=$true},
+            @{Expression={[long]$_.Run.run_number}; Descending=$true}, @{Expression={[long]$_.Run.id}; Descending=$true}, @{Expression={[long]$_.Run.run_attempt}; Descending=$true})
         if (!$matching.Count) { throw "Missing trusted workflow: $($workflow.Path)" }
-        $run = $matching[0]
+        $run = $matching[0].Run
         # GitHub timestamps have finite precision. A tied failed/pending attempt cannot be
         # ordered reliably against green activity, so refuse that ambiguous snapshot.
-        foreach ($tied in @($matching | Where-Object { [DateTimeOffset]$_.updated_at -eq [DateTimeOffset]$run.updated_at })) {
-            if ($tied.status -cne 'completed' -or $tied.conclusion -cne 'success') { throw 'Ambiguous latest workflow activity is not green' }
+        foreach ($tied in @($matching | Where-Object { $_.UpdatedAt -eq $matching[0].UpdatedAt })) {
+            if ($tied.Run.status -cne 'completed' -or $tied.Run.conclusion -cne 'success') { throw 'Ambiguous latest workflow activity is not green' }
         }
         if ($run.path -cne $workflow.Path -or $run.repository.full_name -cne 'YehorBabenko88/math' -or
             $run.head_repository.full_name -cne 'YehorBabenko88/math' -or $run.head_branch -cne $Branch -or

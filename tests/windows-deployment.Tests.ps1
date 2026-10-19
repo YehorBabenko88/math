@@ -36,6 +36,14 @@ Describe 'Windows deployment safety contracts' {
         Assert-DeploymentChecks -Sha $sha -Branch $branch -Runs $fixture.Runs -GetJobs { param($run) $fixture.Jobs[[string]$run.id] }
     }
     It 'accepts complete trusted current checks' { Assert-Fixture (New-GreenFixture) }
+    It 'accepts actual JSON timestamp representations independently of host culture' {
+        $f=New-GreenFixture; $culture=[Threading.Thread]::CurrentThread.CurrentCulture
+        try {
+            [Threading.Thread]::CurrentThread.CurrentCulture=[Globalization.CultureInfo]::GetCultureInfo('de-DE')
+            foreach($run in $f.Runs){$run.updated_at=[DateTime]::Parse('2026-10-19T01:00:00Z',[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind)}
+            Assert-Fixture $f
+        } finally { [Threading.Thread]::CurrentThread.CurrentCulture=$culture }
+    }
     It 'requires both Windows contract shells as deployment evidence' {
         $windows=@(Get-RequiredDeploymentWorkflows | Where-Object {$_.Path -eq '.github/workflows/windows-deployment.yml'})
         $windows.Count | Should Be 1
@@ -124,13 +132,13 @@ Describe 'Windows deployment safety contracts' {
         Assert-Fixture $f
     }
     It 'generates a launcher using its actual custom root including apostrophes and spaces' {
-        $root=Join-Path $TestDrive "custom root's folder"; New-Item -ItemType Directory $root | Out-Null
+        $root=Join-Path $TestDrive "custom root's [folder]"; New-Item -ItemType Directory $root | Out-Null
         $release=Join-Path (Join-Path $root 'releases') $sha; New-Item -ItemType Directory -Force $release | Out-Null
-        Set-Content (Join-Path $root 'active.txt') $sha
-        Set-Content (Join-Path $root 'launch.ps1') (Get-DeploymentLauncher)
+        Set-Content -LiteralPath (Join-Path $root 'active.txt') $sha
+        Set-Content -LiteralPath (Join-Path $root 'launch.ps1') (Get-DeploymentLauncher)
         function node { param($script) $global:LASTEXITCODE=0; (Get-Location).Path; $script }
         $before=(Get-Location).Path
-        Set-Location $release; $expected=(Get-Location).Path; Set-Location $before
+        Set-Location -LiteralPath $release; $expected=(Get-Location).Path; Set-Location $before
         try { $result=& (Join-Path $root 'launch.ps1'); $result[0] | Should Be $expected; $result[1] | Should Be 'src/local-server.mjs' } finally {Set-Location $before}
     }
     It 'rejects invalid active pointers without launching a process' {
