@@ -47,7 +47,7 @@ test('real PostgreSQL migration lexer preserves nested comments and function bod
   const script='\uFEFF/* outer /* nested */ COMMIT; */\nBEGIN;\nCREATE FUNCTION audit_literal() RETURNS text LANGUAGE plpgsql AS $body$ BEGIN RETURN \'COMMIT; -- inert\'; END; $body$;\nCOMMIT; -- COMMIT;\n';
   const readSql=async name=>name.startsWith('001')?script:'SELECT 1;';
   const results=await Promise.all([applyMathMigrations(pool,{readSql}),applyMathMigrations(pool,{readSql})]);
-  assert.deepEqual(results.map(r=>r.length).sort(),[0,5]);
+  assert.deepEqual(results.map(r=>r.length).sort(),[0,6]);
   assert.equal((await pool.query('SELECT audit_literal() AS value')).rows[0].value,'COMMIT; -- inert');
   assert.deepEqual(await applyMathMigrations(pool,{readSql}),[]);
  });

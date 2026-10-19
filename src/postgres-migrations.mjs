@@ -45,7 +45,7 @@ export function migrationBody(sql,name){
 }
 
 export const MATH_MIGRATION_HASH_CONTRACT='sha256-raw-utf8/v1';
-export const MATH_MIGRATIONS=Object.freeze(['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql']);
+export const MATH_MIGRATIONS=Object.freeze(['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql']);
 const defaultRead=name=>readFile(new URL('../sql/'+name,import.meta.url));
 const reject=code=>{throw Error(code);};
 const identifier=value=>'"'+value.replaceAll('"','""')+'"';

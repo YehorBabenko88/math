@@ -12,7 +12,7 @@ import {createFencedIngestionJobStore} from '../src/ingestion-job-postgres-fence
 import {normalizePostgresIngestionLease} from '../src/ingestion-lease-contract.mjs';
 import {createIngestionWorker} from '../src/ingestion-worker.mjs';
 const url=process.env.MATH_UNIVERSE_TEST_DATABASE_URL;
-const migrations=['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql'];
+const migrations=['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql'];
 
 test('real PostgreSQL checkpoint survives killed worker; every stale operation is fenced',{skip:!url},async()=>{
  await withIsolatedPostgres(url,async({pool,schema})=>{
@@ -53,7 +53,7 @@ test('real PostgreSQL migrations serialize, rollback fully and preserve legacy A
   await assert.rejects(applyMathMigrations(pool,{readSql:async name=>name==='004_ingestion_checkpoints.sql'?'SELECT missing_migration_function();':readFile(new URL('../sql/'+name,import.meta.url),'utf8')}));
   const objects=await pool.query("SELECT tablename FROM pg_tables WHERE schemaname=current_schema() AND tablename LIKE 'mu_%'");assert.deepEqual(objects.rows,[],'All DDL and ledger writes must roll back');
   const results=await Promise.all([applyMathMigrations(pool),applyMathMigrations(pool)]);
-  assert.equal(results.filter(r=>r.length===5).length,1);assert.equal(results.filter(r=>r.length===0).length,1);
+  assert.equal(results.filter(r=>r.length===6).length,1);assert.equal(results.filter(r=>r.length===0).length,1);
   assert.deepEqual((await pool.query('SELECT filename FROM mu_schema_migrations ORDER BY filename')).rows.map(r=>r.filename),migrations);
   const legacy=createIngestionJobStore(pool),fenced=createFencedIngestionJobStore(pool);
   const job=await legacy.enqueue({kind:'verify-candidate',sourceHash:randomUUID(),locator:'legacy'});
