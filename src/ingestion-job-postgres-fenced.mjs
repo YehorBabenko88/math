@@ -45,7 +45,7 @@ export function createFencedIngestionJobStore(pool){
    await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');active=true;
    // Same lock order as activation: protocol lock, then protocol row/job rows.
    await client.query('SELECT pg_catalog.pg_advisory_xact_lock_shared(732814,3)');
-   await client.query("SELECT pg_catalog.set_config('math_universe.claim_token',$1,true)",[args[2]]);
+   await client.query("SELECT pg_catalog.set_config('math_universe.claim_token',$1,true)",[args[2].toLowerCase()]);
    const result=await client.query(sql,args);
    await client.query('COMMIT');active=false;return result;
   }catch(error){if(active)try{await client.query('ROLLBACK')}catch(e){releaseError=e}throw error;}

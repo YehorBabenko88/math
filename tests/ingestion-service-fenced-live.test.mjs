@@ -89,3 +89,8 @@ live('protocol activation rejects stale transaction isolation and API overrides 
  const stale={async connect(){const client=await pool.connect();await client.query("SET default_transaction_isolation='repeatable read'");return client;}};
  await enable(stale);assert.equal((await pool.query('SELECT mu_ingestion_protocol_status() AS mode')).rows[0].mode,'fenced');
 });
+live('fenced service protocol accepts uppercase UUIDs supported by the public lease API',async({pool})=>{
+ await applyMathMigrations(pool);await enable(pool);await createIngestionJobStore(pool).enqueue({kind:'verify-candidate',sourceHash:'synthetic',locator:'upper'});
+ const store=createFencedIngestionJobStore(pool);const lease=await store.claim({workerId:'same-worker'});const args={jobId:lease.job_id,workerId:'same-worker',claimToken:lease.claim_token.toUpperCase()};
+ await store.renew(args);await store.complete({...args,result:{upper:true}});assert.deepEqual((await pool.query('SELECT result FROM mu_ingestion_jobs')).rows[0].result,{upper:true});
+});
