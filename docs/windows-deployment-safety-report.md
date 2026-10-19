@@ -31,7 +31,15 @@ Evidence logs are outside Git under the parent clone's `outputs/fix-windows-*` p
 
 The initial push at `7f58d58` exposed an invalid Actions expression in the step `shell` field before jobs started. The workflow now uses a literal pwsh driver with the matrix-selected ordinary shell executable and no execution-policy override. The next run showed Gallery Pester 3.4.0 imports removed `Get-WmiObject` under pwsh; Windows PowerShell passed all 23 fixtures at that tip, while pwsh failed before fixture execution. CI now pins Pester 4.10.1 for both shells, verified locally from the same Gallery package. A live read-only GitHub response smoke additionally caught PowerShell 7 DateTime deserialization and locale-sensitive timestamp parsing; a RED typed-date/culture regression now passes after direct UTC normalization with invariant ISO parsing for PS5 strings. Its registered workflow ID 389263787 is also pinned in the mandatory deployment gate, so a failed Windows contract run cannot be ignored.
 
-The branch is pushed normally to its own remote ref; no PR is created and no branch is merged. Remote Actions and real GitHub response smoke evidence are recorded in the final handoff after workflows finish. The smoke imports only the reviewed deployment-contract helper and reads run/job JSON with `gh api`; it never invokes the updater or service operations.
+Source tip `8113929ff7b4d3d7aa8bdccb95a119f06a3681d9` is pushed normally to this branch and all five exact-SHA push workflows completed successfully:
+
+- [PostgreSQL Integration](https://github.com/YehorBabenko88/math/actions/runs/39235530812): all four Node 22/24 × PG16/18 cells plus Full CI coverage.
+- [Native PDF](https://github.com/YehorBabenko88/math/actions/runs/39235531092).
+- [Browser E2E](https://github.com/YehorBabenko88/math/actions/runs/39235530989).
+- [Validate](https://github.com/YehorBabenko88/math/actions/runs/39235530809).
+- [Windows contracts](https://github.com/YehorBabenko88/math/actions/runs/39235531059): Windows PowerShell and pwsh both pass the current 24 AST/fixture tests.
+
+`fix-windows-api-smoke-green.log` records a live read-only gate PASS on that exact SHA using ten actual GitHub job objects across the five trusted workflow IDs, with current-attempt/head_sha fields accepted by the real gate. The smoke imports only the reviewed deployment-contract helper and reads JSON with `gh api`; it never invokes the updater or service operations. No PR is created and no branch is merged. This report-only evidence commit leaves all source/test/workflow bytes identical to that validated source tip; the final handoff separately verifies Actions and live API evidence again on the final report commit.
 
 ## Limits and remaining qualification
 
