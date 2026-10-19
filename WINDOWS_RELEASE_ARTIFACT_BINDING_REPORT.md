@@ -105,3 +105,11 @@ explicit compatibility plan. Immutable npm/Python/transitive dependencies,
 Pester downloads and action references remain separate release-artifact work.
 Green tests do not qualify real host install/reboot/rollback/HTTP release identity,
 production authorization, Book gate opening, branch protection or deployment.
+
+A real own-branch worktree smoke also exercised the complete tracked tree and
+allowed dependency layout. It first rejected mixed LF/CRLF bytes left by local
+editing even though Git's content diff was clean. Only the three newly changed
+report/helper/test files were re-materialized from their committed Git contents;
+no SQL files were touched. The complete source association then passed. This
+strict checkout-policy rejection is deliberate; mixed-EOL release files require
+a fresh canonical checkout rather than automatic source/ledger normalization.
