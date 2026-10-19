@@ -178,4 +178,3 @@ Describe 'Windows deployment safety contracts' {
         $message | Should Match 'activation restart failed.*rollback failed: recovery denied'
     }
 }
-
