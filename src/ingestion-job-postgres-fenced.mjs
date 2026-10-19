@@ -1,5 +1,6 @@
-// Opt-in fenced queue operations. Do not mix with legacy unfenced workers.
-// Requires migrations through 004_ingestion_checkpoints.sql and a drained legacy queue.
+// Opt-in fenced queue operations; requires pg-compatible connect() transactions.
+// Requires migrations through 004. Guarded service mode additionally requires
+// 005 and explicit protocol activation; before activation do not mix workers.
 // Job IDs must fit positive JavaScript safe integers; unsupported database IDs are untouched.
 import {randomUUID} from 'node:crypto';
 import {types} from 'node:util';
@@ -37,12 +38,24 @@ function boundedJSON(input,label){
  return JSON.stringify(visit(input,0));
 }
 export function createFencedIngestionJobStore(pool){
- if(!pool||typeof pool.query!=='function')throw Error('PostgreSQL pool required');
+ if(!pool||typeof pool.connect!=='function')throw Error('PostgreSQL pool with connect() required');
+ async function query(sql,args){
+  const client=await pool.connect();let active=false,releaseError;
+  try{
+   await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');active=true;
+   // Same lock order as activation: protocol lock, then protocol row/job rows.
+   await client.query('SELECT pg_catalog.pg_advisory_xact_lock_shared(732814,3)');
+   await client.query("SELECT pg_catalog.set_config('math_universe.claim_token',$1,true)",[args[2]]);
+   const result=await client.query(sql,args);
+   await client.query('COMMIT');active=false;return result;
+  }catch(error){if(active)try{await client.query('ROLLBACK')}catch(e){releaseError=e}throw error;}
+  finally{client.release(releaseError);}
+ }
  return Object.freeze({
   async claim({workerId,leaseSeconds=120,jobId}){
    validWorker(workerId);validLease(leaseSeconds);if(jobId!==undefined)validId(jobId);
    const token=randomUUID();
-   const res=await pool.query(`
+   const res=await query(`
 WITH exhausted AS (
  UPDATE mu_ingestion_jobs SET state='failed',lease_until=NULL,claim_token=NULL,
  worker_id=NULL,last_error='LEASE_EXPIRED',updated_at=now()
@@ -68,28 +81,28 @@ RETURNING job.job_id,job.kind,job.payload,job.attempts,job.lease_until,job.claim
   },
   async renew({jobId,workerId,claimToken,leaseSeconds=120}){
    validId(jobId);validWorker(workerId);validToken(claimToken);validLease(leaseSeconds);
-   const res=await pool.query("UPDATE mu_ingestion_jobs SET lease_until=now()+($4::int*interval '1 second'),updated_at=now() WHERE job_id=$1 AND worker_id=$2 AND claim_token=$3::uuid AND state='running' AND lease_until>now() RETURNING job_id,lease_until",[jobId,workerId,claimToken,leaseSeconds]);
+   const res=await query("UPDATE mu_ingestion_jobs SET lease_until=now()+($4::int*interval '1 second'),updated_at=now() WHERE job_id=$1 AND worker_id=$2 AND claim_token=$3::uuid AND state='running' AND lease_until>now() RETURNING job_id,lease_until",[jobId,workerId,claimToken,leaseSeconds]);
    if(!res.rows.length)throw leaseLost();
    return jobRow(res.rows[0]);
   },
   async checkpoint({jobId,workerId,claimToken,checkpoint}){
    validId(jobId);validWorker(workerId);validToken(claimToken);
    const encoded=boundedJSON(checkpoint,'Checkpoint');
-   const res=await pool.query("UPDATE mu_ingestion_jobs SET checkpoint=$4::jsonb,updated_at=now() WHERE job_id=$1 AND worker_id=$2 AND claim_token=$3::uuid AND state='running' AND lease_until>now() RETURNING job_id,checkpoint",[jobId,workerId,claimToken,encoded]);
+   const res=await query("UPDATE mu_ingestion_jobs SET checkpoint=$4::jsonb,updated_at=now() WHERE job_id=$1 AND worker_id=$2 AND claim_token=$3::uuid AND state='running' AND lease_until>now() RETURNING job_id,checkpoint",[jobId,workerId,claimToken,encoded]);
    if(!res.rows.length)throw leaseLost();
    return jobRow(res.rows[0]);
   },
   async complete({jobId,workerId,claimToken,result={}}){
    validId(jobId);validWorker(workerId);validToken(claimToken);
    const encoded=boundedJSON(result,'Result');
-   const res=await pool.query("UPDATE mu_ingestion_jobs SET state='completed',result=$4::jsonb,lease_until=NULL,claim_token=NULL,worker_id=NULL,updated_at=now() WHERE job_id=$1 AND worker_id=$2 AND claim_token=$3::uuid AND state='running' AND lease_until>now() RETURNING job_id",[jobId,workerId,claimToken,encoded]);
+   const res=await query("UPDATE mu_ingestion_jobs SET state='completed',result=$4::jsonb,lease_until=NULL,claim_token=NULL,worker_id=NULL,updated_at=now() WHERE job_id=$1 AND worker_id=$2 AND claim_token=$3::uuid AND state='running' AND lease_until>now() RETURNING job_id",[jobId,workerId,claimToken,encoded]);
    if(!res.rows.length)throw leaseLost();
    return jobRow(res.rows[0]);
   },
   async fail({jobId,workerId,claimToken,error,retrySeconds=60}){
    validId(jobId);validWorker(workerId);validToken(claimToken);
    if(typeof error!=='string'||!error.trim()||error.length>1000||!Number.isInteger(retrySeconds)||retrySeconds<1||retrySeconds>86400)throw Error('Invalid failure');
-   const res=await pool.query(`UPDATE mu_ingestion_jobs SET
+   const res=await query(`UPDATE mu_ingestion_jobs SET
  state=CASE WHEN attempts>=max_attempts THEN 'failed' ELSE 'queued' END,
  available_at=now()+($5::int*interval '1 second'),lease_until=NULL,claim_token=NULL,
  worker_id=NULL,last_error=$4,updated_at=now()
