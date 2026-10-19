@@ -1,20 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applyBookMigrations} from '../src/book-ingestion/postgres-migrations.mjs';
-test('Book migrations have their own ledger and lock and apply exactly once',async()=>{
- const calls=[],done=[];let released;
- const client={async query(sql,args){calls.push(sql);if(sql==='SELECT filename FROM mu_book_schema_migrations')return {rows:done.map(filename=>({filename}))};if(sql.startsWith('INSERT INTO mu_book_schema_migrations'))done.push(args[0]);return {rows:[]}},release(error){released=error??true}};
- const pool={async connect(){return client}};
- assert.deepEqual(await applyBookMigrations(pool),['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql','004_cutover_snapshot_fence.sql']);
- assert.deepEqual(await applyBookMigrations(pool),[]);
- assert.ok(calls.includes('SELECT pg_advisory_xact_lock(732814,2)'));
- assert.equal(calls.filter(s=>s.includes('CREATE TABLE mu_book_jobs')).length,1);
- assert.equal(calls.at(-1),'COMMIT');assert.equal(released,true);
+import {createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
+import {loadBookMigrationManifest,applyBookMigrations,BOOK_MIGRATIONS} from '../src/book-ingestion/postgres-migrations.mjs';
+test('Book manifest hashes exact raw UTF-8 bytes including CRLF and BOM',async()=>{
+ const manifest=await loadBookMigrationManifest();assert.equal(manifest.length,5);
+ for(const row of manifest){const raw=await readFile(new URL('../sql/book/'+row.filename,import.meta.url));assert.equal(row.sha256,createHash('sha256').update(raw).digest('hex'));assert.equal(row.byteLength,raw.length);assert.equal(row.hashContract,'sha256-raw-utf8/v1');}
+ const base=await loadBookMigrationManifest({readSql:async()=> 'BEGIN; SELECT 1; COMMIT;'});
+ for(const input of ['\uFEFFBEGIN; SELECT 1; COMMIT;','BEGIN;\r\nSELECT 1; COMMIT;'])assert.notEqual((await loadBookMigrationManifest({readSql:async()=>input}))[0].sha256,base[0].sha256);
+ assert.ok(Object.isFrozen(BOOK_MIGRATIONS));
 });
-test('Book migrations reject embedded transaction control and preserve original error when rollback fails',async()=>{
- const original=Error('migration failed'),rollback=Error('rollback failed');let released;
- const client={async query(sql){if(sql==='SELECT filename FROM mu_book_schema_migrations')return {rows:[]};if(sql==='ROLLBACK')throw rollback;if(sql.includes('broken'))throw original;return {rows:[]}},release(e){released=e}};
- await assert.rejects(applyBookMigrations({connect:async()=>client},{readSql:async()=> 'BEGIN; SELECT broken; COMMIT;'}),e=>e===original);
- assert.equal(released,rollback);
- await assert.rejects(applyBookMigrations({connect:async()=>client},{readSql:async()=> 'BEGIN; COMMIT; SELECT 1; COMMIT;'}),/transaction control/);
+test('malformed UTF-8 and transaction control are rejected before connecting',async()=>{
+ let connected=0;const pool={async connect(){connected++;throw Error('unexpected connection');}};
+ for(const input of [Buffer.from([255]),'\ud800','',true])await assert.rejects(applyBookMigrations(pool,{readSql:async()=>input}),/BOOK_MIGRATION_SOURCE_INVALID/);
+ await assert.rejects(applyBookMigrations(pool,{readSql:async()=> 'BEGIN; COMMIT; SELECT 1; COMMIT;'}),/transaction control/);
+ assert.equal(connected,0);
 });

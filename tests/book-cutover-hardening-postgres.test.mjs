@@ -1,3 +1,4 @@
+import {seedExecutedBookMigrations} from './helpers/book-migrations.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -39,12 +40,10 @@ test('temporary tables cannot shadow the real SQL fence guard',{skip:!url},async
  assert.equal((await pool.query('SELECT count(*) AS n FROM mu_book_jobs')).rows[0].n,'1');
 }));
 test('004 upgrades an existing 003 fence without changing its owner or generation',{skip:!url},async()=>withIsolatedPostgres(url,async({pool})=>{
- const {readFile}=await import('node:fs/promises');const {migrationBody}=await import('../src/postgres-migrations.mjs');
- await pool.query('CREATE TABLE mu_book_schema_migrations(filename text PRIMARY KEY,applied_at timestamptz NOT NULL DEFAULT now())');
- for(const file of ['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql']){await pool.query(migrationBody(await readFile(new URL('../sql/book/'+file,import.meta.url),'utf8'),file));await pool.query('INSERT INTO mu_book_schema_migrations(filename) VALUES($1)',[file]);}
+ await seedExecutedBookMigrations(pool,['001_book_queue.sql','002_lossless_json.sql','003_cutover_guard.sql']);
  await openPostgresBookQueue({pool});const runId=randomUUID(),sourceId='d'.repeat(64);
  await pool.query("INSERT INTO mu_book_cutover_guard VALUES(true,$1,$2,7,$3,'STAGING')",[runId,sourceId,'e'.repeat(64)]);
- assert.deepEqual(await applyBookMigrations(pool),['004_cutover_snapshot_fence.sql']);assert.deepEqual(await applyBookMigrations(pool),[]);
+ assert.deepEqual(await applyBookMigrations(pool),['004_cutover_snapshot_fence.sql','005_control_integrity.sql']);assert.deepEqual(await applyBookMigrations(pool),[]);
  assert.equal((await pool.query('SELECT generation::text FROM mu_book_cutover_epoch')).rows[0].generation,'7');
  const guard=await fenceBookPostgres({pool,runId,sourceId,generation:8});assert.equal(guard.witness.generation,8);await guard.pool.query('DELETE FROM mu_book_jobs');
 }));
