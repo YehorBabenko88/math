@@ -1,27 +1,43 @@
-# Math Universe on Windows (local-only)
-The project is currently a static browser UI and Node modules; PostgreSQL is **not required** to serve it. Do not create a database until persistent scientific jobs, indexing, or accounts are implemented.
+# Math Universe on Windows: supervised deployment tooling
 
-## Prerequisites
-Install Git, Node.js 22/24, NSSM; run PowerShell as Administrator. Ensure `git`, `node`, `nssm` are on PATH. Run this only on a trusted machine.
+The UI can be served without PostgreSQL. Deployment qualification is stricter: the updater requires complete synthetic PostgreSQL and native PDF tests before activation. This tooling does not authorize installation or unattended deployment.
 
-## First installation
+## Trusted tooling and prerequisites
+
+Obtain a reviewed checkout at an exact approved commit. Keep `scripts/windows-update.ps1` and `scripts/windows-deployment.ps1` together from that same commit. If an administrator copies the updater outside the checkout, copy **both** files into the same fixed directory; never download and execute a helper at update time. The bootstrap's repository checkout already contains both files.
+
+Use Node 22 or 24, Git and NSSM on PATH. The target host must permit the locally reviewed scripts under its existing execution policy. The updater does not bypass execution policy or modify security settings. Use a dedicated restricted service identity and separately approved service permissions.
+
+`-Root` is normalized to an absolute path. The generated launcher resolves active.txt and releases relative to its own directory (`$PSScriptRoot`), including roots containing spaces and apostrophes. The default is `C:\ProgramData\MathUniverse`. The launcher and helper remain trusted administrator-managed tooling outside release worktrees.
+
+## Check-only review
+
+After separately obtaining and reviewing the tooling, an administrator can inspect a branch candidate with:
+
 ```powershell
-git clone -b feat/math-universe-foundation https://github.com/YehorBabenko88/math.git C:\MathUniverseSource
-Set-ExecutionPolicy -Scope Process Bypass
-& C:\MathUniverseSource\scripts\windows-update.ps1 -Install
+& C:\MathUniverseSource\scripts\windows-update.ps1 -Root 'C:\Math Universe Pilot' -Branch 'reviewed-release-branch' -CheckOnly
 ```
-Open http://127.0.0.1:8787. Health endpoint: http://127.0.0.1:8787/healthz. The service is named `MathUniverse` and uses NSSM to restart after crashes.
 
-## Background updates every 15 minutes
-Copy the updater script to a **fixed path outside the Git worktree** (e.g. `C:\ProgramData\MathUniverse\windows-update.ps1`) and register a task in an elevated PowerShell:
-```powershell
-Copy-Item C:\MathUniverseSource\scripts\windows-update.ps1 C:\ProgramData\MathUniverse\windows-update.ps1
-$action=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\ProgramData\MathUniverse\windows-update.ps1"'
-$trigger=New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 15)
-Register-ScheduledTask -TaskName 'MathUniverse-Update' -Action $action -Trigger $trigger -User 'SYSTEM' -RunLevel Highest
-```
-Updater fetches a specific branch, verifies both required GitHub Actions succeeded on its **exact commit SHA**, creates an isolated git worktree release, runs Node unit tests, switches active release, restarts service and rolls back active pointer if local health check fails. No force pushes, DB migrations, or automatic merges.
+Check-only performs Git fetch and read-only GitHub API calls and may create the root/repository/lock files. It does not install or restart a service. It requires no NSSM. An exclusive per-root file handle prevents overlapping cooperating updater instances, including check-only; it is released on normal exit or process termination. It does not protect against unrelated administrators manually writing the active pointer.
 
-**Security:** This is an opt-in automatic deployment mechanism. Only use with a protected, trusted deployment branch. A green CI result is not a substitute for code review. GitHub API unauthenticated rate limits may interrupt polling; failure must leave the current release intact. Prefer dedicated release tags and signed provenance before production deployment.
+## Exact-SHA evidence
 
-**Known limitations:** The updater has not yet been tested on the target Windows host; first run must be supervised. Its health endpoint proves the HTTP server is reachable, not that every scientific subsystem works. Scheduled updater script is deliberately kept outside releases, so its own updates require an explicit administrator action. Running as SYSTEM is convenient but overprivileged; switch to a dedicated low-privilege service account before production use. Port 8787 binds to loopback only, so no LAN/Tailscale exposure by default. For future PostgreSQL persistence use a separate restricted role, local TCP/Unix socket, migrations with backups, and no database credentials in Git.
+The gate pins repository `YehorBabenko88/math` and trusted workflow IDs/paths in `Get-RequiredDeploymentWorkflows`. It requires successful push workflows for the selected branch and exact SHA, with the latest activity/current attempt and exactly one successful current-attempt job per required context:
+
+- PostgreSQL Integration: all four Node 22/24 × PostgreSQL 16/18 jobs and `Full CI coverage`.
+- Book Ingestion Native PDF: `native-pdf`.
+- Browser E2E: `chromium`.
+- Validate Math Universe: `test` (the CI contract check).
+- Windows Deployment Contracts: `Windows contracts / powershell` and `Windows contracts / pwsh`.
+
+An old success cannot mask a newer failed, pending, cancelled or skipped run/attempt. Latest activity uses GitHub's `updated_at`, so a new attempt of an older run supersedes an earlier success of a newer-created run. Missing/invalid metadata and bounded-pagination overflow fail closed. Workflow IDs are tied to this repository; recreating a workflow requires a reviewed tooling change. The updater refreshes run selection after collecting jobs and repeats the entire gate immediately before activation. GitHub responses are snapshots: a run may change after the final response, so this is not an atomic remote certification or a substitute for branch protection and review.
+
+## Supervised activation prerequisites
+
+Installation remains a separately authorized administrator operation (`-Install`); it is not performed by these tests. Before any approved activation, prepare the candidate's dependencies and an isolated **disposable** local test database with user `math_test` and database name `math_universe_test` or `math_universe_integration`, running PostgreSQL 16 or 18. Set `MATH_UNIVERSE_TEST_DATABASE_URL` to that test target and `BOOK_INGESTION_PYTHON` to a Python runtime containing the pinned PDF requirements. Never point the test suite at application/production data. The updater runs `scripts/test-full-ci.mjs` in the exact candidate worktree and rejects missing prerequisites, skipped/todo/failed tests or an empty suite. It does not install dependencies or run migrations against an application database.
+
+Only after tests and fresh CI verification does activation atomically replace active.txt, restart the service and poll loopback health. Restart failure or failed health restores the previous validated pointer **before** the rollback restart. Without a previous release it removes the candidate pointer and stops the service. Recovery failures are reported together with the original activation failure. The lock covers capture of the previous pointer, local tests, activation and rollback.
+
+## Limits and rollout status
+
+Synthetic AST/Pester fixtures do not qualify NSSM installation, service permissions, host reboot recovery, application readiness or real-host rollback. A supervised drill under the intended restricted account is still required. A successful health endpoint only proves the HTTP server is reachable; it does not identify the release or prove scientific worker readiness. No SYSTEM scheduled task or automatic update schedule is recommended or enabled by this procedure. Concurrent manual deployment and interrupted activation still require an operator recovery procedure. See [deployment safety report](windows-deployment-safety-report.md) for evidence and remaining limits.
