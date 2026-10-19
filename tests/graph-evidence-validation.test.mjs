@@ -14,6 +14,15 @@ test('independent citation examples never imply graph output validation',()=>{
  assert.equal(result.relationship,'independent-citation-examples');
  assert.equal(result.nodeOutputValidated,false);
  assert.equal(Object.hasOwn(result,'evidence'),false);
+ assert.equal(result.citationExamples.referenceId,spec.referenceId);
+ assert.equal(result.citationExamples.locator,spec.locator);
+ assert.equal(Object.hasOwn(result,'status'),false);
+ const unrelated=validateGraphNodeEvidence(graph,'observations',{...spec,observations:[{expected:1,actual:1,expectedUnit:'m/s',actualUnit:'m/s'}]});
+ assert.equal(unrelated.citationExamples.status,'reproduced');
+ assert.equal(unrelated.nodeOutputValidated,false);
+ const contradicted=validateGraphNodeEvidence(graph,'observations',{...spec,observations:[{expected:1,actual:2,expectedUnit:'m/s',actualUnit:'m/s'}]});
+ assert.equal(contradicted.citationExamples.status,'contradicted');
+ assert.equal(contradicted.nodeOutputValidated,false);
  assert.equal(result.nodeType,'time-series');
  assert.equal(graph.exportJSON(),before);
  values[0]=-17;
