@@ -76,11 +76,18 @@ for(const mode of ['legacy','fenced'])live(`verified SQL001-005 upgrade serializ
  }finally{c.release();}
  if(mode==='fenced')await pool.query('SELECT mu_enable_fenced_ingestion()');
  const before=(await pool.query('SELECT * FROM mu_schema_migrations ORDER BY filename')).rows;
- const blocker=await pool.connect();let upgrade,settled=false;
+ const blocker=await pool.connect();let upgrade,settled=false,pid;
  try{
   await blocker.query('BEGIN');await blocker.query('SELECT pg_advisory_xact_lock_shared(732814,3)');
-  upgrade=applyMathMigrations(pool).finally(()=>{settled=true});
-  await new Promise(r=>setTimeout(r,100));assert.equal(settled,false,'SQL006 must wait for old guarded writers');
+  upgrade=applyMathMigrations({async connect(){const c=await pool.connect();pid=c.processID;return c;}}).finally(()=>{settled=true});
+  let waiting=false;
+  for(let n=0;n<200&&!settled;n++){
+   if(pid)waiting=(await blocker.query("SELECT EXISTS(SELECT 1 FROM pg_locks WHERE pid=$1 AND locktype='advisory' AND classid=732814 AND objid=3 AND objsubid=2 AND mode='ExclusiveLock' AND NOT granted) AS waiting",[pid])).rows[0].waiting;
+   if(waiting)break;
+   await new Promise(r=>setTimeout(r,10));
+  }
+  assert.equal(waiting,true,'SQL006 backend must actually queue on the old writer protocol lock');
+  assert.equal(settled,false,'SQL006 cannot complete while its lock is queued');
   await blocker.query('COMMIT');assert.deepEqual(await upgrade,['006_ingestion_lease_clock.sql']);
  }finally{await blocker.query('ROLLBACK');blocker.release();await upgrade;}
 
