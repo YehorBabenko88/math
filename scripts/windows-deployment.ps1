@@ -117,3 +117,91 @@ function Invoke-DeploymentActivation {
         throw $activationFailure
     }
 }
+
+# Read-only source association. Does not execute candidate code, filters, hooks or updater actions.
+function Assert-DeploymentCanonicalPath {
+    param([string]$Path)
+    if (![IO.Path]::IsPathRooted($Path) -or $Path.Replace('/','\').TrimEnd('\','/') -ine [IO.Path]::GetFullPath($Path).TrimEnd('\','/')) { throw 'Release path alias is not allowed' }
+    $item=Get-Item -LiteralPath $Path -Force -ErrorAction Stop
+    while ($null -ne $item) {
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Release reparse point is not allowed' }
+        $item=if($item -is [IO.DirectoryInfo]){$item.Parent}else{$item.Directory}
+    }
+}
+
+function Get-DeploymentBlobHash {
+    param([byte[]]$Bytes)
+    $hash=[Security.Cryptography.SHA1]::Create()
+    try {
+        $prefix=[Text.Encoding]::ASCII.GetBytes("blob $($Bytes.Length)`0")
+        $null=$hash.TransformBlock($prefix,0,$prefix.Length,$prefix,0)
+        $null=$hash.TransformFinalBlock($Bytes,0,$Bytes.Length)
+        return ([BitConverter]::ToString($hash.Hash)).Replace('-','').ToLowerInvariant()
+    } finally { $hash.Dispose() }
+}
+
+function Assert-DeploymentRelease {
+    param([string]$Repository,[string]$Target,[string]$Sha,[string]$Git)
+    if ($Sha -cnotmatch '^[a-f0-9]{40}$') { throw 'Invalid release SHA' }
+    Assert-DeploymentCanonicalPath $Repository
+    Assert-DeploymentCanonicalPath $Target
+    function Read-ReleaseGit([string]$Directory,[string[]]$Arguments) {
+        $result=@(& $Git --no-replace-objects -c core.fsmonitor=false -C $Directory @Arguments 2>$null)
+        if ($LASTEXITCODE -ne 0) { throw 'Release Git association failed' }
+        return $result
+    }
+    $expectedCommon=([string](Read-ReleaseGit $Repository @('rev-parse','--path-format=absolute','--git-common-dir'))).Trim()
+    $common=([string](Read-ReleaseGit $Target @('rev-parse','--path-format=absolute','--git-common-dir'))).Trim()
+    $top=([string](Read-ReleaseGit $Target @('rev-parse','--show-toplevel'))).Trim()
+    $administration=([string](Read-ReleaseGit $Target @('rev-parse','--absolute-git-dir'))).Trim()
+    if ([IO.Path]::GetFullPath($common) -ine [IO.Path]::GetFullPath($expectedCommon) -or
+        [IO.Path]::GetFullPath($top) -ine [IO.Path]::GetFullPath($Target) -or
+        !([IO.Path]::GetFullPath($administration).StartsWith(([IO.Path]::GetFullPath($expectedCommon).TrimEnd('\','/')+'\worktrees\'),[StringComparison]::OrdinalIgnoreCase))) { throw 'Release belongs to a different repository or is not a linked worktree' }
+    Assert-DeploymentCanonicalPath $expectedCommon
+    Assert-DeploymentCanonicalPath $administration
+    $registered=Read-ReleaseGit $Repository @('worktree','list','--porcelain')
+    $entry='worktree '+$Target.Replace('\','/')
+    if (!(@($registered | Where-Object { $_ -ieq $entry }).Count)) { throw 'Release is not a registered worktree' }
+    $head=([string](Read-ReleaseGit $Target @('rev-parse','HEAD'))).Trim()
+    if ($head -cne $Sha) { throw 'Release HEAD differs from candidate SHA' }
+    # Index mutations are rejected separately; actual bytes below bypass index stat/skip flags.
+    $indexChanges=Read-ReleaseGit $Target @('diff-index','--cached','--name-only',$Sha,'--')
+    if ($indexChanges.Count) { throw 'Release index differs from candidate SHA' }
+    $tree=Read-ReleaseGit $Repository @('-c','core.quotePath=true','ls-tree','-r','--full-tree',$Sha)
+    $tracked=@{}
+    $autocrlf=([string](Read-ReleaseGit $Repository @('config','--default','false','--get','core.autocrlf'))).Trim()
+    foreach ($line in $tree) {
+        if ($line -cnotmatch '^100(?:644|755) blob ([a-f0-9]{40})\t([A-Za-z0-9_. /@+()\[\]-]+)$') { throw 'Unsupported release tree entry (including symlink or submodule)' }
+        $blob=$Matches[1]; $relative=$Matches[2]
+        if ($relative.Split('/') -contains '..') { throw 'Invalid release tree path' }
+        $file=Join-Path $Target $relative
+        Assert-DeploymentCanonicalPath $file
+        $bytes=[IO.File]::ReadAllBytes($file)
+        if ((Get-DeploymentBlobHash $bytes) -cne $blob) {
+            # Account only for Git text checkout CRLF conversion, never rewrite any bytes.
+            $attributes=Read-ReleaseGit $Repository @('check-attr',"--source=$Sha",'text','eol','--',$relative)
+            $text=([string]$attributes[0]).Substring(($relative+': text: ').Length)
+            $eol=([string]$attributes[1]).Substring(($relative+': eol: ').Length)
+            $conversion=($text -ne 'unset' -and $eol -ne 'lf' -and ($eol -eq 'crlf' -or $autocrlf -eq 'true'))
+            if (!$conversion -or ($bytes -contains 0)) { throw 'Release tracked bytes differ from candidate' }
+            try { $decoded=(New-Object Text.UTF8Encoding($false,$true)).GetString($bytes) } catch { throw 'Release binary bytes differ from candidate' }
+            if ($decoded -match '(?<!\r)\n|\r(?!\n)') { throw 'Release has noncanonical text checkout bytes' }
+            $normalized=[Text.Encoding]::UTF8.GetBytes($decoded.Replace("`r`n","`n"))
+            if ((Get-DeploymentBlobHash $normalized) -cne $blob) { throw 'Release tracked bytes differ from candidate' }
+        }
+        $tracked[$relative.Replace('/','\')]=$true
+    }
+    # Generated dependencies/results are explicitly mutable, not attested artifacts.
+    $pending=New-Object 'System.Collections.Generic.Stack[string]'; $pending.Push($Target)
+    while ($pending.Count) {
+        $directory=$pending.Pop()
+        foreach ($item in Get-ChildItem -LiteralPath $directory -Force) {
+            $relative=$item.FullName.Substring($Target.TrimEnd('\','/').Length+1)
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Release contains a reparse point' }
+            if ($relative -eq '.git') { continue }
+            if ($relative -match '^(node_modules|test-results)(\\|$)' -or $relative -match '(^|\\)__pycache__(\\|$)') { continue }
+            if ($item.PSIsContainer) { $pending.Push($item.FullName) }
+            elseif (!$tracked.ContainsKey($relative)) { throw 'Release contains untracked source' }
+        }
+    }
+}
