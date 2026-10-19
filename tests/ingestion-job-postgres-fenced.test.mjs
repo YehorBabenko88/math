@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createFencedIngestionJobStore} from '../src/ingestion-job-postgres-fenced.mjs';
+import {createFencedIngestionJobStore as productionStore} from '../src/ingestion-job-postgres-fenced.mjs';
+function createFencedIngestionJobStore(pool){return productionStore({async connect(){return {release(){},async query(sql,args){if(/^(BEGIN|COMMIT|ROLLBACK|SELECT pg_catalog)/.test(sql))return {rows:[]};return pool.query(sql,args);}};}});}
 const old='11111111-1111-4111-8111-111111111111';
 const fresh='22222222-2222-4222-8222-222222222222';
 test('claim issues a per-acquisition UUID and returns token',async()=>{
@@ -126,4 +127,25 @@ test('claim excludes unsupported bigint IDs from both cleanup and acquisition be
  }});
  assert.equal(await store.claim({workerId:'same'}),null);
  assert.equal(calls,1);
+});
+
+test('fenced store rejects query-only pools instead of losing transaction-local fencing',()=>{
+ assert.throws(()=>productionStore({async query(){}}),/connect/);
+});
+test('fenced transaction rolls back failed DML, clears capability and releases normally',async()=>{
+ const calls=[],released=[];const failure=Error('mutation failed');
+ const store=productionStore({async connect(){return {release:e=>released.push(e),async query(sql,args){calls.push({sql,args});if(sql.startsWith('UPDATE mu_ingestion_jobs'))throw failure;return {rows:[]};}};}});
+ await assert.rejects(store.complete({jobId:1,workerId:'same',claimToken:old,result:{}}),e=>e===failure);
+ assert.equal(calls[0].sql,'BEGIN ISOLATION LEVEL READ COMMITTED');
+ assert.match(calls[1].sql,/pg_advisory_xact_lock_shared/);assert.match(calls[2].sql,/set_config.*true/);assert.deepEqual(calls[2].args,[old]);
+ assert.equal(calls.at(-1).sql,'ROLLBACK');assert.deepEqual(released,[undefined]);
+});
+test('fenced transaction preserves original failure and discards connection on rollback failure',async()=>{
+ const mutation=Error('mutation failed'),rollback=Error('rollback failed');let released;
+ const store=productionStore({async connect(){return {release:e=>released=e,async query(sql){if(sql.startsWith('UPDATE mu_ingestion_jobs'))throw mutation;if(sql==='ROLLBACK')throw rollback;return {rows:[]};}};}});
+ await assert.rejects(store.complete({jobId:1,workerId:'same',claimToken:old}),e=>e===mutation);assert.equal(released,rollback);
+});
+test('fenced store propagates acquisition connection rejection without issuing DML',async()=>{
+ const failure=Error('connection refused');const store=productionStore({async connect(){throw failure;}});
+ await assert.rejects(store.claim({workerId:'same'}),e=>e===failure);
 });

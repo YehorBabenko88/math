@@ -6,9 +6,9 @@ import {proposeKnowledgeAdapter} from '../src/knowledge-adapter-planner.mjs';
 test('Postgres adapter uses parameterized queries and restores snapshot',async()=>{
  const r=createKnowledgeAdapterRegistry();
  r.propose(proposeKnowledgeAdapter({from:{id:'a',referenceId:'r1',locator:'p1'},to:{id:'b',referenceId:'r2',locator:'p2'},relation:'equivalent-concept'}));
- let payload;
+ let payload,sha256,schema_version;
  const calls=[];
- const pool={async query(sql,args){calls.push({sql,args});if(sql.startsWith('INSERT')){payload=JSON.parse(args[1]);return {rows:[{snapshot_id:1,sha256:args[2]}]}}return {rows:[{payload}]}}};
+ const pool={async query(sql,args){calls.push({sql,args});if(sql.startsWith('INSERT')){payload=JSON.parse(args[1]);sha256=args[2];schema_version=args[0];return {rows:[{snapshot_id:1,sha256}]}}return {rows:[{payload,sha256,schema_version}]}}};
  const store=createPostgresAdapterSnapshotStore(pool);
  const saved=await store.save(r);
  assert.equal(saved.sha256.length,64);

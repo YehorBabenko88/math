@@ -1,0 +1,31 @@
+name: Windows Deployment Contracts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Windows contracts / ${{ matrix.shell }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned fixture framework
+        shell: pwsh
+        run: Save-Module Pester -RequiredVersion 4.10.1 -Path "$env:RUNNER_TEMP/pester" -Force
+      - name: Parse scripts and run synthetic deployment fixtures
+        shell: pwsh
+        run: |
+          & '${{ matrix.shell }}' -NoProfile -Command "Import-Module '$env:RUNNER_TEMP/pester/Pester/4.10.1/Pester.psd1' -ErrorAction Stop; Invoke-Pester -Script tests/windows-deployment.Tests.ps1 -EnableExit"
+          exit $LASTEXITCODE
