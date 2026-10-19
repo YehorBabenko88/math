@@ -44,4 +44,3 @@ live('legacy JSONB is accepted only when exact bytes and ID fingerprints remain 
  await pool.query('INSERT INTO mu_adapter_snapshots(schema_version,payload,sha256) VALUES($1,$2::jsonb,$3)',['math-universe-adapter-registry/v1',verified,createHash('sha256').update(verified).digest('hex')]);
  assert.deepEqual((await store.latest()).list(),[]);
 });
-
