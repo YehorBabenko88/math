@@ -178,3 +178,146 @@ Describe 'Windows deployment safety contracts' {
         $message | Should Match 'activation restart failed.*rollback failed: recovery denied'
     }
 }
+
+Describe 'Release source association' {
+    . (Join-Path $repository 'scripts/windows-deployment.ps1')
+    function New-ReleaseFixture {
+        $root=Join-Path $TestDrive ([guid]::NewGuid().ToString('N')+" root's [fixture]")
+        $repo=Join-Path $root 'repository'; $release=Join-Path $root 'release'
+        New-Item -ItemType Directory -Force $repo | Out-Null
+        & git -C $repo init -q
+        & git -C $repo config core.autocrlf true
+        & git -C $repo config core.safecrlf false
+        & git -C $repo config user.email fixture@example.invalid
+        & git -C $repo config user.name Fixture
+        New-Item -ItemType Directory (Join-Path $repo 'scripts') | Out-Null
+        [IO.File]::WriteAllText((Join-Path $repo 'scripts/test-full-ci.mjs'),"console.log('fixture');`n")
+        [IO.File]::WriteAllText((Join-Path $repo 'source.txt'),"original`n")
+        & git -C $repo add .
+        & git -C $repo commit -qm fixture
+        $head=(& git -C $repo rev-parse HEAD).Trim()
+        & git -C $repo worktree add --quiet --detach $release $head
+        @{Repo=$repo; Target=$release; Sha=$head; Root=$root}
+    }
+    function Assert-Release($f) { Assert-DeploymentRelease -Repository $f.Repo -Target $f.Target -Sha $f.Sha -Git (Get-Command git).Source }
+    It 'accepts and reuses an exact clean associated worktree with generated dependencies' {
+        $f=New-ReleaseFixture
+        New-Item -ItemType Directory (Join-Path $f.Target 'node_modules') | Out-Null
+        [IO.File]::WriteAllText((Join-Path $f.Target 'node_modules/generated.txt'),'dependency')
+        Assert-Release $f; Assert-Release $f
+    }
+    It 'rejects an ordinary SHA-named directory before its runner executes' {
+        $f=New-ReleaseFixture; $f.Target=Join-Path $f.Root $f.Sha
+        New-Item -ItemType Directory $f.Target | Out-Null
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects wrong HEAD and a worktree from another repository' {
+        $f=New-ReleaseFixture; $f.Sha='a'*40; Assert-Throws { Assert-Release $f }
+        $f=New-ReleaseFixture; $other=New-ReleaseFixture; $f.Repo=$other.Repo
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects dirty tracked source even when assume-unchanged hides it from status' {
+        $f=New-ReleaseFixture
+        & git -C $f.Target update-index --assume-unchanged source.txt
+        [IO.File]::WriteAllText((Join-Path $f.Target 'source.txt'),'changed')
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects altered runner and source changed between test and activation checks' {
+        $f=New-ReleaseFixture; Assert-Release $f
+        & git -C $f.Target update-index --assume-unchanged scripts/test-full-ci.mjs
+        [IO.File]::WriteAllText((Join-Path $f.Target 'scripts/test-full-ci.mjs'),'process.exit(0)')
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects staged source and untracked executable source' {
+        $f=New-ReleaseFixture
+        [IO.File]::WriteAllText((Join-Path $f.Target 'source.txt'),'changed'); & git -C $f.Target add source.txt
+        Assert-Throws { Assert-Release $f }
+        $f=New-ReleaseFixture
+        [IO.File]::WriteAllText((Join-Path $f.Target 'injected.mjs'),'export default 1')
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects a tracked Git symlink even when checkout materializes it as text' {
+        $f=New-ReleaseFixture
+        $blob=(& git -C $f.Repo rev-parse HEAD:source.txt).Trim()
+        & git -C $f.Repo update-index --add --cacheinfo "120000,$blob,link"
+        & git -C $f.Repo commit -qm symlink
+        $f.Sha=(& git -C $f.Repo rev-parse HEAD).Trim()
+        & git -C $f.Target -c core.symlinks=false reset --hard $f.Sha | Out-Null
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects binary CRLF changes and source mutation by a synthetic runner' {
+        $f=New-ReleaseFixture
+        [IO.File]::WriteAllBytes((Join-Path $f.Repo 'binary.bin'),[byte[]](255,13,10,0,1))
+        & git -C $f.Repo add binary.bin; & git -C $f.Repo commit -qm binary
+        $f.Sha=(& git -C $f.Repo rev-parse HEAD).Trim()
+        & git -C $f.Target reset --hard $f.Sha | Out-Null
+        Assert-Release $f
+        [IO.File]::WriteAllBytes((Join-Path $f.Target 'binary.bin'),[byte[]](255,10,0,1))
+        Assert-Throws { Assert-Release $f }
+        $f=New-ReleaseFixture; Assert-Release $f
+        & node -e "require('fs').writeFileSync(process.argv[1], 'changed by synthetic runner')" (Join-Path $f.Target 'source.txt')
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'accepts raw blob bytes when autocrlf is unset in isolated fixture configuration' {
+        $f=New-ReleaseFixture
+        & git -C $f.Repo config --unset core.autocrlf
+        [IO.File]::WriteAllText((Join-Path $f.Target 'source.txt'),"original`n")
+        [IO.File]::WriteAllText((Join-Path $f.Target 'scripts/test-full-ci.mjs'),"console.log('fixture');`n")
+        $globalConfig=$env:GIT_CONFIG_GLOBAL; $noSystem=$env:GIT_CONFIG_NOSYSTEM
+        try {
+            $env:GIT_CONFIG_GLOBAL=Join-Path $f.Root 'empty-config'; [IO.File]::WriteAllText($env:GIT_CONFIG_GLOBAL,'')
+            $env:GIT_CONFIG_NOSYSTEM='1'
+            Assert-Release $f
+        } finally {$env:GIT_CONFIG_GLOBAL=$globalConfig; $env:GIT_CONFIG_NOSYSTEM=$noSystem}
+    }
+    It 'runs the actual candidate test block then refuses source changed by its runner' {
+        $f=New-ReleaseFixture
+        [IO.File]::WriteAllText((Join-Path $f.Repo 'scripts/test-full-ci.mjs'),"import {writeFileSync} from 'node:fs';writeFileSync('source.txt','modified during fixture test');`n")
+        & git -C $f.Repo add scripts/test-full-ci.mjs; & git -C $f.Repo commit -qm mutation-runner
+        $f.Sha=(& git -C $f.Repo rev-parse HEAD).Trim()
+        $releases=$f.Root; $sha=$f.Sha; $git=(@(Get-Command git -CommandType Application)[0]).Source; $node=(@(Get-Command node -CommandType Application)[0]).Source
+        $f.Target=Join-Path $releases $sha
+        & git -C $f.Repo worktree add --quiet --detach $f.Target $sha
+        $gitDir=$f.Repo
+        $updater=Get-Content -LiteralPath (Join-Path $repository 'scripts/windows-update.ps1') -Raw
+        $start=$updater.IndexOf(' $target=Join-Path $releases $sha'); $end=$updater.IndexOf(' if($Install){',$start)
+        & ([scriptblock]::Create($updater.Substring($start,$end-$start)))
+        (Get-Content -LiteralPath (Join-Path $f.Target 'source.txt') -Raw) | Should Be 'modified during fixture test'
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects a submodule tree entry without invoking a submodule or network' {
+        $f=New-ReleaseFixture
+        & git -C $f.Repo update-index --add --cacheinfo "160000,$($f.Sha),module"
+        & git -C $f.Repo commit -qm submodule
+        $f.Sha=(& git -C $f.Repo rev-parse HEAD).Trim()
+        & git -C $f.Target reset --hard $f.Sha | Out-Null
+        Assert-Throws { Assert-Release $f }
+    }
+    It 'rejects lexical path aliases and junction paths' {
+        $f=New-ReleaseFixture; $original=$f.Target; $f.Target=$original+'\..\release'
+        Assert-Throws { Assert-Release $f }
+        $alias=Join-Path $f.Root 'alias'
+        New-Item -ItemType Junction -Path $alias -Target $original | Out-Null
+        try {$f.Target=$alias; Assert-Throws { Assert-Release $f }} finally { [IO.Directory]::Delete($alias) }
+    }
+    It 'rejects a reparse point inside tracked source' {
+        $f=New-ReleaseFixture; $directory=Join-Path $f.Root 'elsewhere'
+        New-Item -ItemType Directory $directory | Out-Null
+        $alias=Join-Path $f.Target 'injected'
+        New-Item -ItemType Junction -Path $alias -Target $directory | Out-Null
+        try { Assert-Throws { Assert-Release $f } } finally { [IO.Directory]::Delete($alias) }
+    }
+}
+
+Describe 'Release source boundary regressions' {
+    . (Join-Path $repository 'scripts/windows-deployment.ps1')
+    It 'checks tracked binary bytes without text normalization' {
+        $bytes=[byte[]](255,13,10,0,1)
+        (Get-DeploymentBlobHash $bytes) | Should Not Be (Get-DeploymentBlobHash ([byte[]](255,10,0,1)))
+    }
+    It 'places source validation before candidate runner and immediately before candidate pointer' {
+        $source=Get-Content -LiteralPath (Join-Path $repository 'scripts/windows-update.ps1') -Raw
+        $source | Should Match 'Assert-DeploymentRelease[^\r\n]+\r?\n Push-Location -LiteralPath \$target'
+        $source | Should Match 'if\(\$value -ceq \$sha\)\{Assert-DeploymentRelease[^\r\n]+\}\r?\n  # Same-volume atomic replacement:[^\r\n]+\r?\n  Write-DeploymentPointer'
+    }
+}
