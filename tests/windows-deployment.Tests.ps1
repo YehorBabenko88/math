@@ -36,6 +36,11 @@ Describe 'Windows deployment safety contracts' {
         Assert-DeploymentChecks -Sha $sha -Branch $branch -Runs $fixture.Runs -GetJobs { param($run) $fixture.Jobs[[string]$run.id] }
     }
     It 'accepts complete trusted current checks' { Assert-Fixture (New-GreenFixture) }
+    It 'requires both Windows contract shells as deployment evidence' {
+        $windows=@(Get-RequiredDeploymentWorkflows | Where-Object {$_.Path -eq '.github/workflows/windows-deployment.yml'})
+        $windows.Count | Should Be 1
+        ($windows[0].Jobs -join ',') | Should Be 'Windows contracts / powershell,Windows contracts / pwsh'
+    }
     It 'holds an exclusive per-root updater lock and releases it on disposal' {
         $lock=Enter-DeploymentLock -Root $TestDrive
         try { Assert-Throws { Enter-DeploymentLock -Root $TestDrive } } finally { $lock.Dispose() }

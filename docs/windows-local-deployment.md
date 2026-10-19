@@ -28,6 +28,7 @@ The gate pins repository `YehorBabenko88/math` and trusted workflow IDs/paths in
 - Book Ingestion Native PDF: `native-pdf`.
 - Browser E2E: `chromium`.
 - Validate Math Universe: `test` (the CI contract check).
+- Windows Deployment Contracts: `Windows contracts / powershell` and `Windows contracts / pwsh`.
 
 An old success cannot mask a newer failed, pending, cancelled or skipped run/attempt. Latest activity uses GitHub's `updated_at`, so a new attempt of an older run supersedes an earlier success of a newer-created run. Missing/invalid metadata and bounded-pagination overflow fail closed. Workflow IDs are tied to this repository; recreating a workflow requires a reviewed tooling change. The updater refreshes run selection after collecting jobs and repeats the entire gate immediately before activation. GitHub responses are snapshots: a run may change after the final response, so this is not an atomic remote certification or a substitute for branch protection and review.
 

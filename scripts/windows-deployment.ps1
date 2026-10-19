@@ -22,7 +22,8 @@ function Get-RequiredDeploymentWorkflows {
         @{Id=385218509; Path='.github/workflows/postgres-integration.yml'; Jobs=@('Full suite Node 22 / PostgreSQL 16','Full suite Node 22 / PostgreSQL 18','Full suite Node 24 / PostgreSQL 16','Full suite Node 24 / PostgreSQL 18','Full CI coverage')},
         @{Id=385287115; Path='.github/workflows/book-ingestion.yml'; Jobs=@('native-pdf')},
         @{Id=384037321; Path='.github/workflows/browser.yml'; Jobs=@('chromium')},
-        @{Id=384027546; Path='.github/workflows/ci.yml'; Jobs=@('test')}
+        @{Id=384027546; Path='.github/workflows/ci.yml'; Jobs=@('test')},
+        @{Id=389263787; Path='.github/workflows/windows-deployment.yml'; Jobs=@('Windows contracts / powershell','Windows contracts / pwsh')}
     )
 }
 
