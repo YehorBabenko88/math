@@ -18,13 +18,16 @@ async function waitForDatabase(client,query,values,accept){
 }
 function assertLeaseWait(row,blockerPid){
  assert.equal(row.state,'active');assert.equal(row.wait_event_type,'Lock');
- assert.ok(row.blockers.includes(blockerPid),'expected blocker owns the wait');
+ assert.ok(Array.isArray(row.blocker_path)&&row.blocker_path.length>=2,'server must prove a blocking path');
+ assert.equal(row.blocker_path[0],row.pid);assert.equal(row.blocker_path.at(-1),blockerPid,'blocking chain must reach the fixture');
+ assert.ok(row.blockers.includes(row.blocker_path[1]),'first chain edge must be a direct database blocker');
  assert.equal(row.valid,true,'lease must still be valid while backend is already waiting');
 }
 test('lock witness rejects late-start, unrelated and non-waiting operations',()=>{
- const valid={state:'active',wait_event_type:'Lock',blockers:[42],valid:true};
+ const valid={pid:7,state:'active',wait_event_type:'Lock',blockers:[42],blocker_path:[7,42],valid:true};
+ assert.doesNotThrow(()=>assertLeaseWait({...valid,blockers:[43],blocker_path:[7,43,42]},42));
  assert.doesNotThrow(()=>assertLeaseWait(valid,42));
- for(const patch of [{valid:false},{blockers:[43]},{wait_event_type:null},{state:'idle'}])assert.throws(()=>assertLeaseWait({...valid,...patch},42));
+ for(const patch of [{valid:false},{blockers:[43]},{blocker_path:[7,43,99]},{blocker_path:null},{blocker_path:[8,42]},{wait_event_type:null},{state:'idle'}])assert.throws(()=>assertLeaseWait({...valid,...patch},42));
 });
 test('real PostgreSQL: sub-millisecond expiry cannot be proved by JavaScript Date',{skip:!url},async()=>{
  await withIsolatedPostgres(url,async({pool})=>{
@@ -35,7 +38,7 @@ test('real PostgreSQL: sub-millisecond expiry cannot be proved by JavaScript Dat
   assert.equal(row.expired,true);assert.equal(row.observed.getTime(),row.deadline.getTime());
  });
 });
-for(const lock of ['advisory','row','protocol-row'])test(`real PostgreSQL: fenced operations reject expiry after ${lock} lock wait`,{skip:!url},async()=>{
+for(const lock of ['advisory','row','protocol-row','protocol-row-interposed'])test(`real PostgreSQL: fenced operations reject expiry after ${lock} lock wait`,{skip:!url},async()=>{
  await withIsolatedPostgres(url,async({pool})=>{
   pool.options.max=12;
   await applyMathMigrations(pool);await enableFencedIngestionService(pool);
@@ -49,26 +52,48 @@ for(const lock of ['advisory','row','protocol-row'])test(`real PostgreSQL: fence
   const clients=await Promise.all(Array.from({length:methods.length+(lock==='advisory'?1:0)},()=>pool.connect()));
   const pendingPids=clients.map(c=>c.processID);
   assert.equal(new Set(pendingPids).size,clients.length);
-  const blocker=await pool.connect();let pending=[];
+  const blocker=await pool.connect();const interloper=lock==='protocol-row-interposed'?await pool.connect():null;let interposition;let pending=[];
   try{
   const setup=await pool.connect();try{
    for(const lease of leases){await setup.query('BEGIN');await setup.query("SELECT set_config('math_universe.claim_token',$1,true)",[lease.claim_token]);const row=await setup.query("UPDATE mu_ingestion_jobs SET lease_until=clock_timestamp()+interval '2 seconds' WHERE job_id=$1 RETURNING lease_until",[lease.job_id]);lease.lease_until=row.rows[0].lease_until;await setup.query('COMMIT');}
   }finally{setup.release();}
    await blocker.query('BEGIN');
    if(lock==='advisory')await blocker.query('SELECT pg_advisory_xact_lock(732814,3)');
-   else if(lock==='protocol-row')await blocker.query('SELECT singleton FROM mu_ingestion_protocol FOR UPDATE');
+   else if(lock.startsWith('protocol-row'))await blocker.query('SELECT singleton FROM mu_ingestion_protocol FOR UPDATE');
    else await blocker.query('SELECT job_id FROM mu_ingestion_jobs WHERE job_id=ANY($1::bigint[]) FOR UPDATE',[leases.map(x=>x.job_id)]);
-   pending=methods.map((method,i)=>createFencedIngestionJobStore({connect:async()=>({query:clients[i].query.bind(clients[i]),release(){}})})[method]({jobId:leases[i].job_id,workerId:'clock',claimToken:leases[i].claim_token,checkpoint:{stage:'blocked'},result:{blocked:true},error:'blocked'}).then(value=>({value}),error=>({code:error.code})));
+   const start=(method,i)=>createFencedIngestionJobStore({connect:async()=>({query:clients[i].query.bind(clients[i]),release(){}})})[method]({jobId:leases[i].job_id,workerId:'clock',claimToken:leases[i].claim_token,checkpoint:{stage:'blocked'},result:{blocked:true},error:'blocked'}).then(value=>({value}),error=>({code:error.code}));
+   if(interloper){
+    pending=methods.slice(0,2).map(start);
+    await waitForDatabase(blocker,'SELECT pid,state,wait_event_type,pg_blocking_pids(pid) AS blockers FROM pg_stat_activity WHERE pid=ANY($1::int[])',[pendingPids.slice(0,2)],rows=>rows.length===2&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blockers.includes(blocker.processID)));
+    await interloper.query('BEGIN');
+    interposition=interloper.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>interloper.query('COMMIT'));
+    await waitForDatabase(blocker,'SELECT pid,state,wait_event_type,pg_blocking_pids(pid) AS blockers FROM pg_stat_activity WHERE pid=$1',[interloper.processID],rows=>rows.length===1&&rows[0].state==='active'&&rows[0].wait_event_type==='Lock'&&pendingPids.slice(0,2).every(pid=>rows[0].blockers.includes(pid)));
+    pending.push(...methods.slice(2).map((method,i)=>start(method,i+2)));
+   }else pending=methods.map(start);
    if(lock==='advisory')pending.push(createFencedIngestionJobStore({connect:async()=>({query:clients[4].query.bind(clients[4]),release(){}})}).claim({workerId:'clock',leaseSeconds:10,jobId:Number(queued.job_id)}).then(value=>({value})));
    else if(lock==='row')assert.equal(await store.claim({workerId:'other',jobId:leases[0].job_id}),null,'claim skips row locked by another transaction');
    assert.equal(pendingPids.length,methods.length+(lock==='advisory'?1:0),'every pending operation has a dedicated backend PID');
+   // A queued exclusive advisory request can become an intermediate blocker.
+   // Prove actual server edges reach our fixture instead of requiring one hop.
    const observations=await waitForDatabase(blocker,`
+    WITH RECURSIVE blocking(origin,pid,path) AS (
+     SELECT pid,pid,ARRAY[pid] FROM unnest($1::int[]) AS pid
+     UNION ALL
+     SELECT b.origin,next_pid,b.path||next_pid FROM blocking b
+     CROSS JOIN LATERAL unnest(pg_blocking_pids(b.pid)) AS next_pid
+     WHERE NOT next_pid=ANY(b.path)
+    )
     SELECT a.pid,a.state,a.wait_event_type,pg_blocking_pids(a.pid) AS blockers,
+           (SELECT path FROM blocking WHERE origin=a.pid AND pid=$3 LIMIT 1) AS blocker_path,
            j.lease_until>clock_timestamp() AS valid
     FROM pg_stat_activity a LEFT JOIN mu_ingestion_jobs j
       ON j.job_id=(($2::bigint[])[array_position($1::int[],a.pid)])
-    WHERE a.pid=ANY($1::int[])`,[pendingPids,leases.map(x=>x.job_id)],
-    rows=>rows.length===pendingPids.length&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blockers.includes(blocker.processID)));
+    WHERE a.pid=ANY($1::int[])`,[pendingPids,leases.map(x=>x.job_id),blocker.processID],
+    rows=>rows.length===pendingPids.length&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blocker_path?.at(-1)===blocker.processID));
+   if(interloper)for(const row of observations.filter(r=>pendingPids.slice(2).includes(r.pid))){
+    assert.ok(row.blockers.includes(interloper.processID),'last operations must directly wait behind queued exclusive request');
+    assert.ok(row.blocker_path.includes(interloper.processID),'actual chain must include the interposed request');
+   }
    for(const row of observations){
     if(row.pid===pendingPids[4]){assert.equal(row.wait_event_type,'Lock');continue;}
     assertLeaseWait(row,blocker.processID);
@@ -92,7 +117,7 @@ for(const lock of ['advisory','row','protocol-row'])test(`real PostgreSQL: fence
    await assert.rejects(store.complete({jobId:fresh.job_id,workerId:'clock',claimToken:leases[0].claim_token}),{code:'JOB_LEASE_LOST'});
    const completions=await Promise.allSettled([store.complete({jobId:fresh.job_id,workerId:'clock',claimToken:fresh.claim_token}),store.complete({jobId:fresh.job_id,workerId:'clock',claimToken:fresh.claim_token})]);
    assert.equal(completions.filter(x=>x.status==='fulfilled').length,1);assert.equal(completions.find(x=>x.status==='rejected').reason.code,'JOB_LEASE_LOST');
-  }finally{try{await blocker.query('ROLLBACK');}finally{blocker.release();await Promise.allSettled(pending);for(const client of clients)client.release();}}
+  }finally{try{await blocker.query('ROLLBACK');}finally{blocker.release();await Promise.allSettled(pending);if(interloper){try{await interposition;await interloper.query('ROLLBACK')}finally{interloper.release()}}for(const client of clients)client.release();}}
  });
 });
 
