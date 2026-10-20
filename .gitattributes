@@ -1,0 +1,4 @@
+# SQL is a raw-byte migration input, not text to normalize on checkout or add.
+# Preserve existing and future blob bytes verbatim, including historical CRLF.
+/sql/**/*.sql -text
+/sql/*.sql -text

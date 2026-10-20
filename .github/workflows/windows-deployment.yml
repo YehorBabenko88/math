@@ -21,6 +21,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify committed SQL checkout bytes and checkout policy
+        run: |
+          node scripts/verify-sql-bytes.mjs
+          node --test --test-name-pattern='SQL byte policy' tests/sql-byte-reproducibility.test.mjs
       - name: Prepare pinned fixture framework
         shell: pwsh
         run: Save-Module Pester -RequiredVersion 4.10.1 -Path "$env:RUNNER_TEMP/pester" -Force
