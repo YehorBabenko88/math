@@ -84,11 +84,12 @@ for(const lock of ['advisory','row','protocol-row','protocol-row-interposed'])te
      WHERE NOT next_pid=ANY(b.path)
     )
     SELECT a.pid,a.state,a.wait_event_type,pg_blocking_pids(a.pid) AS blockers,
-           (SELECT path FROM blocking WHERE origin=a.pid AND pid=$3 LIMIT 1) AS blocker_path,
+           (SELECT path FROM blocking WHERE origin=a.pid AND pid=$3
+            ORDER BY CASE WHEN $4::int=ANY(path) THEN 0 ELSE 1 END LIMIT 1) AS blocker_path,
            j.lease_until>clock_timestamp() AS valid
     FROM pg_stat_activity a LEFT JOIN mu_ingestion_jobs j
       ON j.job_id=(($2::bigint[])[array_position($1::int[],a.pid)])
-    WHERE a.pid=ANY($1::int[])`,[pendingPids,leases.map(x=>x.job_id),blocker.processID],
+    WHERE a.pid=ANY($1::int[])`,[pendingPids,leases.map(x=>x.job_id),blocker.processID,interloper?.processID??null],
     rows=>rows.length===pendingPids.length&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blocker_path?.at(-1)===blocker.processID));
    if(interloper)for(const row of observations.filter(r=>pendingPids.slice(2).includes(r.pid))){
     assert.ok(row.blockers.includes(interloper.processID),'last operations must directly wait behind queued exclusive request');
