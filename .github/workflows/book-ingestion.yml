@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Verify dependency artifact locks
+        run: node scripts/verify-dependency-locks.mjs
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -23,7 +25,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install isolated PDF test dependencies
-        run: python -m pip install --disable-pip-version-check -r scripts/book-ingestion-requirements.txt
+        run: python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r scripts/book-ingestion-requirements.txt
       - name: Verify synthetic PDF ingestion and review boundaries
         env:
           BOOK_INGESTION_PYTHON: python
