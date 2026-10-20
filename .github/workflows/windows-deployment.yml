@@ -18,14 +18,26 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Prepare pinned fixture framework
         shell: pwsh
-        run: Save-Module Pester -RequiredVersion 4.10.1 -Path "$env:RUNNER_TEMP/pester" -Force
+        run: ./scripts/install-pester-verified.ps1 -Destination "$env:RUNNER_TEMP/pester"
       - name: Parse scripts and run synthetic deployment fixtures
         shell: pwsh
         run: |
           & '${{ matrix.shell }}' -NoProfile -Command "Import-Module '$env:RUNNER_TEMP/pester/Pester/4.10.1/Pester.psd1' -ErrorAction Stop; Invoke-Pester -Script tests/windows-deployment.Tests.ps1 -EnableExit"
           exit $LASTEXITCODE
+
+      - name: Record exact source and dependency provenance
+        env:
+          PROVENANCE_CONTEXT: 'Windows contracts / ${{ matrix.shell }}'
+        run: node scripts/ci-provenance.mjs
+      - name: Upload source provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-provenance-${{ github.run_id }}-${{ github.run_attempt }}-windows-${{ matrix.shell }}
+          path: release-provenance.json
+          if-no-files-found: error
+          retention-days: 30
