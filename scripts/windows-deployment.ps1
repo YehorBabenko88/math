@@ -235,7 +235,7 @@ function Assert-DeploymentProvenance {
         $artifactId=0L; $artifactSize=0L
         if(![long]::TryParse([string]$artifact.id,[ref]$artifactId) -or $artifactId -lt 1 -or
             ![long]::TryParse([string]$artifact.size_in_bytes,[ref]$artifactSize) -or $artifactSize -lt 1){throw 'Invalid provenance artifact identity or size'}
-        if($artifact.expired -ne $false -or $artifact.digest -cnotmatch '^sha256:([a-f0-9]{64})$' -or
+        if($artifact.expired -isnot [bool] -or $artifact.expired -ne $false -or $artifact.digest -cnotmatch '^sha256:([a-f0-9]{64})$' -or
             $artifact.workflow_run.id -ne $Run.id -or $artifact.workflow_run.head_sha -cne $Sha -or
             $artifact.size_in_bytes -gt 1048576){throw 'Unverified provenance artifact metadata'}
         $digest=$artifact.digest.Substring(7)
@@ -251,7 +251,7 @@ function Assert-DeploymentProvenance {
             $reader=New-Object IO.StreamReader($zip.Entries[0].Open())
             try {$manifest=$reader.ReadToEnd() | ConvertFrom-Json} finally {$reader.Dispose()}
         } finally {$zip.Dispose();$stream.Dispose()}
-        if($manifest.schema -ne 1 -or $manifest.qualified -ne $true -or $manifest.sourceSha -cne $Sha -or
+        if($manifest.schema -ne 1 -or $manifest.qualified -isnot [bool] -or $manifest.qualified -ne $true -or $manifest.sourceSha -cne $Sha -or
             $manifest.lockSha256 -cne $LockHash -or $manifest.repository -cne 'YehorBabenko88/math' -or
             $manifest.workflowPath -cne $Run.path -or [string]$manifest.runId -cne [string]$Run.id -or
             [string]$manifest.runAttempt -cne [string]$Run.run_attempt -or $Contexts -cnotcontains $manifest.context -or

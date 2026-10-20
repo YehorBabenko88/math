@@ -6,7 +6,7 @@ Scope: independent branch `fix/ci-release-provenance`, baseline `8dd1186f3fc34fa
 
 | Priority | Finding | Disposition |
 |---|---|---|
-| P0 | A release could rely on green job metadata without verifying downloaded source/dependency evidence. | Release gate now requires current-attempt provenance archives, verifies downloaded ZIP bytes against GitHub SHA256 metadata, and binds bounded manifest contents to exact source SHA, committed lock SHA256, repository, workflow path, run ID, attempt, and each producing job context. |
+| P1 | Audit gap: trusted exact-source checks had no downloaded source/dependency provenance archive verification. No critical production bypass was demonstrated. | Release gate now requires current-attempt provenance archives, verifies downloaded ZIP bytes against GitHub SHA256 metadata, and binds bounded manifest contents to exact source SHA, committed lock SHA256, repository, workflow path, run ID, attempt, and each producing job context. |
 | P1 | All external Actions used mutable version tags; Pester version selection had no archive integrity check. | All checkout/setup-node/setup-python/upload-artifact references now use full commit SHAs. Pester 4.10.1 archive is checked against SHA256 `898210e1a30c52cd46ba317c2278a9324345214213aa2f7d6b7dfa7b98f37ac9` before extraction. |
 | P1 | This independent baseline has no committed package-lock.json. | Intentionally unresolved here: evidence records qualified=false and lockSha256=null, even if npm install generated an untracked lock. Release gate fails closed before accepting checks. Dependency branch must be separately integrated and verified; no fabricated lock/provenance. |
 | P2 | Old rerun artifacts can coexist with fresh run-attempt evidence. | Artifact names include run ID and attempt; only exact current-attempt prefix qualifies. Old artifacts cannot satisfy missing contexts. Duplicate current contexts fail closed. Existing newest-run/rerun selection remains unchanged. |
@@ -29,3 +29,25 @@ Action commit identities were resolved read-only from the official actions GitHu
 
 GO for independently publishing and reviewing this CI hardening branch when exact-head Actions pass. NO-GO for release/deployment: missing committed lock is an intentional blocker, dependency branch integration and fresh verification are required, and no production behavior was exercised. Hosted Actions results and exact tested commit IDs are recorded below when available.
 `qualified` means only that an exact committed lock identity exists and its checkout bytes match. It does not establish lock schema validity, package manifest agreement, approved dependency closure, or provenance of installed node_modules. Those dependency checks must come from the separately integrated dependency branch and fresh full-suite evidence; this branch remains NO-GO for release.
+
+No P0 finding was demonstrated in this bounded audit.
+
+## Tool and download inventory
+
+Audited all five .github/workflows/*.yml files and scripts for external Actions, download commands and tool installers. Immutable Actions cover checkout, setup-node, setup-python and upload-artifact. The sole direct framework package download is now the verified Pester Gallery archive. npm, pip and Playwright Chromium/OS-dependency installation remain the coordinated dependency-branch/infrastructure boundary. PostgreSQL service images still select major-version tags. windows-bootstrap.ps1 selects Git, Node LTS and NSSM via the winget catalog; it was inspected but not executed or changed. Hosted Ubuntu/Windows images, Git/PowerShell runtimes, winget catalog provenance and service binaries are not attested by these source manifests. Existing explicit bootstrap package consent remains intact.
+
+## Published implementation evidence
+
+Initial implementation SHA: e5e0d4b5868cd771cd77a3ea1cb2783414c271bc. All five first-head hosted runs succeeded without reruns:
+
+- [Validate Math Universe](https://github.com/YehorBabenko88/math/actions/runs/39383476848)
+- [Browser E2E](https://github.com/YehorBabenko88/math/actions/runs/39383476838)
+- [Book Ingestion Native PDF](https://github.com/YehorBabenko88/math/actions/runs/39383476856)
+- [PostgreSQL Integration, all four cells and aggregate](https://github.com/YehorBabenko88/math/actions/runs/39383476854)
+- [Windows Deployment Contracts, both shells](https://github.com/YehorBabenko88/math/actions/runs/39383476828)
+
+A real Validate artifact (ID 12245899722, 346 downloaded bytes) was downloaded through the authorized GitHub CLI. Actual archive SHA256 8d112698839a695f7cdaec13390e0f31ca712473f8bfaabe0162525517353f70 exactly matched the GitHub API digest. Its manifest contained this exact source SHA, run ID 39383476848, attempt 1 and test context, with honest qualified=false and null lock digest. Local Browser verification on assigned port 4185 passed all 14 tests without retries.
+
+Final implementation working tree local verification (before this report-only evidence update): Node 22/PG16, Node 22/PG18, Node 24/PG16 and Node 24/PG18 each passed 411 tests with zero failures, cancellations, skips or todo. Full runner reported all 399 top-level inventory tests plus nested tests (411 total); no exclusions or retries. Disposable parent-managed PostgreSQL ports 55440/55439, database math_universe_test, were used under the assigned slot; no server lifecycle or production target was touched. Logs: outputs/ci-provenance-node22-pg16.log, outputs/ci-provenance-node22-pg18.log, outputs/ci-provenance-node24-pg16.log and outputs/ci-provenance-node24-pg18.log in the parent workspace. Dependencies were copied once from the explicitly authorized sibling node_modules; this does not establish dependency reproducibility.
+
+After first-head publication, final changes additionally reject non-Boolean qualified/expired metadata and invalid/nonpositive/oversized artifact metadata. Final local pwsh/Pester verification still passed 46/46 and Node 22 focused contracts 6/6. The completion message provides the final published commit SHA and its fresh hosted run URLs; this report intentionally does not embed its own circular commit hash.

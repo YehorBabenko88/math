@@ -348,7 +348,7 @@ Describe 'Release artifact provenance contracts' {
     }
     It 'accepts downloaded digest checked exact source lock run attempt and context evidence' {Assert-ProvenanceFixture (New-ProvenanceFixture)}
     It 'rejects stale reruns wrong source lock repository workflow run and missing contexts' {
-        foreach($change in @(@{runAttempt='1'},@{sourceSha=('c'*40)},@{lockSha256=('c'*64)},@{repository='other/math'},@{workflowPath='other.yml'},@{runId='8'},@{context='other'},@{qualified=$false},@{lockSha256=$null})) {
+        foreach($change in @(@{runAttempt='1'},@{sourceSha=('c'*40)},@{lockSha256=('c'*64)},@{repository='other/math'},@{workflowPath='other.yml'},@{runId='8'},@{context='other'},@{qualified=$false},@{qualified='true'},@{lockSha256=$null})) {
             Assert-Throws {Assert-ProvenanceFixture (New-ProvenanceFixture $change)}
         }
     }
@@ -357,7 +357,7 @@ Describe 'Release artifact provenance contracts' {
         Assert-Throws {Assert-ProvenanceFixture $f}
     }
     It 'rejects expired absent digest wrong metadata run and SHA artifacts' {
-        foreach($change in @(@{expired=$true},@{digest=$null},@{digest=('sha256:'+('0'*64))},@{workflow_run=[pscustomobject]@{id=8;head_sha=('a'*40)}},@{workflow_run=[pscustomobject]@{id=7;head_sha=('c'*40)}})) {
+        foreach($change in @(@{id=0},@{size_in_bytes=0},@{size_in_bytes=1048577},@{expired=$true},@{digest=$null},@{digest=('sha256:'+('0'*64))},@{workflow_run=[pscustomobject]@{id=8;head_sha=('a'*40)}},@{workflow_run=[pscustomobject]@{id=7;head_sha=('c'*40)}})) {
             $f=New-ProvenanceFixture;foreach($key in $change.Keys){$f.Artifact.$key=$change[$key]}
             Assert-Throws {Assert-ProvenanceFixture $f}
         }
