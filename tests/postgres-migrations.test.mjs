@@ -8,17 +8,17 @@ test('migration runner serializes and applies scripts once',async()=>{
  const client={async query(sql,args){calls.push({sql,args});if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[{filename:'001_adapter_snapshots.sql'}]};return {rows:[]}},release(){released=true}};
  migrationClient(client,{entries:[{filename:'001_adapter_snapshots.sql',sha256:createHash('sha256').update('BEGIN;\nCREATE TABLE example(id int);\nCOMMIT;').digest('hex'),hash_contract:'sha256-raw-utf8/v1',applied_at:'2026-01-01T00:00:00Z'}]});
  const executed=await applyMathMigrations({async connect(){return migrationClient(client)}},{readSql:async()=> 'BEGIN;\nCREATE TABLE example(id int);\nCOMMIT;'});
- assert.deepEqual(executed,['002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql']);
- assert.equal(calls.filter(x=>x.sql.includes('CREATE TABLE example')).length,4);
+ assert.deepEqual(executed,['002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql']);
+ assert.equal(calls.filter(x=>x.sql.includes('CREATE TABLE example')).length,5);
  assert.equal(calls.at(-1).sql,'COMMIT');
  assert.equal(released,true);
 });
 
-test('checkpoint migration is additive and runner skips all five applied files',async()=>{
+test('checkpoint migration is additive and runner skips all six applied files',async()=>{
  const done=[];const bodies=[];
  const client={async query(sql,args){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:done.map(filename=>({filename}))};if(sql.startsWith('INSERT INTO mu_schema_migrations'))done.push(args[0]);else bodies.push(sql);return {rows:[]}},release(){}};
  const pool={async connect(){return migrationClient(client)}};
- assert.deepEqual(await applyMathMigrations(pool),['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql']);
+ assert.deepEqual(await applyMathMigrations(pool),['001_adapter_snapshots.sql','002_ingestion_jobs.sql','003_ingestion_claim_fencing.sql','004_ingestion_checkpoints.sql','005_ingestion_service_protocol.sql','006_ingestion_lease_clock.sql']);
  assert.ok(bodies.some(sql=>/ADD COLUMN IF NOT EXISTS checkpoint jsonb/.test(sql)));
  assert.deepEqual(await applyMathMigrations(pool),[]);
  assert.equal(bodies.filter(sql=>/ADD COLUMN IF NOT EXISTS checkpoint jsonb/.test(sql)).length,1);
@@ -38,7 +38,7 @@ test('commented SQL transaction wrappers cannot release the outer transaction or
   ' /* migration header */\n-- line header\nBEGIN; CREATE FUNCTION sample() RETURNS void AS $$ BEGIN RETURN; END $$ LANGUAGE plpgsql; COMMIT; /* footer */',
  ];
  for(const script of scripts)await applyMathMigrations({async connect(){return migrationClient({...client})}},{readSql:async()=>script});
- assert.equal(bodies.length,10);
+ assert.equal(bodies.length,12);
  for(const sql of bodies){assert.match(sql,/\$\$ BEGIN RETURN; END \$\$/);assert.doesNotMatch(sql,/^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*BEGIN\s*;/i);assert.doesNotMatch(sql,/COMMIT\s*;/i)}
 });
 test('migration failure rolls back and releases client',async()=>{
@@ -53,7 +53,7 @@ test('wrapper removal preserves nested comments, BOM and quoted transaction text
  const bodies=[];
  const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.includes('CREATE FUNCTION'))bodies.push(sql);return {rows:[]}},release(){}};
  await applyMathMigrations({async connect(){return migrationClient(client)}},{readSql:async()=>script});
- assert.equal(bodies.length,5);
+ assert.equal(bodies.length,6);
  for(const body of bodies){assert.equal(body.startsWith('\uFEFF'),false);assert.ok(body.includes('/* outer /* nested */ header */'));assert.ok(body.includes("$fn$ BEGIN RETURN 'COMMIT;'; END $fn$"));assert.ok(body.includes('/* footer COMMIT; */'));assert.doesNotMatch(body,/header \*\/ BEGIN;/);assert.doesNotMatch(body,/\nCOMMIT;/)}
 });
 
@@ -70,7 +70,7 @@ test('comment-only COMMIT is preserved and never treated as a wrapper',async()=>
  const script="SELECT 'COMMIT;', E'escaped\\\' COMMIT;', \"COMMIT;\"; -- COMMIT;\n/* nested /* COMMIT; */ COMMIT; */";
  const bodies=[];const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.startsWith('SELECT \'COMMIT;'))bodies.push(sql);return {rows:[]}},release(){}};
  await applyMathMigrations({async connect(){return migrationClient(client)}},{readSql:async()=>script});
- assert.deepEqual(bodies,[script,script,script,script,script]);
+ assert.deepEqual(bodies,Array(6).fill(script));
 });
 
 test('unmatched wrappers and malformed lexical constructs fail closed',async()=>{
@@ -100,5 +100,5 @@ test('leading BOM is removed while quoted BOM content is preserved',async()=>{
  const script="\uFEFFSELECT '\uFEFF';";const bodies=[];
  const client={async query(sql){if(sql==='SELECT filename FROM mu_schema_migrations')return {rows:[]};if(sql.includes("SELECT '\uFEFF'"))bodies.push(sql);return {rows:[]}},release(){}};
  await applyMathMigrations({async connect(){return migrationClient(client)}},{readSql:async()=>script});
- assert.deepEqual(bodies,Array(5).fill("SELECT '\uFEFF';"));
+ assert.deepEqual(bodies,Array(6).fill("SELECT '\uFEFF';"));
 });

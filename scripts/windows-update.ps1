@@ -74,6 +74,7 @@ try {
   & $git worktree add --detach $target $sha
   if($LASTEXITCODE -ne 0){throw 'Worktree creation failed'}
  }
+ Assert-DeploymentRelease -Repository $gitDir -Target $target -Sha $sha -Git $git
  Push-Location -LiteralPath $target
  try {
   # Fail closed without disposable test DB + PDF runtime and reject every skip/todo.
@@ -93,6 +94,7 @@ try {
  Assert-CandidateChecks $sha
  Invoke-DeploymentActivation -Sha $sha -Old $old -WritePointer {
   param($value)
+  if($value -ceq $sha){Assert-DeploymentRelease -Repository $gitDir -Target $target -Sha $sha -Git $git}
   # Same-volume atomic replacement: a failed write never truncates the known-good pointer.
   Write-DeploymentPointer -Path $active -Sha $value
  } -RemovePointer {Remove-Item -LiteralPath $active -ErrorAction Stop} -Restart {

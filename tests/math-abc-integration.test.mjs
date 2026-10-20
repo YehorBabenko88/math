@@ -1,3 +1,4 @@
+import {expireFencedFixture} from './helpers/fenced-expiry.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -52,10 +53,7 @@ live('ABC integration: citation examples survive registry JSONB and fenced jobs 
  const producer=createIngestionJobStore(pool);await producer.enqueue({kind:'verify-candidate',sourceHash:'synthetic',locator:'p1'});
  await enableFencedIngestionService(pool);const store=createFencedIngestionJobStore(pool);
  const old=await store.claim({workerId:'same-worker'});
- const client=await pool.connect();try{
-  await client.query('BEGIN');await client.query("SELECT set_config('math_universe.claim_token',$1,true)",[old.claim_token]);
-  await client.query("UPDATE mu_ingestion_jobs SET lease_until=now()-interval '1 second' WHERE job_id=$1",[old.job_id]);await client.query('COMMIT');
- }catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}
+ await expireFencedFixture(pool,old);
  const fresh=await store.claim({workerId:'same-worker'});assert.notEqual(fresh.claim_token,old.claim_token);
  await assert.rejects(store.complete({jobId:old.job_id,workerId:'same-worker',claimToken:old.claim_token,result:{status:'proven'}}),{code:'JOB_LEASE_LOST'});
  await assert.rejects(producer.complete({jobId:fresh.job_id,workerId:'same-worker'}),/protocol|fenced/i);
