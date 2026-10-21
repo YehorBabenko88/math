@@ -22,3 +22,14 @@ test('Python closure requires approved exact versions and artifact hashes',async
  for(const invalid of [text.replace(/--hash=sha256:[a-f0-9]{64}/g,''),text.replace('6.20.1','6.20.2'),text+'surprise==1.0.0 --hash=sha256:'+'a'.repeat(64)])assert.throws(()=>validatePythonLocks(invalid));
  for(const name of ['book-ingestion.yml','postgres-integration.yml'])assert.match(await readFile(new URL('../.github/workflows/'+name,import.meta.url),'utf8'),/--require-hashes --only-binary=:all:/);
 });
+
+test('qualified dependency contracts reject incomplete graph and unapproved Python hashes',async()=>{
+ const changed=structuredClone(lock);delete changed.packages['node_modules/pg'];assert.throws(()=>validateDependencyLocks(manifest,changed),/locked dependency/);
+ const text=await readFile(new URL('../scripts/book-ingestion-requirements.txt',import.meta.url),'utf8');
+ assert.throws(()=>validatePythonLocks(text.replace(/sha256:[a-f0-9]{64}/,'sha256:'+'0'.repeat(64))),/Unapproved Python/);
+});
+
+test('unreviewed transitive graph cannot qualify even with well formed registry metadata',()=>{
+ const changed=structuredClone(lock);changed.packages['node_modules/surprise']={version:'1.0.0',resolved:'https://registry.npmjs.org/surprise/-/surprise-1.0.0.tgz',integrity:lock.packages['node_modules/pg'].integrity};
+ assert.throws(()=>validateDependencyLocks(manifest,changed),/Unapproved npm graph/);
+});

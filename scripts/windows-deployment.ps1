@@ -225,8 +225,21 @@ function Get-DeploymentLockHash {
     } finally {$bytes.Dispose();$process.Dispose()}
 }
 
+function Get-DeploymentDependencyEvidence {
+    param([string]$Repository,[string]$Sha)
+    if($Sha -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid dependency source SHA'}
+    $node=(Get-Command node -ErrorAction Stop).Source
+    $json=& $node (Join-Path $PSScriptRoot 'verify-dependency-locks.mjs') --git-source $Repository $Sha
+    if($LASTEXITCODE -ne 0){throw 'Committed dependency contracts failed validation'}
+    $evidence=$json | ConvertFrom-Json
+    if($evidence.sourceSha -cne $Sha -or $evidence.dependencyPolicy -cne 'math-dependency-contract/v1' -or
+       $evidence.lockSha256 -cnotmatch '^[a-f0-9]{64}$' -or $evidence.packageManifestSha256 -cnotmatch '^[a-f0-9]{64}$' -or
+       $evidence.pythonRequirementsSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Invalid committed dependency evidence'}
+    return $evidence
+}
+
 function Assert-DeploymentProvenance {
-    param([string]$Sha,[string]$LockHash,$Run,[object[]]$Artifacts,[string[]]$Contexts,[scriptblock]$Download)
+    param([string]$Sha,[string]$LockHash,$Run,[object[]]$Artifacts,[string[]]$Contexts,[scriptblock]$Download,$DependencyEvidence)
     if($Sha -cnotmatch '^[a-f0-9]{40}$' -or $LockHash -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing source dependency provenance'}
     Add-Type -AssemblyName System.IO.Compression
     $seen=@{}
@@ -256,6 +269,10 @@ function Assert-DeploymentProvenance {
             $manifest.workflowPath -cne $Run.path -or [string]$manifest.runId -cne [string]$Run.id -or
             [string]$manifest.runAttempt -cne [string]$Run.run_attempt -or $Contexts -cnotcontains $manifest.context -or
             $seen.ContainsKey([string]$manifest.context)){throw 'Provenance does not bind current source lockfile run attempt and context'}
+        if($manifest.dependencyPolicy -cne 'math-dependency-contract/v1' -or
+           $manifest.packageManifestSha256 -cnotmatch '^[a-f0-9]{64}$' -or $manifest.pythonRequirementsSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing validated dependency policy evidence'}
+        if($DependencyEvidence -and ($manifest.packageManifestSha256 -cne $DependencyEvidence.packageManifestSha256 -or
+           $manifest.pythonRequirementsSha256 -cne $DependencyEvidence.pythonRequirementsSha256 -or $LockHash -cne $DependencyEvidence.lockSha256)){throw 'Dependency source evidence mismatch'}
         $seen[[string]$manifest.context]=$true
     }
     foreach($context in $Contexts){if(!$seen.ContainsKey($context)){throw "Missing verified provenance context: $context"}}

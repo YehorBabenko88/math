@@ -332,7 +332,7 @@ Describe 'Release artifact provenance contracts' {
     . (Join-Path $repository 'scripts/windows-deployment.ps1')
     Add-Type -AssemblyName System.IO.Compression
     function New-ProvenanceFixture($Change=@{}) {
-        $manifest=@{schema=1;qualified=$true;sourceSha=('a'*40);lockSha256=('b'*64);repository='YehorBabenko88/math';workflowPath='.github/workflows/ci.yml';runId='7';runAttempt='2';context='test'}
+        $manifest=@{schema=1;qualified=$true;dependencyPolicy='math-dependency-contract/v1';packageManifestSha256=('c'*64);pythonRequirementsSha256=('d'*64);sourceSha=('a'*40);lockSha256=('b'*64);repository='YehorBabenko88/math';workflowPath='.github/workflows/ci.yml';runId='7';runAttempt='2';context='test'}
         foreach($key in $Change.Keys){$manifest[$key]=$Change[$key]}
         $stream=New-Object IO.MemoryStream
         $zip=New-Object IO.Compression.ZipArchive($stream,[IO.Compression.ZipArchiveMode]::Create,$true)
@@ -344,11 +344,11 @@ Describe 'Release artifact provenance contracts' {
         @{Run=[pscustomobject]@{id=7;run_attempt=2;path='.github/workflows/ci.yml'};Bytes=$bytes;Artifact=[pscustomobject]@{id=9;name='release-provenance-7-2-test';expired=$false;digest=('sha256:'+$digest);size_in_bytes=$bytes.Length;workflow_run=[pscustomobject]@{id=7;head_sha=('a'*40)}}}
     }
     function Assert-ProvenanceFixture($f) {
-        Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($f.Artifact) -Contexts @('test') -Download {param($artifact) return ,$f.Bytes}
+        Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($f.Artifact) -Contexts @('test') -DependencyEvidence @{lockSha256=('b'*64);packageManifestSha256=('c'*64);pythonRequirementsSha256=('d'*64)} -Download {param($artifact) return ,$f.Bytes}
     }
     It 'accepts downloaded digest checked exact source lock run attempt and context evidence' {Assert-ProvenanceFixture (New-ProvenanceFixture)}
     It 'rejects stale reruns wrong source lock repository workflow run and missing contexts' {
-        foreach($change in @(@{runAttempt='1'},@{sourceSha=('c'*40)},@{lockSha256=('c'*64)},@{repository='other/math'},@{workflowPath='other.yml'},@{runId='8'},@{context='other'},@{qualified=$false},@{qualified='true'},@{lockSha256=$null})) {
+        foreach($change in @(@{runAttempt='1'},@{sourceSha=('c'*40)},@{lockSha256=('c'*64)},@{repository='other/math'},@{workflowPath='other.yml'},@{runId='8'},@{context='other'},@{qualified=$false},@{qualified='true'},@{lockSha256=$null},@{dependencyPolicy=$null},@{packageManifestSha256=('e'*64)},@{pythonRequirementsSha256=('e'*64)})) {
             Assert-Throws {Assert-ProvenanceFixture (New-ProvenanceFixture $change)}
         }
     }
@@ -408,5 +408,22 @@ Describe 'Windows SQL checkout gate' {
         try { & ([scriptblock]::Create($block)) } catch { $failure=$_.Exception.Message }
         $failure | Should Be "SQL checkout-byte verification failed: 7"
         $script:sqlGateSecondCommandRan | Should Be $false
+    }
+}
+
+Describe 'Integrated committed dependency gate' {
+    . (Join-Path $repository 'scripts/windows-deployment.ps1')
+    It 'validates actual committed contracts before qualifying the release' {
+        $sha=(& git -C $repository rev-parse HEAD).Trim()
+        $actual=Get-DeploymentDependencyEvidence -Repository $repository -Sha $sha
+        $actual.dependencyPolicy | Should Be 'math-dependency-contract/v1'
+        $actual.sourceSha | Should Be $sha
+        $invalid=Join-Path $TestDrive 'invalid committed lock';New-Item -ItemType Directory $invalid | Out-Null
+        & git init --quiet $invalid
+        [IO.File]::WriteAllText((Join-Path $invalid 'package-lock.json'),'{"lockfileVersion":3}')
+        & git -C $invalid add .
+        & git -C $invalid -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m invalid
+        $bad=(& git -C $invalid rev-parse HEAD).Trim()
+        Assert-Throws {Get-DeploymentDependencyEvidence -Repository $invalid -Sha $bad}
     }
 }

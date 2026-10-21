@@ -26,7 +26,16 @@ test('provenance is unqualified without a committed lock and rejects wrong sourc
   await writeFile('package-lock.json','uncommitted lock');assert.equal(createProvenance(env).qualified,false);
   assert.throws(()=>createProvenance({...env,GITHUB_SHA:'0'.repeat(40)}),/source SHA/);
   const lock='{"lockfileVersion":3}\n';await writeFile('package-lock.json',lock);git('-c','core.autocrlf=false','add','package-lock.json');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--quiet','-m','lock');env.GITHUB_SHA=git('rev-parse','HEAD');
-  const actual=createProvenance(env);assert.equal(actual.qualified,true);assert.equal(actual.lockSha256,sha256(lock));assert.equal(actual.runAttempt,'2');assert.equal(actual.workflowPath,'.github/workflows/ci.yml');
-  await writeFile('package-lock.json',lock.replaceAll('\n','\r\n'));assert.throws(()=>createProvenance(env),/Lock bytes differ/);
+  assert.throws(()=>createProvenance(env),/dependency|manifest|lock|package/i,'root-only committed lock must not qualify');
+  const project=new URL('../',import.meta.url);
+  for(const name of ['package.json','package-lock.json','scripts/book-ingestion-requirements.txt']){
+   const {mkdir}=await import('node:fs/promises');await mkdir(join(directory,'scripts'),{recursive:true});await writeFile(name,await readFile(new URL(name,project)));
+  }
+  git('-c','core.autocrlf=false','add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--quiet','-m','valid dependencies');env.GITHUB_SHA=git('rev-parse','HEAD');
+  const good=createProvenance(env);assert.equal(good.qualified,true);assert.equal(good.dependencyPolicy,'math-dependency-contract/v1');assert.match(good.pythonRequirementsSha256,/^[a-f0-9]{64}$/);
+  const original=await readFile('package.json','utf8');await writeFile('package.json',original.replace('8.16.3','8.16.2'));assert.throws(()=>createProvenance(env),/manifest/i);await writeFile('package.json',original);
+  const python=await readFile('scripts/book-ingestion-requirements.txt','utf8');await writeFile('scripts/book-ingestion-requirements.txt',python.replace('6.20.1','6.20.2'));assert.throws(()=>createProvenance(env),/Python/);await writeFile('scripts/book-ingestion-requirements.txt',python);
+  const validLock=await readFile('package-lock.json','utf8');await writeFile('package-lock.json',validLock.replaceAll('\n','\r\n'));assert.throws(()=>createProvenance(env),/Lock bytes differ/);
+
  }finally{process.chdir(previous);await rm(directory,{recursive:true,force:true});}
 });

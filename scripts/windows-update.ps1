@@ -30,7 +30,8 @@ function Get-GitHubPages([string]$Path,[string]$Property) {
  throw 'GitHub evidence exceeds bounded pagination; refusing incomplete evidence'
 }
 function Assert-CandidateChecks([string]$Sha) {
- $lockHash=Get-DeploymentLockHash -Repository $gitDir -Sha $Sha -Git $git
+ $dependencyEvidence=Get-DeploymentDependencyEvidence -Repository $gitDir -Sha $Sha
+ $lockHash=$dependencyEvidence.lockSha256
  $runs=Get-GitHubPages "actions/runs?head_sha=$Sha" 'workflow_runs'
  $jobEvidence=@{}
  Assert-DeploymentChecks -Sha $Sha -Branch $Branch -Runs $runs -GetJobs {
@@ -38,7 +39,7 @@ function Assert-CandidateChecks([string]$Sha) {
   $jobs=Get-GitHubPages "actions/runs/$($run.id)/attempts/$($run.run_attempt)/jobs" 'jobs'
   $artifacts=Get-GitHubPages "actions/runs/$($run.id)/artifacts" 'artifacts'
   $contexts=@((Get-RequiredDeploymentWorkflows | Where-Object {$_.Id -eq $run.workflow_id}).Jobs | Where-Object {$_ -cne 'Full CI coverage'})
-  Assert-DeploymentProvenance -Sha $Sha -LockHash $lockHash -Run $run -Artifacts $artifacts -Contexts $contexts -Download {
+  Assert-DeploymentProvenance -Sha $Sha -LockHash $lockHash -Run $run -Artifacts $artifacts -Contexts $contexts -DependencyEvidence $dependencyEvidence -Download {
    param($artifact)
    $archive=Join-Path $env:TEMP ([guid]::NewGuid().ToString()+'.provenance.zip')
    try {
