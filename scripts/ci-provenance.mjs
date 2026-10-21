@@ -1,3 +1,4 @@
+import {validateProvenanceMetadata,verifySourceIdentity,verifyTestedSourceIdentity} from './verify-source-identity.mjs';
 import {verifyCommittedDependencies} from './verify-dependency-locks.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync} from 'node:fs';
@@ -5,7 +6,8 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 export const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function createProvenance(env=process.env){
- const sourceSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ const metadata=validateProvenanceMetadata(env);
+ const sourceSha=execFileSync('git',['--no-replace-objects','rev-parse','HEAD'],{encoding:'utf8'}).trim();
  if(sourceSha!==env.GITHUB_SHA)throw Error('Checkout differs from workflow source SHA');
  let lockSha256=null,evidence={},committed;
  try{committed=execFileSync('git',['--no-replace-objects','show',sourceSha+':package-lock.json'],{stdio:['ignore','pipe','ignore']});}catch(error){if(error.status!==128)throw error;}
@@ -18,6 +20,7 @@ export function createProvenance(env=process.env){
   if(eol(readFileSync('scripts/book-ingestion-requirements.txt'))!==eol(gitBlob('scripts/book-ingestion-requirements.txt')))throw Error('Python requirements differ from committed source');
  }
 
- return {schema:1,...evidence,sourceSha,lockSha256,qualified:lockSha256!==null,repository:env.GITHUB_REPOSITORY,workflowPath:env.GITHUB_WORKFLOW_REF?.split('@')[0].replace(env.GITHUB_REPOSITORY+'/',''),runId:env.GITHUB_RUN_ID,runAttempt:env.GITHUB_RUN_ATTEMPT,context:env.PROVENANCE_CONTEXT};
+ const sourceIdentity=committed?verifyTestedSourceIdentity(env):verifySourceIdentity(sourceSha);
+ return {schema:1,...evidence,...sourceIdentity,sourceSha,lockSha256,qualified:lockSha256!==null,...metadata};
 }
 if(process.argv[1]?.endsWith('ci-provenance.mjs'))writeFileSync('release-provenance.json',JSON.stringify(createProvenance())+'\n');

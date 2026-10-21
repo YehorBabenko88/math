@@ -235,6 +235,9 @@ function Get-DeploymentDependencyEvidence {
     if($evidence.sourceSha -cne $Sha -or $evidence.dependencyPolicy -cne 'math-dependency-contract/v1' -or
        $evidence.lockSha256 -cnotmatch '^[a-f0-9]{64}$' -or $evidence.packageManifestSha256 -cnotmatch '^[a-f0-9]{64}$' -or
        $evidence.pythonRequirementsSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Invalid committed dependency evidence'}
+    $tree=& (Get-Command git -ErrorAction Stop).Source --no-replace-objects -C $Repository rev-parse "$Sha^{tree}"
+    if($LASTEXITCODE -ne 0 -or $tree -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid committed source tree evidence'}
+    $evidence | Add-Member -NotePropertyName committedTreeSha -NotePropertyValue ([string]$tree)
     return $evidence
 }
 
@@ -269,6 +272,10 @@ function Assert-DeploymentProvenance {
             $manifest.workflowPath -cne $Run.path -or [string]$manifest.runId -cne [string]$Run.id -or
             [string]$manifest.runAttempt -cne [string]$Run.run_attempt -or $Contexts -cnotcontains $manifest.context -or
             $seen.ContainsKey([string]$manifest.context)){throw 'Provenance does not bind current source lockfile run attempt and context'}
+        if($manifest.sourceEvidence -cne 'self-reported-pre-post-tracked-tree/v1' -or
+           $manifest.testedWorktreeVerified -isnot [bool] -or $manifest.testedWorktreeVerified -ne $true -or
+           $manifest.committedTreeSha -cnotmatch '^[a-f0-9]{40}$' -or $manifest.trackedSourceSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing pre/post tested source evidence'}
+        if($DependencyEvidence.committedTreeSha -and $manifest.committedTreeSha -cne $DependencyEvidence.committedTreeSha){throw 'Committed source tree evidence mismatch'}
         if($manifest.dependencyPolicy -cne 'math-dependency-contract/v1' -or
            $manifest.packageManifestSha256 -cnotmatch '^[a-f0-9]{64}$' -or $manifest.pythonRequirementsSha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing validated dependency policy evidence'}
         if($DependencyEvidence -and ($manifest.packageManifestSha256 -cne $DependencyEvidence.packageManifestSha256 -or

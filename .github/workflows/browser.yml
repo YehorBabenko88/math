@@ -8,6 +8,9 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 15
+    env:
+      SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+      PROVENANCE_CONTEXT: 'chromium'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -15,6 +18,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
+      - name: Verify tracked source before tests
+        run: node scripts/verify-source-identity.mjs --before
       - name: Verify dependency artifact locks
         run: node scripts/verify-dependency-locks.mjs
       - run: npm ci --ignore-scripts --no-audit --no-fund

@@ -332,7 +332,7 @@ Describe 'Release artifact provenance contracts' {
     . (Join-Path $repository 'scripts/windows-deployment.ps1')
     Add-Type -AssemblyName System.IO.Compression
     function New-ProvenanceFixture($Change=@{}) {
-        $manifest=@{schema=1;qualified=$true;dependencyPolicy='math-dependency-contract/v1';packageManifestSha256=('c'*64);pythonRequirementsSha256=('d'*64);sourceSha=('a'*40);lockSha256=('b'*64);repository='YehorBabenko88/math';workflowPath='.github/workflows/ci.yml';runId='7';runAttempt='2';context='test'}
+        $manifest=@{schema=1;qualified=$true;sourceEvidence='self-reported-pre-post-tracked-tree/v1';testedWorktreeVerified=$true;committedTreeSha=('e'*40);trackedSourceSha256=('f'*64);dependencyPolicy='math-dependency-contract/v1';packageManifestSha256=('c'*64);pythonRequirementsSha256=('d'*64);sourceSha=('a'*40);lockSha256=('b'*64);repository='YehorBabenko88/math';workflowPath='.github/workflows/ci.yml';runId='7';runAttempt='2';context='test'}
         foreach($key in $Change.Keys){$manifest[$key]=$Change[$key]}
         $stream=New-Object IO.MemoryStream
         $zip=New-Object IO.Compression.ZipArchive($stream,[IO.Compression.ZipArchiveMode]::Create,$true)
@@ -360,6 +360,12 @@ Describe 'Release artifact provenance contracts' {
         foreach($change in @(@{id=0},@{size_in_bytes=0},@{size_in_bytes=1048577},@{expired=$true},@{digest=$null},@{digest=('sha256:'+('0'*64))},@{workflow_run=[pscustomobject]@{id=8;head_sha=('a'*40)}},@{workflow_run=[pscustomobject]@{id=7;head_sha=('c'*40)}})) {
             $f=New-ProvenanceFixture;foreach($key in $change.Keys){$f.Artifact.$key=$change[$key]}
             Assert-Throws {Assert-ProvenanceFixture $f}
+        }
+    }
+    It 'rejects provenance without pre/post tested source evidence' {
+        foreach($change in @(@{sourceEvidence=$null},@{testedWorktreeVerified=$false},@{testedWorktreeVerified='true'},@{committedTreeSha='invalid'},@{trackedSourceSha256=$null})) {
+            $f=New-ProvenanceFixture $change
+            {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($f.Artifact) -Contexts @('test') -Download {param($artifact) return ,$f.Bytes}} | Should Throw
         }
     }
     It 'rejects missing and duplicate provenance contexts' {
@@ -400,7 +406,7 @@ Describe 'Windows SQL checkout gate' {
         $block=[regex]::Replace($match.Groups['body'].Value,'(?m)^          ','')
         $block.Contains('node scripts/verify-sql-bytes.mjs') | Should Be $true
         $block.Contains('node --test tests/sql-byte-reproducibility.test.mjs') | Should Be $true
-        $block=$block.Replace('node scripts/verify-sql-bytes.mjs','node -e "process.exit(7)"').Replace('node --test tests/sql-byte-reproducibility.test.mjs','$script:sqlGateSecondCommandRan = $true')
+        $block=$block.Replace('node scripts/verify-sql-bytes.mjs','node -e "process.exit(7)"').Replace('node --test tests/sql-byte-reproducibility.test.mjs tests/sql-byte-integrity.test.mjs','$script:sqlGateSecondCommandRan = $true')
         $script:sqlGateSecondCommandRan=$false
         # Reproduce Windows PowerShell native-exit semantics even on newer pwsh.
         $PSNativeCommandUseErrorActionPreference=$false
