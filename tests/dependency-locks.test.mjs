@@ -33,3 +33,52 @@ test('unreviewed transitive graph cannot qualify even with well formed registry 
  const changed=structuredClone(lock);changed.packages['node_modules/surprise']={version:'1.0.0',resolved:'https://registry.npmjs.org/surprise/-/surprise-1.0.0.tgz',integrity:lock.packages['node_modules/pg'].integrity};
  assert.throws(()=>validateDependencyLocks(manifest,changed),/Unapproved npm graph/);
 });
+
+test('unapproved installation directives fail closed without changing the approved lock',()=>{
+ for(const directive of [
+  {overrides:{pg:'8.16.2'}},{overrides:{pg:'$pg'}},
+  {workspaces:['packages/*']},{config:{'unsafe-perm':true}},
+  {engines:{node:'>=999'}},{os:['!win32']},{cpu:['!x64']},
+  {bundleDependencies:['pg']},{bundledDependencies:['pg']},
+  {peerDependenciesMeta:{pg:{optional:true}}},{devEngines:{runtime:{name:'node',version:'>=999'}}},
+  {packageManager:'npm@0.0.0'},{publishConfig:{registry:'https://example.invalid'}},
+  {futureInstallDirective:true},
+ ])assert.throws(()=>validateDependencyLocks({...manifest,...directive},lock),/Unapproved.*manifest/,JSON.stringify(directive));
+ for(const scripts of [{...manifest.scripts,preinstall:'node unwanted.mjs'},{test:'node unwanted.mjs','test:e2e':'playwright test'}])assert.throws(()=>validateDependencyLocks({...manifest,scripts},lock),/Unapproved.*manifest/);
+});
+
+test('approved manifest scripts remain usable and npm ci agrees with the direct-override rejection',async()=>{
+ const {mkdtemp,writeFile,rm,realpath,access}=await import('node:fs/promises');
+ const {tmpdir}=await import('node:os');
+ const {join,dirname,delimiter,basename}=await import('node:path');
+ const {spawnSync}=await import('node:child_process');
+ // A standalone Node runtime need not ship npm. Resolve the installed npm CLI
+ // from PATH without a shell, then run it with the runtime under test.
+ const npmCandidates=[process.env.npm_execpath,join(dirname(process.execPath),'node_modules/npm/bin/npm-cli.js')];
+ for(const directory of (process.env.PATH??'').split(delimiter).filter(Boolean)){
+  npmCandidates.push(join(directory,'node_modules/npm/bin/npm-cli.js'));
+  if(process.platform!=='win32'){
+   try{npmCandidates.push(await realpath(join(directory,'npm')));}catch{}
+  }
+ }
+ let npmCli;
+ for(const candidate of npmCandidates){
+  if(!candidate||basename(candidate)!=='npm-cli.js')continue;
+  try{await access(candidate);npmCli=candidate;break;}catch{}
+ }
+ assert.ok(npmCli,'npm CLI must be installed and discoverable via npm_execpath or PATH');
+ const fixture=await mkdtemp(join(tmpdir(),'math-npm-contract-'));
+ try{
+  await writeFile(join(fixture,'package-lock.json'),JSON.stringify(lock));
+  const run=async(value)=>{
+   await writeFile(join(fixture,'package.json'),JSON.stringify(value));
+   const result=spawnSync(process.execPath,[npmCli,'ci','--dry-run','--ignore-scripts','--no-audit','--no-fund','--offline'],{cwd:fixture,encoding:'utf8',windowsHide:true,timeout:30000});
+   assert.ifError(result.error);return result;
+  };
+  const clean=await run(manifest);assert.equal(clean.status,0,clean.stderr);
+  const changed={...manifest,overrides:{pg:'8.16.2'}};
+  const invalid=await run(changed);assert.notEqual(invalid.status,0);assert.match(invalid.stderr,/EUSAGE|EOVERRIDE|Invalid/);
+  validateDependencyLocks(manifest,lock);
+  assert.throws(()=>validateDependencyLocks(changed,lock),/Unapproved.*manifest/);
+ }finally{await rm(fixture,{recursive:true,force:true});}
+});

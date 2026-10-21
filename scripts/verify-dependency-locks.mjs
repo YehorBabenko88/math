@@ -15,8 +15,13 @@ const approved={'@playwright/test':'1.56.1',pg:'8.16.3'};
 // npm ci never changes this graph. Canonicalization affects validation only,
 // never SQL bytes or any persisted migration history.
 function canonical(value){return Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;}
+// Manifest is an installation input too. New keys (including future npm
+// directives) and lifecycle scripts require review before this contract allows them.
+const approvedManifestKeys=['name','version','private','type','scripts','devDependencies'];
+const approvedScripts={test:'node --test tests/*.test.mjs','test:e2e':'playwright test'};
 const approvedNpmGraphSha256='f7b50c61fc2982c88e38b79e6510a7980d09f5bdf55044a95dcdb1cdcf711389';
 export function validateDependencyLocks(manifest,lock){
+ if(!manifest||Array.isArray(manifest)||typeof manifest!=='object'||Object.keys(manifest).some(key=>!approvedManifestKeys.includes(key))||manifest.private!==true||manifest.type!=='module'||JSON.stringify(canonical(manifest.scripts))!==JSON.stringify(canonical(approvedScripts)))throw Error('Unapproved installation manifest directives');
  if(!lock||lock.lockfileVersion!==3||!lock.packages?.[''])throw Error('Committed npm v3 lock required');
  if(['dependencies','optionalDependencies','peerDependencies'].some(field=>Object.keys(manifest[field]??{}).length)||JSON.stringify(Object.entries(manifest.devDependencies??{}).sort())!==JSON.stringify(Object.entries(approved).sort()))throw Error('Unapproved dependency manifest drift');
  for(const field of ['dependencies','devDependencies','optionalDependencies'])if(JSON.stringify(manifest[field]??{})!==JSON.stringify(lock.packages[''][field]??{}))throw Error('Manifest and lock drift');
