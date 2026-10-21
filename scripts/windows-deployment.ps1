@@ -205,3 +205,58 @@ function Assert-DeploymentRelease {
         }
     }
 }
+
+function Get-DeploymentLockHash {
+    param([string]$Repository,[string]$Sha,[string]$Git)
+    if($Sha -cnotmatch '^[a-f0-9]{40}$'){throw 'Invalid provenance source SHA'}
+    $start=New-Object Diagnostics.ProcessStartInfo
+    $start.FileName=$Git
+    $start.Arguments="--no-replace-objects -C `"$Repository`" cat-file blob ${Sha}:package-lock.json"
+    $start.UseShellExecute=$false; $start.CreateNoWindow=$true
+    $start.RedirectStandardOutput=$true; $start.RedirectStandardError=$true
+    $process=New-Object Diagnostics.Process; $process.StartInfo=$start
+    $bytes=New-Object IO.MemoryStream
+    try {
+        $null=$process.Start(); $errorRead=$process.StandardError.ReadToEndAsync()
+        $process.StandardOutput.BaseStream.CopyTo($bytes); $process.WaitForExit()
+        if($process.ExitCode -ne 0){throw 'Candidate has no committed dependency lockfile'}
+        $hash=[Security.Cryptography.SHA256]::Create()
+        try {return ([BitConverter]::ToString($hash.ComputeHash($bytes.ToArray()))).Replace('-','').ToLowerInvariant()} finally {$hash.Dispose()}
+    } finally {$bytes.Dispose();$process.Dispose()}
+}
+
+function Assert-DeploymentProvenance {
+    param([string]$Sha,[string]$LockHash,$Run,[object[]]$Artifacts,[string[]]$Contexts,[scriptblock]$Download)
+    if($Sha -cnotmatch '^[a-f0-9]{40}$' -or $LockHash -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing source dependency provenance'}
+    Add-Type -AssemblyName System.IO.Compression
+    $seen=@{}
+    $prefix="release-provenance-$($Run.id)-$($Run.run_attempt)-"
+    foreach($artifact in @($Artifacts | Where-Object {$_.name -clike ($prefix+'*')})) {
+        $artifactId=0L; $artifactSize=0L
+        if(![long]::TryParse([string]$artifact.id,[ref]$artifactId) -or $artifactId -lt 1 -or
+            ![long]::TryParse([string]$artifact.size_in_bytes,[ref]$artifactSize) -or $artifactSize -lt 1){throw 'Invalid provenance artifact identity or size'}
+        if($artifact.expired -isnot [bool] -or $artifact.expired -ne $false -or $artifact.digest -cnotmatch '^sha256:([a-f0-9]{64})$' -or
+            $artifact.workflow_run.id -ne $Run.id -or $artifact.workflow_run.head_sha -cne $Sha -or
+            $artifact.size_in_bytes -gt 1048576){throw 'Unverified provenance artifact metadata'}
+        $digest=$artifact.digest.Substring(7)
+        [byte[]]$archive=& $Download $artifact
+        if($archive.Length -gt 1048576){throw 'Oversize provenance archive'}
+        $hash=[Security.Cryptography.SHA256]::Create()
+        try {$actual=([BitConverter]::ToString($hash.ComputeHash($archive))).Replace('-','').ToLowerInvariant()} finally {$hash.Dispose()}
+        if($actual -cne $digest){throw 'Provenance archive digest mismatch'}
+        $stream=New-Object IO.MemoryStream(,$archive)
+        $zip=New-Object IO.Compression.ZipArchive($stream,[IO.Compression.ZipArchiveMode]::Read)
+        try {
+            if($zip.Entries.Count -ne 1 -or $zip.Entries[0].FullName -cne 'release-provenance.json' -or $zip.Entries[0].Length -gt 16384){throw 'Invalid provenance archive contents'}
+            $reader=New-Object IO.StreamReader($zip.Entries[0].Open())
+            try {$manifest=$reader.ReadToEnd() | ConvertFrom-Json} finally {$reader.Dispose()}
+        } finally {$zip.Dispose();$stream.Dispose()}
+        if($manifest.schema -ne 1 -or $manifest.qualified -isnot [bool] -or $manifest.qualified -ne $true -or $manifest.sourceSha -cne $Sha -or
+            $manifest.lockSha256 -cne $LockHash -or $manifest.repository -cne 'YehorBabenko88/math' -or
+            $manifest.workflowPath -cne $Run.path -or [string]$manifest.runId -cne [string]$Run.id -or
+            [string]$manifest.runAttempt -cne [string]$Run.run_attempt -or $Contexts -cnotcontains $manifest.context -or
+            $seen.ContainsKey([string]$manifest.context)){throw 'Provenance does not bind current source lockfile run attempt and context'}
+        $seen[[string]$manifest.context]=$true
+    }
+    foreach($context in $Contexts){if(!$seen.ContainsKey($context)){throw "Missing verified provenance context: $context"}}
+}

@@ -327,6 +327,71 @@ Describe 'Release source boundary regressions' {
         $source | Should Match 'if\(\$value -ceq \$sha\)\{Assert-DeploymentRelease[^\r\n]+\}\r?\n  # Same-volume atomic replacement:[^\r\n]+\r?\n  Write-DeploymentPointer'
     }
 }
+
+Describe 'Release artifact provenance contracts' {
+    . (Join-Path $repository 'scripts/windows-deployment.ps1')
+    Add-Type -AssemblyName System.IO.Compression
+    function New-ProvenanceFixture($Change=@{}) {
+        $manifest=@{schema=1;qualified=$true;sourceSha=('a'*40);lockSha256=('b'*64);repository='YehorBabenko88/math';workflowPath='.github/workflows/ci.yml';runId='7';runAttempt='2';context='test'}
+        foreach($key in $Change.Keys){$manifest[$key]=$Change[$key]}
+        $stream=New-Object IO.MemoryStream
+        $zip=New-Object IO.Compression.ZipArchive($stream,[IO.Compression.ZipArchiveMode]::Create,$true)
+        $entry=$zip.CreateEntry('release-provenance.json');$writer=New-Object IO.StreamWriter($entry.Open())
+        $writer.Write(($manifest | ConvertTo-Json -Compress));$writer.Dispose();$zip.Dispose()
+        $bytes=$stream.ToArray();$stream.Dispose()
+        $hash=[Security.Cryptography.SHA256]::Create()
+        try {$digest=([BitConverter]::ToString($hash.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()} finally {$hash.Dispose()}
+        @{Run=[pscustomobject]@{id=7;run_attempt=2;path='.github/workflows/ci.yml'};Bytes=$bytes;Artifact=[pscustomobject]@{id=9;name='release-provenance-7-2-test';expired=$false;digest=('sha256:'+$digest);size_in_bytes=$bytes.Length;workflow_run=[pscustomobject]@{id=7;head_sha=('a'*40)}}}
+    }
+    function Assert-ProvenanceFixture($f) {
+        Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($f.Artifact) -Contexts @('test') -Download {param($artifact) return ,$f.Bytes}
+    }
+    It 'accepts downloaded digest checked exact source lock run attempt and context evidence' {Assert-ProvenanceFixture (New-ProvenanceFixture)}
+    It 'rejects stale reruns wrong source lock repository workflow run and missing contexts' {
+        foreach($change in @(@{runAttempt='1'},@{sourceSha=('c'*40)},@{lockSha256=('c'*64)},@{repository='other/math'},@{workflowPath='other.yml'},@{runId='8'},@{context='other'},@{qualified=$false},@{qualified='true'},@{lockSha256=$null})) {
+            Assert-Throws {Assert-ProvenanceFixture (New-ProvenanceFixture $change)}
+        }
+    }
+    It 'rejects archive bytes changed after GitHub digest verification metadata' {
+        $f=New-ProvenanceFixture;$f.Bytes[0]=$f.Bytes[0] -bxor 1
+        Assert-Throws {Assert-ProvenanceFixture $f}
+    }
+    It 'rejects expired absent digest wrong metadata run and SHA artifacts' {
+        foreach($change in @(@{id=0},@{size_in_bytes=0},@{size_in_bytes=1048577},@{expired=$true},@{digest=$null},@{digest=('sha256:'+('0'*64))},@{workflow_run=[pscustomobject]@{id=8;head_sha=('a'*40)}},@{workflow_run=[pscustomobject]@{id=7;head_sha=('c'*40)}})) {
+            $f=New-ProvenanceFixture;foreach($key in $change.Keys){$f.Artifact.$key=$change[$key]}
+            Assert-Throws {Assert-ProvenanceFixture $f}
+        }
+    }
+    It 'rejects missing and duplicate provenance contexts' {
+        $f=New-ProvenanceFixture
+        Assert-Throws {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @() -Contexts @('test') -Download {throw 'must not download'}}
+        Assert-Throws {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($f.Artifact,$f.Artifact) -Contexts @('test') -Download {return ,$f.Bytes}}
+    }
+    It 'hashes exact committed lock bytes and refuses a missing lock in a custom root' {
+        $root=Join-Path $TestDrive "lock fixture O'Brien [custom]";New-Item -ItemType Directory -Path $root | Out-Null
+        & git init --quiet $root
+        & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet --allow-empty -m initial
+        $missing=(& git -C $root rev-parse HEAD).Trim()
+        Assert-Throws {Get-DeploymentLockHash -Repository $root -Sha $missing -Git (Get-Command git).Source}
+        $bytes=[Text.Encoding]::UTF8.GetBytes('{"lockfileVersion":3}'+[char]10)
+        [IO.File]::WriteAllBytes((Join-Path $root 'package-lock.json'),$bytes)
+        & git -C $root -c core.autocrlf=false add package-lock.json
+        & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m lock
+        $sha=(& git -C $root rev-parse HEAD).Trim()
+        $hash=[Security.Cryptography.SHA256]::Create()
+        try {$expected=([BitConverter]::ToString($hash.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()} finally {$hash.Dispose()}
+        (Get-DeploymentLockHash -Repository $root -Sha $sha -Git (Get-Command git).Source) | Should Be $expected
+        [IO.File]::WriteAllText((Join-Path $root 'package-lock.json'),'disk mutation')
+        (Get-DeploymentLockHash -Repository $root -Sha $sha -Git (Get-Command git).Source) | Should Be $expected
+    }
+
+    It 'ignores older attempt archives while requiring all current attempt contexts' {
+        $f=New-ProvenanceFixture; $old=$f.Artifact.PSObject.Copy();$old.name='release-provenance-7-1-test';$old.digest=$null
+        Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($old,$f.Artifact) -Contexts @('test') -Download {return ,$f.Bytes}
+        Assert-Throws {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run $f.Run -Artifacts @($old) -Contexts @('test') -Download {throw 'must not download'}}
+    }
+}
+
 Describe 'Windows SQL checkout gate' {
     It 'stops the actual workflow block after a failing native verifier before running the unit command' {
         $workflow=Get-Content (Join-Path $repository '.github/workflows/windows-deployment.yml') -Raw
