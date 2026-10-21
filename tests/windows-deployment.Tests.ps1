@@ -327,3 +327,21 @@ Describe 'Release source boundary regressions' {
         $source | Should Match 'if\(\$value -ceq \$sha\)\{Assert-DeploymentRelease[^\r\n]+\}\r?\n  # Same-volume atomic replacement:[^\r\n]+\r?\n  Write-DeploymentPointer'
     }
 }
+Describe 'Windows SQL checkout gate' {
+    It 'stops the actual workflow block after a failing native verifier before running the unit command' {
+        $workflow=Get-Content (Join-Path $repository '.github/workflows/windows-deployment.yml') -Raw
+        $match=[regex]::Match($workflow,'(?m)^      - name: Verify committed SQL checkout bytes and checkout policy\r?\n        run: \|\r?\n(?<body>(?:          [^\r\n]*\r?\n)+)')
+        $match.Success | Should Be $true
+        $block=[regex]::Replace($match.Groups['body'].Value,'(?m)^          ','')
+        $block.Contains('node scripts/verify-sql-bytes.mjs') | Should Be $true
+        $block.Contains('node --test tests/sql-byte-reproducibility.test.mjs') | Should Be $true
+        $block=$block.Replace('node scripts/verify-sql-bytes.mjs','node -e "process.exit(7)"').Replace('node --test tests/sql-byte-reproducibility.test.mjs','$script:sqlGateSecondCommandRan = $true')
+        $script:sqlGateSecondCommandRan=$false
+        # Reproduce Windows PowerShell native-exit semantics even on newer pwsh.
+        $PSNativeCommandUseErrorActionPreference=$false
+        $failure=$null
+        try { & ([scriptblock]::Create($block)) } catch { $failure=$_.Exception.Message }
+        $failure | Should Be "SQL checkout-byte verification failed: 7"
+        $script:sqlGateSecondCommandRan | Should Be $false
+    }
+}

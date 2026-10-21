@@ -45,6 +45,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify committed SQL checkout bytes
+        run: node scripts/verify-sql-bytes.mjs
       - run: npm install --ignore-scripts --no-audit --no-fund
       - run: python -m pip install --disable-pip-version-check -r scripts/book-ingestion-requirements.txt
       - name: Full unfiltered suite (zero skips or todo)
