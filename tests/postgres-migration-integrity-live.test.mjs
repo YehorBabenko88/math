@@ -67,7 +67,7 @@ live('generic migration process crash before and after COMMIT preserves replay i
  else{assert.deepEqual(await applyMathMigrations(pool),[]);assert.equal((await pool.query('SELECT count(*) AS n FROM mu_schema_migrations')).rows[0].n,'6');}}
 });
 
-for(const mode of ['legacy','fenced'])live(`verified SQL001-005 upgrade serializes with old writers and preserves ${mode} mode and historical hashes`,async({pool})=>{
+for(const interposed of [false,true])for(const mode of ['legacy','fenced'])live(`verified SQL001-005 upgrade serializes with old writers and preserves ${mode} mode and historical hashes${interposed?' with a contending migration mutex':''}`,async({pool})=>{
  const {migrationBody,MATH_MIGRATIONS}=await import('../src/postgres-migrations.mjs');const {createHash}=await import('node:crypto');
  const c=await pool.connect();try{
   await c.query('BEGIN');await c.query("CREATE TABLE mu_schema_migrations(filename text PRIMARY KEY,applied_at timestamptz NOT NULL DEFAULT now(),sha256 text NOT NULL,hash_contract text NOT NULL)");
@@ -76,10 +76,23 @@ for(const mode of ['legacy','fenced'])live(`verified SQL001-005 upgrade serializ
  }finally{c.release();}
  if(mode==='fenced')await pool.query('SELECT mu_enable_fenced_ingestion()');
  const before=(await pool.query('SELECT * FROM mu_schema_migrations ORDER BY filename')).rows;
- const blocker=await pool.connect();let upgrade,settled=false,pid;
+ const upgradeBody=migrationBody((await source('006_ingestion_lease_clock.sql')).toString('utf8'),'006_ingestion_lease_clock.sql');
+ const blocker=await pool.connect();let upgrade,interloperRun,interloper,settled=false,pid;
  try{
-  await blocker.query('BEGIN');await blocker.query('SELECT pg_advisory_xact_lock_shared(732814,3)');
-  upgrade=applyMathMigrations({async connect(){const c=await pool.connect();pid=c.processID;return c;}}).finally(()=>{settled=true});
+  await blocker.query('BEGIN');
+  if(interposed){
+   interloper=await pool.connect();await interloper.query('BEGIN');await interloper.query('SELECT pg_advisory_xact_lock(732814,1)');
+   interloperRun=interloper.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>interloper.query('COMMIT'));
+  }
+  // Acquire the old-writer lock only after this backend owns the migration
+  // mutex and has reached SQL006. Taking it earlier can stall another schema's
+  // migrator holding the database-global mutex, preventing this PID reaching SQL006.
+  upgrade=applyMathMigrations({async connect(){const c=await pool.connect();pid=c.processID;return {
+   release:e=>c.release(e),async query(sql,args){
+    if(sql===upgradeBody)await blocker.query('SELECT pg_advisory_xact_lock_shared(732814,3)');
+    return c.query(sql,args);
+   }
+  };}}).finally(()=>{settled=true});
   let waiting=false;
   for(let n=0;n<200&&!settled;n++){
    if(pid)waiting=(await blocker.query("SELECT EXISTS(SELECT 1 FROM pg_locks WHERE pid=$1 AND locktype='advisory' AND classid=732814 AND objid=3 AND objsubid=2 AND mode='ExclusiveLock' AND NOT granted) AS waiting",[pid])).rows[0].waiting;
@@ -89,7 +102,7 @@ for(const mode of ['legacy','fenced'])live(`verified SQL001-005 upgrade serializ
   assert.equal(waiting,true,'SQL006 backend must actually queue on the old writer protocol lock');
   assert.equal(settled,false,'SQL006 cannot complete while its lock is queued');
   await blocker.query('COMMIT');assert.deepEqual(await upgrade,['006_ingestion_lease_clock.sql']);
- }finally{await blocker.query('ROLLBACK');blocker.release();await upgrade;}
+ }finally{await blocker.query('ROLLBACK');blocker.release();try{await interloperRun;}finally{interloper?.release();}await upgrade;}
 
  assert.deepEqual((await pool.query('SELECT * FROM mu_schema_migrations ORDER BY filename LIMIT 5')).rows,before);
  assert.equal((await pool.query('SELECT mu_ingestion_protocol_status() AS mode')).rows[0].mode,mode);
