@@ -1,0 +1,4 @@
+# Preserve migration and dependency artifact blob bytes without normalization.
+/sql/**/*.sql -text
+/sql/*.sql -text
+package-lock.json -text
