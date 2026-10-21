@@ -20,4 +20,3 @@ test('tree replacement view is ignored for a clean original checkout',()=>fixtur
 
 
 for(const parent of ['sql','sql/book'])test('checkout rejects linked parent '+parent,()=>fixture((root)=>{const original=join(root,parent);const moved=join(root,'external-'+parent.replace('/','-'));renameSync(original,moved);symlinkSync(moved,original,process.platform==='win32'?'junction':'dir');rejected(root);}));
-

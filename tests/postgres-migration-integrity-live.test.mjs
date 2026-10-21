@@ -82,7 +82,6 @@ for(const interposed of [false,true])for(const mode of ['legacy','fenced'])live(
   await blocker.query('BEGIN');
   if(interposed){
    interloper=await pool.connect();await interloper.query('BEGIN');await interloper.query('SELECT pg_advisory_xact_lock(732814,1)');
-   interloperRun=interloper.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>interloper.query('COMMIT'));
   }
   // Acquire the old-writer lock only after this backend owns the migration
   // mutex and has reached SQL006. Taking it earlier can stall another schema's
@@ -93,6 +92,16 @@ for(const interposed of [false,true])for(const mode of ['legacy','fenced'])live(
     return c.query(sql,args);
    }
   };}}).finally(()=>{settled=true});
+  if(interposed){
+   let mutexWaiting=false;
+   for(let n=0;n<200&&!settled;n++){
+    if(pid)mutexWaiting=(await blocker.query("SELECT EXISTS(SELECT 1 FROM pg_locks WHERE pid=$1 AND locktype='advisory' AND classid=732814 AND objid=1 AND objsubid=2 AND mode='ExclusiveLock' AND NOT granted) AS waiting",[pid])).rows[0].waiting;
+    if(mutexWaiting)break;
+    await new Promise(r=>setTimeout(r,10));
+   }
+   assert.equal(mutexWaiting,true,'upgrade PID must actually wait for the contending migration mutex');
+   interloperRun=interloper.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>interloper.query('COMMIT'));
+  }
   let waiting=false;
   for(let n=0;n<200&&!settled;n++){
    if(pid)waiting=(await blocker.query("SELECT EXISTS(SELECT 1 FROM pg_locks WHERE pid=$1 AND locktype='advisory' AND classid=732814 AND objid=3 AND objsubid=2 AND mode='ExclusiveLock' AND NOT granted) AS waiting",[pid])).rows[0].waiting;
@@ -102,7 +111,7 @@ for(const interposed of [false,true])for(const mode of ['legacy','fenced'])live(
   assert.equal(waiting,true,'SQL006 backend must actually queue on the old writer protocol lock');
   assert.equal(settled,false,'SQL006 cannot complete while its lock is queued');
   await blocker.query('COMMIT');assert.deepEqual(await upgrade,['006_ingestion_lease_clock.sql']);
- }finally{await blocker.query('ROLLBACK');blocker.release();try{await interloperRun;}finally{interloper?.release();}await upgrade;}
+ }finally{await blocker.query('ROLLBACK');blocker.release();try{if(interloper&&!interloperRun)await interloper.query('ROLLBACK');await interloperRun;}finally{interloper?.release();}await upgrade;}
 
  assert.deepEqual((await pool.query('SELECT * FROM mu_schema_migrations ORDER BY filename LIMIT 5')).rows,before);
  assert.equal((await pool.query('SELECT mu_ingestion_protocol_status() AS mode')).rows[0].mode,mode);
