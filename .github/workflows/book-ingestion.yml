@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
       PROVENANCE_CONTEXT: 'native-pdf'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -23,6 +22,8 @@ jobs:
         with:
           node-version: '22'
       - name: Verify tracked source before tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
         run: node scripts/verify-source-identity.mjs --before
       - name: Verify dependency artifact locks
         run: node scripts/verify-dependency-locks.mjs
@@ -38,6 +39,7 @@ jobs:
 
       - name: Record exact source and dependency provenance
         env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
           PROVENANCE_CONTEXT: 'native-pdf'
         run: node scripts/ci-provenance.mjs
       - name: Upload source provenance

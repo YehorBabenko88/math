@@ -33,7 +33,6 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
       PROVENANCE_CONTEXT: 'Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}'
       BOOK_INGESTION_PYTHON: python
       MATH_UNIVERSE_TEST_DATABASE_URL: postgres://math_test:math_test_ci_only@127.0.0.1:5432/math_universe_test
@@ -45,6 +44,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Verify tracked source before tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
         run: node scripts/verify-source-identity.mjs --before
       - name: Verify dependency artifact locks
         run: node scripts/verify-dependency-locks.mjs
@@ -59,6 +60,7 @@ jobs:
         run: node scripts/test-full-ci.mjs
       - name: Record exact source and dependency provenance
         env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
           PROVENANCE_CONTEXT: 'Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}'
         run: node scripts/ci-provenance.mjs
       - name: Upload source provenance

@@ -53,3 +53,10 @@ test('each producer checks tracked source before and after tests; Pester is prep
  assert.ok(windows.indexOf('-VerifyOnly')<windows.indexOf('Import-Module'));
  assert.match(windows,/tests\/sql-byte-integrity.test.mjs/);
 });
+
+test('job environment never references runner context unavailable during workflow planning',async()=>{
+ for(const name of ['ci.yml','book-ingestion.yml','browser.yml','postgres-integration.yml','windows-deployment.yml']){
+  const workflow=await readFile('.github/workflows/'+name,'utf8');
+  for(const block of workflow.matchAll(/^    env:\r?\n(?:      [^\r\n]*\r?\n)+/gm))assert.doesNotMatch(block[0],/\$\{\{\s*runner\./,name);
+ }
+});
