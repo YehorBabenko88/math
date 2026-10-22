@@ -72,6 +72,19 @@ test('independent processes deduplicate and acquire only one lease',async t=>{
  assert.equal(results.map(r=>JSON.parse(r.stdout)).filter(Boolean).length,1);
  const q=await openBookQueue({directory:d});assert.equal((await q.list()).length,1);
 });
+test('first-open waits for a concurrently created empty SQLite file to become initialized',async t=>{
+ const d=directory(t),file=join(d,'queue.sqlite');writeFileSync(file,'');
+ const opening=openBookQueue({directory:d});
+ await new Promise(resolve=>setTimeout(resolve,40));
+ const db=new DatabaseSync(file);
+ try{
+  db.exec(`CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL,maxAttempts INTEGER NOT NULL);
+    CREATE TABLE jobs(id TEXT PRIMARY KEY,sourceHash TEXT NOT NULL,edition TEXT NOT NULL,page INTEGER NOT NULL,extractionVersion TEXT NOT NULL,payload TEXT NOT NULL,state TEXT NOT NULL,attempts INTEGER NOT NULL,token TEXT,leaseUntil INTEGER,workerId TEXT,createdAt INTEGER NOT NULL,updatedAt INTEGER NOT NULL,checkpoint TEXT,result TEXT,metrics TEXT,errorCode TEXT);
+    CREATE INDEX jobs_state_lease ON jobs(state,leaseUntil);`);
+  db.prepare('INSERT INTO queue_metadata VALUES (1,1,3)').run();
+ }finally{db.close();}
+ const queue=await opening;assert.deepEqual(await queue.list(),[]);
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
