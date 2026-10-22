@@ -1,16 +1,18 @@
 import {createHash,timingSafeEqual} from 'node:crypto';
+import {types} from 'node:util';
 
 // A pure validation boundary. It does not execute source content or promote
 // human/LLM review into mathematical verification.
 const STATUSES=new Set(['EXTRACTED','LLM_CANDIDATE','SOURCE_REVIEWED','FORMALIZED','KERNEL_VERIFIED','REJECTED']);
 const HEX=/^[a-f0-9]{64}$/;
-function plain(v){return v!==null&&typeof v==='object'&&!Array.isArray(v)&&[Object.prototype,null].includes(Object.getPrototypeOf(v));}
+function plain(v){return v!==null&&typeof v==='object'&&!types.isProxy(v)&&!Array.isArray(v)&&[Object.prototype,null].includes(Object.getPrototypeOf(v));}
 function string(v,max=512){return typeof v==='string'&&v.length>0&&v.length<=max;}
-function exact(v,fields){return plain(v)&&Object.keys(v).length===fields.length&&fields.every(k=>Object.hasOwn(v,k));}
+function exact(v,fields){if(!plain(v))return false;const ds=Object.getOwnPropertyDescriptors(v);return Reflect.ownKeys(ds).length===fields.length&&fields.every(k=>Object.hasOwn(ds,k)&&Object.hasOwn(ds[k],'value')&&ds[k].enumerable);}
 function digest(v){return typeof v==='string'&&HEX.test(v);}
 export function candidateDigest(source){
  if(!exact(source,['sourceHash','edition','page','extractionVersion','text']))throw Error('Invalid extraction candidate');
  if(!digest(source.sourceHash)||!string(source.edition)||!Number.isSafeInteger(source.page)||source.page<1||!string(source.extractionVersion,100)||!string(source.text,262144))throw Error('Invalid extraction candidate');
+ if(Buffer.byteLength(source.text,'utf8')>262144)throw Error('Invalid extraction candidate');
  return createHash('sha256').update(JSON.stringify([source.sourceHash,source.edition,source.page,source.extractionVersion,source.text])).digest('hex');
 }
 export function assessKnowledge(candidate,{kernelReceipt}={}){
