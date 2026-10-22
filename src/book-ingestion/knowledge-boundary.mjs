@@ -34,11 +34,20 @@ const CLAIM_FIELDS=['status','knowledgeStatus','verificationStatus'];
 const VERIFIED_CLAIMS=new Set(['VERIFIED','KERNEL_VERIFIED','PROVEN','MATHEMATICALLY_VERIFIED']);
 export function rejectUntrustedVerification(result){
  if(!plain(result))throw Error('Invalid knowledge result');
- for(const field of CLAIM_FIELDS){
-  if(Object.hasOwn(result,field)&&VERIFIED_CLAIMS.has(result[field]))
-   throw Error('Independent proof kernel verification required');
+ const seen=new Set();
+ function inspect(value,depth){
+  if(value===null||typeof value!=='object')return;
+  if(depth>24||seen.has(value))throw Error('Invalid knowledge result');
+  seen.add(value);
+  for(const [field,item] of Object.entries(value)){
+   if(CLAIM_FIELDS.includes(field)&&VERIFIED_CLAIMS.has(item))
+    throw Error('Independent proof kernel verification required');
+   if(field==='mathematicallyVerified'&&item!==false)
+    throw Error('Independent proof kernel verification required');
+   inspect(item,depth+1);
+  }
+  seen.delete(value);
  }
- if(Object.hasOwn(result,'mathematicallyVerified')&&result.mathematicallyVerified!==false)
-  throw Error('Independent proof kernel verification required');
+ inspect(result,0);
  return result;
 }
