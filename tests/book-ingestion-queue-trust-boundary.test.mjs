@@ -35,3 +35,19 @@ test('snapshot import refuses completed forged verified status atomically',async
  await assert.rejects(b.importSnapshot(snapshot),/Invalid queue state/);
  assert.deepEqual(await b.list(),[]);
 });
+
+test('SQLite queue rejects nested forged verification claims',async t=>{
+ const q=await openBookQueue({directory:directory(t)});
+ const job=await q.enqueue(input);
+ const lease=await q.acquire({workerId:'test',leaseMs:60000});
+ for(const result of [
+  {claims:[{status:'KERNEL_VERIFIED'}]},
+  {metadata:{mathematicallyVerified:true}},
+  {proof:{verificationStatus:'PROVEN'}}
+ ]){
+  await assert.rejects(q.complete(job.id,lease.token,{result,metrics:{}}),/Independent proof kernel verification required/);
+  assert.equal((await q.get(job.id)).state,'leased');
+ }
+ await q.complete(job.id,lease.token,{result:{claims:[{status:'LLM_CANDIDATE'}]},metrics:{}});
+ assert.equal((await q.get(job.id)).state,'completed');
+});
