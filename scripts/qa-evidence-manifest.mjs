@@ -43,10 +43,13 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
  return {schemaVersion:1,sourceSha,runId,runAttempt,jobId,entries};
 }
 export function verifyManifest(manifest,root,expectedContext){
- if(!manifest||manifest.schemaVersion!==1)fail('invalid schema');
+ if(!manifest||manifest.schemaVersion!==1||Array.isArray(manifest)||Object.getPrototypeOf(manifest)!==Object.prototype)fail('invalid schema');
+ if(!expectedContext||typeof expectedContext!=='object')fail('trusted run context required');
+ if(Object.keys(manifest).sort().join(',')!==['schemaVersion','sourceSha','runId','runAttempt','jobId','entries'].sort().join(','))fail('unexpected manifest fields');
+ if(!Array.isArray(manifest.entries)||manifest.entries.some(e=>!e||Object.keys(e).sort().join(',')!==['path','bytes','sha256'].sort().join(',')))fail('invalid evidence entries');
  const expected=buildManifest({root,files:manifest.entries?.map(e=>e.path),sourceSha:manifest.sourceSha,runId:manifest.runId,runAttempt:manifest.runAttempt,jobId:manifest.jobId});
  if(JSON.stringify(expected)!==JSON.stringify(manifest))fail('digest, size or metadata mismatch');
- if(expectedContext){for(const key of ['sourceSha','runId','runAttempt','jobId'])if(manifest[key]!==expectedContext[key])fail('untrusted run context');}
+ for(const key of ['sourceSha','runId','runAttempt','jobId'])if(manifest[key]!==expectedContext[key])fail('untrusted run context');
  return true;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
