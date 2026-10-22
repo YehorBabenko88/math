@@ -19,15 +19,16 @@ export function candidateDigest(source){
 }
 export function assessKnowledge(candidate,{kernelReceipt}={}){
  if(!exact(candidate,['source','status']))throw Error('Invalid knowledge candidate');
- const hash=candidateDigest(candidate.source);
- if(!STATUSES.has(candidate.status))throw Error('Invalid knowledge status');
- if(candidate.status==='KERNEL_VERIFIED'){
+ const source=data(candidate,'source'),status=data(candidate,'status');
+ const hash=candidateDigest(source);
+ if(!STATUSES.has(status))throw Error('Invalid knowledge status');
+ if(status==='KERNEL_VERIFIED'){
   // This module intentionally cannot authenticate a proof kernel. Only a
   // separately trusted kernel verifier can produce a verified publication.
   throw Error('Independent proof kernel verification required');
  }
  if(kernelReceipt!==undefined)throw Error('Untrusted kernel receipt');
- return Object.freeze({candidateDigest:hash,status:candidate.status,mathematicallyVerified:false});
+ return Object.freeze({candidateDigest:hash,status,mathematicallyVerified:false});
 }
 export function sameDigest(a,b){
  if(!digest(a)||!digest(b))return false;
