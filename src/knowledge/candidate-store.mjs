@@ -3,14 +3,18 @@ export class CandidateGraph {
  #revisions=new Map(); #entities=new Map(); #edges=new Map();
  addCandidate(input) {
   const candidate=createCandidate(input);
+  const priorEntity=this.#entities.get(candidate.entity_id)||[];
+  if(priorEntity.length) {
+   const original=this.#revisions.get(priorEntity[0]);
+   if(original.kind!==candidate.kind) throw Error('entity kind conflict');
+  }
   const old=this.#revisions.get(candidate.revision_id);
   if(old) {
    if(input.entity_id!==undefined && old.entity_id!==candidate.entity_id) throw Error('revision entity conflict');
    return structuredClone(old);
   }
   this.#revisions.set(candidate.revision_id,candidate);
-  const history=this.#entities.get(candidate.entity_id)||[];
-  this.#entities.set(candidate.entity_id,[...history,candidate.revision_id]);
+  this.#entities.set(candidate.entity_id,[...priorEntity,candidate.revision_id]);
   return structuredClone(candidate);
  }
  getRevision(id) {const value=this.#revisions.get(id);return value?structuredClone(value):null;}
