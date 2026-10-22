@@ -42,3 +42,6 @@ The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted
 
 ## Actual output budget
 `matchReceiptAndOutput` rejects actual byte arrays larger than `budget.outputMb * 1024 * 1024`, regardless of self-reported receipt metrics. This does not limit the bytes read into memory before invocation: the future isolated runner must enforce streaming and OS-level limits before accepting an artifact.
+
+## Bounded streaming integrity
+`verifyArtifactStream(asyncIterable, expectedSha256, {maxBytes})` checks total actual bytes before each hash update and aborts when a chunk would exceed the limit. The caller must provide a trusted expected digest and enforce upstream chunk size, disk limits, runtime and isolation separately. This module provides neither executor attestation nor mathematical verification.
