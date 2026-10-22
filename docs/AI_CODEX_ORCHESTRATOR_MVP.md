@@ -33,3 +33,6 @@ Run isolated policy tests with `node --test tests/ai-orchestrator-policy.test.mj
 
 ## Offline artifact integrity
 `src/ai-orchestrator/artifacts.mjs` compares the SHA256 of actual Uint8Array bytes with an expected digest. A match is integrity evidence only; the expected digest and the producing identity remain unauthenticated. This cannot turn a self-reported receipt into a trusted proof or authorize publishing. Never accept a digest provided solely by the untrusted worker as independent evidence.
+
+## CI and attempt limits
+The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted attempts means no lease. This remains a local invariant, not durable resource accounting. `.github/workflows/ai-orchestrator-policy.yml` runs isolated offline tests on Node 22/24. A queued, skipped or missing CI job is NOT_RUN/BLOCKED, never PASS. GitHub-hosted checks cannot substitute for independent proof or physical acceptance.
