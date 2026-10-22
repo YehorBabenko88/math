@@ -15,7 +15,7 @@ test('SQLite queue refuses forged mathematical verification while preserving lea
  const q=await openBookQueue({directory:directory(t)});
  const job=await q.enqueue(input);
  const lease=await q.acquire({workerId:'test',leaseMs:60000});
- await assert.rejects(q.complete(job.id,lease.token,{result:{status:'KERNEL_VERIFIED'},metrics:{}}),/Invalid queue state/);
+ await assert.rejects(q.complete(job.id,lease.token,{result:{status:'KERNEL_VERIFIED'},metrics:{}}),/Independent proof kernel verification required/);
  const unchanged=await q.get(job.id);
  assert.equal(unchanged.state,'leased');
  assert.equal(unchanged.result,undefined);
