@@ -1,8 +1,7 @@
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,lstatSync,realpathSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {resolve,relative,isAbsolute} from 'node:path';
+import {resolve,relative,isAbsolute,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {lstatSync,realpathSync} from 'node:fs';
 
 function fail(message){throw Error('QA evidence rejected: '+message);}
 export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
@@ -10,13 +9,20 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
  if(!Number.isSafeInteger(runId)||runId<=0||!Number.isSafeInteger(runAttempt)||runAttempt<=0)fail('invalid run identity');
  if(typeof jobId!=='string'||!jobId.trim())fail('missing job identity');
  if(!Array.isArray(files)||files.length===0||new Set(files).size!==files.length)fail('missing or duplicate files');
+ const rootPath=resolve(root);
+ if(realpathSync(rootPath)!==rootPath)fail('symlinked evidence root');
  const entries=files.map(name=>{
   if(typeof name!=='string'||!name||isAbsolute(name)||name.split(/[\\/]/).includes('..'))fail('unsafe path');
-  const path=resolve(root,name),rel=relative(resolve(root),path);
+  if(name==='.'||name.split(/[\\/]/).includes('.')||name.includes('\\\\'))fail('ambiguous evidence path');
+  const path=resolve(rootPath,name),rel=relative(rootPath,path);
+  if(!rel||rel.startsWith('..'+sep)||rel==='..'||isAbsolute(rel))fail('outside root');
+  for(let parent=dirname(path);parent!==rootPath;parent=dirname(parent)){
+   if(!parent.startsWith(rootPath+sep))fail('outside root');
+   if(lstatSync(parent).isSymbolicLink())fail('symlinked evidence parent');
+  }
   const stat=lstatSync(path);
   if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)fail('unsafe evidence file');
   if(realpathSync(path)!==path)fail('symlinked evidence parent');
-  if(rel.startsWith('..')||isAbsolute(rel))fail('outside root');
   const bytes=readFileSync(path);
   return {path:name,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  });
