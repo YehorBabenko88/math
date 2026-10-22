@@ -119,6 +119,17 @@ test('stale lease completion cannot overwrite a later owner across reopened hand
  await second.complete(job.id,newLease.token,{result:{source:'current'},metrics:{}});
  assert.equal((await first.get(job.id)).result.source,'current');
 });
+test('read-only queue operations never trigger full-table job deletion',async t=>{
+ const d=directory(t),q=await openBookQueue({directory:d});
+ const job=await q.enqueue(input),db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{db.exec("CREATE TRIGGER forbid_read_delete BEFORE DELETE ON jobs BEGIN SELECT RAISE(ABORT, 'read attempted delete'); END");}
+ finally{db.close();}
+ assert.equal((await q.get(job.id)).id,job.id);
+ assert.equal((await q.list()).length,1);
+ assert.equal((await q.exportSnapshot()).jobs.length,1);
+ await assert.rejects(q.enqueue({...input,page:2}),/Invalid queue state/);
+ assert.equal((await q.list()).length,1);
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
