@@ -25,3 +25,18 @@ test('matched receipt bytes remain unattested',async()=>{
  assert.equal(result.integrity,'MATCHED');
  assert.equal(result.provenance,'UNATTESTED');
 });
+
+test('actual byte size cannot exceed budget even if receipt reports zero',async()=>{
+ const {sha256}=await import('../src/ai-orchestrator/artifacts.mjs');
+ const bytes=new Uint8Array([1]);
+ const bounded={...task,budget:{...task.budget,outputMb:0}};
+ const forged={...receipt,outputHash:sha256(bytes),metrics:{...receipt.metrics,outputMb:0}};
+ assert.throws(()=>matchReceiptAndOutput(bounded,forged,bytes),/ACTUAL_OUTPUT_BUDGET_EXCEEDED/);
+});
+test('zero-byte artifact fits zero-byte budget',async()=>{
+ const {sha256}=await import('../src/ai-orchestrator/artifacts.mjs');
+ const bytes=new Uint8Array();
+ const bounded={...task,budget:{...task.budget,outputMb:0}};
+ const receiptZero={...receipt,outputHash:sha256(bytes),metrics:{...receipt.metrics,outputMb:0}};
+ assert.equal(matchReceiptAndOutput(bounded,receiptZero,bytes).integrity,'MATCHED');
+});
