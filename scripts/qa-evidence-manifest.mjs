@@ -24,6 +24,8 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
   if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)fail('unsafe evidence file');
   if(realpathSync(path)!==path)fail('symlinked evidence parent');
   const bytes=readFileSync(path);
+  const after=lstatSync(path);
+  if(after.dev!==stat.dev||after.ino!==stat.ino||after.size!==stat.size||after.mtimeMs!==stat.mtimeMs||after.nlink!==1)fail('evidence changed during read');
   return {path:name,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  });
  return {schemaVersion:1,sourceSha,runId,runAttempt,jobId,entries};
