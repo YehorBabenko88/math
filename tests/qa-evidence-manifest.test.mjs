@@ -10,14 +10,16 @@ test('QA evidence SHA256 detects payload tampering and metadata substitution',t=
  t.after(()=>rmSync(root,{recursive:true,force:true}));
  writeFileSync(join(root,'junit.xml'),'<testsuites tests="1"/>');
  const m=buildManifest({root,files:['junit.xml'],...context});
- assert.equal(verifyManifest(m,root),true);
+ assert.throws(()=>verifyManifest(m,root),/trusted run context required/);
  assert.equal(verifyManifest(m,root,context),true);
  assert.throws(()=>verifyManifest(m,root,{...context,runId:999}),/untrusted run context/);
  assert.throws(()=>verifyManifest(m,root,{...context,sourceSha:'b'.repeat(40)}),/untrusted run context/);
- assert.throws(()=>verifyManifest({...m,runAttempt:3},root),/rejected/);
- assert.throws(()=>verifyManifest({...m,entries:[{...m.entries[0],sha256:'0'.repeat(64)}]},root),/rejected/);
+ assert.throws(()=>verifyManifest({...m,extra:'injected'},root,context),/unexpected manifest fields/);
+ assert.throws(()=>verifyManifest({...m,entries:[{...m.entries[0],extra:'injected'}]},root,context),/invalid evidence entries/);
+ assert.throws(()=>verifyManifest({...m,runAttempt:3},root,context),/rejected/);
+ assert.throws(()=>verifyManifest({...m,entries:[{...m.entries[0],sha256:'0'.repeat(64)}]},root,context),/rejected/);
  writeFileSync(join(root,'junit.xml'),'<testsuites tests="0"/>');
- assert.throws(()=>verifyManifest(m,root),/rejected/);
+ assert.throws(()=>verifyManifest(m,root,context),/rejected/);
 });
 test('QA evidence rejects traversal and duplicate inventory',t=>{
  const root=mkdtempSync(join(tmpdir(),'math-qa-manifest-'));
