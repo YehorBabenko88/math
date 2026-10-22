@@ -8,7 +8,7 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
  if(!/^[a-f0-9]{40}$/.test(sourceSha))fail('invalid source SHA');
  if(!Number.isSafeInteger(runId)||runId<=0||!Number.isSafeInteger(runAttempt)||runAttempt<=0)fail('invalid run identity');
  if(typeof jobId!=='string'||!jobId.trim())fail('missing job identity');
- if(!Array.isArray(files)||files.length===0||new Set(files).size!==files.length)fail('missing or duplicate files');
+ if(!Array.isArray(files)||files.length===0||files.length>64||new Set(files).size!==files.length)fail('missing, excessive or duplicate files');
  const rootPath=resolve(root);
  if(realpathSync(rootPath)!==rootPath)fail('symlinked evidence root');
  const entries=files.map(name=>{
@@ -46,7 +46,7 @@ export function verifyManifest(manifest,root,expectedContext){
  if(!manifest||manifest.schemaVersion!==1||Array.isArray(manifest)||Object.getPrototypeOf(manifest)!==Object.prototype)fail('invalid schema');
  if(!expectedContext||typeof expectedContext!=='object')fail('trusted run context required');
  if(Object.keys(manifest).sort().join(',')!==['schemaVersion','sourceSha','runId','runAttempt','jobId','entries'].sort().join(','))fail('unexpected manifest fields');
- if(!Array.isArray(manifest.entries)||manifest.entries.some(e=>!e||Object.keys(e).sort().join(',')!==['path','bytes','sha256'].sort().join(',')))fail('invalid evidence entries');
+ if(!Array.isArray(manifest.entries)||manifest.entries.length>64||manifest.entries.some(e=>!e||typeof e!=='object'||Array.isArray(e)||Object.keys(e).sort().join(',')!==['path','bytes','sha256'].sort().join(',')))fail('invalid evidence entries');
  const expected=buildManifest({root,files:manifest.entries?.map(e=>e.path),sourceSha:manifest.sourceSha,runId:manifest.runId,runAttempt:manifest.runAttempt,jobId:manifest.jobId});
  if(JSON.stringify(expected)!==JSON.stringify(manifest))fail('digest, size or metadata mismatch');
  for(const key of ['sourceSha','runId','runAttempt','jobId'])if(manifest[key]!==expectedContext[key])fail('untrusted run context');
