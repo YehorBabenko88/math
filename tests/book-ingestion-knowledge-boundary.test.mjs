@@ -33,7 +33,9 @@ test('queue publication guard rejects explicit untrusted verification claims',()
   {knowledgeStatus:'VERIFIED'},
   {verificationStatus:'PROVEN'},
   {mathematicallyVerified:true},
-  {mathematicallyVerified:'false'}
+  {mathematicallyVerified:'false'},
+  {nested:{status:'KERNEL_VERIFIED'}},
+  {results:[{verificationStatus:'PROVEN'}]}
  ])assert.throws(()=>rejectUntrustedVerification(result),/Independent proof kernel/);
  for(const result of [{digest:'a'.repeat(64)},{status:'LLM_CANDIDATE'},{mathematicallyVerified:false}])
   assert.equal(rejectUntrustedVerification(result),result);
