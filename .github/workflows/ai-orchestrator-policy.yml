@@ -1,0 +1,31 @@
+name: AI Orchestrator Policy (offline)
+on:
+  push:
+    paths:
+      - 'src/ai-orchestrator/**'
+      - 'tests/ai-orchestrator-*.test.mjs'
+      - '.github/workflows/ai-orchestrator-policy.yml'
+  pull_request:
+    paths:
+      - 'src/ai-orchestrator/**'
+      - 'tests/ai-orchestrator-*.test.mjs'
+      - '.github/workflows/ai-orchestrator-policy.yml'
+permissions:
+  contents: read
+jobs:
+  offline-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run offline orchestrator tests
+        run: node --test --test-reporter=spec tests/ai-orchestrator-*.test.mjs
