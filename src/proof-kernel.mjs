@@ -51,10 +51,7 @@ export function verifyImplicationProof(untrusted){
  const {goal,proof}=request;
  const assumptions=own(request,'assumptions')?request.assumptions:[];
  const state={nodes:0,active:new Set()};
- if(!Array.isArray(assumptions)||assumptions.length>limit.context||
-  Object.keys(assumptions).length!==assumptions.length||
-  assumptions.some((_,i)=>!own(Object.getOwnPropertyDescriptors(assumptions)[i]??{},'value')))
-  throw Error('Invalid context');
+ if(!Array.isArray(assumptions)||assumptions.length>limit.context)throw Error('Invalid context');
  const target=statement(goal,state);
  const ctx=assumptions.map(a=>statement(a,state));
  function derive(p,env,depth){
