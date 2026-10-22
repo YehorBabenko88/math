@@ -57,3 +57,10 @@ test('candidate assessment never invokes untrusted source/status accessors',()=>
  Object.defineProperty(candidate2,'source',{get(){throw Error('accessor executed');},enumerable:true});
  assert.throws(()=>assessKnowledge(candidate2),/Invalid knowledge candidate/);
 });
+
+test('recursive guard never executes nested getters or proxy traps',()=>{
+ const nested={};
+ Object.defineProperty(nested,'status',{get(){throw Error('executed getter');},enumerable:true});
+ assert.throws(()=>rejectUntrustedVerification({nested}),/Invalid knowledge result/);
+ assert.throws(()=>rejectUntrustedVerification({nested:new Proxy({status:'KERNEL_VERIFIED'}, {})}),/Invalid knowledge result/);
+});
