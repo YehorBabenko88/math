@@ -53,3 +53,20 @@ Do not promote these outcomes to production acceptance.
 Every result must include exact commit SHA, test source hash, OS/runtime/SQLite version, journal_mode, synchronous, busy_timeout, seed, worker count, process logs, JUnit, JSONL, SHA256 manifest and database integrity outcome. SKIP/BLOCKED is not PASS. Synthetic PASS never becomes physical GO.
 
 No merge, deployment or physical execution is authorized. Source changes require code-path verification and independent review.
+
+## Code-path observations from exact base
+
+- `src/book-ingestion/queue.mjs`: the initialization sentinel was previously converted to the public `Invalid queue state` exception inside `transaction`, bypassing the existing retry loop. The isolated fix preserves the sentinel only when `initialize=true`; other internal exceptions remain fail-closed.
+- `save(db,document)` currently runs `DELETE FROM jobs` followed by inserting every job after any mutation. This is a verified write-amplification design concern, **not** a measured scalability regression. Avoid changing it without trigger/cutover compatibility review and red/green tests.
+- `queue-contract.mjs` fences lease operations with a random 256-bit token and a lease-expiry comparison inside `BEGIN IMMEDIATE`. No separate monotonic `lease_epoch` column is present. A proposed epoch is a design enhancement, not evidence that existing token fencing is broken.
+- The queue contract caps a snapshot at `MAX_JOBS=1000`. The 10k/100k/1M scenarios are forward-looking scalability probes, not valid current-API acceptance workloads without an explicitly reviewed capacity change.
+- `DatabaseSync` uses `busy_timeout=5000` and `synchronous=FULL`. No independent measured lock-duration distribution is available.
+
+## Change-specific regression tests (unexecuted)
+
+1. Empty database file becomes initialized after a short delay: opening eventually succeeds.
+2. Empty database file never becomes initialized: opening times out and leaves schema untouched.
+3. Existing nonempty unrelated schema: opening fails and does not repair or delete it.
+4. Reclaimed lease: old token completion rejected, new token completion preserved.
+
+All four are currently **NOT_RUN**. Run on the exact PR HEAD and archive test outputs before changing Q01 status.
