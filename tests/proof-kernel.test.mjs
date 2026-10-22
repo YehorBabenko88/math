@@ -31,3 +31,19 @@ test('rejects excessively deep proof',()=>{
  for(let i=0;i<150;i++)p={rule:'imp_intro',premise:P,body:p};
  assert.throws(()=>verifyImplicationProof({goal:P,proof:p}));
 });
+
+test('rejects getter-backed theorem and proof fields without invoking getters',()=>{
+ let calls=0;
+ const hostile={kind:'atom'};
+ Object.defineProperty(hostile,'name',{enumerable:true,get(){calls++;throw Error('getter executed');}});
+ assert.throws(()=>verifyImplicationProof({goal:hostile,proof:identity}));
+ const request={proof:identity};
+ Object.defineProperty(request,'goal',{enumerable:true,get(){calls++;throw Error('getter executed');}});
+ assert.throws(()=>verifyImplicationProof(request));
+ assert.equal(calls,0);
+});
+test('rejects sparse assumption contexts and extra request fields',()=>{
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof:identity,extra:true}));
+ const assumptions=new Array(1);
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof:identity,assumptions}));
+});
