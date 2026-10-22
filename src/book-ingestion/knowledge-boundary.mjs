@@ -6,14 +6,16 @@ import {types} from 'node:util';
 const STATUSES=new Set(['EXTRACTED','LLM_CANDIDATE','SOURCE_REVIEWED','FORMALIZED','KERNEL_VERIFIED','REJECTED']);
 const HEX=/^[a-f0-9]{64}$/;
 function plain(v){return v!==null&&typeof v==='object'&&!types.isProxy(v)&&!Array.isArray(v)&&[Object.prototype,null].includes(Object.getPrototypeOf(v));}
+function data(v,k){const d=Object.getOwnPropertyDescriptor(v,k);if(!d||!Object.hasOwn(d,'value')||!d.enumerable)throw Error('Invalid extraction candidate');return d.value;}
 function string(v,max=512){return typeof v==='string'&&v.length>0&&v.length<=max;}
 function exact(v,fields){if(!plain(v))return false;const ds=Object.getOwnPropertyDescriptors(v);return Reflect.ownKeys(ds).length===fields.length&&fields.every(k=>Object.hasOwn(ds,k)&&Object.hasOwn(ds[k],'value')&&ds[k].enumerable);}
 function digest(v){return typeof v==='string'&&HEX.test(v);}
 export function candidateDigest(source){
  if(!exact(source,['sourceHash','edition','page','extractionVersion','text']))throw Error('Invalid extraction candidate');
- if(!digest(source.sourceHash)||!string(source.edition)||!Number.isSafeInteger(source.page)||source.page<1||!string(source.extractionVersion,100)||!string(source.text,262144))throw Error('Invalid extraction candidate');
- if(Buffer.byteLength(source.text,'utf8')>262144)throw Error('Invalid extraction candidate');
- return createHash('sha256').update(JSON.stringify([source.sourceHash,source.edition,source.page,source.extractionVersion,source.text])).digest('hex');
+ const hash=data(source,'sourceHash'),edition=data(source,'edition'),page=data(source,'page'),version=data(source,'extractionVersion'),value=data(source,'text');
+ if(!digest(hash)||!string(edition)||!Number.isSafeInteger(page)||page<1||!string(version,100)||!string(value,262144))throw Error('Invalid extraction candidate');
+ if(Buffer.byteLength(value,'utf8')>262144)throw Error('Invalid extraction candidate');
+ return createHash('sha256').update(JSON.stringify([hash,edition,page,version,value])).digest('hex');
 }
 export function assessKnowledge(candidate,{kernelReceipt}={}){
  if(!exact(candidate,['source','status']))throw Error('Invalid knowledge candidate');
