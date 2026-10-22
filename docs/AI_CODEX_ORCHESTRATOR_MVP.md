@@ -36,3 +36,6 @@ Run isolated policy tests with `node --test tests/ai-orchestrator-policy.test.mj
 
 ## CI and attempt limits
 The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted attempts means no lease. This remains a local invariant, not durable resource accounting. `.github/workflows/ai-orchestrator-policy.yml` runs isolated offline tests on Node 22/24. A queued, skipped or missing CI job is NOT_RUN/BLOCKED, never PASS. GitHub-hosted checks cannot substitute for independent proof or physical acceptance.
+
+## Receipt-to-bytes correlation
+`matchReceiptAndOutput(task, receipt, outputBytes)` combines task/receipt metadata checks with SHA256 over actual output bytes. A PASS receipt is still self-reported, not signed or independently attested; a matching digest does not imply proof validity. Keep all production, publication and VERIFIED gates closed.
