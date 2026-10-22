@@ -27,3 +27,15 @@ test('dangling edges fail closed and contradictions stay unresolved',()=>{
  graph.addEdge({type:'CONTRADICTS',from_revision:a.revision_id,to_revision:b.revision_id});
  assert.equal(graph.conflicts()[0].status,'UNRESOLVED');
 });
+
+test('dependency cycles fail closed without inserting edge',()=>{
+ const graph=new CandidateGraph();
+ const a=graph.addCandidate(candidate('a','A')).revision_id;
+ const b=graph.addCandidate(candidate('b','B')).revision_id;
+ const c=graph.addCandidate(candidate('c','C')).revision_id;
+ graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:b});
+ graph.addEdge({type:'DEPENDS_ON',from_revision:b,to_revision:c});
+ assert.throws(()=>graph.addEdge({type:'DEPENDS_ON',from_revision:c,to_revision:a}),/cycle/);
+ assert.throws(()=>graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:a}),/cycle/);
+ assert.equal(graph.dependencies(c).length,0);
+});
