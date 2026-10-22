@@ -45,3 +45,6 @@ The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted
 
 ## Bounded streaming integrity
 `verifyArtifactStream(asyncIterable, expectedSha256, {maxBytes})` checks total actual bytes before each hash update and aborts when a chunk would exceed the limit. The caller must provide a trusted expected digest and enforce upstream chunk size, disk limits, runtime and isolation separately. This module provides neither executor attestation nor mathematical verification.
+
+## Runner identity claims
+`claims.mjs` performs only strict schema and cross-record consistency checks on self-reported runner ID, runner image hash, toolchain hash, source commit, receipt hash and attempt. It returns `UNATTESTED_CLAIM` even when metadata agrees. A trusted runner registry, authenticated signatures, anti-replay nonce, trusted timestamp and independently computed receipt hash are not implemented. Do not accept this claim as executor identity or as a release gate.
