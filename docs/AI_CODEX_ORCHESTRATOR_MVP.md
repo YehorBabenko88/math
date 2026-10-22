@@ -30,3 +30,6 @@ Run isolated policy tests with `node --test tests/ai-orchestrator-policy.test.mj
 
 ## Receipt boundary
 `src/ai-orchestrator/receipts.mjs` validates strict receipt fields, pinned input hashes, attempt and resource budgets. A syntactically valid receipt is explicitly labelled `SELF_REPORTED_UNATTESTED`; no signature, trusted clock, isolated runner identity, replay prevention, artifact byte verification or independent kernel proof is established. It MUST NOT be used to authorize VERIFIED, release or production actions. Receipts are metadata checks only until a separate trusted verifier is implemented.
+
+## Offline artifact integrity
+`src/ai-orchestrator/artifacts.mjs` compares the SHA256 of actual Uint8Array bytes with an expected digest. A match is integrity evidence only; the expected digest and the producing identity remain unauthenticated. This cannot turn a self-reported receipt into a trusted proof or authorize publishing. Never accept a digest provided solely by the untrusted worker as independent evidence.
