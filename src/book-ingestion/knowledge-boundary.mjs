@@ -42,9 +42,18 @@ export function rejectUntrustedVerification(result){
  const seen=new Set();
  function inspect(value,depth){
   if(value===null||typeof value!=='object')return;
-  if(depth>24||seen.has(value))throw Error('Invalid knowledge result');
+  if(types.isProxy(value)||depth>24||seen.has(value))throw Error('Invalid knowledge result');
+  if(!Array.isArray(value)&&!plain(value))throw Error('Invalid knowledge result');
+  if(Array.isArray(value)&&Object.getPrototypeOf(value)!==Array.prototype)throw Error('Invalid knowledge result');
   seen.add(value);
-  for(const [field,item] of Object.entries(value)){
+  const descriptors=Object.getOwnPropertyDescriptors(value);
+  for(const field of Reflect.ownKeys(descriptors)){
+   if(typeof field!=='string')throw Error('Invalid knowledge result');
+   const descriptor=descriptors[field];
+   if(!Object.hasOwn(descriptor,'value'))throw Error('Invalid knowledge result');
+   if(field==='length'&&Array.isArray(value))continue;
+   if(!descriptor.enumerable)throw Error('Invalid knowledge result');
+   const item=descriptor.value;
    if(CLAIM_FIELDS.includes(field)&&VERIFIED_CLAIMS.has(item))
     throw Error('Independent proof kernel verification required');
    if(field==='mathematicallyVerified'&&item!==false)
