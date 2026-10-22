@@ -5,6 +5,8 @@ on:
     paths:
       - 'src/book-ingestion/**'
       - 'tests/qa-q01-first-open.test.mjs'
+      - 'tests/qa-evidence-manifest.test.mjs'
+      - 'scripts/qa-evidence-manifest.mjs'
       - '.github/workflows/qa-q01-diagnostic.yml'
 jobs:
   q01-diagnostic:
@@ -30,11 +32,22 @@ jobs:
         run: |
           mkdir -p qa-evidence
           node --test --test-reporter=junit --test-reporter-destination=qa-evidence/q01-junit.xml tests/qa-q01-first-open.test.mjs
+      - name: QA manifest self-tests
+        if: always()
+        run: node --test tests/qa-evidence-manifest.test.mjs
+      - name: Generate and verify bound evidence manifest
+        if: always()
+        env:
+          QA_JOB_ID: q01-node-${{ matrix.node }}
+        run: |
+          test -s qa-evidence/q01-junit.xml
+          node scripts/qa-evidence-manifest.mjs create qa-evidence qa-evidence/manifest.json q01-junit.xml
+          node scripts/qa-evidence-manifest.mjs verify qa-evidence qa-evidence/manifest.json
       - name: Upload diagnostic evidence even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: q01-synthetic-node-${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: qa-evidence/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
