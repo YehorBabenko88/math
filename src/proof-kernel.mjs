@@ -2,7 +2,11 @@
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 const record=o=>o!==null&&typeof o==='object'&&!Array.isArray(o)&&
   (Object.getPrototypeOf(o)===Object.prototype||Object.getPrototypeOf(o)===null);
-const keys=(o,expected)=>Object.keys(o).length===expected.length&&expected.every(k=>own(o,k));
+const keys=(o,expected)=>{
+ const descriptors=Object.getOwnPropertyDescriptors(o);
+ return Reflect.ownKeys(o).length===expected.length&&expected.every(k=>
+  own(descriptors,k)&&own(descriptors[k],'value')&&descriptors[k].enumerable);
+};
 const limit=Object.freeze({nodes:2048,depth:128,context:128});
 function statement(node,state,depth=0){
  if(depth>limit.depth||++state.nodes>limit.nodes||!record(node))throw Error('Invalid statement');
@@ -17,9 +21,15 @@ function statement(node,state,depth=0){
  state.active.delete(node);return value;
 }
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-export function verifyImplicationProof({goal,proof,assumptions=[]}={}){
+export function verifyImplicationProof(request){
+ if(!record(request)||!keys(request,['goal','proof'])&&!keys(request,['goal','proof','assumptions']))throw Error('Invalid request');
+ const {goal,proof}=request;
+ const assumptions=own(request,'assumptions')?request.assumptions:[];
  const state={nodes:0,active:new Set()};
- if(!Array.isArray(assumptions)||assumptions.length>limit.context)throw Error('Invalid context');
+ if(!Array.isArray(assumptions)||assumptions.length>limit.context||
+  Object.keys(assumptions).length!==assumptions.length||
+  assumptions.some((_,i)=>!own(Object.getOwnPropertyDescriptors(assumptions)[i]??{},'value')))
+  throw Error('Invalid context');
  const target=statement(goal,state);
  const ctx=assumptions.map(a=>statement(a,state));
  function derive(p,env,depth){
