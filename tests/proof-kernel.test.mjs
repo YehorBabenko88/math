@@ -47,3 +47,24 @@ test('rejects sparse assumption contexts and extra request fields',()=>{
  const assumptions=new Array(1);
  assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof:identity,assumptions}));
 });
+
+test('rejects nested getter without invoking it',()=>{
+ let called=0;
+ const premise={kind:'atom'};
+ Object.defineProperty(premise,'name',{enumerable:true,get(){called++;return 'P';}});
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof:{rule:'imp_intro',premise,body:{rule:'assumption',index:0}}}));
+ assert.equal(called,0);
+});
+test('rejects nonenumerable fields and prototype-pollution keys',()=>{
+ const hidden={...identity};
+ Object.defineProperty(hidden,'hidden',{value:1});
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof:hidden}));
+ const polluted=JSON.parse('{"rule":"assumption","index":0,"__proto__":{"polluted":true}}');
+ assert.throws(()=>verifyImplicationProof({goal:P,assumptions:[P],proof:polluted}));
+ assert.equal({}.polluted,undefined);
+});
+test('rejects cyclic proof input',()=>{
+ const proof={rule:'imp_intro',premise:P};
+ proof.body=proof;
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof}));
+});
