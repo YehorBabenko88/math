@@ -23,13 +23,15 @@ test('SQLite queue refuses forged mathematical verification while preserving lea
  assert.equal((await q.get(job.id)).result.status,'LLM_CANDIDATE');
 });
 test('snapshot import refuses completed forged verified status atomically',async t=>{
- const a=await openBookQueue({directory:directory(t)});
+ const sourceDirectory=directory(t);
+ const targetDirectory=directory(t);
+ const a=await openBookQueue({directory:sourceDirectory});
  const j=await a.enqueue(input);
  const lease=await a.acquire({workerId:'test',leaseMs:60000});
  await a.complete(j.id,lease.token,{result:{status:'LLM_CANDIDATE'},metrics:{}});
  const snapshot=await a.exportSnapshot();
  snapshot.jobs[0].result.status='KERNEL_VERIFIED';
- const b=await openBookQueue({directory:directory(t)});
+ const b=await openBookQueue({directory:targetDirectory});
  await assert.rejects(b.importSnapshot(snapshot),/Invalid queue state/);
  assert.deepEqual(await b.list(),[]);
 });
