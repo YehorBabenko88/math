@@ -12,10 +12,10 @@ const plain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&Object.getProto
 const token=/^[a-zA-Z0-9_-]{16,128}$/;
 export function newPlan(task){
  const accepted=validateTask(task);
- return Object.freeze({...accepted,state:'PENDING',generation:0,attempt:0,leaseToken:null});
+ return Object.freeze({...accepted,state:'PENDING',generation:0,attempt:0,maxAttempts:task.budget.attempts,leaseToken:null});
 }
 export function advance(plan,{to,expectedGeneration,leaseToken=null}={}){
- if(!plain(plan)||!Number.isSafeInteger(plan.generation)||plan.generation<0||!Number.isSafeInteger(plan.attempt)||plan.attempt<0)throw Error('INVALID_PLAN');
+ if(!plain(plan)||!Number.isSafeInteger(plan.generation)||plan.generation<0||!Number.isSafeInteger(plan.attempt)||plan.attempt<0||!Number.isSafeInteger(plan.maxAttempts)||plan.maxAttempts<0||plan.maxAttempts>2)throw Error('INVALID_PLAN');
  if(!Number.isSafeInteger(expectedGeneration)||expectedGeneration!==plan.generation)throw Error('STALE_GENERATION');
  if(!transitions[plan.state]?.includes(to))throw Error('INVALID_TRANSITION');
  if(plan.state==='LEASED'||plan.state==='RUNNING'){
@@ -23,7 +23,7 @@ export function advance(plan,{to,expectedGeneration,leaseToken=null}={}){
  }
  if(to==='LEASED'){
   if(typeof leaseToken!=='string'||!token.test(leaseToken))throw Error('LEASE_REJECTED');
-  if(plan.attempt>=2)throw Error('ATTEMPTS_EXHAUSTED');
+  if(plan.attempt>=plan.maxAttempts)throw Error('ATTEMPTS_EXHAUSTED');
  }
  if(to==='RUNNING'&&plan.state!=='LEASED')throw Error('INVALID_TRANSITION');
  // REVIEW_REQUIRED is not VERIFIED or RELEASED. No such transitions exist.
