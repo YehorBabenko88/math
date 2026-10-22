@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {candidateDigest,assessKnowledge,sameDigest} from '../src/book-ingestion/knowledge-boundary.mjs';
+import {candidateDigest,assessKnowledge,sameDigest,rejectUntrustedVerification} from '../src/book-ingestion/knowledge-boundary.mjs';
 
 const source={sourceHash:'a'.repeat(64),edition:'Test edition',page:1,extractionVersion:'ocr-v1',text:'2 + 2 = 5'};
 test('unverified OCR and LLM candidates never become mathematical verification',()=>{
@@ -25,4 +25,16 @@ test('reject malformed provenance and status',()=>{
  for(const bad of [{...source,page:0},{...source,sourceHash:'bad'},{...source,text:''},{...source,extra:true}])
   assert.throws(()=>candidateDigest(bad),/Invalid extraction candidate/);
  assert.throws(()=>assessKnowledge({source,status:'VERIFIED'}),/Invalid knowledge status/);
+});
+
+test('queue publication guard rejects explicit untrusted verification claims',()=>{
+ for(const result of [
+  {status:'KERNEL_VERIFIED'},
+  {knowledgeStatus:'VERIFIED'},
+  {verificationStatus:'PROVEN'},
+  {mathematicallyVerified:true},
+  {mathematicallyVerified:'false'}
+ ])assert.throws(()=>rejectUntrustedVerification(result),/Independent proof kernel/);
+ for(const result of [{digest:'a'.repeat(64)},{status:'LLM_CANDIDATE'},{mathematicallyVerified:false}])
+  assert.equal(rejectUntrustedVerification(result),result);
 });
