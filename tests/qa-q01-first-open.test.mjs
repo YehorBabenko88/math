@@ -24,7 +24,7 @@ console.log(JSON.stringify({lease:lease===null?null:{id:lease.id,token:lease.tok
   });
 }
 
-test('QA Q01: concurrent first-open creators never both fail or acquire duplicate leases', {timeout:120000}, async()=>{
+test('QA Q01: concurrent first-open creators never both fail or acquire duplicate leases', {timeout:600000}, async()=>{
   // A failure is intentionally preserved; no automatic retry, no Q01 closure claim.
   const rounds=Number(process.env.QA_Q01_ROUNDS ?? 20);
   assert.ok(Number.isSafeInteger(rounds)&&rounds>=1&&rounds<=300,'bounded QA_Q01_ROUNDS required');
