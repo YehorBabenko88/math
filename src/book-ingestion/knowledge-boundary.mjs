@@ -29,3 +29,16 @@ export function sameDigest(a,b){
  if(!digest(a)||!digest(b))return false;
  return timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex'));
 }
+
+const CLAIM_FIELDS=['status','knowledgeStatus','verificationStatus'];
+const VERIFIED_CLAIMS=new Set(['VERIFIED','KERNEL_VERIFIED','PROVEN','MATHEMATICALLY_VERIFIED']);
+export function rejectUntrustedVerification(result){
+ if(!plain(result))throw Error('Invalid knowledge result');
+ for(const field of CLAIM_FIELDS){
+  if(Object.hasOwn(result,field)&&VERIFIED_CLAIMS.has(result[field]))
+   throw Error('Independent proof kernel verification required');
+ }
+ if(Object.hasOwn(result,'mathematicallyVerified')&&result.mathematicallyVerified!==false)
+  throw Error('Independent proof kernel verification required');
+ return result;
+}
