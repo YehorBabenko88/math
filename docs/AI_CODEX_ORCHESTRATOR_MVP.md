@@ -27,3 +27,6 @@ Run isolated policy tests with `node --test tests/ai-orchestrator-policy.test.mj
 
 ## Deterministic planning state machine
 `src/ai-orchestrator/plan.mjs` provides in-memory transition validation with generation checks and caller-supplied lease tokens. This is **not durable fencing**: it has no persistence, trusted token issuer, expiry clock, process isolation or cross-process compare-and-swap. Do not connect it to workers until these controls and Q01 are independently verified. `REVIEW_REQUIRED` is terminal; no VERIFIED, RELEASED or production transitions exist.
+
+## Receipt boundary
+`src/ai-orchestrator/receipts.mjs` validates strict receipt fields, pinned input hashes, attempt and resource budgets. A syntactically valid receipt is explicitly labelled `SELF_REPORTED_UNATTESTED`; no signature, trusted clock, isolated runner identity, replay prevention, artifact byte verification or independent kernel proof is established. It MUST NOT be used to authorize VERIFIED, release or production actions. Receipts are metadata checks only until a separate trusted verifier is implemented.
