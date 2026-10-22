@@ -19,3 +19,28 @@ The caller must independently bind the target statement to an approved source an
 Run isolated tests: `node --test tests/proof-kernel.test.mjs`.
 
 Q01 SQLite first-open remains separately unresolved. No production or book gate is opened by this MVP.
+
+## Closed theorem versus conditional derivation
+
+The checker now returns `openAssumptions` and `isClosedTheorem`. A successful
+derivation with nonempty assumptions is **conditional** and must not be
+advertised as an unconditional theorem. Even `isClosedTheorem=true` means
+only derivability in the experimental implication calculus, not a project-wide
+verified mathematical claim.
+
+Input normalization creates a data-only copy and rejects accessor properties,
+symbols, special prototype-control keys, cycles, sparse arrays, and excessive
+depth. **Important JavaScript limitation:** a hostile in-process Proxy can run
+user code through language-level reflective traps before normalization rejects
+it. This checker therefore must not accept arbitrary attacker-controlled live
+JavaScript objects as a sandbox boundary. Use parsed JSON from an isolated
+untrusted-data boundary, enforce byte limits before parsing, and never execute
+untrusted code in the verifier process.
+
+## Exact-HEAD acceptance
+
+The isolated GitHub Actions workflow tests Node.js 22 and 24. A queued,
+skipped, cancelled, or missing workflow is not PASS. Record the exact HEAD,
+workflow run IDs, JUnit or test output, and SHA256 of evidence before an
+independent reviewer considers this experimental gate. The presence of
+successful synthetic tests does not establish physical acceptance or close Q01.
