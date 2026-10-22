@@ -40,3 +40,11 @@ test('queue publication guard rejects explicit untrusted verification claims',()
  for(const result of [{digest:'a'.repeat(64)},{status:'LLM_CANDIDATE'},{mathematicallyVerified:false}])
   assert.equal(rejectUntrustedVerification(result),result);
 });
+
+test('candidate provenance rejects getters, proxies and UTF-8 byte overflow',()=>{
+ const accessor={...source};
+ Object.defineProperty(accessor,'text',{get(){throw Error('should not execute');},enumerable:true});
+ assert.throws(()=>candidateDigest(accessor),/Invalid extraction candidate/);
+ assert.throws(()=>candidateDigest(new Proxy(source,{})),/Invalid extraction candidate/);
+ assert.throws(()=>candidateDigest({...source,text:'🧮'.repeat(70000)}),/Invalid extraction candidate/);
+});
