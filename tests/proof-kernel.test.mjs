@@ -68,3 +68,16 @@ test('rejects cyclic proof input',()=>{
  proof.body=proof;
  assert.throws(()=>verifyImplicationProof({goal:imp(P,P),proof}));
 });
+
+test('rejects reserved object keys',()=>{
+ for(const key of ['constructor','prototype']){
+  const p={rule:'assumption',index:0};
+  Object.defineProperty(p,key,{value:'unexpected',enumerable:true});
+  assert.throws(()=>verifyImplicationProof({goal:P,assumptions:[P],proof:p}));
+ }
+});
+test('successful local proof never claims global verification',()=>{
+ const result=verifyImplicationProof({goal:imp(P,P),proof:identity});
+ assert.equal(result.trustedAxioms,0);
+ assert.equal(result.formalStatus,'CHECKED_IN_EXPERIMENTAL_KERNEL');
+});
