@@ -8,8 +8,8 @@ const keys=(o,expected)=>{
   own(descriptors,k)&&own(descriptors[k],'value')&&descriptors[k].enumerable);
 };
 const limit=Object.freeze({nodes:2048,depth:128,context:128});
-function inert(o,seen=new Set(),budget={n:0}){
- if(++budget.n>8192)throw Error('Input limit');
+function inert(o,seen=new Set(),budget={n:0},depth=0){
+ if(++budget.n>8192||depth>128)throw Error('Input limit');
  if(o===null||['string','number','boolean'].includes(typeof o))return o;
  if(typeof o!=='object'||seen.has(o))throw Error('Invalid input');
  const array=Array.isArray(o);
@@ -23,11 +23,11 @@ function inert(o,seen=new Set(),budget={n:0}){
   for(let i=0;i<length;i++){
    const v=d[String(i)];
    if(!v||!own(v,'value')||!v.enumerable)throw Error('Invalid element');
-   out.push(inert(v.value,seen,budget));
+   out.push(inert(v.value,seen,budget,depth+1));
   }
  }else for(const k of names){
   if(typeof k!=='string'||k==='__proto__'||k==='constructor'||k==='prototype'||!own(d[k],'value')||!d[k].enumerable)throw Error('Invalid field');
-  Object.defineProperty(out,k,{value:inert(d[k].value,seen,budget),enumerable:true});
+  Object.defineProperty(out,k,{value:inert(d[k].value,seen,budget,depth+1),enumerable:true});
  }
  seen.delete(o);return out;
 }
@@ -75,5 +75,5 @@ export function verifyImplicationProof(untrusted){
  }
  const actual=derive(proof,ctx,0);
  if(!same(actual,target))throw Error('Proof does not establish goal');
- return Object.freeze({accepted:true,scope:'experimental-propositional-implication/v1',formalStatus:'CHECKED_IN_EXPERIMENTAL_KERNEL',trustedAxioms:0});
+ return Object.freeze({accepted:true,scope:'experimental-propositional-implication/v1',formalStatus:'CHECKED_IN_EXPERIMENTAL_KERNEL',trustedAxioms:0,openAssumptions:ctx.length,isClosedTheorem:ctx.length===0});
 }
