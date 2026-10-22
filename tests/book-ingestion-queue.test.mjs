@@ -95,6 +95,30 @@ test('persistent empty first-open file times out without creating metadata',asyn
  try{assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table'").get().n,0);}
  finally{db.close();}
 });
+test('existing nonempty orphan SQLite schema is never repaired during open',async t=>{
+ const d=directory(t),file=join(d,'queue.sqlite'),db=new DatabaseSync(file);
+ try{db.exec('CREATE TABLE unrelated(value INTEGER NOT NULL); INSERT INTO unrelated VALUES (17)');}
+ finally{db.close();}
+ await assert.rejects(openBookQueue({directory:d}),/Invalid queue state/);
+ const check=new DatabaseSync(file);
+ try{
+  assert.equal(check.prepare('SELECT value FROM unrelated').get().value,17);
+  assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE name='queue_metadata'").get().n,0);
+ }finally{check.close();}
+});
+
+test('stale lease completion cannot overwrite a later owner across reopened handles',async t=>{
+ let nowValue=100;const d=directory(t),now=()=>nowValue;
+ const first=await openBookQueue({directory:d,now,maxAttempts:3});
+ const job=await first.enqueue(input),oldLease=await first.acquire({workerId:'first',leaseMs:10});
+ nowValue=110;
+ const second=await openBookQueue({directory:d,now,maxAttempts:3});
+ const newLease=await second.acquire({workerId:'second',leaseMs:100});
+ assert.notEqual(oldLease.token,newLease.token);
+ await assert.rejects(first.complete(job.id,oldLease.token,{result:{source:'stale'},metrics:{}}),/Lease rejected/);
+ await second.complete(job.id,newLease.token,{result:{source:'current'},metrics:{}});
+ assert.equal((await first.get(job.id)).result.source,'current');
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
