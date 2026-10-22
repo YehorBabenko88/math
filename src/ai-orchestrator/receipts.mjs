@@ -1,3 +1,4 @@
+import {verifyReceiptOutput} from './artifacts.mjs';
 // Strict shape validation only; never authenticates a runner or proof kernel.
 const hex=/^[0-9a-f]{64}$/;
 const plain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;
@@ -17,4 +18,11 @@ export function matchReceipt(task,receipt){
  if(task?.taskId!==receipt.taskId||task?.sourceCommit!==receipt.sourceCommit||task?.inputs?.length!==receipt.inputHashes.length||!task.inputs.every((x,i)=>x.sha256===receipt.inputHashes[i]))throw Error('RECEIPT_MISMATCH');
  if(receipt.metrics.wallSeconds>task.budget.wallSeconds||receipt.metrics.peakMemoryMb>task.budget.memoryMb||receipt.metrics.outputMb>task.budget.outputMb||receipt.metrics.llmTokens>task.budget.llmTokens||receipt.attempt>task.budget.attempts)throw Error('BUDGET_EXCEEDED');
  return accepted;
+}
+
+// Correlate an untrusted receipt with actual output bytes; still NOT attestation.
+export function matchReceiptAndOutput(task,receipt,outputBytes){
+ const matched=matchReceipt(task,receipt);
+ const integrity=verifyReceiptOutput(receipt,outputBytes);
+ return Object.freeze({...matched,integrity:integrity.integrity,provenance:'UNATTESTED'});
 }
