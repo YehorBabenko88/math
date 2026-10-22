@@ -13,7 +13,7 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
  if(realpathSync(rootPath)!==rootPath)fail('symlinked evidence root');
  const entries=files.map(name=>{
   if(typeof name!=='string'||!name||isAbsolute(name)||name.split(/[\\/]/).includes('..'))fail('unsafe path');
-  if(name==='.'||name.split(/[\\/]/).includes('.')||name.includes('\\\\'))fail('ambiguous evidence path');
+  if(name==='.'||name.split(/[\\/]/).includes('.')||name.includes(String.fromCharCode(92)))fail('ambiguous evidence path');
   const path=resolve(rootPath,name),rel=relative(rootPath,path);
   if(!rel||rel.startsWith('..'+sep)||rel==='..'||isAbsolute(rel))fail('outside root');
   for(let parent=dirname(path);parent!==rootPath;parent=dirname(parent)){
