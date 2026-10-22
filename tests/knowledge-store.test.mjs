@@ -39,3 +39,10 @@ test('dependency cycles fail closed without inserting edge',()=>{
  assert.throws(()=>graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:a}),/cycle/);
  assert.equal(graph.dependencies(c).length,0);
 });
+
+test('entity identity cannot switch mathematical kind',()=>{
+ const graph=new CandidateGraph();
+ graph.addCandidate(candidate('shared','A'));
+ assert.throws(()=>graph.addCandidate({...candidate('shared','B'),kind:'AXIOM'}),/kind conflict/);
+ assert.equal(graph.history('shared').length,1);
+});
