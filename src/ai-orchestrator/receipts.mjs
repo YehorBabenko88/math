@@ -23,6 +23,9 @@ export function matchReceipt(task,receipt){
 // Correlate an untrusted receipt with actual output bytes; still NOT attestation.
 export function matchReceiptAndOutput(task,receipt,outputBytes){
  const matched=matchReceipt(task,receipt);
+ if(!(outputBytes instanceof Uint8Array))throw Error('INVALID_BYTES');
+ if(!Number.isSafeInteger(task?.budget?.outputMb)||task.budget.outputMb<0)throw Error('INVALID_BUDGET');
+ if(outputBytes.byteLength>task.budget.outputMb*1024*1024)throw Error('ACTUAL_OUTPUT_BUDGET_EXCEEDED');
  const integrity=verifyReceiptOutput(receipt,outputBytes);
  return Object.freeze({...matched,integrity:integrity.integrity,provenance:'UNATTESTED'});
 }
