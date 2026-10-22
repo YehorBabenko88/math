@@ -18,6 +18,17 @@ export class CandidateGraph {
  addEdge(input) {
   const edge=createEdge(input);
   if(!this.#revisions.has(edge.from_revision)||!this.#revisions.has(edge.to_revision)) throw Error('dangling edge');
+  if(edge.type==='DEPENDS_ON') {
+   if(edge.from_revision===edge.to_revision) throw Error('dependency cycle');
+   const seen=new Set(),stack=[edge.to_revision];
+   while(stack.length) {
+    const node=stack.pop();
+    if(node===edge.from_revision) throw Error('dependency cycle');
+    if(seen.has(node)) continue;
+    seen.add(node);
+    for(const e of this.#edges.values()) if(e.type==='DEPENDS_ON'&&e.from_revision===node) stack.push(e.to_revision);
+   }
+  }
   const key=JSON.stringify([edge.type,edge.from_revision,edge.to_revision]);
   this.#edges.set(key,edge);
   return structuredClone(edge);
