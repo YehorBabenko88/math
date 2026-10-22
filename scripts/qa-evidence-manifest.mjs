@@ -1,6 +1,8 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve,relative,isAbsolute} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {lstatSync,realpathSync} from 'node:fs';
 
 function fail(message){throw Error('QA evidence rejected: '+message);}
 export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
@@ -11,25 +13,29 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
  const entries=files.map(name=>{
   if(typeof name!=='string'||!name||isAbsolute(name)||name.split(/[\\/]/).includes('..'))fail('unsafe path');
   const path=resolve(root,name),rel=relative(resolve(root),path);
+  const stat=lstatSync(path);
+  if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)fail('unsafe evidence file');
+  if(realpathSync(path)!==path)fail('symlinked evidence parent');
   if(rel.startsWith('..')||isAbsolute(rel))fail('outside root');
   const bytes=readFileSync(path);
   return {path:name,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  });
  return {schemaVersion:1,sourceSha,runId,runAttempt,jobId,entries};
 }
-export function verifyManifest(manifest,root){
+export function verifyManifest(manifest,root,expectedContext){
  if(!manifest||manifest.schemaVersion!==1)fail('invalid schema');
  const expected=buildManifest({root,files:manifest.entries?.map(e=>e.path),sourceSha:manifest.sourceSha,runId:manifest.runId,runAttempt:manifest.runAttempt,jobId:manifest.jobId});
  if(JSON.stringify(expected)!==JSON.stringify(manifest))fail('digest, size or metadata mismatch');
+ if(expectedContext){for(const key of ['sourceSha','runId','runAttempt','jobId'])if(manifest[key]!==expectedContext[key])fail('untrusted run context');}
  return true;
 }
-if(process.argv[1]&&resolve(process.argv[1])===resolve(new URL(import.meta.url).pathname)){
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{
   const [mode,root,manifestPath,...files]=process.argv.slice(2);
   if(mode==='create'){
    const m=buildManifest({root,files,sourceSha:process.env.GITHUB_SHA,runId:Number(process.env.GITHUB_RUN_ID),runAttempt:Number(process.env.GITHUB_RUN_ATTEMPT),jobId:process.env.QA_JOB_ID});
    writeFileSync(manifestPath,JSON.stringify(m,null,2)+'\n');
-  }else if(mode==='verify'){verifyManifest(JSON.parse(readFileSync(manifestPath,'utf8')),root);}
+  }else if(mode==='verify'){verifyManifest(JSON.parse(readFileSync(manifestPath,'utf8')),root,{sourceSha:process.env.GITHUB_SHA,runId:Number(process.env.GITHUB_RUN_ID),runAttempt:Number(process.env.GITHUB_RUN_ATTEMPT),jobId:process.env.QA_JOB_ID});}
   else fail('usage: create|verify ROOT MANIFEST [FILES...]');
  }catch(e){console.error(e.message);process.exitCode=1;}
 }
