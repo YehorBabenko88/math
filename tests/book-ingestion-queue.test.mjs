@@ -85,6 +85,16 @@ test('first-open waits for a concurrently created empty SQLite file to become in
  }finally{db.close();}
  const queue=await opening;assert.deepEqual(await queue.list(),[]);
 });
+test('persistent empty first-open file times out without creating metadata',async t=>{
+ const d=directory(t),file=join(d,'queue.sqlite');writeFileSync(file,'');
+ const started=performance.now();
+ await assert.rejects(openBookQueue({directory:d}),/Invalid queue state/);
+ const elapsed=performance.now()-started;
+ assert.ok(elapsed>=4900&&elapsed<12000,`unexpected first-open timeout: ${elapsed}ms`);
+ const db=new DatabaseSync(file);
+ try{assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table'").get().n,0);}
+ finally{db.close();}
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
