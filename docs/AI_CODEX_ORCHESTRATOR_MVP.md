@@ -39,3 +39,6 @@ The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted
 
 ## Receipt-to-bytes correlation
 `matchReceiptAndOutput(task, receipt, outputBytes)` combines task/receipt metadata checks with SHA256 over actual output bytes. A PASS receipt is still self-reported, not signed or independently attested; a matching digest does not imply proof validity. Keep all production, publication and VERIFIED gates closed.
+
+## Actual output budget
+`matchReceiptAndOutput` rejects actual byte arrays larger than `budget.outputMb * 1024 * 1024`, regardless of self-reported receipt metrics. This does not limit the bytes read into memory before invocation: the future isolated runner must enforce streaming and OS-level limits before accepting an artifact.
