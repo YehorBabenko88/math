@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,writeFileSync,rmSync,symlinkSync,linkSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,rmSync,symlinkSync,linkSync,mkdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {buildManifest,verifyManifest} from '../scripts/qa-evidence-manifest.mjs';
@@ -37,4 +37,15 @@ test('QA evidence rejects symbolic and multiply-linked evidence',t=>{
  assert.throws(()=>buildManifest({root,files:['hardlink.xml'],...context}),/unsafe evidence file/);
  symlinkSync(join(root,'original.xml'),join(root,'symlink.xml'));
  assert.throws(()=>buildManifest({root,files:['symlink.xml'],...context}),/unsafe evidence file/);
+});
+
+test('QA evidence rejects linked parent directory and alias paths',t=>{
+ const root=mkdtempSync(join(tmpdir(),'math-qa-parent-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ mkdirSync(join(root,'real'));
+ writeFileSync(join(root,'real','junit.xml'),'ok');
+ symlinkSync(join(root,'real'),join(root,'alias'),'dir');
+ assert.throws(()=>buildManifest({root,files:['alias/junit.xml'],...context}),/symlinked evidence parent/);
+ assert.throws(()=>buildManifest({root,files:['real/../real/junit.xml'],...context}),/ambiguous evidence path/);
+ assert.throws(()=>buildManifest({root,files:['real/./junit.xml'],...context}),/ambiguous evidence path/);
 });
