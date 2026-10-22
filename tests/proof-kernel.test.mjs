@@ -81,3 +81,19 @@ test('successful local proof never claims global verification',()=>{
  assert.equal(result.trustedAxioms,0);
  assert.equal(result.formalStatus,'CHECKED_IN_EXPERIMENTAL_KERNEL');
 });
+
+test('reports conditional proofs separately from closed theorems',()=>{
+ const conditional=verifyImplicationProof({goal:Q,assumptions:[imp(P,Q),P],proof:{
+  rule:'imp_elim',fn:{rule:'assumption',index:0},arg:{rule:'assumption',index:1}
+ }});
+ assert.equal(conditional.openAssumptions,2);
+ assert.equal(conditional.isClosedTheorem,false);
+ const closed=verifyImplicationProof({goal:imp(P,P),proof:identity});
+ assert.equal(closed.openAssumptions,0);
+ assert.equal(closed.isClosedTheorem,true);
+});
+test('rejects excessive input nesting before inference',()=>{
+ let goal=P;
+ for(let i=0;i<150;i++)goal=imp(P,goal);
+ assert.throws(()=>verifyImplicationProof({goal,proof:identity}));
+});
