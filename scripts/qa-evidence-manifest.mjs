@@ -1,4 +1,4 @@
-import {readFileSync,writeFileSync,lstatSync,realpathSync} from 'node:fs';
+import {readFileSync,writeFileSync,lstatSync,realpathSync,openSync,readSync,closeSync,fstatSync,constants} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve,relative,isAbsolute,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -23,9 +23,19 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
   const stat=lstatSync(path);
   if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)fail('unsafe evidence file');
   if(realpathSync(path)!==path)fail('symlinked evidence parent');
-  const bytes=readFileSync(path);
-  const after=lstatSync(path);
-  if(after.dev!==stat.dev||after.ino!==stat.ino||after.size!==stat.size||after.mtimeMs!==stat.mtimeMs||after.nlink!==1)fail('evidence changed during read');
+  const fd=openSync(path,constants.O_RDONLY|(constants.O_NOFOLLOW??0));
+  let bytes;
+  try{
+   const opened=fstatSync(fd);
+   if(!opened.isFile()||opened.nlink!==1||opened.dev!==stat.dev||opened.ino!==stat.ino)fail('evidence replaced before open');
+   bytes=Buffer.alloc(opened.size);
+   let offset=0;
+   while(offset<bytes.length){const count=readSync(fd,bytes,offset,bytes.length-offset,offset);if(count===0)fail('truncated evidence');offset+=count;}
+   const after=fstatSync(fd);
+   if(after.dev!==opened.dev||after.ino!==opened.ino||after.size!==opened.size||after.mtimeMs!==opened.mtimeMs||after.nlink!==1)fail('evidence changed during read');
+  }finally{closeSync(fd);}
+  const current=lstatSync(path);
+  if(current.dev!==stat.dev||current.ino!==stat.ino||current.nlink!==1)fail('evidence path replaced');
   return {path:name,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  });
  return {schemaVersion:1,sourceSha,runId,runAttempt,jobId,entries};
