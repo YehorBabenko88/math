@@ -24,3 +24,6 @@ P1: Q01 first-open failure unresolved; DatabaseSync full-jobs rewrite scalabilit
 P2: durable cost accounting, telemetry, signed receipts and checkpointing pending.
 
 Run isolated policy tests with `node --test tests/ai-orchestrator-policy.test.mjs`.
+
+## Deterministic planning state machine
+`src/ai-orchestrator/plan.mjs` provides in-memory transition validation with generation checks and caller-supplied lease tokens. This is **not durable fencing**: it has no persistence, trusted token issuer, expiry clock, process isolation or cross-process compare-and-swap. Do not connect it to workers until these controls and Q01 are independently verified. `REVIEW_REQUIRED` is terminal; no VERIFIED, RELEASED or production transitions exist.
