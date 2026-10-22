@@ -8,7 +8,7 @@ This branch adds a **pure policy validator**, not an execution orchestrator. It 
 ## Stages and roles
 INGEST/ingestion -> GAP_SCAN/research -> HYPOTHESIS/research -> ADAPTER_BUILD/codex -> SANDBOX_TEST/test -> PROOF_CHECK/kernel -> RELEASE_CANDIDATE/publisher.
 
-The policy accepts only untrusted input hashes and a pinned source commit. Network, production writes and kernel writes are forbidden. Limits are wallSeconds <=600, memoryMb <=1024, outputMb <=50, llmTokens <=20000, attempts <=2. An explicit approval flag is necessary for a release candidate, **but it is not a cryptographic owner approval and grants no publishing permission**.
+The policy accepts only untrusted input hashes and a pinned source commit. Network, production writes and kernel writes are forbidden. Limits are wallSeconds <=600, memoryMb <=1024, outputMb <=50, llmTokens <=20000, attempts <=2. RELEASE_CANDIDATE is currently **always rejected**. A task-supplied approval flag is forbidden: only a future trusted publication service can authenticate an owner and bind approval to exact immutable artifacts. A caller-supplied proofVerified boolean never yields a VERIFIED status.
 
 ## Future implementation gates
 1. Content-addressed artifact store, immutable provenance and review of PDF/OCR text as untrusted data.
