@@ -48,3 +48,12 @@ test('candidate provenance rejects getters, proxies and UTF-8 byte overflow',()=
  assert.throws(()=>candidateDigest(new Proxy(source,{})),/Invalid extraction candidate/);
  assert.throws(()=>candidateDigest({...source,text:'🧮'.repeat(70000)}),/Invalid extraction candidate/);
 });
+
+test('candidate assessment never invokes untrusted source/status accessors',()=>{
+ const candidate={source,status:'LLM_CANDIDATE'};
+ Object.defineProperty(candidate,'status',{get(){throw Error('accessor executed');},enumerable:true});
+ assert.throws(()=>assessKnowledge(candidate),/Invalid knowledge candidate/);
+ const candidate2={source,status:'LLM_CANDIDATE'};
+ Object.defineProperty(candidate2,'source',{get(){throw Error('accessor executed');},enumerable:true});
+ assert.throws(()=>assessKnowledge(candidate2),/Invalid knowledge candidate/);
+});
