@@ -23,3 +23,12 @@ test('terminal states cannot revive',()=>{
  assert.throws(()=>advance(p,{to:'LEASED',expectedGeneration:1,leaseToken:token}));
 });
 test('no jump directly from pending to tested',()=>assert.throws(()=>advance(newPlan(task),{to:'TESTED',expectedGeneration:0})));
+
+test('zero attempt budget blocks lease',()=>{
+ const p=newPlan({...task,budget:{...task.budget,attempts:0}});
+ assert.throws(()=>advance(p,{to:'LEASED',expectedGeneration:0,leaseToken:token}),/ATTEMPTS_EXHAUSTED/);
+});
+test('one attempt budget is retained',()=>{
+ const p=newPlan({...task,budget:{...task.budget,attempts:1}});
+ assert.equal(advance(p,{to:'LEASED',expectedGeneration:0,leaseToken:token}).maxAttempts,1);
+});
