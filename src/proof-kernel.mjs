@@ -8,6 +8,29 @@ const keys=(o,expected)=>{
   own(descriptors,k)&&own(descriptors[k],'value')&&descriptors[k].enumerable);
 };
 const limit=Object.freeze({nodes:2048,depth:128,context:128});
+function inert(o,seen=new Set(),budget={n:0}){
+ if(++budget.n>8192)throw Error('Input limit');
+ if(o===null||['string','number','boolean'].includes(typeof o))return o;
+ if(typeof o!=='object'||seen.has(o))throw Error('Invalid input');
+ const array=Array.isArray(o);
+ if(array?Object.getPrototypeOf(o)!==Array.prototype:!record(o))throw Error('Invalid prototype');
+ seen.add(o);
+ const d=Object.getOwnPropertyDescriptors(o),names=Reflect.ownKeys(d);
+ const out=array?[]:Object.create(null);
+ if(array){
+  if(o.length>2048||names.length!==o.length+1)throw Error('Invalid array');
+  for(let i=0;i<o.length;i++){
+   const v=d[String(i)];
+   if(!v||!own(v,'value')||!v.enumerable)throw Error('Invalid element');
+   out.push(inert(v.value,seen,budget));
+  }
+ }else for(const k of names){
+  if(typeof k!=='string'||!own(d[k],'value')||!d[k].enumerable)throw Error('Invalid field');
+  Object.defineProperty(out,k,{value:inert(d[k].value,seen,budget),enumerable:true});
+ }
+ seen.delete(o);return out;
+}
+
 function statement(node,state,depth=0){
  if(depth>limit.depth||++state.nodes>limit.nodes||!record(node))throw Error('Invalid statement');
  if(state.active.has(node))throw Error('Cyclic statement');
@@ -21,7 +44,8 @@ function statement(node,state,depth=0){
  state.active.delete(node);return value;
 }
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-export function verifyImplicationProof(request){
+export function verifyImplicationProof(untrusted){
+ const request=inert(untrusted);
  if(!record(request)||!keys(request,['goal','proof'])&&!keys(request,['goal','proof','assumptions']))throw Error('Invalid request');
  const {goal,proof}=request;
  const assumptions=own(request,'assumptions')?request.assumptions:[];
