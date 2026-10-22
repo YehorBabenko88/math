@@ -18,14 +18,15 @@ function inert(o,seen=new Set(),budget={n:0}){
  const d=Object.getOwnPropertyDescriptors(o),names=Reflect.ownKeys(d);
  const out=array?[]:Object.create(null);
  if(array){
-  if(o.length>2048||names.length!==o.length+1)throw Error('Invalid array');
-  for(let i=0;i<o.length;i++){
+  const length=d.length.value;
+  if(!Number.isSafeInteger(length)||length>2048||names.length!==length+1)throw Error('Invalid array');
+  for(let i=0;i<length;i++){
    const v=d[String(i)];
    if(!v||!own(v,'value')||!v.enumerable)throw Error('Invalid element');
    out.push(inert(v.value,seen,budget));
   }
  }else for(const k of names){
-  if(typeof k!=='string'||!own(d[k],'value')||!d[k].enumerable)throw Error('Invalid field');
+  if(typeof k!=='string'||k==='__proto__'||k==='constructor'||k==='prototype'||!own(d[k],'value')||!d[k].enumerable)throw Error('Invalid field');
   Object.defineProperty(out,k,{value:inert(d[k].value,seen,budget),enumerable:true});
  }
  seen.delete(o);return out;
