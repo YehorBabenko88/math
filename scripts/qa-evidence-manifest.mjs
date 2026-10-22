@@ -23,11 +23,13 @@ export function buildManifest({root,files,sourceSha,runId,runAttempt,jobId}){
   const stat=lstatSync(path);
   if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)fail('unsafe evidence file');
   if(realpathSync(path)!==path)fail('symlinked evidence parent');
+  if(stat.size>64*1024*1024)fail('evidence file too large');
   const fd=openSync(path,constants.O_RDONLY|(constants.O_NOFOLLOW??0));
   let bytes;
   try{
    const opened=fstatSync(fd);
    if(!opened.isFile()||opened.nlink!==1||opened.dev!==stat.dev||opened.ino!==stat.ino)fail('evidence replaced before open');
+   if(opened.size>64*1024*1024)fail('evidence file too large');
    bytes=Buffer.alloc(opened.size);
    let offset=0;
    while(offset<bytes.length){const count=readSync(fd,bytes,offset,bytes.length-offset,offset);if(count===0)fail('truncated evidence');offset+=count;}
