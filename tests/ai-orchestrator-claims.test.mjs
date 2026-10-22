@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateExecutionClaim,correlateExecutionClaim} from '../src/ai-orchestrator/claims.mjs';
+const a='a'.repeat(64),b='b'.repeat(64);
+const claim={schemaVersion:1,taskId:'task-1',sourceCommit:a,runnerId:'offline-runner',runnerImageHash:b,toolchainHash:a,receiptHash:b,attempt:1};
+const task={taskId:'task-1',sourceCommit:a};
+const receipt={taskId:'task-1',sourceCommit:a,attempt:1,toolchainHash:a};
+test('matching metadata never authenticates executor',()=>assert.equal(correlateExecutionClaim(task,receipt,claim).trust,'UNATTESTED_CLAIM'));
+test('reject claimed VERIFIED status',()=>assert.throws(()=>validateExecutionClaim({...claim,verified:true})));
+test('reject different task',()=>assert.throws(()=>correlateExecutionClaim(task,receipt,{...claim,taskId:'other'})));
+test('reject source drift',()=>assert.throws(()=>correlateExecutionClaim(task,receipt,{...claim,sourceCommit:b})));
+test('reject toolchain mismatch',()=>assert.throws(()=>correlateExecutionClaim(task,receipt,{...claim,toolchainHash:b})));
+test('reject attempt mismatch',()=>assert.throws(()=>correlateExecutionClaim(task,receipt,{...claim,attempt:2})));
+test('reject malformed runner identity',()=>assert.throws(()=>validateExecutionClaim({...claim,runnerId:'../runner'})));
