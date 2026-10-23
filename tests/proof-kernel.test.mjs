@@ -97,3 +97,9 @@ test('rejects excessive input nesting before inference',()=>{
  for(let i=0;i<150;i++)goal=imp(P,goal);
  assert.throws(()=>verifyImplicationProof({goal,proof:identity}));
 });
+
+test('rejects noncanonical numeric values at input boundary',()=>{
+ for(const index of [NaN,Infinity,-Infinity,-0]){
+  assert.throws(()=>verifyImplicationProof({goal:P,assumptions:[P],proof:{rule:'assumption',index}}));
+ }
+});
