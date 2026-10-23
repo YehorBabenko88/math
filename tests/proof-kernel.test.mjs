@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifyImplicationProof,verifyImplicationProofJson,verifyClosedImplicationProofJson} from '../src/proof-kernel.mjs';
+import {verifyImplicationProof,verifyImplicationProofJson,verifyClosedImplicationProofJson,verifyExpectedClosedImplicationProofJson} from '../src/proof-kernel.mjs';
 const atom=name=>({kind:'atom',name});
 const imp=(left,right)=>({kind:'imp',left,right});
 const P=atom('P'),Q=atom('Q');
@@ -177,4 +177,11 @@ test('closed theorem JSON gate refuses an otherwise valid conditional proof',()=
  const conditional=JSON.stringify({goal:P,assumptions:[P],proof:{rule:'assumption',index:0}});
  assert.equal(verifyImplicationProofJson(conditional).openAssumptions,1);
  assert.throws(()=>verifyClosedImplicationProofJson(conditional),/Open assumptions/);
+});
+
+test('expected-goal gate rejects proof of an easier substituted theorem',()=>{
+ const proof=JSON.stringify({goal:imp(P,P),proof:identity});
+ assert.equal(verifyExpectedClosedImplicationProofJson(proof,JSON.stringify(imp(P,P))).isClosedTheorem,true);
+ assert.throws(()=>verifyExpectedClosedImplicationProofJson(proof,JSON.stringify(imp(P,Q))),/Unexpected theorem goal/);
+ assert.throws(()=>verifyExpectedClosedImplicationProofJson(proof,' { "kind":"atom","name":"P"}'));
 });
