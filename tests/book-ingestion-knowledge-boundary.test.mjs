@@ -78,3 +78,9 @@ test('nested sparse arrays fail closed',()=>{
  const sparse=new Array(3);sparse[2]={status:'LLM_CANDIDATE'};
  assert.throws(()=>rejectUntrustedVerification({items:sparse}),/Invalid knowledge result/);
 });
+
+test('assessment rejects accessor options',()=>{
+ const options={};
+ Object.defineProperty(options,'kernelReceipt',{get(){throw Error('getter ran');},enumerable:true});
+ assert.throws(()=>assessKnowledge({source,status:'LLM_CANDIDATE'},options),/Invalid knowledge options/);
+});
