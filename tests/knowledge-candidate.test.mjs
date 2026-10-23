@@ -24,3 +24,50 @@ test('identical input produces identical revision hash',()=>{
 test('edge payload cannot smuggle verification',()=>{
   assert.throws(()=>createEdge({type:'PROVES',from_revision:'a',to_revision:'b',status:'VERIFIED'}));
 });
+
+test('candidate rejects mutable provenance getters without invoking them',()=>{
+ const value=input();let reads=0;
+ Object.defineProperty(value.provenance,'source_hash',{enumerable:true,get(){return ++reads===1?source_hash:'not-a-digest';}});
+ assert.throws(()=>createCandidate(value),/invalid data record/);
+ assert.equal(reads,0);
+});
+
+test('candidate rejects root, statement and provenance proxies without invoking traps',()=>{
+ for(const field of [null,'statement','provenance']){
+  const value=input();let calls=0;
+  const hostile=new Proxy(field===null?value:value[field],{
+   getPrototypeOf(){calls++;throw Error('proxy trap invoked');},
+   ownKeys(){calls++;throw Error('proxy trap invoked');},
+   get(){calls++;throw Error('proxy trap invoked');},
+  });
+  const payload=field===null?hostile:{...value,[field]:hostile};
+  assert.throws(()=>createCandidate(payload),/invalid data record/);
+  assert.equal(calls,0);
+ }
+});
+
+test('candidate rejects accessor fields at every record boundary',()=>{
+ for(const [field,key] of [[null,'kind'],['statement','content'],['provenance','page']]){
+  const value=input();let reads=0;
+  Object.defineProperty(field===null?value:value[field],key,{enumerable:true,get(){reads++;return 'unexpected';}});
+  assert.throws(()=>createCandidate(value),/invalid data record/);
+  assert.equal(reads,0);
+ }
+});
+
+test('graph records reject hidden and symbol properties',()=>{
+ for(const field of [null,'statement','provenance'])for(const key of ['hidden',Symbol('hidden')]){
+  const value=input();
+  Object.defineProperty(field===null?value:value[field],key,{value:'unexpected',enumerable:typeof key==='symbol'});
+  assert.throws(()=>createCandidate(value),/invalid data record/);
+ }
+});
+
+test('edge records reject getters and proxies without executing them',()=>{
+ let calls=0;
+ const edge={type:'DEPENDS_ON',from_revision:'a',to_revision:'b'};
+ Object.defineProperty(edge,'type',{enumerable:true,get(){calls++;return 'DEPENDS_ON';}});
+ assert.throws(()=>createEdge(edge),/invalid data record/);
+ assert.throws(()=>createEdge(new Proxy({},{getPrototypeOf(){calls++;throw Error('proxy trap invoked');}})),/invalid data record/);
+ assert.equal(calls,0);
+});
