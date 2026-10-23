@@ -106,6 +106,18 @@ export function verifyImplicationProofJson(jsonText){
  * Require a closed implication theorem: no top-level hypotheses are permitted.
  * This is still experimental calculus checking, never project-wide VERIFIED.
  */
+export function verifyExpectedClosedImplicationProofJson(jsonText,expectedGoalJson){
+ if(typeof expectedGoalJson!=='string'||Buffer.byteLength(expectedGoalJson,'utf8')>262144)
+  throw Error('Invalid expected goal JSON size');
+ const expected=JSON.parse(expectedGoalJson);
+ if(JSON.stringify(expected)!==expectedGoalJson)throw Error('Noncanonical expected goal');
+ const document=JSON.parse(jsonText);
+ if(JSON.stringify(document)!==jsonText||!document||typeof document!=='object')
+  throw Error('Noncanonical proof document');
+ if(JSON.stringify(document.goal)!==expectedGoalJson)throw Error('Unexpected theorem goal');
+ return verifyClosedImplicationProofJson(jsonText);
+}
+
 export function verifyClosedImplicationProofJson(jsonText){
  const result=verifyImplicationProofJson(jsonText);
  if(!result.isClosedTheorem)throw Error('Open assumptions are not a closed theorem');
