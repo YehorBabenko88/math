@@ -69,3 +69,6 @@ The registry now checks that the pre-existing table DDL contains the expected co
 
 ## Structural SQLite metadata guard
 The registry now inspects `PRAGMA table_info`, `PRAGMA index_list`, `PRAGMA index_info`, and `sqlite_master` object types rather than searching CREATE TABLE SQL text. It rejects unexpected columns, primary-key drift and table triggers. This is not complete adversarial database validation: CHECK constraints, writable_schema, attached databases, corruption, first-open races, durability settings and crash behavior still require explicit hardening and independent tests. Q01 is not closed.
+
+## First-open serialization prototype
+Registry schema creation and structural validation now run within `BEGIN IMMEDIATE` / `COMMIT`, rolling back on error. This protects the local create/inspect sequence from concurrent SQLite writers while the lock is held, but does not establish cross-process Q01 closure, crash durability, untrusted database file safety or production readiness. A true simultaneous-process stress suite and fault injection are still required.
