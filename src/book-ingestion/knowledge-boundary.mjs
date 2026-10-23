@@ -52,7 +52,8 @@ export function rejectUntrustedVerification(result){
   if(Array.isArray(value)&&Object.getPrototypeOf(value)!==Array.prototype)throw Error('Invalid knowledge result');
   seen.add(value);
   const descriptors=Object.getOwnPropertyDescriptors(value);
-  if(Reflect.ownKeys(descriptors).length>20000)throw Error('Invalid knowledge result');
+  properties+=Reflect.ownKeys(descriptors).length;
+  if(properties>20000)throw Error('Invalid knowledge result');
   if(Array.isArray(value)){
    if(value.length>19999||Reflect.ownKeys(descriptors).length!==value.length+1)throw Error('Invalid knowledge result');
    for(let i=0;i<value.length;i++)if(!Object.hasOwn(descriptors,String(i)))throw Error('Invalid knowledge result');
