@@ -107,6 +107,8 @@ export function verifyImplicationProofJson(jsonText){
  * This is still experimental calculus checking, never project-wide VERIFIED.
  */
 export function verifyExpectedClosedImplicationProofJson(jsonText,expectedGoalJson){
+ if(typeof jsonText!=='string'||Buffer.byteLength(jsonText,'utf8')>262144)
+  throw Error('Invalid proof JSON size');
  if(typeof expectedGoalJson!=='string'||Buffer.byteLength(expectedGoalJson,'utf8')>262144)
   throw Error('Invalid expected goal JSON size');
  const expected=JSON.parse(expectedGoalJson);
