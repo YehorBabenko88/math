@@ -63,3 +63,6 @@ PostgreSQL Integration full-suite CI at commit `7156349e9a99b1e89235ffc772aa2530
 
 ## Durable receipt registry prototype
 `registry.mjs` uses `node:sqlite` `DatabaseSync` and a unique SQLite primary key `(task_id, attempt)` to reject duplicate registrations across connections and restarts. The API is a standalone owner-side prototype and is NOT wired into `inspectOfflineEvidence`, a trusted runner or any production path. Registration must only occur after independently trusted evidence validation; currently it records `REGISTERED_UNATTESTED`. SQLite busy handling, schema migration, hostile database files, crash/fault injection and full Q01 compatibility need independent acceptance before integration.
+
+## SQLite schema guard limitation
+The registry now checks that the pre-existing table DDL contains the expected composite primary-key declaration and refuses an obviously incompatible table. This textual DDL check is preliminary, NOT a complete trusted schema attestation: equivalent formatting, spoofed SQL text, index corruption, triggers, views, foreign database state, first-open concurrency and adversarial files require structural PRAGMA-based verification and fault-injection tests. Q01 remains OPEN.
