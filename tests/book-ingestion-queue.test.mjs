@@ -130,6 +130,18 @@ test('read-only queue operations never trigger full-table job deletion',async t=
  await assert.rejects(q.enqueue({...input,page:2}),/Invalid queue state/);
  assert.equal((await q.list()).length,1);
 });
+test('independent first-open processes converge on one initialized schema',async t=>{
+ const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});console.log(JSON.stringify(await q.exportSnapshot()));`;
+ const attempts=8;
+ const results=await Promise.all(Array.from({length:attempts},()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000})));
+ for(const result of results){const snapshot=JSON.parse(result.stdout.trim());assert.equal(snapshot.schemaVersion,1);assert.equal(snapshot.maxAttempts,3);assert.deepEqual(snapshot.jobs,[]);}
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{
+  assert.equal(db.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM jobs').get().n,0);
+ }finally{db.close();}
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
