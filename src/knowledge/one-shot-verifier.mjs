@@ -14,6 +14,13 @@ export class OneShotKernelVerifier {
   if(this.#key.asymmetricKeyType!=='ed25519'||!kernel_id||!kernel_version) throw Error('invalid trust policy');
   this.#id=kernel_id;this.#version=kernel_version;
  }
+ async assessPersisted(request,result,ledger) {
+  if(!ledger || typeof ledger.consume!=='function') throw Error('persistent ledger required');
+  const assessment=this.assess(request,result);
+  const accepted=await ledger.consume(request.request_id);
+  if(accepted!==true) throw Error('replayed request');
+  return assessment;
+ }
  assess(request,result) {
   if(!request||request.schema_version!=='kg.verify-request.v2'||!(/^[a-f0-9]{64}$/.test(request.request_id))||!fields.slice(5).every(k=>dig(request[k]))) throw Error('invalid request');
   if(this.#used.has(request.request_id)) throw Error('replayed request');
