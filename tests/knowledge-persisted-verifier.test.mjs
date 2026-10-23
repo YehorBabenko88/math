@@ -30,3 +30,8 @@ test('invalid signature does not consume persistent request',async()=>{
   assert.equal((await verifier().assessPersisted(request,result,ledger)).verdict,'PASS');
  } finally {await rm(dir,{recursive:true,force:true});}
 });
+
+test('forged ledger object is rejected',async()=>{
+ const request=createVerificationRequestV2(base),result=signed(request);
+ await assert.rejects(verifier().assessPersisted(request,result,{consume:async()=>true}),/trusted FileReplayLedger/);
+});
