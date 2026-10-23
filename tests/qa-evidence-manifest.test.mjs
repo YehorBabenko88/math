@@ -50,7 +50,7 @@ test('QA evidence rejects linked parent directory and alias paths',t=>{
  writeFileSync(join(root,'real','junit.xml'),'ok');
  symlinkSync(join(root,'real'),join(root,'alias'),'dir');
  assert.throws(()=>buildManifest({root,files:['alias/junit.xml'],...context}),/symlinked evidence parent/);
- assert.throws(()=>buildManifest({root,files:['real/../real/junit.xml'],...context}),/ambiguous evidence path/);
+ assert.throws(()=>buildManifest({root,files:['real/../real/junit.xml'],...context}),/unsafe path/);
  assert.throws(()=>buildManifest({root,files:['real/./junit.xml'],...context}),/ambiguous evidence path/);
  assert.throws(()=>buildManifest({root,files:['real\\\\junit.xml'],...context}),/ambiguous evidence path/);
 });
