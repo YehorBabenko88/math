@@ -92,10 +92,12 @@ export function verifyImplicationProof(untrusted){
 /**
  * Parse an untrusted JSON document and check its implication proof.
  * This does not execute source text. Callers must enforce transport byte limits
- * before passing large payloads. Duplicate JSON keys are not rejected by JSON.parse.
+ * before passing large payloads. Only canonical JSON.stringify output is accepted.
  */
 export function verifyImplicationProofJson(jsonText){
  if(typeof jsonText!=='string'||Buffer.byteLength(jsonText,'utf8')>262144)
   throw Error('Invalid proof JSON size');
- return verifyImplicationProof(JSON.parse(jsonText));
+ const parsed=JSON.parse(jsonText);
+ if(JSON.stringify(parsed)!==jsonText)throw Error('Noncanonical proof JSON');
+ return verifyImplicationProof(parsed);
 }
