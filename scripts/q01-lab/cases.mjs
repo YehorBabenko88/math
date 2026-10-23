@@ -64,7 +64,7 @@ async function crash(ctx,phase,{initial=false,lease=false}={}){
 }
 export async function executeCase(ctx,id){
  if(id.startsWith('concurrent-first-open-'))return pairs(ctx,Number(id.split('-').at(-1)));
- if(id==='diagnostic-first-open-100')return pairs(ctx,100,true);
+ if(id.startsWith('diagnostic-first-open-'))return pairs(ctx,Number(id.split('-').at(-1)),true);
  if(id==='stale-exists-false'){
   const stale=ctx.child('open',{hook:{barrier:'existence-missing-stat'}});await stale.ready();stale.start();await stale.barrier('existence-missing-stat');
   const first=await success(ctx,'seed',{count:1});stale.release('existence-missing-stat');const result=await stale.result();ctx.check(result.ok&&digest(result.snapshot)===digest(first.snapshot),'stale-exists-does-not-reset');return valid(ctx,1);

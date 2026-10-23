@@ -1,8 +1,8 @@
 import {DatabaseSync as Native} from 'node:sqlite';
-import {barrier,diagnostic,fault} from './probe.mjs';
+import {barrier,diagnostic,fault,emit} from './probe.mjs';
 let commits=0;
 export function DatabaseSync(...args){
- let db;try{db=new Native(...args);}catch(error){diagnostic('constructor',error);throw error;}
+ emit('constructor-enter');let db;try{db=new Native(...args);emit('constructor-success');}catch(error){diagnostic('constructor',error);throw error;}
  barrier('constructor-after');
  return new Proxy(db,{get(target,key){
   if(key==='exec')return function(sql){

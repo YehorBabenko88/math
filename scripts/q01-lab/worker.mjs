@@ -66,5 +66,5 @@ try{
   }
  }
 }catch(error){result={ok:false,error:errorKind(error),code:/^[A-Z0-9_]+$/.test(error.code??'')?error.code:'REDACTED'};}
-await send({kind:'result',result,data:{ok:result.ok,kind:result.error??'success'}});completed=true;
+await send({kind:'result',result,data:{ok:result.ok,kind:result.error??'success',code:result.code??'none'}});completed=true;
 process.disconnect();

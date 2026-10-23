@@ -8,7 +8,7 @@ export function lstatSync(...args){
  try{
   if(kind==='queue.sqlite')fault('fs-read');
   const result=fs.lstatSync(...args);
-  if(/^queue\.sqlite(?:-journal|-wal|-shm)?$/.test(kind))emit('storage-stat',{kind,size:result.size,links:result.nlink,regular:result.isFile()});
+  if(/^queue\.sqlite(?:-journal|-wal|-shm)?$/.test(kind))emit('storage-stat',{kind,size:result.size,links:result.nlink,regular:result.isFile(),symlink:result.isSymbolicLink()});
   return result;
  }catch(error){
   diagnostic('lstat',error);

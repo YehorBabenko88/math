@@ -42,7 +42,7 @@ function verifyLifecycle(events,results){
   }
   requireValid(result.status!=='PASS'||workers.size>0,'PASS requires worker evidence');
   requireValid([...workers.values()].every(w=>w.state==='exited'),'worker exit completeness');
-  const pairMatch=/^(concurrent-first-open-(10|100|300|1000)|diagnostic-first-open-(100))$/.exec(result.id);
+  const pairMatch=/^(concurrent-first-open-(10|100|300|1000)|diagnostic-first-open-(100|3000))$/.exec(result.id);
   if(pairMatch){
    const total=Number(pairMatch[2]||pairMatch[3]);
    const pairs=scoped.filter(e=>e.workerId==='parent'&&e.event==='phase'&&e.data.phase==='native-pair');
