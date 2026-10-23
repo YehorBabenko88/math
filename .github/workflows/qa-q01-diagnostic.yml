@@ -26,6 +26,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ matrix.node }}
+      - name: Bind checkout to workflow commit
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git status --porcelain
       - name: Run Q01 synthetic diagnostic without retries
         env:
           QA_Q01_ROUNDS: '100'
