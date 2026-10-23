@@ -434,6 +434,7 @@ Describe 'Integrated committed dependency gate' {
     }
 }
 Describe 'Required provenance policy preconditions' {
+    . (Join-Path $repository 'scripts/windows-deployment.ps1')
     It 'rejects an empty required-context set before downloading' {
         Assert-Throws {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run ([pscustomobject]@{id=1;run_attempt=1}) -Artifacts @() -Contexts @() -Download {throw 'must not download'}}
     }
