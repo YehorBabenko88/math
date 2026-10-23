@@ -82,4 +82,3 @@ if ($MyInvocation.InvocationName -ne '.') {
     try { $code = Invoke-Q01WindowsLab; exit $code }
     catch { Write-Output ('BLOCKED: ' + $_.Exception.Message); exit 2 }
 }
-

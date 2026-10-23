@@ -36,5 +36,3 @@ SQLite metadata identity fields use lossless TEXT/BLOB framing; payload/checkpoi
 Preload hooks must call the original native method exactly once, preserve receiver/arguments/return/throw, and restrict barriers to explicit phase IDs. Save phase receipts out of queue storage. Native controls must run without preload; injected barriers intentionally change timing and only prove the scheduled interleaving. Do not infer power-loss behavior from process kill, nor user-machine evidence from disposable CI. Record Node + SQLite versions, OS, source/test digests, pair count, every nonzero result, phase arrival/release timestamps and post-failure integrity. Error receipts should contain static operation/code/phase only, never SQL, payload, document identifiers, raw paths or environment.
 
 Existing full suite CI is Linux Node 22/24 (`.github/workflows/postgres-integration.yml:17-20,59-60`); no physical Windows Q01 acceptance follows from it. This audit does not authorize PostgreSQL execution or production access.
-
-
