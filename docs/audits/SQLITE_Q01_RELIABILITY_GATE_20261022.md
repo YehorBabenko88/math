@@ -70,3 +70,11 @@ No merge, deployment or physical execution is authorized. Source changes require
 4. Reclaimed lease: old token completion rejected, new token completion preserved.
 
 All four are currently **NOT_RUN**. Run on the exact PR HEAD and archive test outputs before changing Q01 status.
+
+## CI evidence observed for commit f9b673638a5780f7a235fc1bb40cd73dae112a0a
+
+GitHub Actions workflow runs completed SUCCESS: Validate Math Universe 39852034997, Browser E2E 39852034890, PostgreSQL Integration 39852034683, Windows Deployment Contracts 39852034847, Book Ingestion Native PDF 39852035121. PostgreSQL integration jobs for Node 22/24 and PG 16/18 completed SUCCESS.
+
+Independently inspected job 120080467606 (Node 22 / PG 18): five added SQLite queue tests appeared explicitly as TAP `ok 85` through `ok 89`. Suite summary: **453 tests, 453 pass, 0 fail, 0 skipped**. The tests cover delayed first-open, persistent empty-file timeout, unrelated nonempty schema, reclaimed lease stale completion, and read-only non-deletion. These observations apply to **f9b6736 only**, not a later audit-document commit.
+
+This confirms the added regression tests ran in at least one matrix cell, but it does **not** close Q01: 300/300 concurrent first-open repetitions, exact 4500/5500ms and 1000/6500ms race probes, fault-injection/mutation runs, lock latency distributions, evidence SHA256/JUnit/JSONL, and physical acceptance remain outside independently verified scope. **Q01 OPEN; production NO-GO.**
