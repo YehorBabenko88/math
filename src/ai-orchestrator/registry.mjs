@@ -7,8 +7,10 @@ export function openReceiptRegistry(filename){
  if(typeof filename!=='string'||filename.length===0)throw Error('INVALID_DATABASE_PATH');
  const db=new DatabaseSync(filename,{timeout:5000});
  try{
-  db.exec(`PRAGMA busy_timeout=5000;
-CREATE TABLE IF NOT EXISTS ai_receipt_registry (
+  db.exec('PRAGMA busy_timeout=5000');
+  db.exec('BEGIN IMMEDIATE');
+  try {
+  db.exec(`CREATE TABLE IF NOT EXISTS ai_receipt_registry (
  task_id TEXT NOT NULL,
  attempt INTEGER NOT NULL CHECK(attempt BETWEEN 1 AND 2),
  receipt_hash TEXT NOT NULL CHECK(length(receipt_hash)=64),
@@ -27,6 +29,11 @@ CREATE TABLE IF NOT EXISTS ai_receipt_registry (
    .map(x=>x.name).join(',')==='task_id,attempt';
   const objects=db.prepare("SELECT type FROM sqlite_master WHERE tbl_name='ai_receipt_registry' AND type IN ('trigger','view')").all();
   if(table?.type!=='table'||!columnShape||!pkShape||objects.length!==0)throw Error('INVALID_REGISTRY_SCHEMA');
+  db.exec('COMMIT');
+  } catch (error) {
+   if(db.isTransaction)db.exec('ROLLBACK');
+   throw error;
+  }
   return Object.freeze({
    register({taskId,attempt,receiptHash}={}){
     if(typeof taskId!=='string'||!id.test(taskId)||!Number.isSafeInteger(attempt)||attempt<1||attempt>2||typeof receiptHash!=='string'||!hex.test(receiptHash))throw Error('INVALID_REGISTRATION');
