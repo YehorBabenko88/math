@@ -53,3 +53,14 @@ assumption-based implication elimination across a small formula corpus and all
 four valuations of two atoms. This is a bounded **soundness smoke test**, not
 an exhaustive metatheoretic soundness proof and not Lean replay. The oracle
 does not import or call the proof kernel's structural equality implementation.
+
+## Canonical JSON-text contract
+
+`verifyImplicationProofJson` accepts at most 256 KiB of UTF-8 JSON text and
+requires `JSON.stringify(JSON.parse(text)) === text`. This rejects duplicate
+object keys because parsing collapses them, as well as noncanonical whitespace
+and alternative number spellings. Producers should serialize their plain-data
+certificate once with JavaScript `JSON.stringify`; pretty-printed JSON is
+intentionally rejected. This is a JavaScript-specific canonical transport
+profile, **not RFC 8785 JCS**. It is not a signature scheme, does not establish
+provenance, and does not authorize a VERIFIED status.
