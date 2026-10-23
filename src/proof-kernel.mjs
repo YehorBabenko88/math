@@ -48,7 +48,11 @@ function statement(node,state,depth=0){
  else throw Error('Invalid statement');
  state.active.delete(node);return value;
 }
-const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function same(a,b){
+ if(a[0]!==b[0])return false;
+ if(a[0]==='atom')return a[1]===b[1];
+ return same(a[1],b[1])&&same(a[2],b[2]);
+}
 export function verifyImplicationProof(untrusted){
  const request=inert(untrusted);
  if(!record(request)||!keys(request,['goal','proof'])&&!keys(request,['goal','proof','assumptions']))throw Error('Invalid request');
