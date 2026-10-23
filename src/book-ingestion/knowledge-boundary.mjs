@@ -43,7 +43,7 @@ const CLAIM_FIELDS=['status','knowledgeStatus','verificationStatus'];
 const VERIFIED_CLAIMS=new Set(['VERIFIED','KERNEL_VERIFIED','PROVEN','MATHEMATICALLY_VERIFIED']);
 export function rejectUntrustedVerification(result){
  if(!plain(result))throw Error('Invalid knowledge result');
- const seen=new Set();let nodes=0;
+ const seen=new Set();let nodes=0,properties=0;
  function inspect(value,depth){
   if(value===null||typeof value!=='object')return;
   if(types.isProxy(value)||depth>24||seen.has(value))throw Error('Invalid knowledge result');
