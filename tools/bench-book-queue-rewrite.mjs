@@ -8,7 +8,8 @@ import {openBookQueue} from '../src/book-ingestion/queue.mjs';
 
 const [jobsArg='100',iterationsArg='20']=process.argv.slice(2);
 function bounded(value,min,max){const n=Number(value);if(!Number.isSafeInteger(n)||n<min||n>max)throw Error('Invalid benchmark argument');return n;}
-const jobs=bounded(jobsArg,1,950),iterations=bounded(iterationsArg,1,100);
+const jobs=bounded(jobsArg,1,999),iterations=bounded(iterationsArg,1,100);
+if(jobs+iterations>1000)throw Error('Benchmark exceeds queue MAX_JOBS=1000; reduce jobs or iterations');
 const directory=mkdtempSync(join(tmpdir(),'math-q01-bench-'));
 const samples=[];
 try{
