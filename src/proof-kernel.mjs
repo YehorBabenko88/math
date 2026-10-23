@@ -101,3 +101,13 @@ export function verifyImplicationProofJson(jsonText){
  if(JSON.stringify(parsed)!==jsonText)throw Error('Noncanonical proof JSON');
  return verifyImplicationProof(parsed);
 }
+
+/**
+ * Require a closed implication theorem: no top-level hypotheses are permitted.
+ * This is still experimental calculus checking, never project-wide VERIFIED.
+ */
+export function verifyClosedImplicationProofJson(jsonText){
+ const result=verifyImplicationProofJson(jsonText);
+ if(!result.isClosedTheorem)throw Error('Open assumptions are not a closed theorem');
+ return result;
+}
