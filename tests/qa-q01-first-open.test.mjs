@@ -41,7 +41,13 @@ test('QA Q01: concurrent first-open creators never both fail or acquire duplicat
       assert.ok(results.every(x=>!x.overflow),'Q01 child output overflow');
       assert.ok(results.every(x=>!x.timedOut),`Q01 child timeout at round ${round}: ${JSON.stringify(results)}`);
       assert.deepEqual(results.map(x=>x.code),[0,0],`Q01 first-open failed at round ${round}: ${JSON.stringify(results)}`);
-      const leases=results.map(x=>JSON.parse(x.stdout).lease).filter(Boolean);
+      const leases=results.map(x=>{
+        const lines=x.stdout.trim().split(/\r?\n/);
+        assert.equal(lines.length,1,`Q01 unexpected stdout at round ${round}`);
+        const response=JSON.parse(lines[0]);
+        assert.deepEqual(Object.keys(response),['lease'],`Q01 invalid child response at round ${round}`);
+        return response.lease;
+      }).filter(Boolean);
       assert.equal(leases.length,1,`Q01 lease uniqueness at round ${round}`);
     } finally {rmSync(directory,{recursive:true,force:true});}
   }
