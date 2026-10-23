@@ -1,5 +1,6 @@
 // Crash-resistant, single-host replay ledger. No status promotion.
 import {open,mkdir,lstat} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import {join} from 'node:path';
 const idPattern=/^[a-f0-9]{64}$/;
 export class FileReplayLedger {
@@ -10,11 +11,14 @@ export class FileReplayLedger {
   await mkdir(this.#dir,{recursive:true,mode:0o700});
   const dirStat=await lstat(this.#dir);
   if(!dirStat.isDirectory()||dirStat.isSymbolicLink()) throw Error('unsafe ledger directory');
-  if(process.platform!=='win32' && (dirStat.mode & 0o077)!==0) throw Error('ledger directory is accessible to others');
+  if(process.platform!=='win32') {
+   if((dirStat.mode & 0o077)!==0) throw Error('ledger directory is accessible to others');
+   if(typeof process.getuid==='function' && dirStat.uid!==process.getuid()) throw Error('ledger directory owner mismatch');
+  }
   const path=join(this.#dir,id);
   let handle;
   try {
-   handle=await open(path,'wx',0o600);
+   handle=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
    await handle.writeFile('CONSUMED\n');
    await handle.sync();
    return true;
