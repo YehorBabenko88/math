@@ -8,7 +8,7 @@ export function createVerificationRequestV2(v1) {
  return Object.freeze({...v1,schema_version:'kg.verify-request.v2',request_id:randomBytes(32).toString('hex')});
 }
 export class OneShotKernelVerifier {
- #used=new Set(); #key; #id; #version;
+ #key; #id; #version;
  constructor({public_key_pem,kernel_id,kernel_version}) {
   this.#key=createPublicKey(public_key_pem);
   if(this.#key.asymmetricKeyType!=='ed25519'||!kernel_id||!kernel_version) throw Error('invalid trust policy');
@@ -16,20 +16,19 @@ export class OneShotKernelVerifier {
  }
  async assessPersisted(request,result,ledger) {
   if(!ledger || typeof ledger.consume!=='function') throw Error('persistent ledger required');
-  const assessment=this.assess(request,result);
+  const assessment=this.#validateSignature(request,result);
   const accepted=await ledger.consume(request.request_id);
   if(accepted!==true) throw Error('replayed request');
   return assessment;
  }
- assess(request,result) {
+ assess() { throw Error('persistent ledger required: use assessPersisted'); }
+ #validateSignature(request,result) {
   if(!request||request.schema_version!=='kg.verify-request.v2'||!(/^[a-f0-9]{64}$/.test(request.request_id))||!fields.slice(5).every(k=>dig(request[k]))) throw Error('invalid request');
-  if(this.#used.has(request.request_id)) throw Error('replayed request');
   if(!result||Object.getPrototypeOf(result)!==Object.prototype||Object.keys(result).some(k=>![...fields,'attestation'].includes(k))) throw Error('invalid result');
   if(result.schema_version!=='kg.kernel-result.v2'||!['PASS','FAIL','INDETERMINATE'].includes(result.verdict)||result.kernel_id!==this.#id||result.kernel_version!==this.#version||result.request_id!==request.request_id||!fields.slice(5).every(k=>result[k]===request[k])) throw Error('result binding mismatch');
   if(typeof result.attestation!=='string'||!/^[A-Za-z0-9+/]+={0,2}$/.test(result.attestation)) throw Error('invalid signature');
   const signature=Buffer.from(result.attestation,'base64');
   if(signature.length!==64||signature.toString('base64')!==result.attestation||!verify(null,Buffer.from(canon(result)),this.#key,signature)) throw Error('untrusted result');
-  this.#used.add(request.request_id);
   return Object.freeze({verdict:result.verdict,request_id:request.request_id,trust:'AUTHENTICATED_RESULT_ONLY'});
  }
 }
