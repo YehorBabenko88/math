@@ -17,7 +17,11 @@ export function candidateDigest(source){
  if(Buffer.byteLength(value,'utf8')>262144)throw Error('Invalid extraction candidate');
  return createHash('sha256').update(JSON.stringify([hash,edition,page,version,value])).digest('hex');
 }
-export function assessKnowledge(candidate,{kernelReceipt}={}){
+export function assessKnowledge(candidate,options={}){
+ if(!plain(options))throw Error('Invalid knowledge options');
+ const optionDescriptors=Object.getOwnPropertyDescriptors(options);
+ if(Reflect.ownKeys(optionDescriptors).some(key=>key!=='kernelReceipt'||!Object.hasOwn(optionDescriptors[key],'value')||!optionDescriptors[key].enumerable))throw Error('Invalid knowledge options');
+ const kernelReceipt=Object.hasOwn(optionDescriptors,'kernelReceipt')?optionDescriptors.kernelReceipt.value:undefined;
  if(!exact(candidate,['source','status']))throw Error('Invalid knowledge candidate');
  const source=data(candidate,'source'),status=data(candidate,'status');
  const hash=candidateDigest(source);
