@@ -130,6 +130,18 @@ test('read-only queue operations never trigger full-table job deletion',async t=
  await assert.rejects(q.enqueue({...input,page:2}),/Invalid queue state/);
  assert.equal((await q.list()).length,1);
 });
+test('first-open contention never exposes a partially initialized schema to readers',async t=>{
+ const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});const snapshot=await q.exportSnapshot();if(snapshot.schemaVersion!==1||snapshot.jobs.length!==0)process.exit(9);`;
+ const processes=Array.from({length:8},()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000}));
+ const results=await Promise.allSettled(processes);
+ assert.equal(results.filter(r=>r.status==='rejected').length,0,JSON.stringify(results.filter(r=>r.status==='rejected').map(r=>String(r.reason))));
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{
+  assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name IN ('queue_metadata','jobs')").get().n,2);
+  assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check,'ok');
+ }finally{db.close();}
+});
 test('independent first-open processes converge on one initialized schema',async t=>{
  const moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
  // Separate databases make every round a genuine first-open race, not a warm reopen.
