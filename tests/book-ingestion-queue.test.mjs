@@ -72,6 +72,116 @@ test('independent processes deduplicate and acquire only one lease',async t=>{
  assert.equal(results.map(r=>JSON.parse(r.stdout)).filter(Boolean).length,1);
  const q=await openBookQueue({directory:d});assert.equal((await q.list()).length,1);
 });
+test('first-open waits for a concurrently created empty SQLite file to become initialized',async t=>{
+ const d=directory(t),file=join(d,'queue.sqlite');writeFileSync(file,'');
+ const opening=openBookQueue({directory:d});
+ await new Promise(resolve=>setTimeout(resolve,40));
+ const db=new DatabaseSync(file);
+ try{
+  db.exec(`CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL,maxAttempts INTEGER NOT NULL);
+    CREATE TABLE jobs(id TEXT PRIMARY KEY,sourceHash TEXT NOT NULL,edition TEXT NOT NULL,page INTEGER NOT NULL,extractionVersion TEXT NOT NULL,payload TEXT NOT NULL,state TEXT NOT NULL,attempts INTEGER NOT NULL,token TEXT,leaseUntil INTEGER,workerId TEXT,createdAt INTEGER NOT NULL,updatedAt INTEGER NOT NULL,checkpoint TEXT,result TEXT,metrics TEXT,errorCode TEXT);
+    CREATE INDEX jobs_state_lease ON jobs(state,leaseUntil);`);
+  db.prepare('INSERT INTO queue_metadata VALUES (1,1,3)').run();
+ }finally{db.close();}
+ const queue=await opening;assert.deepEqual(await queue.list(),[]);
+});
+test('persistent empty first-open file times out without creating metadata',async t=>{
+ const d=directory(t),file=join(d,'queue.sqlite');writeFileSync(file,'');
+ const started=performance.now();
+ await assert.rejects(openBookQueue({directory:d}),/Invalid queue state/);
+ const elapsed=performance.now()-started;
+ assert.ok(elapsed>=4900&&elapsed<12000,`unexpected first-open timeout: ${elapsed}ms`);
+ const db=new DatabaseSync(file);
+ try{assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table'").get().n,0);}
+ finally{db.close();}
+});
+test('existing nonempty orphan SQLite schema is never repaired during open',async t=>{
+ const d=directory(t),file=join(d,'queue.sqlite'),db=new DatabaseSync(file);
+ try{db.exec('CREATE TABLE unrelated(value INTEGER NOT NULL); INSERT INTO unrelated VALUES (17)');}
+ finally{db.close();}
+ await assert.rejects(openBookQueue({directory:d}),/Invalid queue state/);
+ const check=new DatabaseSync(file);
+ try{
+  assert.equal(check.prepare('SELECT value FROM unrelated').get().value,17);
+  assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE name='queue_metadata'").get().n,0);
+ }finally{check.close();}
+});
+
+test('stale lease completion cannot overwrite a later owner across reopened handles',async t=>{
+ let nowValue=100;const d=directory(t),now=()=>nowValue;
+ const first=await openBookQueue({directory:d,now,maxAttempts:3});
+ const job=await first.enqueue(input),oldLease=await first.acquire({workerId:'first',leaseMs:10});
+ nowValue=110;
+ const second=await openBookQueue({directory:d,now,maxAttempts:3});
+ const newLease=await second.acquire({workerId:'second',leaseMs:100});
+ assert.notEqual(oldLease.token,newLease.token);
+ await assert.rejects(first.complete(job.id,oldLease.token,{result:{source:'stale'},metrics:{}}),/Lease rejected/);
+ await second.complete(job.id,newLease.token,{result:{source:'current'},metrics:{}});
+ assert.equal((await first.get(job.id)).result.source,'current');
+});
+test('read-only queue operations never trigger full-table job deletion',async t=>{
+ const d=directory(t),q=await openBookQueue({directory:d});
+ const job=await q.enqueue(input),db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{db.exec("CREATE TRIGGER forbid_read_delete BEFORE DELETE ON jobs BEGIN SELECT RAISE(ABORT, 'read attempted delete'); END");}
+ finally{db.close();}
+ assert.equal((await q.get(job.id)).id,job.id);
+ assert.equal((await q.list()).length,1);
+ assert.equal((await q.exportSnapshot()).jobs.length,1);
+ await assert.rejects(q.enqueue({...input,page:2}),/Invalid queue state/);
+ assert.equal((await q.list()).length,1);
+});
+test('first-open contention never exposes a partially initialized schema to readers',async t=>{
+ const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});const snapshot=await q.exportSnapshot();if(snapshot.schemaVersion!==1||snapshot.jobs.length!==0)process.exit(9);`;
+ const processes=Array.from({length:8},()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000}));
+ const results=await Promise.allSettled(processes);
+ assert.equal(results.filter(r=>r.status==='rejected').length,0,JSON.stringify(results.filter(r=>r.status==='rejected').map(r=>String(r.reason))));
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{
+  assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name IN ('queue_metadata','jobs')").get().n,2);
+  assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check,'ok');
+ }finally{db.close();}
+});
+test('independent first-open processes converge on one initialized schema',async t=>{
+ const moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ // Separate databases make every round a genuine first-open race, not a warm reopen.
+ for(let round=0;round<4;round++){
+  const d=directory(t);
+  const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});console.log(JSON.stringify(await q.exportSnapshot()));`;
+  const results=await Promise.all(Array.from({length:8},()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000})));
+  for(const result of results){const snapshot=JSON.parse(result.stdout.trim());assert.equal(snapshot.schemaVersion,1);assert.equal(snapshot.maxAttempts,3);assert.deepEqual(snapshot.jobs,[]);}
+  const db=new DatabaseSync(join(d,'queue.sqlite'));
+  try{
+   assert.equal(db.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
+   assert.equal(db.prepare('SELECT count(*) AS n FROM jobs').get().n,0);
+   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check,'ok');
+  }finally{db.close();}
+ }
+});
+test('failed write rolls back all jobs even when a delete trigger aborts the rewrite',async t=>{
+ const d=directory(t),q=await openBookQueue({directory:d});
+ const first=await q.enqueue(input),before=await q.exportSnapshot();
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{db.exec("CREATE TRIGGER abort_jobs_rewrite BEFORE DELETE ON jobs BEGIN SELECT RAISE(ABORT,'rewrite forbidden'); END");}
+ finally{db.close();}
+ await assert.rejects(q.enqueue({...input,page:2}),/Invalid queue state/);
+ assert.deepEqual(await q.exportSnapshot(),before);
+ const reopened=await openBookQueue({directory:d});assert.deepEqual(await reopened.get(first.id),before.jobs[0]);
+ const verify=new DatabaseSync(join(d,'queue.sqlite'));
+ try{assert.equal(verify.prepare('PRAGMA integrity_check').get().integrity_check,'ok');}
+ finally{verify.close();}
+});
+test('committed queue mutation survives writer process exit and reopen',async t=>{
+ const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});const j=await q.enqueue(${JSON.stringify(input)});console.log(j.id);`;
+ const {stdout}=await promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000});
+ const id=stdout.trim();assert.match(id,/^[a-f0-9]{64}$/);
+ const q=await openBookQueue({directory:d}),stored=await q.get(id);
+ assert.equal(stored.id,id);assert.equal(stored.state,'queued');assert.deepEqual(stored.payload,input.payload);
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check,'ok');}
+ finally{db.close();}
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
