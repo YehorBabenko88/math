@@ -64,3 +64,13 @@ CREATE TRIGGER receipt_drop AFTER INSERT ON ai_receipt_registry BEGIN DELETE FRO
   assert.throws(()=>openReceiptRegistry(file),/INVALID_REGISTRY_SCHEMA/);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+test('repeated first-open on same database preserves unique registration',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'ai-receipts-')),file=join(dir,'registry.sqlite');
+ let a,b;
+ try{
+  a=openReceiptRegistry(file);b=openReceiptRegistry(file);
+  a.register({taskId:'job1',attempt:1,receiptHash:h});
+  assert.throws(()=>b.register({taskId:'job1',attempt:1,receiptHash:h}),/REPLAY_DETECTED/);
+ }finally{a?.close();b?.close();rmSync(dir,{recursive:true,force:true});}
+});
