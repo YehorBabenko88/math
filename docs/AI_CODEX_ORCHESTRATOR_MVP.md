@@ -60,3 +60,6 @@ PostgreSQL Integration full-suite CI at commit `7156349e9a99b1e89235ffc772aa2530
 
 ## Offline evidence integration
 `inspectOfflineEvidence` composes task policy, receipt metadata, actual output bytes, receipt-byte claim binding and the ephemeral replay filter. It only returns `NOT_VERIFIED` and `DENIED` for proof and publication. The returned replay filter must be passed by the caller; it is not a durable transaction. No trusted runner, signature verification, proof kernel or production authority is implied.
+
+## Durable receipt registry prototype
+`registry.mjs` uses `node:sqlite` `DatabaseSync` and a unique SQLite primary key `(task_id, attempt)` to reject duplicate registrations across connections and restarts. The API is a standalone owner-side prototype and is NOT wired into `inspectOfflineEvidence`, a trusted runner or any production path. Registration must only occur after independently trusted evidence validation; currently it records `REGISTERED_UNATTESTED`. SQLite busy handling, schema migration, hostile database files, crash/fault injection and full Q01 compatibility need independent acceptance before integration.
