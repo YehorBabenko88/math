@@ -131,16 +131,20 @@ test('read-only queue operations never trigger full-table job deletion',async t=
  assert.equal((await q.list()).length,1);
 });
 test('independent first-open processes converge on one initialized schema',async t=>{
- const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
- const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});console.log(JSON.stringify(await q.exportSnapshot()));`;
- const attempts=8;
- const results=await Promise.all(Array.from({length:attempts},()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000})));
- for(const result of results){const snapshot=JSON.parse(result.stdout.trim());assert.equal(snapshot.schemaVersion,1);assert.equal(snapshot.maxAttempts,3);assert.deepEqual(snapshot.jobs,[]);}
- const db=new DatabaseSync(join(d,'queue.sqlite'));
- try{
-  assert.equal(db.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM jobs').get().n,0);
- }finally{db.close();}
+ const moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ // Separate databases make every round a genuine first-open race, not a warm reopen.
+ for(let round=0;round<4;round++){
+  const d=directory(t);
+  const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});console.log(JSON.stringify(await q.exportSnapshot()));`;
+  const results=await Promise.all(Array.from({length:8},()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000})));
+  for(const result of results){const snapshot=JSON.parse(result.stdout.trim());assert.equal(snapshot.schemaVersion,1);assert.equal(snapshot.maxAttempts,3);assert.deepEqual(snapshot.jobs,[]);}
+  const db=new DatabaseSync(join(d,'queue.sqlite'));
+  try{
+   assert.equal(db.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
+   assert.equal(db.prepare('SELECT count(*) AS n FROM jobs').get().n,0);
+   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check,'ok');
+  }finally{db.close();}
+ }
 });
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
