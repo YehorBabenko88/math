@@ -10,7 +10,7 @@ test('ledger rejects symlink directory',async t=>{
   await mkdir(join(root,'real'),{mode:0o700});
   try {await symlink(join(root,'real'),join(root,'link'),'dir');}
   catch(e) {if(['EPERM','EACCES','ENOTSUP'].includes(e.code)){t.skip('symlink privilege unavailable');return;}throw e;}
-  await assert.rejects(new FileReplayLedger(join(root,'link')).consume('a'.repeat(64)),/unsafe ledger directory/);
+  await assert.rejects(new FileReplayLedger(join(root,'link')).consume('a'.repeat(64)),/unsafe ledger ancestor/);
  } finally {await rm(root,{recursive:true,force:true});}
 });
 test('ledger rejects group-writable directory on POSIX',async t=>{
