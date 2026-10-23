@@ -64,3 +64,12 @@ certificate once with JavaScript `JSON.stringify`; pretty-printed JSON is
 intentionally rejected. This is a JavaScript-specific canonical transport
 profile, **not RFC 8785 JCS**. It is not a signature scheme, does not establish
 provenance, and does not authorize a VERIFIED status.
+
+## Closed theorem API
+
+Consumers that require a hypothesis-free result must call
+`verifyClosedImplicationProofJson(jsonText)`, not merely check
+`accepted === true` from the general API. It rejects a valid conditional
+derivation whenever `openAssumptions > 0`. It still returns only
+`CHECKED_IN_EXPERIMENTAL_KERNEL`; a closed result is not automatically
+project-wide VERIFIED, and the caller must bind the exact goal to its source.
