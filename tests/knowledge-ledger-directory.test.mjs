@@ -30,3 +30,14 @@ test('ledger rejects a non-directory path',async()=>{
   await assert.rejects(new FileReplayLedger(path).consume('c'.repeat(64)));
  } finally {await rm(root,{recursive:true,force:true});}
 });
+
+test('ledger rejects a symlinked ancestor even when leaf is a directory',async t=>{
+ const root=await mkdtemp(join(tmpdir(),'kg-ancestor-'));
+ try {
+  const real=join(root,'real'),alias=join(root,'alias');
+  await mkdir(join(real,'ledger'),{recursive:true,mode:0o700});
+  try {await symlink(real,alias,'dir');}
+  catch(error) {if(['EPERM','EACCES','ENOTSUP'].includes(error.code)){t.skip('symlink privilege unavailable');return;}throw error;}
+  await assert.rejects(new FileReplayLedger(join(alias,'ledger')).consume('d'.repeat(64)),/unsafe ledger ancestor/);
+ } finally {await rm(root,{recursive:true,force:true});}
+});
