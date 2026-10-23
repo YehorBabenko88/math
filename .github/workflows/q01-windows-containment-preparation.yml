@@ -1,0 +1,45 @@
+name: Q01 Windows Containment Preparation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-free-contracts:
+    name: Native-free contracts / ${{ matrix.shell }} / Node ${{ matrix.node }}
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Static containment and closed-gate contracts
+        shell: pwsh
+        run: |
+          node --test tests/windows-job-containment.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile and exercise fake kernel only
+        shell: pwsh
+        run: |
+          & '${{ matrix.shell }}' -NoProfile -File tests/windows-job-containment.mock.ps1
+          exit $LASTEXITCODE
+  preparation-coverage:
+    name: Require all native-free preparation contracts
+    if: always()
+    needs: [native-free-contracts]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Reject failed or skipped fixture coverage
+        env:
+          RESULT: ${{ needs.native-free-contracts.result }}
+        run: test "$RESULT" = success
