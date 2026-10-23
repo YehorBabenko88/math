@@ -89,3 +89,9 @@ test('aggregate result properties are bounded',()=>{
  const result={items:Array.from({length:101},()=>Object.fromEntries(Array.from({length:200},(_,i)=>['key'+i,i])))};
  assert.throws(()=>rejectUntrustedVerification(result),/Invalid knowledge result/);
 });
+
+test('alternate mathematical verification booleans fail closed',()=>{
+ for(const result of [{isMathematicallyVerified:true},{proofVerified:true},{nested:{proofVerified:'true'}}])
+  assert.throws(()=>rejectUntrustedVerification(result),/Independent proof kernel/);
+ assert.doesNotThrow(()=>rejectUntrustedVerification({proofVerified:false,isMathematicallyVerified:false}));
+});
