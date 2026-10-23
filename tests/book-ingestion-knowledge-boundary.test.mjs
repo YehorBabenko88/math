@@ -84,3 +84,8 @@ test('assessment rejects accessor options',()=>{
  Object.defineProperty(options,'kernelReceipt',{get(){throw Error('getter ran');},enumerable:true});
  assert.throws(()=>assessKnowledge({source,status:'LLM_CANDIDATE'},options),/Invalid knowledge options/);
 });
+
+test('aggregate result properties are bounded',()=>{
+ const result={items:Array.from({length:101},()=>Object.fromEntries(Array.from({length:200},(_,i)=>['key'+i,i])))};
+ assert.throws(()=>rejectUntrustedVerification(result),/Invalid knowledge result/);
+});
