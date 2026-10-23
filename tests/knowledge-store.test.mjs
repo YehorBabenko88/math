@@ -46,3 +46,25 @@ test('entity identity cannot switch mathematical kind',()=>{
  assert.throws(()=>graph.addCandidate({...candidate('shared','B'),kind:'AXIOM'}),/kind conflict/);
  assert.equal(graph.history('shared').length,1);
 });
+
+test('nonempty dependency queries return only outgoing dependency copies',()=>{
+ const graph=new CandidateGraph();
+ const a=graph.addCandidate(candidate('a','A')).revision_id;
+ const b=graph.addCandidate(candidate('b','B')).revision_id;
+ const c=graph.addCandidate(candidate('c','C')).revision_id;
+ graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:b});
+ graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:c});
+ graph.addEdge({type:'REFERENCES',from_revision:a,to_revision:c});
+ graph.addEdge({type:'DEPENDS_ON',from_revision:b,to_revision:c});
+ const expected=[
+  {type:'DEPENDS_ON',from_revision:a,to_revision:b,status:'CANDIDATE'},
+  {type:'DEPENDS_ON',from_revision:a,to_revision:c,status:'CANDIDATE'},
+ ];
+ const result=graph.dependencies(a);
+ assert.deepEqual(result,expected);
+ result[0].status='VERIFIED';
+ result.pop();
+ assert.deepEqual(graph.dependencies(a),expected);
+ assert.deepEqual(graph.dependencies(c),[]);
+ assert.throws(()=>graph.dependencies('unknown'),/unknown revision/);
+});

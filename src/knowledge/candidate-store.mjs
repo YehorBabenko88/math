@@ -39,7 +39,7 @@ export class CandidateGraph {
  }
  dependencies(id) {
   if(!this.#revisions.has(id)) throw Error('unknown revision');
-  return [...this.#edges.values()].filter(e=>e.type==='DEPENDS_ON'&&e.from_revision===id).map(structuredClone);
+  return [...this.#edges.values()].filter(e=>e.type==='DEPENDS_ON'&&e.from_revision===id).map(edge=>structuredClone(edge));
  }
  conflicts() {return [...this.#edges.values()].filter(e=>e.type==='CONTRADICTS').map(e=>({left:e.from_revision,right:e.to_revision,status:'UNRESOLVED'}));}
 }
