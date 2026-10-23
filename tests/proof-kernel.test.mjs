@@ -103,3 +103,13 @@ test('rejects noncanonical numeric values at input boundary',()=>{
   assert.throws(()=>verifyImplicationProof({goal:P,assumptions:[P],proof:{rule:'assumption',index}}));
  }
 });
+
+test('structural comparison rejects altered nested implication',()=>{
+ const nested=imp(P,imp(Q,P));
+ const proof={rule:'imp_intro',premise:P,body:{
+  rule:'imp_intro',premise:Q,body:{rule:'assumption',index:0}
+ }};
+ const accepted=verifyImplicationProof({goal:nested,proof});
+ assert.equal(accepted.isClosedTheorem,true);
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,imp(Q,Q)),proof}));
+});
