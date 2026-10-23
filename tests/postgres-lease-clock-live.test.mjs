@@ -16,6 +16,10 @@ async function waitForDatabase(client,query,values,accept){
  do{await client.query('SELECT pg_stat_clear_snapshot()');rows=(await client.query(query,values)).rows;if(accept(rows))return rows;await delay(10);}while(Date.now()<until);
  assert.fail(`PostgreSQL witness not established: ${JSON.stringify(rows)}`);
 }
+async function waitForFixtureBlock(client,pids,fixturePid){
+ return waitForDatabase(client,'SELECT pid,state,wait_event_type,pg_blocking_pids(pid) AS blockers FROM pg_stat_activity WHERE pid=ANY($1::int[])',[pids],rows=>rows.length===pids.length&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blockers.includes(fixturePid)));
+}
+
 function assertLeaseWait(row,blockerPid){
  assert.equal(row.state,'active');assert.equal(row.wait_event_type,'Lock');
  assert.ok(Array.isArray(row.blocker_path)&&row.blocker_path.length>=2,'server must prove a blocking path');
@@ -29,6 +33,32 @@ test('lock witness rejects late-start, unrelated and non-waiting operations',()=
  assert.doesNotThrow(()=>assertLeaseWait(valid,42));
  for(const patch of [{valid:false},{blockers:[43]},{blocker_path:[7,43,99]},{blocker_path:null},{blocker_path:[8,42]},{wait_event_type:null},{state:'idle'}])assert.throws(()=>assertLeaseWait({...valid,...patch},42));
 });
+test('real PostgreSQL: initial witness follows a queued global exclusive blocker',{skip:!url},async()=>{
+ await withIsolatedPostgres(url,async({pool})=>{
+  await pool.query('CREATE TABLE witness_fixture (id integer PRIMARY KEY)');
+  await pool.query('INSERT INTO witness_fixture VALUES (1)');
+  const [fixture,first,exclusive,second]=await Promise.all(Array.from({length:4},()=>pool.connect()));
+  const pending=[];
+  try{
+   await fixture.query('BEGIN');await fixture.query('SELECT id FROM witness_fixture FOR UPDATE');
+   await first.query('BEGIN');await first.query('SELECT pg_advisory_xact_lock_shared(732814,3)');
+   pending.push(first.query('SELECT id FROM witness_fixture FOR SHARE').then(()=>first.query('COMMIT')));
+   await waitForFixtureBlock(fixture,[first.processID],fixture.processID);
+   await exclusive.query('BEGIN');
+   pending.push(exclusive.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>exclusive.query('COMMIT')));
+   await waitForDatabase(fixture,'SELECT pg_blocking_pids($1) AS blockers',[exclusive.processID],rows=>rows[0].blockers.includes(first.processID));
+   await second.query('BEGIN');
+   pending.push(second.query('SELECT pg_advisory_xact_lock_shared(732814,3)').then(()=>second.query('COMMIT')));
+   await waitForDatabase(fixture,'SELECT pg_blocking_pids($1) AS blockers',[second.processID],rows=>rows[0].blockers.includes(exclusive.processID));
+   const observations=await waitForFixtureBlock(fixture,[first.processID,second.processID],fixture.processID);
+   assert.equal(observations.length,2);
+  }finally{
+   await fixture.query('ROLLBACK');await Promise.allSettled(pending);
+   for(const client of [fixture,first,exclusive,second]){await client.query('ROLLBACK');client.release();}
+  }
+ });
+});
+
 test('real PostgreSQL: sub-millisecond expiry cannot be proved by JavaScript Date',{skip:!url},async()=>{
  await withIsolatedPostgres(url,async({pool})=>{
   const {rows:[row]}=await pool.query(`SELECT
@@ -64,7 +94,7 @@ for(const lock of ['advisory','row','protocol-row','protocol-row-interposed'])te
    const start=(method,i)=>createFencedIngestionJobStore({connect:async()=>({query:clients[i].query.bind(clients[i]),release(){}})})[method]({jobId:leases[i].job_id,workerId:'clock',claimToken:leases[i].claim_token,checkpoint:{stage:'blocked'},result:{blocked:true},error:'blocked'}).then(value=>({value}),error=>({code:error.code}));
    if(interloper){
     pending=methods.slice(0,2).map(start);
-    await waitForDatabase(blocker,'SELECT pid,state,wait_event_type,pg_blocking_pids(pid) AS blockers FROM pg_stat_activity WHERE pid=ANY($1::int[])',[pendingPids.slice(0,2)],rows=>rows.length===2&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blockers.includes(blocker.processID)));
+    await waitForFixtureBlock(blocker,pendingPids.slice(0,2),blocker.processID);
     await interloper.query('BEGIN');
     interposition=interloper.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>interloper.query('COMMIT'));
     await waitForDatabase(blocker,'SELECT pid,state,wait_event_type,pg_blocking_pids(pid) AS blockers FROM pg_stat_activity WHERE pid=$1',[interloper.processID],rows=>rows.length===1&&rows[0].state==='active'&&rows[0].wait_event_type==='Lock'&&pendingPids.slice(0,2).every(pid=>rows[0].blockers.includes(pid)));
