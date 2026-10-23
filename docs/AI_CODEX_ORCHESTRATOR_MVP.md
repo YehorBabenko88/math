@@ -54,3 +54,6 @@ PostgreSQL Integration full-suite CI at commit `7156349e9a99b1e89235ffc772aa2530
 
 ## Receipt claim byte binding
 `correlateExecutionClaimWithReceiptBytes(task, receipt, claim, receiptBytes)` now checks SHA256 of the original receipt bytes and exact parsed record equivalence (1 MiB cap), preventing an unverified `receiptHash` from being treated as a binding. This remains untrusted, unsigned metadata. Authentic signature verification, trusted key enrollment, anti-replay persistence and durable runner fencing remain outstanding.
+
+## Offline replay simulation
+`replay.mjs` models rejection of repeated `(taskId, attempt)` claims within one immutable in-memory filter (max 10,000 entries). This is **not** a durable replay ledger: the state can be reset or forged, and no atomic transaction, signature or authenticated caller is provided. Production replay prevention must be enforced by a trusted durable store with unique constraints and atomic receipt registration, not by this helper.
