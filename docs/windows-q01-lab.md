@@ -23,7 +23,7 @@ permission to execute. All policy violations return `BLOCKED` and exit code 2.
 cannot establish that user authorization exists. **The current implementation
 always blocks execution before creating a directory or starting a queue.**
 Windows Job Object containment with inherited child ownership and a guaranteed
-hard timeout is not implemented. A PID-only `taskkill /T` check has a PID reuse
+hard timeout is not independently accepted or enabled. A PID-only `taskkill /T` check has a PID reuse
 race; this runner does not advertise that as verified containment. Do not remove
 the fail-closed gate until containment, timeout cleanup, and fixtures are reviewed.
 
@@ -53,3 +53,42 @@ real links, change rights, invoke a queue, or establish physical machine behavio
 They cover elevation, outside-root and alias/traversal paths, reparse ancestors,
 wrong HEAD, and mismatched source snapshots. Execution remains BLOCKED regardless
 of fixture results. No physical laboratory run has been performed.
+
+## Dormant containment preparation (issue 20)
+
+`scripts/q01-lab/WindowsJobContainment.cs` is deliberately neither compiled nor
+called by either execution entry point. Its candidate ownership sequence is an
+unnamed, non-inheritable job configured with kill-on-close, a non-inheriting
+`CreateProcess` with `CREATE_SUSPENDED`, assignment to that job, then resume.
+No breakaway flag is requested. Assignment failure kills the suspended process
+through its owned handle. Cleanup always attempts to close thread, process, and
+job handles, even when another cleanup step fails. The job is terminated on normal
+root exit too, so root exit does not intentionally leave descendants running.
+
+The candidate restricts working directory to an existing literal descendant of
+the fixed lab root, rejects reparse ancestors, and constructs a child-only
+environment containing SystemRoot, WINDIR, TEMP, and TMP. It accepts an explicit
+absolute executable and argument array (Windows quoting, no shell). It bounds
+the root wait by the requested 1..3600000 millisecond deadline and cleanup wait
+by 5000 milliseconds. It never creates directories or writes source files.
+
+These are code-level properties, not host acceptance. A Job Object is not a
+filesystem or network sandbox. Path checks have a validation/use race and do not
+prove immutable directories or source bytes. Native API calls themselves are not
+an external watchdog, and descendant termination/drain is not independently
+observed. Nested-job behavior, owner crash, grandchildren, failed assignment,
+timeout, command-line/environment fidelity, and complete descendant cleanup all
+still require independently authorized synthetic Windows acceptance. The harness
+is not wired to this helper; no physical ADMINPC/LS5PC4 test is authorized or run.
+Production and physical execution remain **NO-GO / BLOCKED**.
+
+Native-free preparation checks:
+
+```text
+node --test tests/windows-job-containment.test.mjs
+pwsh -NoProfile -File tests/windows-job-containment.mock.ps1
+```
+
+The mock fixture compiles C# together with a fake kernel and tests seven ownership
+and cleanup sequences without constructing the Windows native backend. This is
+not evidence that the Windows kernel enforces the candidate guarantees.
