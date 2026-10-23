@@ -42,3 +42,25 @@ test('reject pre-existing incompatible table without unique key',async()=>{
   assert.throws(()=>openReceiptRegistry(file),/INVALID_REGISTRY_SCHEMA/);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+test('reject extra column even if composite primary key exists',async()=>{
+ const {DatabaseSync}=await import('node:sqlite');
+ const dir=mkdtempSync(join(tmpdir(),'ai-receipts-')),file=join(dir,'registry.sqlite');
+ try{
+  const db=new DatabaseSync(file);
+  db.exec('CREATE TABLE ai_receipt_registry(task_id TEXT NOT NULL,attempt INTEGER NOT NULL,receipt_hash TEXT NOT NULL, unexpected TEXT, PRIMARY KEY(task_id,attempt))');
+  db.close();
+  assert.throws(()=>openReceiptRegistry(file),/INVALID_REGISTRY_SCHEMA/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+test('reject trigger that could silently modify receipt registrations',async()=>{
+ const {DatabaseSync}=await import('node:sqlite');
+ const dir=mkdtempSync(join(tmpdir(),'ai-receipts-')),file=join(dir,'registry.sqlite');
+ try{
+  const db=new DatabaseSync(file);
+  db.exec(`CREATE TABLE ai_receipt_registry(task_id TEXT NOT NULL,attempt INTEGER NOT NULL CHECK(attempt BETWEEN 1 AND 2),receipt_hash TEXT NOT NULL CHECK(length(receipt_hash)=64),PRIMARY KEY(task_id,attempt));
+CREATE TRIGGER receipt_drop AFTER INSERT ON ai_receipt_registry BEGIN DELETE FROM ai_receipt_registry; END;`);
+  db.close();
+  assert.throws(()=>openReceiptRegistry(file),/INVALID_REGISTRY_SCHEMA/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
