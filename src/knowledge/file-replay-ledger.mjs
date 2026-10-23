@@ -1,13 +1,16 @@
 // Crash-resistant, single-host replay ledger. No status promotion.
-import {open,mkdir} from 'node:fs/promises';
-import {dirname,join} from 'node:path';
+import {open,mkdir,lstat} from 'node:fs/promises';
+import {join} from 'node:path';
 const idPattern=/^[a-f0-9]{64}$/;
 export class FileReplayLedger {
  #dir;
  constructor(directory) {if(typeof directory!=='string'||!directory) throw Error('directory required');this.#dir=directory;}
  async consume(id) {
   if(!idPattern.test(id)) throw Error('invalid request id');
-  await mkdir(this.#dir,{recursive:true});
+  await mkdir(this.#dir,{recursive:true,mode:0o700});
+  const dirStat=await lstat(this.#dir);
+  if(!dirStat.isDirectory()||dirStat.isSymbolicLink()) throw Error('unsafe ledger directory');
+  if(process.platform!=='win32' && (dirStat.mode & 0o077)!==0) throw Error('ledger directory is accessible to others');
   const path=join(this.#dir,id);
   let handle;
   try {
