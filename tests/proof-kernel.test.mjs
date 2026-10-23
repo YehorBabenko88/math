@@ -122,3 +122,28 @@ test('iterative formula equality preserves nested implication checks',()=>{
  assert.equal(verifyImplicationProof({goal:theorem,proof}).isClosedTheorem,true);
  assert.throws(()=>verifyImplicationProof({goal:imp(P,imp(P,Q)),proof}));
 });
+
+test('soundness smoke test against independent Boolean truth tables',()=>{
+ const evaluate=(formula,valuation)=>formula.kind==='atom'
+  ? valuation[formula.name]
+  : !evaluate(formula.left,valuation)||evaluate(formula.right,valuation);
+ const valuations=[{P:false,Q:false},{P:false,Q:true},{P:true,Q:false},{P:true,Q:true}];
+ const formulas=[P,Q,imp(P,Q),imp(Q,P),imp(P,P),imp(Q,Q)];
+ for(const a of formulas){
+  const identityProof={rule:'imp_intro',premise:a,body:{rule:'assumption',index:0}};
+  const goal=imp(a,a);
+  const result=verifyImplicationProof({goal,proof:identityProof});
+  assert.equal(result.isClosedTheorem,true);
+  for(const valuation of valuations)assert.equal(evaluate(goal,valuation),true);
+ }
+ for(const a of formulas)for(const b of formulas){
+  const result=verifyImplicationProof({goal:b,assumptions:[imp(a,b),a],proof:{
+   rule:'imp_elim',fn:{rule:'assumption',index:0},arg:{rule:'assumption',index:1}
+  }});
+  assert.equal(result.isClosedTheorem,false);
+  for(const valuation of valuations){
+   if(evaluate(imp(a,b),valuation)&&evaluate(a,valuation))
+    assert.equal(evaluate(b,valuation),true);
+  }
+ }
+});
