@@ -17,6 +17,11 @@ console.log(JSON.stringify({lease:lease===null?null:{id:lease.id,token:lease.tok
   return new Promise((resolve,reject)=>{
     const proc=spawn(process.execPath,['--input-type=module','-e',script],{stdio:['ignore','pipe','pipe']});
     let stdout='',stderr='';
+    const maxOutput=64*1024;
+    let overflow=false;
+    let timedOut=false;
+    const watchdog=setTimeout(()=>{timedOut=true;proc.kill('SIGKILL');},30000);
+    watchdog.unref();
     proc.stdout.setEncoding('utf8');proc.stderr.setEncoding('utf8');
     proc.stdout.on('data',v=>{stdout+=v;if(stdout.length>maxOutput){overflow=true;proc.kill();}});
     proc.stderr.on('data',v=>{stderr+=v;if(stderr.length>maxOutput){overflow=true;proc.kill();}});
