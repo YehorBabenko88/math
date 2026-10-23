@@ -63,7 +63,11 @@ export async function openBookQueue(options={}){
    // Another creator may have opened the file but not acquired the schema lock
    // yet. Release our transaction and wait; never initialize an existing orphan
    // or repair missing metadata ourselves.
-   if(initialize&&exists&&db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='queue_metadata'").get().n===0)throw Object.assign(Error('Invalid queue state'),{code:'BOOK_QUEUE_INITIALIZING'});
+   if(initialize&&exists&&db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='queue_metadata'").get().n===0){
+    const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+    if(tables.length!==0)throw Error('Invalid queue state');
+    throw Object.assign(Error('Invalid queue state'),{code:'BOOK_QUEUE_INITIALIZING'});
+   }
    // The durable control table also fences no-op API mutations, which SQLite
    // row triggers cannot observe. Initialization of a frozen store only reads;
    // expired leases remain intact for the explicit restore path to invalidate.
