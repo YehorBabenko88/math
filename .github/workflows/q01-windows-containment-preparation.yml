@@ -23,13 +23,15 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static containment and closed-gate contracts
-        shell: ${{ matrix.shell }}
+        shell: pwsh
         run: |
           node --test tests/windows-job-containment.test.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compile and exercise fake kernel only
-        shell: ${{ matrix.shell }}
-        run: ./tests/windows-job-containment.mock.ps1
+        shell: pwsh
+        run: |
+          & '${{ matrix.shell }}' -NoProfile -File tests/windows-job-containment.mock.ps1
+          exit $LASTEXITCODE
   preparation-coverage:
     name: Require all native-free preparation contracts
     if: always()

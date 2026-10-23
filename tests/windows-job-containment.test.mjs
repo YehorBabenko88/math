@@ -18,3 +18,9 @@ test('public entry point remains fail closed before native compilation',()=>{
  assert.match(ps,/throw 'execution containment unavailable: BLOCKED/);
  assert.doesNotMatch(ps.replace(/^\s*#.*$/gm,''),/Add-Type|WindowsJobContainment/);
 });
+test('hosted shell profiles use a literal launcher and preserve native exit codes',()=>{
+ const workflow=readFileSync(new URL('../.github/workflows/q01-windows-containment-preparation.yml',import.meta.url),'utf8');
+ assert.doesNotMatch(workflow,/shell:\s*\$\{\{/);
+ assert.match(workflow,/& '\$\{\{ matrix.shell \}\}' -NoProfile -File tests\/windows-job-containment.mock.ps1/);
+ assert.match(workflow,/exit \$LASTEXITCODE/);
+});
