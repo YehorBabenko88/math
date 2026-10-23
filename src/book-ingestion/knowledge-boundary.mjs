@@ -13,7 +13,7 @@ function digest(v){return typeof v==='string'&&HEX.test(v);}
 export function candidateDigest(source){
  if(!exact(source,['sourceHash','edition','page','extractionVersion','text']))throw Error('Invalid extraction candidate');
  const hash=data(source,'sourceHash'),edition=data(source,'edition'),page=data(source,'page'),version=data(source,'extractionVersion'),value=data(source,'text');
- if(!digest(hash)||!string(edition)||!Number.isSafeInteger(page)||page<1||!string(version,100)||!string(value,262144))throw Error('Invalid extraction candidate');
+ if(!digest(hash)||!string(edition)||!Number.isSafeInteger(page)||page<1||page>1000000||!string(version,100)||!string(value,262144))throw Error('Invalid extraction candidate');
  if(Buffer.byteLength(value,'utf8')>262144)throw Error('Invalid extraction candidate');
  return createHash('sha256').update(JSON.stringify([hash,edition,page,version,value])).digest('hex');
 }
