@@ -66,3 +66,6 @@ PostgreSQL Integration full-suite CI at commit `7156349e9a99b1e89235ffc772aa2530
 
 ## SQLite schema guard limitation
 The registry now checks that the pre-existing table DDL contains the expected composite primary-key declaration and refuses an obviously incompatible table. This textual DDL check is preliminary, NOT a complete trusted schema attestation: equivalent formatting, spoofed SQL text, index corruption, triggers, views, foreign database state, first-open concurrency and adversarial files require structural PRAGMA-based verification and fault-injection tests. Q01 remains OPEN.
+
+## Structural SQLite metadata guard
+The registry now inspects `PRAGMA table_info`, `PRAGMA index_list`, `PRAGMA index_info`, and `sqlite_master` object types rather than searching CREATE TABLE SQL text. It rejects unexpected columns, primary-key drift and table triggers. This is not complete adversarial database validation: CHECK constraints, writable_schema, attached databases, corruption, first-open races, durability settings and crash behavior still require explicit hardening and independent tests. Q01 is not closed.
