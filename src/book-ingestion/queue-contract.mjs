@@ -1,3 +1,4 @@
+import {rejectUntrustedVerification} from './knowledge-boundary.mjs';
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
 import {types} from 'node:util';
 const MAX_BYTES=8*1024*1024,MAX_JOBS=1000;
@@ -59,7 +60,7 @@ function state(document,maxAttempts){
    assert(integer(j.createdAt,0,Number.MAX_SAFE_INTEGER)&&integer(j.updatedAt,j.createdAt,Number.MAX_SAFE_INTEGER));
    if(j.state==='leased'){assert(integer(j.attempts,1,maxAttempts)&&typeof j.token==='string'&&/^[a-f0-9]{64}$/.test(j.token)&&text(j.workerId,100)&&integer(j.leaseUntil,j.updatedAt+1,Number.MAX_SAFE_INTEGER));}
    else assert(j.token===undefined&&j.workerId===undefined&&j.leaseUntil===undefined);
-   if(j.state==='completed'){assert(j.attempts>0);plain(j.result);json(j.result);metrics(j.metrics);assert(j.errorCode===undefined);}
+   if(j.state==='completed'){assert(j.attempts>0);plain(j.result);json(j.result);rejectUntrustedVerification(j.result);metrics(j.metrics);assert(j.errorCode===undefined);}
    else assert(j.result===undefined&&j.metrics===undefined);
    if(j.state==='queued')assert(j.attempts<maxAttempts);
    if(j.state==='failed')assert(j.attempts>0&&j.errorCode!==undefined);
@@ -80,7 +81,7 @@ export function createBookQueueAPI({transaction,maxAttempts}){
   async acquire(options){const opts=json(options);object(opts,['workerId','leaseMs','jobId']);assert(text(opts.workerId,100)&&integer(opts.leaseMs,1,86400000));if(Object.hasOwn(opts,'jobId'))assert(typeof opts.jobId==='string'&&/^[a-f0-9]{64}$/.test(opts.jobId));return transaction((d,time)=>{recover(d.jobs,time,maxAttempts);const j=d.jobs.find(j=>j.state==='queued'&&(opts.jobId===undefined||j.id===opts.jobId));if(!j)return null;Object.assign(j,{state:'leased',attempts:j.attempts+1,token:randomBytes(32).toString('hex'),workerId:opts.workerId,leaseUntil:time+opts.leaseMs,updatedAt:Math.max(time,j.updatedAt)});return j;});},
   async renew(id,token,options){const opts=json(options);object(opts,['leaseMs']);assert(integer(opts.leaseMs,1,86400000));return transaction((d,time)=>{const j=fenced(d,id,token,time);j.leaseUntil=time+opts.leaseMs;j.updatedAt=Math.max(time,j.updatedAt);return j;});},
   async checkpoint(id,token,data){const checkpoint=json(data);plain(checkpoint);return transaction((d,time)=>{const j=fenced(d,id,token,time);j.checkpoint=checkpoint;j.updatedAt=Math.max(time,j.updatedAt);return j;});},
-  async complete(id,token,data){const input=json(data);object(input,['result','metrics']);plain(input.result);metrics(input.metrics);return transaction((d,time)=>{const j=fenced(d,id,token,time);Object.assign(j,{state:'completed',result:input.result,metrics:input.metrics,updatedAt:Math.max(time,j.updatedAt)});clearLease(j);delete j.errorCode;return j;});},
+  async complete(id,token,data){const input=json(data);object(input,['result','metrics']);plain(input.result);rejectUntrustedVerification(input.result);metrics(input.metrics);return transaction((d,time)=>{const j=fenced(d,id,token,time);Object.assign(j,{state:'completed',result:input.result,metrics:input.metrics,updatedAt:Math.max(time,j.updatedAt)});clearLease(j);delete j.errorCode;return j;});},
   async fail(id,token,options){const opts=json(options);object(opts,['code','retryable']);assert(typeof opts.code==='string'&&/^[A-Z][A-Z0-9_]{0,63}$/.test(opts.code)&&(opts.retryable===undefined||typeof opts.retryable==='boolean'));return transaction((d,time)=>{const j=fenced(d,id,token,time);Object.assign(j,{state:opts.retryable!==false&&j.attempts<maxAttempts?'queued':'failed',errorCode:opts.code,updatedAt:Math.max(time,j.updatedAt)});clearLease(j);return j;});},
   async recordReview(id,receipt){assert(typeof id==='string'&&/^[a-f0-9]{64}$/.test(id));const r=reviewReceipt(receipt);return transaction((d,time)=>{const j=d.jobs.find(j=>j.id===id);assert(j?.state==='completed'&&j.result.digest===r.candidateDigest);if(Object.hasOwn(j.result,'reviewReceipt')){assert(JSON.stringify(reviewReceipt(j.result.reviewReceipt))===JSON.stringify(r));return j;}j.result.reviewReceipt=r;j.metrics.reviewDecisions=1;j.updatedAt=Math.max(time,j.updatedAt);return j;});},
   async get(id){assert(typeof id==='string'&&/^[a-f0-9]{64}$/.test(id));return transaction(d=>d.jobs.find(j=>j.id===id)??null);},
