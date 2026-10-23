@@ -1,5 +1,7 @@
 name: PostgreSQL wait witness regression
 on:
+  push:
+    branches: [fix/pg-wait-witness-chain-20]
   workflow_dispatch:
 permissions:
   contents: read
