@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifyImplicationProof} from '../src/proof-kernel.mjs';
+import {verifyImplicationProof,verifyImplicationProofJson} from '../src/proof-kernel.mjs';
 const atom=name=>({kind:'atom',name});
 const imp=(left,right)=>({kind:'imp',left,right});
 const P=atom('P'),Q=atom('Q');
@@ -146,4 +146,19 @@ test('soundness smoke test against independent Boolean truth tables',()=>{
     assert.equal(evaluate(b,valuation),true);
   }
  }
+});
+
+test('JSON entrypoint checks a closed proof without evaluating code',()=>{
+ const doc=JSON.stringify({goal:imp(P,P),proof:identity});
+ const result=verifyImplicationProofJson(doc);
+ assert.equal(result.isClosedTheorem,true);
+ assert.equal(result.formalStatus,'CHECKED_IN_EXPERIMENTAL_KERNEL');
+});
+test('JSON entrypoint rejects malformed, oversized and non-text payloads',()=>{
+ for(const value of ['{bad',JSON.stringify({goal:P}), ' '.repeat(262145),null,{}])
+  assert.throws(()=>verifyImplicationProofJson(value));
+});
+test('JSON entrypoint rejects prototype-control fields',()=>{
+ const doc='{"goal":{"kind":"atom","name":"P","__proto__":{}},"proof":{"rule":"assumption","index":0},"assumptions":[{"kind":"atom","name":"P"}]}';
+ assert.throws(()=>verifyImplicationProofJson(doc));
 });
