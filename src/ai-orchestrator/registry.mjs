@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS ai_receipt_registry (
  receipt_hash TEXT NOT NULL CHECK(length(receipt_hash)=64),
  PRIMARY KEY(task_id,attempt)
 );`);
+  const schema=db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='ai_receipt_registry'").get()?.sql;
+  if(typeof schema!=='string'||!schema.includes('PRIMARY KEY(task_id,attempt)'))throw Error('INVALID_REGISTRY_SCHEMA');
   return Object.freeze({
    register({taskId,attempt,receiptHash}={}){
     if(typeof taskId!=='string'||!id.test(taskId)||!Number.isSafeInteger(attempt)||attempt<1||attempt>2||typeof receiptHash!=='string'||!hex.test(receiptHash))throw Error('INVALID_REGISTRATION');
