@@ -48,3 +48,6 @@ The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted
 
 ## Runner identity claims
 `claims.mjs` performs only strict schema and cross-record consistency checks on self-reported runner ID, runner image hash, toolchain hash, source commit, receipt hash and attempt. It returns `UNATTESTED_CLAIM` even when metadata agrees. A trusted runner registry, authenticated signatures, anti-replay nonce, trusted timestamp and independently computed receipt hash are not implemented. Do not accept this claim as executor identity or as a release gate.
+
+## CI provenance regression (2026-10-23)
+PostgreSQL Integration full-suite CI at commit `7156349e9a99b1e89235ffc772aa25304a8cd76d` failed the `ci-provenance.test.mjs` check because this PR's offline workflow used mutable `actions/checkout@v4` and `actions/setup-node@v4`. Both are now pinned to immutable 40-character commits. Re-run of the full integration matrix on the corrected exact HEAD is required; prior green offline policy runs do not imply integration PASS.
