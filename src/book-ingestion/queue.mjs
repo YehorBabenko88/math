@@ -49,7 +49,7 @@ export async function openBookQueue(options={}){
  function transaction(fn,{initialize=false,readOnly=false}={}){
   let db;
   try{
-   checkFiles(path);let exists=true,existingSize;try{existingSize=lstatSync(join(path,'queue.sqlite')).size;}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
+   checkFiles(path);let exists=true;try{lstatSync(join(path,'queue.sqlite'));}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
    db=new DatabaseSync(join(path,'queue.sqlite'));
    // Existing files may be WAL databases with live readers. Reconfiguring their
    // journal mode is a persistent write, including on a frozen read/reopen.
