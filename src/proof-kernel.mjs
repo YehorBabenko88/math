@@ -49,9 +49,15 @@ function statement(node,state,depth=0){
  state.active.delete(node);return value;
 }
 function same(a,b){
- if(a[0]!==b[0])return false;
- if(a[0]==='atom')return a[1]===b[1];
- return same(a[1],b[1])&&same(a[2],b[2]);
+ const pending=[[a,b]];
+ while(pending.length){
+  const [left,right]=pending.pop();
+  if(left[0]!==right[0])return false;
+  if(left[0]==='atom'){
+   if(left[1]!==right[1])return false;
+  }else pending.push([left[1],right[1]],[left[2],right[2]]);
+ }
+ return true;
 }
 export function verifyImplicationProof(untrusted){
  const request=inert(untrusted);
