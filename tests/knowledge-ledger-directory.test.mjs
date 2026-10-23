@@ -21,3 +21,12 @@ test('ledger rejects group-writable directory on POSIX',async t=>{
   await assert.rejects(new FileReplayLedger(dir).consume('b'.repeat(64)),/accessible to others/);
  } finally {await rm(root,{recursive:true,force:true});}
 });
+
+test('ledger rejects a non-directory path',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'kg-dirguard-'));
+ try {
+  const {writeFile}=await import('node:fs/promises');
+  const path=join(root,'file');await writeFile(path,'not a directory');
+  await assert.rejects(new FileReplayLedger(path).consume('c'.repeat(64)));
+ } finally {await rm(root,{recursive:true,force:true});}
+});
