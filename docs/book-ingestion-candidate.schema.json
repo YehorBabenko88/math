@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:math-universe:knowledge-candidate:v1",
+  "title": "Math Universe knowledge candidate v1",
+  "description": "Untrusted extraction candidate. Runtime additionally enforces aggregate text/complexity budgets, unique IDs, references, dependency acyclicity, locator containment, context pins and SI/numerical verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "locator", "extraction", "concepts", "formulas", "claims", "evidence", "uncertainty"],
+  "properties": {
+    "schemaVersion": {"const": "knowledge-candidate/v1"},
+    "source": {"$ref": "#/$defs/source"},
+    "locator": {"$ref": "#/$defs/locator"},
+    "extraction": {"$ref": "#/$defs/extraction"},
+    "concepts": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/concept"}},
+    "formulas": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/formula"}},
+    "claims": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/claim"}},
+    "evidence": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/evidence"}},
+    "uncertainty": {"$ref": "#/$defs/fraction"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$"},
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "text": {"type": "string", "minLength": 1, "maxLength": 2000, "pattern": "\\S"},
+    "fraction": {"type": "number", "minimum": 0, "maximum": 1},
+    "unit": {"enum": ["1", "m", "km", "s", "min", "h", "kg", "g", "A", "K", "mol", "cd", "N", "J", "W", "Hz", "Pa", "m/s", "km/h", "m/s²"]},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["hash64hex", "edition", "version", "license"],
+      "properties": {
+        "hash64hex": {"$ref": "#/$defs/hash"},
+        "edition": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "\\S"},
+        "version": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "\\S"},
+        "license": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "\\S"}
+      }
+    },
+    "locator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pdfPage1based", "printedPage", "region"],
+      "properties": {
+        "pdfPage1based": {"type": "integer", "minimum": 1, "maximum": 9007199254740991},
+        "printedPage": {"anyOf": [{"type": "null"}, {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S"}]},
+        "region": {"anyOf": [{"type": "null"}, {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "prefixItems": [{"$ref": "#/$defs/fraction"}, {"$ref": "#/$defs/fraction"}, {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, {"type": "number", "exclusiveMinimum": 0, "maximum": 1}],
+          "items": false,
+          "description": "Normalized x,y,width,height; runtime also checks x+width and y+height <=1."
+        }]}
+      }
+    },
+    "extraction": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "quality", "textHash64hex"],
+      "properties": {
+        "version": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S"},
+        "textHash64hex": {"$ref": "#/$defs/hash"},
+        "quality": {
+          "type": "object", "additionalProperties": false,
+          "required": ["score", "method", "needsVisualReview"],
+          "properties": {"score": {"$ref": "#/$defs/fraction"}, "method": {"enum": ["text", "ocr", "visual"]}, "needsVisualReview": {"type": "boolean"}}
+        }
+      }
+    },
+    "concept": {
+      "type": "object", "additionalProperties": false, "required": ["id", "label", "definition"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "label": {"$ref": "#/$defs/text"}, "definition": {"$ref": "#/$defs/text"}}
+    },
+    "symbol": {
+      "type": "object", "additionalProperties": false, "required": ["name", "unit"],
+      "properties": {"name": {"$ref": "#/$defs/id"}, "unit": {"$ref": "#/$defs/unit"}}
+    },
+    "ast": {
+      "description": "Runtime bounds depth to 24 and node count to 128 per formula and checks symbol references.",
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["op", "name"], "properties": {"op": {"const": "input"}, "name": {"$ref": "#/$defs/id"}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "value", "unit"], "properties": {"op": {"const": "constant"}, "value": {"type": "number"}, "unit": {"$ref": "#/$defs/unit"}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "value"], "properties": {"op": {"const": "sqrt"}, "value": {"$ref": "#/$defs/ast"}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "left", "right"], "properties": {"op": {"enum": ["add", "subtract", "multiply", "divide"]}, "left": {"$ref": "#/$defs/ast"}, "right": {"$ref": "#/$defs/ast"}}}
+      ]
+    },
+    "example": {
+      "type": "object", "additionalProperties": false, "required": ["inputs", "expected", "tolerance"],
+      "properties": {
+        "inputs": {"type": "object", "maxProperties": 32, "propertyNames": {"$ref": "#/$defs/id"}, "additionalProperties": {"type": "number"}, "description": "Runtime requires exactly the declared symbol names."},
+        "expected": {"type": "number"},
+        "tolerance": {"type": "number", "minimum": 0, "maximum": 0.01}
+      }
+    },
+    "formula": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "symbols", "outputUnit", "ast", "assumptions", "examples"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "symbols": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/symbol"}},
+        "outputUnit": {"$ref": "#/$defs/unit"},
+        "ast": {"$ref": "#/$defs/ast"},
+        "assumptions": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/text"}},
+        "examples": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/example"}}
+      }
+    },
+    "ids": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "claim": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "text", "formulaIds", "conceptIds", "dependencies", "contradictions", "uncertainty", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "text": {"$ref": "#/$defs/text"}, "formulaIds": {"$ref": "#/$defs/ids"},
+        "conceptIds": {"$ref": "#/$defs/ids"}, "dependencies": {"$ref": "#/$defs/ids"}, "contradictions": {"$ref": "#/$defs/ids"},
+        "uncertainty": {"$ref": "#/$defs/fraction"}, "status": {"const": "untested"}
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false, "required": ["id", "claimId", "locator", "note"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "claimId": {"$ref": "#/$defs/id"}, "locator": {"$ref": "#/$defs/locator"}, "note": {"$ref": "#/$defs/text"}}
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# Prerequisites on a standalone Windows PC
+
+The bootstrap is an administrator-supervised package installation tool. It checks Git, Node 22/24, NSSM and optional PostgreSQL detection. Missing packages are installed using winget only with explicit `-AcceptPackages`. Review package IDs and source availability before any separately approved host installation.
+
+Obtain a reviewed repository checkout or trusted archive at an exact approved commit. Do not run a downloaded remote script directly. Preserve the complete scripts directory, including the matching `windows-update.ps1` and `windows-deployment.ps1` pair. The updater dot-sources only its adjacent reviewed helper; no helper is downloaded at runtime. Scripts must be allowed by the host's existing execution policy; changing or bypassing security settings is outside this procedure.
+
+Running `windows-bootstrap.ps1 -AcceptPackages` installs prerequisites only. `-InstallService` is a separate explicit service-installation action and still uses a moving development branch in the legacy bootstrap; it is **not qualified for unattended deployment**. Prefer a supervised exact-commit review of the updater and candidate as described in [Windows deployment](windows-local-deployment.md). The bootstrap does not install PostgreSQL or schedule updates.
+
+The updater now checks the trusted current workflow/attempt and every required Full CI/PDF/Browser context for the exact candidate SHA. Activation additionally requires a separately prepared disposable test database and native PDF Python runtime; serving the static UI itself does not require PostgreSQL. No service was installed or restarted during fixture qualification. Package availability, restricted service identity, reboot behavior and real-host rollback remain separate supervised qualification steps.

@@ -1,0 +1,48 @@
+name: Browser E2E
+on:
+  push:
+  pull_request:
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    env:
+      PROVENANCE_CONTEXT: 'chromium'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Verify tracked source before tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+        run: node scripts/verify-source-identity.mjs --before
+      - name: Verify dependency artifact locks
+        run: node scripts/verify-dependency-locks.mjs
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Upload test report on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: playwright-report
+          path: test-results/
+          if-no-files-found: ignore
+
+      - name: Record exact source and dependency provenance
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+          PROVENANCE_CONTEXT: 'chromium'
+        run: node scripts/ci-provenance.mjs
+      - name: Upload source provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-provenance-${{ github.run_id }}-${{ github.run_attempt }}-chromium
+          path: release-provenance.json
+          if-no-files-found: error
+          retention-days: 30

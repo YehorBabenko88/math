@@ -1,0 +1,62 @@
+name: Windows Deployment Contracts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Windows contracts / ${{ matrix.shell }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      PROVENANCE_CONTEXT: 'Windows contracts / ${{ matrix.shell }}'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Prepare pinned fixture framework
+        shell: pwsh
+        run: ./scripts/install-pester-verified.ps1 -Destination "$env:RUNNER_TEMP/pester"
+      - name: Verify tracked source before tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+        run: node scripts/verify-source-identity.mjs --before
+      - name: Verify committed SQL checkout bytes and checkout policy
+        run: |
+          node scripts/verify-sql-bytes.mjs
+          if ($LASTEXITCODE -ne 0) { throw "SQL checkout-byte verification failed: $LASTEXITCODE" }
+          node --test tests/sql-byte-reproducibility.test.mjs tests/sql-byte-integrity.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "SQL checkout policy regression failed: $LASTEXITCODE" }
+      - name: Parse scripts and run synthetic deployment fixtures
+        shell: pwsh
+        run: |
+          & '${{ matrix.shell }}' -NoProfile -File tests/pester-integrity.Tests.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Pester integrity regression failed: $LASTEXITCODE" }
+          ./scripts/install-pester-verified.ps1 -Destination "$env:RUNNER_TEMP/pester" -VerifyOnly
+          & '${{ matrix.shell }}' -NoProfile -Command "Import-Module '$env:RUNNER_TEMP/pester/Pester/4.10.1/Pester.psd1' -ErrorAction Stop; Invoke-Pester -Script tests/windows-deployment.Tests.ps1 -EnableExit"
+          exit $LASTEXITCODE
+
+      - name: Record exact source and dependency provenance
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+          PROVENANCE_CONTEXT: 'Windows contracts / ${{ matrix.shell }}'
+        run: node scripts/ci-provenance.mjs
+      - name: Upload source provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-provenance-${{ github.run_id }}-${{ github.run_attempt }}-windows-${{ matrix.shell }}
+          path: release-provenance.json
+          if-no-files-found: error
+          retention-days: 30
