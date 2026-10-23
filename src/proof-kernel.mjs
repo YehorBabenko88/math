@@ -88,3 +88,14 @@ export function verifyImplicationProof(untrusted){
  if(!same(actual,target))throw Error('Proof does not establish goal');
  return Object.freeze({accepted:true,scope:'experimental-propositional-implication/v1',formalStatus:'CHECKED_IN_EXPERIMENTAL_KERNEL',trustedAxioms:0,openAssumptions:ctx.length,isClosedTheorem:ctx.length===0});
 }
+
+/**
+ * Parse an untrusted JSON document and check its implication proof.
+ * This does not execute source text. Callers must enforce transport byte limits
+ * before passing large payloads. Duplicate JSON keys are not rejected by JSON.parse.
+ */
+export function verifyImplicationProofJson(jsonText){
+ if(typeof jsonText!=='string'||Buffer.byteLength(jsonText,'utf8')>262144)
+  throw Error('Invalid proof JSON size');
+ return verifyImplicationProof(JSON.parse(jsonText));
+}
