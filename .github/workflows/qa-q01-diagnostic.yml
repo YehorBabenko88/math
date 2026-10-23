@@ -29,7 +29,7 @@ jobs:
       - name: Bind checkout to workflow commit
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git status --porcelain
+          test -z "$(git status --porcelain)"
       - name: Run Q01 synthetic diagnostic without retries
         env:
           QA_Q01_ROUNDS: '100'
