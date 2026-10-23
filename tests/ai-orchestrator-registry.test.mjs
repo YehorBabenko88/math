@@ -31,3 +31,14 @@ test('invalid registrations rejected',()=>{
  try{assert.throws(()=>r.register({taskId:'../bad',attempt:1,receiptHash:h}),/INVALID_REGISTRATION/);}
  finally{r.close();}
 });
+
+test('reject pre-existing incompatible table without unique key',async()=>{
+ const {DatabaseSync}=await import('node:sqlite');
+ const dir=mkdtempSync(join(tmpdir(),'ai-receipts-')),file=join(dir,'registry.sqlite');
+ try{
+  const db=new DatabaseSync(file);
+  db.exec('CREATE TABLE ai_receipt_registry(task_id TEXT,attempt INTEGER,receipt_hash TEXT)');
+  db.close();
+  assert.throws(()=>openReceiptRegistry(file),/INVALID_REGISTRY_SCHEMA/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
