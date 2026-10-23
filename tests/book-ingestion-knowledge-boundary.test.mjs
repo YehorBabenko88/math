@@ -64,3 +64,8 @@ test('recursive guard never executes nested getters or proxy traps',()=>{
  assert.throws(()=>rejectUntrustedVerification({nested}),/Invalid knowledge result/);
  assert.throws(()=>rejectUntrustedVerification({nested:new Proxy({status:'KERNEL_VERIFIED'}, {})}),/Invalid knowledge result/);
 });
+
+test('recursive guard bounds total object traversal',()=>{
+ const result={items:Array.from({length:20001},()=>({status:'LLM_CANDIDATE'}))};
+ assert.throws(()=>rejectUntrustedVerification(result),/Invalid knowledge result/);
+});
