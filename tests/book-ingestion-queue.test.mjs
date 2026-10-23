@@ -158,6 +158,19 @@ test('independent first-open processes converge on one initialized schema',async
   }finally{db.close();}
  }
 });
+test('failed write rolls back all jobs even when a delete trigger aborts the rewrite',async t=>{
+ const d=directory(t),q=await openBookQueue({directory:d});
+ const first=await q.enqueue(input),before=await q.exportSnapshot();
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{db.exec("CREATE TRIGGER abort_jobs_rewrite BEFORE DELETE ON jobs BEGIN SELECT RAISE(ABORT,'rewrite forbidden'); END");}
+ finally{db.close();}
+ await assert.rejects(q.enqueue({...input,page:2}),/Invalid queue state/);
+ assert.deepEqual(await q.exportSnapshot(),before);
+ const reopened=await openBookQueue({directory:d});assert.deepEqual(await reopened.get(first.id),before.jobs[0]);
+ const verify=new DatabaseSync(join(d,'queue.sqlite'));
+ try{assert.equal(verify.prepare('PRAGMA integrity_check').get().integrity_check,'ok');}
+ finally{verify.close();}
+});
 test('committed queue mutation survives writer process exit and reopen',async t=>{
  const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
  const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});const j=await q.enqueue(${JSON.stringify(input)});console.log(j.id);`;
