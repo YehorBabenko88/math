@@ -42,14 +42,14 @@ function verifyLifecycle(events,results){
   }
   requireValid(result.status!=='PASS'||workers.size>0,'PASS requires worker evidence');
   requireValid([...workers.values()].every(w=>w.state==='exited'),'worker exit completeness');
-  const pairMatch=/^(concurrent-first-open-(10|100|300|1000)|diagnostic-first-open-(100|3000))$/.exec(result.id);
+  const pairMatch=/^(concurrent-first-open-(10|100|300|1000)|diagnostic-first-open-(100|3000)|passive-first-open-(3000))$/.exec(result.id);
   if(pairMatch){
-   const total=Number(pairMatch[2]||pairMatch[3]);
+   const total=Number(pairMatch[2]||pairMatch[3]||pairMatch[4]);
    const pairs=scoped.filter(e=>e.workerId==='parent'&&e.event==='phase'&&e.data.phase==='native-pair');
    requireValid(pairs.length===total&&pairs.every((e,i)=>e.data.iteration===i&&typeof e.data.success==='boolean'),'native pair inventory');
    requireValid(result.status!=='PASS'||pairs.every(e=>e.data.success),'native pair failure cannot PASS');
    const diagnostic=result.id.startsWith('diagnostic');
-   requireValid(pairs.every(e=>diagnostic?e.data.lane==='diagnostic-preload':e.data.lane===undefined||e.data.lane==='native'),'native pair lane');
+   requireValid(pairs.every(e=>result.id.startsWith('passive')?e.data.lane==='passive-error-only':diagnostic?e.data.lane==='diagnostic-preload':e.data.lane===undefined||e.data.lane==='native'),'native pair lane');
   }
  }
 }

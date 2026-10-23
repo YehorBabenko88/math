@@ -20,10 +20,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ matrix.node }}
-      - run: node --test tests/q01-evidence.test.mjs tests/q01-runner.test.mjs
-      - run: node scripts/q01-lab/run.mjs --source "${{ github.workspace }}" --output "${{ runner.temp }}/MathUniverseQ01/forensic" --expected-head "${{ github.sha }}" --profile forensic
+      - run: node --test tests/q01-evidence.test.mjs tests/q01-runner.test.mjs tests/q01-passive-source.test.mjs
+      - run: node scripts/q01-lab/run.mjs --source "${{ github.workspace }}" --output "${{ runner.temp }}/MathUniverseQ01/forensic" --expected-head "${{ github.sha }}" --profile passive
       - if: always()
-        run: node scripts/q01-lab/verify.mjs --directory "${{ runner.temp }}/MathUniverseQ01/forensic/evidence" --expected-head "${{ github.sha }}" --expected-profile forensic
+        run: node scripts/q01-lab/verify.mjs --directory "${{ runner.temp }}/MathUniverseQ01/forensic/evidence" --expected-head "${{ github.sha }}" --expected-profile passive
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:

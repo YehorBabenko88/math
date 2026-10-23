@@ -15,11 +15,11 @@ async function rejected(ctx,options={}){const r=await ctx.one('open',options);ct
 async function pairs(ctx,count,diagnostic=false){
  let failures=0;
  for(let i=0;i<count;i++){
-  const directory=ctx.freshDirectory('pair-'+i),options={directory,...(diagnostic?{hook:{}}:{})},a=ctx.child('pair',options),b=ctx.child('pair',options);
+  const directory=ctx.freshDirectory('pair-'+i),options={directory,...(diagnostic?{hook:diagnostic==='passive'?{passive:true}:{}}:{})},a=ctx.child('pair',options),b=ctx.child('pair',options);
   await Promise.all([a.ready(),b.ready()]);ctx.check(a.pid!==b.pid,'distinct-pids-'+i);ctx.observe('pair-start',{iteration:i,firstWorker:a.id,secondWorker:b.id});a.start();b.start();
   const [x,y]=await Promise.all([a.result(),b.result()]);
   if(!x.ok||!y.ok)failures++;
-  ctx.observe('native-pair',{iteration:i,success:x.ok&&y.ok,lane:diagnostic?'diagnostic-preload':'native'});
+  ctx.observe('native-pair',{iteration:i,success:x.ok&&y.ok,lane:diagnostic==='passive'?'passive-error-only':diagnostic?'diagnostic-preload':'native'});
   ctx.assertions.push({name:'both-openers-'+i,pass:x.ok&&y.ok});
   if(x.ok&&y.ok){ctx.check(x.id===y.id,'dedup-'+i);ctx.check(Number(x.acquired)+Number(y.acquired)===1,'one-lease-'+i);}
   const snapshot=await ctx.one('open',{directory});
@@ -64,6 +64,7 @@ async function crash(ctx,phase,{initial=false,lease=false}={}){
 }
 export async function executeCase(ctx,id){
  if(id.startsWith('concurrent-first-open-'))return pairs(ctx,Number(id.split('-').at(-1)));
+ if(id==='passive-first-open-3000')return pairs(ctx,3000,'passive');
  if(id.startsWith('diagnostic-first-open-'))return pairs(ctx,Number(id.split('-').at(-1)),true);
  if(id==='stale-exists-false'){
   const stale=ctx.child('open',{hook:{barrier:'existence-missing-stat'}});await stale.ready();stale.start();await stale.barrier('existence-missing-stat');

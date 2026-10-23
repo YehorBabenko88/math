@@ -42,7 +42,7 @@ async function sourceIdentity(source,expected){
  const before=process.cwd();let identity;
  try{process.chdir(source);const {verifySourceIdentity}=await import(pathToFileURL(join(source,'scripts/verify-source-identity.mjs')).href);identity=verifySourceIdentity(head);}finally{process.chdir(before);}
  const sourceHash=file=>{const bytes=readFileSync(join(source,file)),committed=git('show',head+':'+file);if(!bytes.equals(committed)&&hash(Buffer.from(bytes.toString().replaceAll('\r\n','\n')))!==hash(committed))throw Error('LAB_SOURCE_BYTES');return hash(committed);};
- const harness={};for(const name of ['run','worker','plan','cases','preload','probe','sqlite-probe','fs-probe','evidence','verify'])harness[name]=sourceHash('scripts/q01-lab/'+name+'.mjs');
+ const harness={};for(const name of ['run','worker','plan','cases','preload','probe','sqlite-probe','fs-probe','evidence','verify','passive-source'])harness[name]=sourceHash('scripts/q01-lab/'+name+'.mjs');
  return {head,tree:identity.committedTreeSha,queueSha256:sourceHash('src/book-ingestion/queue.mjs'),contractSha256:sourceHash('src/book-ingestion/queue-contract.mjs'),textSha256:sourceHash('src/book-ingestion/sqlite-text.mjs'),harnessSha256:hash(JSON.stringify(harness)),trackedSourceSha256:identity.trackedSourceSha256,node:process.versions.node,sqlite:process.versions.sqlite,os:process.platform};
 }
 class Child{

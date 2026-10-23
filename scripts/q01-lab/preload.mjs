@@ -1,10 +1,11 @@
+import {instrumentQueue} from './passive-source.mjs';
 import {registerHooks} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {join} from 'node:path';
 const config=JSON.parse(process.env.Q01_WORKER_CONFIG);
 const queue=pathToFileURL(join(config.source,'src/book-ingestion/queue.mjs')).href;
-registerHooks({resolve(specifier,context,next){
- if(context.parentURL===queue&&specifier==='node:sqlite')return {url:new URL('./sqlite-probe.mjs',import.meta.url).href,shortCircuit:true};
+registerHooks({load(url,context,next){const result=next(url,context);if(config.hook?.passive&&url===queue)return {...result,source:instrumentQueue(result.source)};return result;},resolve(specifier,context,next){
+ if(!config.hook?.passive&&context.parentURL===queue&&specifier==='node:sqlite')return {url:new URL('./sqlite-probe.mjs',import.meta.url).href,shortCircuit:true};
  if(context.parentURL===queue&&specifier==='node:fs')return {url:new URL('./fs-probe.mjs',import.meta.url).href,shortCircuit:true};
  return next(specifier,context);
 }});
