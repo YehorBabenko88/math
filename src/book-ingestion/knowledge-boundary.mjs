@@ -49,6 +49,10 @@ export function rejectUntrustedVerification(result){
   seen.add(value);
   const descriptors=Object.getOwnPropertyDescriptors(value);
   if(Reflect.ownKeys(descriptors).length>20000)throw Error('Invalid knowledge result');
+  if(Array.isArray(value)){
+   if(value.length>19999||Reflect.ownKeys(descriptors).length!==value.length+1)throw Error('Invalid knowledge result');
+   for(let i=0;i<value.length;i++)if(!Object.hasOwn(descriptors,String(i)))throw Error('Invalid knowledge result');
+  }
   for(const field of Reflect.ownKeys(descriptors)){
    if(typeof field!=='string')throw Error('Invalid knowledge result');
    const descriptor=descriptors[field];
