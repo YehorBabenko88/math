@@ -1,0 +1,70 @@
+name: Q01 Queue Reliability
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  laboratory:
+    name: Q01 ${{ matrix.profile }} / ${{ matrix.os }} / Node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+        profile: [quick, fault, stress]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Evidence and execution-policy unit regressions
+        run: node --test tests/q01-evidence.test.mjs tests/q01-runner.test.mjs
+      - name: Run isolated synthetic queue scenarios
+        id: run
+        run: node scripts/q01-lab/run.mjs --source "${{ github.workspace }}" --output "${{ runner.temp }}/MathUniverseQ01/run" --expected-head "${{ github.sha }}" --profile "${{ matrix.profile }}"
+      - name: Independently verify exact source evidence and completeness
+        if: always()
+        run: node scripts/q01-lab/verify.mjs --directory "${{ runner.temp }}/MathUniverseQ01/run/evidence" --expected-head "${{ github.sha }}" --expected-profile "${{ matrix.profile }}"
+      - name: Upload all outcomes including failure evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: q01-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}-${{ matrix.node }}-${{ matrix.profile }}
+          path: ${{ runner.temp }}/MathUniverseQ01/run/evidence/
+          if-no-files-found: error
+          retention-days: 30
+  windows-guards:
+    name: Q01 Windows laboratory guard contracts
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Prepare verified test framework before fixture execution
+        shell: pwsh
+        run: ./scripts/install-pester-verified.ps1 -Destination "$env:RUNNER_TEMP/q01-pester"
+      - name: Test Windows PowerShell 5.1 guards without a laboratory execution
+        shell: pwsh
+        run: |
+          ./scripts/install-pester-verified.ps1 -Destination "$env:RUNNER_TEMP/q01-pester" -VerifyOnly
+          & powershell -NoProfile -Command "Import-Module '$env:RUNNER_TEMP/q01-pester/Pester/4.10.1/Pester.psd1' -ErrorAction Stop; Invoke-Pester -Script tests/windows-q01-lab.Tests.ps1 -EnableExit"
+          exit $LASTEXITCODE
+  q01-coverage:
+    name: Q01 complete execution coverage
+    if: always()
+    needs: [laboratory, windows-guards]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every platform runtime and profile to execute successfully
+        env:
+          LAB_RESULT: ${{ needs.laboratory.result }}
+          GUARD_RESULT: ${{ needs.windows-guards.result }}
+        run: test "$LAB_RESULT" = success && test "$GUARD_RESULT" = success
