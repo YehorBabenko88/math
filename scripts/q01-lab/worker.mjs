@@ -1,5 +1,5 @@
 import {DatabaseSync} from 'node:sqlite';
-import {mkdirSync} from 'node:fs';
+import {mkdirSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -15,7 +15,9 @@ await new Promise(resolve=>process.once('message',message=>{if(message?.command=
 let result;
 try{
  alive();
- const {openBookQueue}=await import(pathToFileURL(join(c.source,'src/book-ingestion/queue.mjs')).href);
+ let queueURL=pathToFileURL(join(c.source,'src/book-ingestion/queue.mjs')).href;
+ if(c.copyPassive){const {diagnosticQueueURL}=await import('./passive-source.mjs');queueURL=diagnosticQueueURL(readFileSync(join(c.source,'src/book-ingestion/queue.mjs')),pathToFileURL(join(c.source,'src/book-ingestion/queue-contract.mjs')).href,pathToFileURL(join(c.source,'src/book-ingestion/sqlite-text.mjs')).href);}
+ const {openBookQueue}=await import(queueURL);
  const open=()=>openBookQueue({directory:c.directory,...(c.now===undefined?{}:{now:()=>c.now})});
  if(c.role==='hold'){
   const db=new DatabaseSync(join(c.directory,'queue.sqlite'));

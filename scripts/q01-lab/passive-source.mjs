@@ -15,3 +15,8 @@ export function instrumentQueue(raw){
  replace('}finally{db?.close();}',"}finally{try{db?.close();}catch(__error){__q01Error('close-error',__error);throw __error;}}");
  return receipt+changed;
 }
+export function diagnosticQueueURL(raw,contractURL,textURL){
+ for(const value of [contractURL,textURL])if(typeof value!=='string'||!value.startsWith('file:'))throw Error('Diagnostic dependency must be file URL');
+ const source=instrumentQueue(raw).replace("from './queue-contract.mjs'",'from '+JSON.stringify(contractURL)).replace("from './sqlite-text.mjs'",'from '+JSON.stringify(textURL));
+ return 'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+}

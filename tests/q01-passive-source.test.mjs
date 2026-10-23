@@ -9,3 +9,10 @@ test('passive source accepts byte buffers and typed arrays without weakening the
  const original=readFileSync(new URL('../src/book-ingestion/queue.mjs',import.meta.url));
  assert.equal(module.instrumentQueue(original),module.instrumentQueue(new Uint8Array(original)));
 });
+test('error-only diagnostic copy retains native imports with explicit pinned dependencies',()=>{
+ const original=readFileSync(new URL('../src/book-ingestion/queue.mjs',import.meta.url));
+ const url=module.diagnosticQueueURL(original,'file:///synthetic/queue-contract.mjs','file:///synthetic/sqlite-text.mjs');
+ const decoded=Buffer.from(url.split(',')[1],'base64').toString();
+ assert.match(decoded,/from 'node:sqlite'/);assert.match(decoded,/file:\/\/\/synthetic\/queue-contract.mjs/);assert.doesNotMatch(decoded,/from '\.\/queue-contract.mjs'/);
+ assert.throws(()=>module.diagnosticQueueURL(original,'https://example.invalid/a','file:///b'));
+});
