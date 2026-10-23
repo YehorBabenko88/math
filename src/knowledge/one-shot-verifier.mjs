@@ -1,5 +1,6 @@
 // Experimental v2 one-shot verifier. Never assigns VERIFIED.
 import {randomBytes,createPublicKey,verify} from 'node:crypto';
+import {FileReplayLedger} from './file-replay-ledger.mjs';
 const dig=x=>typeof x==='string'&&/^sha256:[a-f0-9]{64}$/.test(x);
 const fields=['schema_version','verdict','kernel_id','kernel_version','request_id','theorem_revision','theorem_content_hash','proof_revision','proof_content_hash','context_hash'];
 const canon=x=>JSON.stringify(Object.fromEntries(fields.map(k=>[k,x[k]])));
@@ -15,7 +16,7 @@ export class OneShotKernelVerifier {
   this.#id=kernel_id;this.#version=kernel_version;
  }
  async assessPersisted(request,result,ledger) {
-  if(!ledger || typeof ledger.consume!=='function') throw Error('persistent ledger required');
+  if(!(ledger instanceof FileReplayLedger)) throw Error('trusted FileReplayLedger required');
   const assessment=this.#validateSignature(request,result);
   const accepted=await ledger.consume(request.request_id);
   if(accepted!==true) throw Error('replayed request');
