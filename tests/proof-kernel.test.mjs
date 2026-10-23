@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {verifyImplicationProof,verifyImplicationProofJson} from '../src/proof-kernel.mjs';
+import {verifyImplicationProof,verifyImplicationProofJson,verifyClosedImplicationProofJson} from '../src/proof-kernel.mjs';
 const atom=name=>({kind:'atom',name});
 const imp=(left,right)=>({kind:'imp',left,right});
 const P=atom('P'),Q=atom('Q');
@@ -169,4 +169,12 @@ test('JSON entrypoint rejects duplicate keys and noncanonical whitespace',()=>{
  assert.throws(()=>verifyImplicationProofJson(valid.replace('"goal":','"goal":null,"goal":')));
  assert.throws(()=>verifyImplicationProofJson(' '+valid));
  assert.throws(()=>verifyImplicationProofJson(valid+'\\n'));
+});
+
+test('closed theorem JSON gate refuses an otherwise valid conditional proof',()=>{
+ const closed=JSON.stringify({goal:imp(P,P),proof:identity});
+ assert.equal(verifyClosedImplicationProofJson(closed).isClosedTheorem,true);
+ const conditional=JSON.stringify({goal:P,assumptions:[P],proof:{rule:'assumption',index:0}});
+ assert.equal(verifyImplicationProofJson(conditional).openAssumptions,1);
+ assert.throws(()=>verifyClosedImplicationProofJson(conditional),/Open assumptions/);
 });
