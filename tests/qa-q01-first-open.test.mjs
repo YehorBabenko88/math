@@ -20,8 +20,8 @@ console.log(JSON.stringify({lease:lease===null?null:{id:lease.id,token:lease.tok
     proc.stdout.setEncoding('utf8');proc.stderr.setEncoding('utf8');
     proc.stdout.on('data',v=>{stdout+=v;if(stdout.length>maxOutput){overflow=true;proc.kill();}});
     proc.stderr.on('data',v=>{stderr+=v;if(stderr.length>maxOutput){overflow=true;proc.kill();}});
-    proc.on('error',reject);
-    proc.on('close',(code,signal)=>resolve({code,signal,stdout,stderr,overflow}));
+    proc.on('error',err=>{clearTimeout(watchdog);reject(err);});
+    proc.on('close',(code,signal)=>{clearTimeout(watchdog);resolve({code,signal,stdout,stderr,overflow,timedOut});});
   });
 }
 
@@ -34,6 +34,7 @@ test('QA Q01: concurrent first-open creators never both fail or acquire duplicat
     try {
       const results=await Promise.all([child(directory,'qa-a'),child(directory,'qa-b')]);
       assert.ok(results.every(x=>!x.overflow),'Q01 child output overflow');
+      assert.ok(results.every(x=>!x.timedOut),`Q01 child timeout at round ${round}: ${JSON.stringify(results)}`);
       assert.deepEqual(results.map(x=>x.code),[0,0],`Q01 first-open failed at round ${round}: ${JSON.stringify(results)}`);
       const leases=results.map(x=>JSON.parse(x.stdout).lease).filter(Boolean);
       assert.equal(leases.length,1,`Q01 lease uniqueness at round ${round}`);
