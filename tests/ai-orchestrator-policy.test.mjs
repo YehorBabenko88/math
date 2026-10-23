@@ -21,3 +21,5 @@ for(const [name,task] of [
 test('LLM cannot certify',()=>assert.equal(classifyResult({kind:'HYPOTHESIS',proofVerified:true}),'CANDIDATE'));
 test('adapter cannot certify',()=>assert.equal(classifyResult({kind:'ADAPTER_BUILD',proofVerified:true}),'ADAPTER_TESTED'));
 test('untrusted proof flag cannot certify',()=>assert.equal(classifyResult({kind:'PROOF_CHECK',proofVerified:true}),'CANDIDATE'));
+
+test('source commit must be primitive string, not coercible object',()=>assert.throws(()=>validateTask({...base,sourceCommit:{toString(){return 'a'.repeat(64);}}}),/INVALID_TASK/));
