@@ -39,14 +39,16 @@ const CLAIM_FIELDS=['status','knowledgeStatus','verificationStatus'];
 const VERIFIED_CLAIMS=new Set(['VERIFIED','KERNEL_VERIFIED','PROVEN','MATHEMATICALLY_VERIFIED']);
 export function rejectUntrustedVerification(result){
  if(!plain(result))throw Error('Invalid knowledge result');
- const seen=new Set();
+ const seen=new Set();let nodes=0;
  function inspect(value,depth){
   if(value===null||typeof value!=='object')return;
   if(types.isProxy(value)||depth>24||seen.has(value))throw Error('Invalid knowledge result');
   if(!Array.isArray(value)&&!plain(value))throw Error('Invalid knowledge result');
+  if(++nodes>20000)throw Error('Invalid knowledge result');
   if(Array.isArray(value)&&Object.getPrototypeOf(value)!==Array.prototype)throw Error('Invalid knowledge result');
   seen.add(value);
   const descriptors=Object.getOwnPropertyDescriptors(value);
+  if(Reflect.ownKeys(descriptors).length>20000)throw Error('Invalid knowledge result');
   for(const field of Reflect.ownKeys(descriptors)){
    if(typeof field!=='string')throw Error('Invalid knowledge result');
    const descriptor=descriptors[field];
