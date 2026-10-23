@@ -36,7 +36,7 @@ test('QA Q01: concurrent first-open creators never both fail or acquire duplicat
   assert.ok(Number.isSafeInteger(rounds)&&rounds>=1&&rounds<=300,'bounded QA_Q01_ROUNDS required');
   const deadline=performance.now()+540000;
   for(let round=0;round<rounds;round++){
-    assert.ok(performance.now()<deadline,`Q01 diagnostic budget exhausted before round ${round}/${rounds}`);
+    assert.ok(performance.now()+60000<deadline,`Q01 diagnostic budget exhausted before round ${round}/${rounds}`);
     const directory=mkdtempSync(join(tmpdir(),'math-q01-qa-'));
     try {
       const results=await Promise.all([child(directory,'qa-a'),child(directory,'qa-b')]);
