@@ -51,3 +51,6 @@ The in-memory plan now copies `budget.attempts` to `maxAttempts`; zero permitted
 
 ## CI provenance regression (2026-10-23)
 PostgreSQL Integration full-suite CI at commit `7156349e9a99b1e89235ffc772aa25304a8cd76d` failed the `ci-provenance.test.mjs` check because this PR's offline workflow used mutable `actions/checkout@v4` and `actions/setup-node@v4`. Both are now pinned to immutable 40-character commits. Re-run of the full integration matrix on the corrected exact HEAD is required; prior green offline policy runs do not imply integration PASS.
+
+## Receipt claim byte binding
+`correlateExecutionClaimWithReceiptBytes(task, receipt, claim, receiptBytes)` now checks SHA256 of the original receipt bytes and exact parsed record equivalence (1 MiB cap), preventing an unverified `receiptHash` from being treated as a binding. This remains untrusted, unsigned metadata. Authentic signature verification, trusted key enrollment, anti-replay persistence and durable runner fencing remain outstanding.
