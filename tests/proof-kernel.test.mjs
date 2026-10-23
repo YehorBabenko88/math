@@ -162,3 +162,11 @@ test('JSON entrypoint rejects prototype-control fields',()=>{
  const doc='{"goal":{"kind":"atom","name":"P","__proto__":{}},"proof":{"rule":"assumption","index":0},"assumptions":[{"kind":"atom","name":"P"}]}';
  assert.throws(()=>verifyImplicationProofJson(doc));
 });
+
+test('JSON entrypoint rejects duplicate keys and noncanonical whitespace',()=>{
+ const valid=JSON.stringify({goal:imp(P,P),proof:identity});
+ assert.equal(verifyImplicationProofJson(valid).isClosedTheorem,true);
+ assert.throws(()=>verifyImplicationProofJson(valid.replace('"goal":','"goal":null,"goal":')));
+ assert.throws(()=>verifyImplicationProofJson(' '+valid));
+ assert.throws(()=>verifyImplicationProofJson(valid+'\\n'));
+});
