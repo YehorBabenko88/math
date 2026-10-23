@@ -1,0 +1,57 @@
+name: QA SQLite Q01 Diagnostic
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/book-ingestion/**'
+      - 'tests/qa-q01-first-open.test.mjs'
+      - 'tests/qa-evidence-manifest.test.mjs'
+      - 'scripts/qa-evidence-manifest.mjs'
+      - '.github/workflows/qa-q01-diagnostic.yml'
+jobs:
+  q01-diagnostic:
+    name: Q01 synthetic diagnostic (not acceptance)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Bind checkout to workflow commit
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+      - name: Run Q01 synthetic diagnostic without retries
+        env:
+          QA_Q01_ROUNDS: '100'
+        run: |
+          mkdir -p qa-evidence
+          node --test --test-reporter=junit --test-reporter-destination=qa-evidence/q01-junit.xml tests/qa-q01-first-open.test.mjs
+      - name: QA manifest self-tests
+        if: always()
+        run: node --test tests/qa-evidence-manifest.test.mjs
+      - name: Generate and verify bound evidence manifest
+        if: always()
+        env:
+          QA_JOB_ID: q01-node-${{ matrix.node }}
+        run: |
+          test -s qa-evidence/q01-junit.xml
+          node scripts/qa-evidence-manifest.mjs create qa-evidence qa-evidence/manifest.json q01-junit.xml
+          node scripts/qa-evidence-manifest.mjs verify qa-evidence qa-evidence/manifest.json
+      - name: Upload diagnostic evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: q01-synthetic-node-${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-evidence/
+          if-no-files-found: error
+          retention-days: 30

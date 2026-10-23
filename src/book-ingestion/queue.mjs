@@ -49,7 +49,7 @@ export async function openBookQueue(options={}){
  function transaction(fn,{initialize=false,readOnly=false}={}){
   let db;
   try{
-   checkFiles(path);let exists=true,existingSize;try{existingSize=lstatSync(join(path,'queue.sqlite')).size;}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
+   checkFiles(path);let exists=true;try{lstatSync(join(path,'queue.sqlite'));}catch(e){if(e.code==='ENOENT')exists=false;else throw e;}
    db=new DatabaseSync(join(path,'queue.sqlite'));
    // Existing files may be WAL databases with live readers. Reconfiguring their
    // journal mode is a persistent write, including on a frozen read/reopen.
@@ -63,7 +63,11 @@ export async function openBookQueue(options={}){
    // Another creator may have opened the file but not acquired the schema lock
    // yet. Release our transaction and wait; never initialize an existing orphan
    // or repair missing metadata ourselves.
-   if(initialize&&exists&&existingSize===0&&db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table'").get().n===0)throw Object.assign(Error('Invalid queue state'),{code:'BOOK_QUEUE_INITIALIZING'});
+   if(initialize&&exists&&db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='queue_metadata'").get().n===0){
+    const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+    if(tables.length!==0)throw Error('Invalid queue state');
+    throw Object.assign(Error('Invalid queue state'),{code:'BOOK_QUEUE_INITIALIZING'});
+   }
    // The durable control table also fences no-op API mutations, which SQLite
    // row triggers cannot observe. Initialization of a frozen store only reads;
    // expired leases remain intact for the explicit restore path to invalidate.
@@ -71,6 +75,7 @@ export async function openBookQueue(options={}){
    if(frozen&&!readOnly&&!initialize)throw Error('Book source frozen');
    const document=readBookSnapshot(db,maxAttempts),before=JSON.stringify(document),time=clock();const result=frozen&&initialize?undefined:fn(document,time);state(document,maxAttempts);if(JSON.stringify(document)!==before)save(db,document);db.exec('COMMIT');return result===undefined?undefined:json(result,MAX_BYTES);
   }catch(e){if(db){try{db.exec('ROLLBACK')}catch{}}// Never include SQL, paths, payloads or parser errors.
+   if(initialize&&e.code==='BOOK_QUEUE_INITIALIZING')throw e;
    if(['Invalid queue input','Invalid queue state','Invalid queue clock','Lease rejected','Queue is not empty','Queue capacity reached','Book source frozen'].includes(e.message))throw e;
    throw Error('Invalid queue state');
   }finally{db?.close();}
