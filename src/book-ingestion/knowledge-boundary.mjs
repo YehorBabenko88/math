@@ -40,6 +40,7 @@ export function sameDigest(a,b){
 }
 
 const CLAIM_FIELDS=['status','knowledgeStatus','verificationStatus'];
+const BOOLEAN_CLAIMS=['mathematicallyVerified','isMathematicallyVerified','proofVerified'];
 const VERIFIED_CLAIMS=new Set(['VERIFIED','KERNEL_VERIFIED','PROVEN','MATHEMATICALLY_VERIFIED']);
 export function rejectUntrustedVerification(result){
  if(!plain(result))throw Error('Invalid knowledge result');
@@ -67,7 +68,7 @@ export function rejectUntrustedVerification(result){
    const item=descriptor.value;
    if(CLAIM_FIELDS.includes(field)&&VERIFIED_CLAIMS.has(item))
     throw Error('Independent proof kernel verification required');
-   if(field==='mathematicallyVerified'&&item!==false)
+   if(BOOLEAN_CLAIMS.includes(field)&&item!==false)
     throw Error('Independent proof kernel verification required');
    inspect(item,depth+1);
   }
