@@ -9,16 +9,17 @@ export function createVerificationRequestV2(v1) {
  return Object.freeze({...v1,schema_version:'kg.verify-request.v2',request_id:randomBytes(32).toString('hex')});
 }
 export class OneShotKernelVerifier {
- #key; #id; #version;
- constructor({public_key_pem,kernel_id,kernel_version}) {
+ #key; #id; #version; #consume;
+ constructor({public_key_pem,kernel_id,kernel_version,ledger}) {
+  if(!(ledger instanceof FileReplayLedger)) throw Error('trusted FileReplayLedger required');
+  this.#consume=FileReplayLedger.prototype.consume.bind(ledger);
   this.#key=createPublicKey(public_key_pem);
   if(this.#key.asymmetricKeyType!=='ed25519'||!kernel_id||!kernel_version) throw Error('invalid trust policy');
   this.#id=kernel_id;this.#version=kernel_version;
  }
- async assessPersisted(request,result,ledger) {
-  if(!(ledger instanceof FileReplayLedger)) throw Error('trusted FileReplayLedger required');
+ async assessPersisted(request,result) {
   const assessment=this.#validateSignature(request,result);
-  const accepted=await ledger.consume(request.request_id);
+  const accepted=await this.#consume(request.request_id);
   if(accepted!==true) throw Error('replayed request');
   return assessment;
  }
