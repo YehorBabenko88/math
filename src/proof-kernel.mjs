@@ -10,7 +10,11 @@ const keys=(o,expected)=>{
 const limit=Object.freeze({nodes:2048,depth:128,context:128});
 function inert(o,seen=new Set(),budget={n:0},depth=0){
  if(++budget.n>8192||depth>128)throw Error('Input limit');
- if(o===null||['string','number','boolean'].includes(typeof o))return o;
+ if(o===null||typeof o==='string'||typeof o==='boolean')return o;
+ if(typeof o==='number'){
+  if(!Number.isFinite(o)||Object.is(o,-0))throw Error('Noncanonical number');
+  return o;
+ }
  if(typeof o!=='object'||seen.has(o))throw Error('Invalid input');
  const array=Array.isArray(o);
  if(array?Object.getPrototypeOf(o)!==Array.prototype:!record(o))throw Error('Invalid prototype');
