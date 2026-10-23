@@ -35,3 +35,19 @@ test('forged ledger object is rejected',async()=>{
  const request=createVerificationRequestV2(base),result=signed(request);
  assert.throws(()=>verifier({consume:async()=>true}),/trusted FileReplayLedger/);
 });
+
+test('shadowed ledger consume method cannot bypass persistence',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'kg-shadow-'));
+ try {
+  const request=createVerificationRequestV2(base),result=signed(request),ledger=new FileReplayLedger(dir);
+  ledger.consume=async()=>true;
+  const first=verifier(ledger);
+  assert.equal((await first.assessPersisted(request,result)).verdict,'PASS');
+  await assert.rejects(verifier(ledger).assessPersisted(request,result),/replayed/);
+ } finally {await rm(dir,{recursive:true,force:true});}
+});
+test('prototype-spoofed ledger cannot authenticate a result',async()=>{
+ const request=createVerificationRequestV2(base),result=signed(request);
+ const fake=Object.create(FileReplayLedger.prototype);
+ await assert.rejects(verifier(fake).assessPersisted(request,result),/private member|private field|incompatible receiver/i);
+});
