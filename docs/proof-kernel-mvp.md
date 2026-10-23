@@ -73,3 +73,14 @@ Consumers that require a hypothesis-free result must call
 derivation whenever `openAssumptions > 0`. It still returns only
 `CHECKED_IN_EXPERIMENTAL_KERNEL`; a closed result is not automatically
 project-wide VERIFIED, and the caller must bind the exact goal to its source.
+
+## Expected-goal binding
+
+For an externally specified theorem, call
+`verifyExpectedClosedImplicationProofJson(proofJson, expectedGoalJson)`.
+The expected goal must come from a trusted caller, independently of the
+candidate-generating AI. Both inputs use the restricted canonical JSON
+profile. A mismatch rejects the certificate before a closed-theorem result
+can be returned. This does not itself authenticate the source or provenance
+of the trusted goal; source hashes and approved theorem identifiers remain
+a future integration requirement.
