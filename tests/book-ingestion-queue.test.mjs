@@ -158,6 +158,17 @@ test('independent first-open processes converge on one initialized schema',async
   }finally{db.close();}
  }
 });
+test('committed queue mutation survives writer process exit and reopen',async t=>{
+ const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
+ const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});const j=await q.enqueue(${JSON.stringify(input)});console.log(j.id);`;
+ const {stdout}=await promisify(execFile)(process.execPath,['--input-type=module','-e',script],{timeout:15000});
+ const id=stdout.trim();assert.match(id,/^[a-f0-9]{64}$/);
+ const q=await openBookQueue({directory:d}),stored=await q.get(id);
+ assert.equal(stored.id,id);assert.equal(stored.state,'queued');assert.deepEqual(stored.payload,input.payload);
+ const db=new DatabaseSync(join(d,'queue.sqlite'));
+ try{assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check,'ok');}
+ finally{db.close();}
+});
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
  const script=`import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync(${JSON.stringify(join(d,'queue.sqlite'))});db.exec("BEGIN IMMEDIATE;UPDATE jobs SET state='failed'");console.log('locked');setInterval(()=>{},1000);`;
