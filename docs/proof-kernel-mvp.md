@@ -44,3 +44,12 @@ skipped, cancelled, or missing workflow is not PASS. Record the exact HEAD,
 workflow run IDs, JUnit or test output, and SHA256 of evidence before an
 independent reviewer considers this experimental gate. The presence of
 successful synthetic tests does not establish physical acceptance or close Q01.
+
+## Independent semantic smoke test
+
+The regression suite includes an independently written Boolean evaluator for
+atoms and implication. It checks the identity introduction schema and
+assumption-based implication elimination across a small formula corpus and all
+four valuations of two atoms. This is a bounded **soundness smoke test**, not
+an exhaustive metatheoretic soundness proof and not Lean replay. The oracle
+does not import or call the proof kernel's structural equality implementation.
