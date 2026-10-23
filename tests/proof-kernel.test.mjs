@@ -113,3 +113,12 @@ test('structural comparison rejects altered nested implication',()=>{
  assert.equal(accepted.isClosedTheorem,true);
  assert.throws(()=>verifyImplicationProof({goal:imp(P,imp(Q,Q)),proof}));
 });
+
+test('iterative formula equality preserves nested implication checks',()=>{
+ const theorem=imp(P,imp(Q,P));
+ const proof={rule:'imp_intro',premise:P,body:{
+  rule:'imp_intro',premise:Q,body:{rule:'assumption',index:0}
+ }};
+ assert.equal(verifyImplicationProof({goal:theorem,proof}).isClosedTheorem,true);
+ assert.throws(()=>verifyImplicationProof({goal:imp(P,imp(P,Q)),proof}));
+});
