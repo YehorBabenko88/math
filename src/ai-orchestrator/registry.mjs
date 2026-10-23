@@ -14,8 +14,19 @@ CREATE TABLE IF NOT EXISTS ai_receipt_registry (
  receipt_hash TEXT NOT NULL CHECK(length(receipt_hash)=64),
  PRIMARY KEY(task_id,attempt)
 );`);
-  const schema=db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='ai_receipt_registry'").get()?.sql;
-  if(typeof schema!=='string'||!schema.includes('PRIMARY KEY(task_id,attempt)'))throw Error('INVALID_REGISTRY_SCHEMA');
+  // Validate actual SQLite metadata, not formatting of CREATE TABLE SQL.
+  const table=db.prepare("SELECT type,sql FROM sqlite_master WHERE name='ai_receipt_registry'").get();
+  const columns=db.prepare("PRAGMA table_info('ai_receipt_registry')").all();
+  const expected=[['task_id','TEXT',1,1],['attempt','INTEGER',1,2],['receipt_hash','TEXT',1,0]];
+  const columnShape=columns.length===expected.length&&columns.every((col,i)=>
+   col.name===expected[i][0]&&col.type.toUpperCase()===expected[i][1]&&
+   col.notnull===expected[i][2]&&col.pk===expected[i][3]);
+  const indexes=db.prepare("PRAGMA index_list('ai_receipt_registry')").all();
+  const pkIndexes=indexes.filter(x=>x.origin==='pk'&&x.unique===1&&x.partial===0);
+  const pkShape=pkIndexes.length===1&&db.prepare('PRAGMA index_info('+JSON.stringify(pkIndexes[0]?.name??'')+')').all()
+   .map(x=>x.name).join(',')==='task_id,attempt';
+  const objects=db.prepare("SELECT type FROM sqlite_master WHERE tbl_name='ai_receipt_registry' AND type IN ('trigger','view')").all();
+  if(table?.type!=='table'||!columnShape||!pkShape||objects.length!==0)throw Error('INVALID_REGISTRY_SCHEMA');
   return Object.freeze({
    register({taskId,attempt,receiptHash}={}){
     if(typeof taskId!=='string'||!id.test(taskId)||!Number.isSafeInteger(attempt)||attempt<1||attempt>2||typeof receiptHash!=='string'||!hex.test(receiptHash))throw Error('INVALID_REGISTRATION');
