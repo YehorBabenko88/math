@@ -185,3 +185,14 @@ test('expected-goal gate rejects proof of an easier substituted theorem',()=>{
  assert.throws(()=>verifyExpectedClosedImplicationProofJson(proof,JSON.stringify(imp(P,Q))),/Unexpected theorem goal/);
  assert.throws(()=>verifyExpectedClosedImplicationProofJson(proof,' { "kind":"atom","name":"P"}'));
 });
+test('expected-goal proof JSON gate rejects active non-text input without coercion',()=>{
+ let coerced=0;const untrusted={toString(){coerced++;return JSON.stringify({goal:imp(P,P),proof:identity});}};
+ assert.throws(()=>verifyExpectedClosedImplicationProofJson(untrusted,JSON.stringify(imp(P,P))),/Invalid proof JSON size/);
+ assert.equal(coerced,0);
+});
+test('expected-goal proof JSON gate enforces UTF8 size before parsing',()=>{
+ const oversized='€'.repeat(90000),parse=JSON.parse;let proofParses=0;
+ JSON.parse=function(value,...args){if(value===oversized)proofParses++;return parse(value,...args);};
+ try {assert.throws(()=>verifyExpectedClosedImplicationProofJson(oversized,JSON.stringify(imp(P,P))),/Invalid proof JSON size/);}finally{JSON.parse=parse;}
+ assert.equal(proofParses,0);
+});
