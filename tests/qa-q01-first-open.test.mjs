@@ -46,6 +46,12 @@ test('QA Q01: concurrent first-open creators never both fail or acquire duplicat
         assert.equal(lines.length,1,`Q01 unexpected stdout at round ${round}`);
         const response=JSON.parse(lines[0]);
         assert.deepEqual(Object.keys(response),['lease'],`Q01 invalid child response at round ${round}`);
+        if(response.lease!==null){
+          assert.ok(response.lease&&typeof response.lease==='object'&&!Array.isArray(response.lease),`Q01 malformed lease at round ${round}`);
+          assert.deepEqual(Object.keys(response.lease).sort(),['id','token'],`Q01 malformed lease fields at round ${round}`);
+          assert.ok(typeof response.lease.id==='string'||Number.isSafeInteger(response.lease.id),`Q01 invalid lease id at round ${round}`);
+          assert.ok(typeof response.lease.token==='string'&&response.lease.token.length>0,`Q01 invalid lease token at round ${round}`);
+        }
         return response.lease;
       }).filter(Boolean);
       assert.equal(leases.length,1,`Q01 lease uniqueness at round ${round}`);
