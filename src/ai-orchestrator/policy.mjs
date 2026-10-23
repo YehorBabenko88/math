@@ -8,7 +8,7 @@ const exact=(x,ks)=>Object.keys(x).length===ks.length&&ks.every(k=>Object.hasOwn
 export function validateTask(task){
  if(!plain(task)||!exact(task,['schemaVersion','taskId','kind','role','sourceCommit','inputs','budget','permissions']))throw Error('INVALID_TASK');
  if(task.schemaVersion!==1||typeof task.taskId!=='string'||!/^[-a-zA-Z0-9_]{1,80}$/.test(task.taskId))throw Error('INVALID_TASK');
- if(!KINDS.includes(task.kind)||!ROLES.includes(task.role)||allowed[task.kind]!==task.role||!hex.test(task.sourceCommit))throw Error('INVALID_TASK');
+ if(!KINDS.includes(task.kind)||!ROLES.includes(task.role)||allowed[task.kind]!==task.role||typeof task.sourceCommit!=='string'||!hex.test(task.sourceCommit))throw Error('INVALID_TASK');
  if(!Array.isArray(task.inputs)||task.inputs.length>32||!task.inputs.every(x=>plain(x)&&exact(x,['sha256','trust'])&&typeof x.sha256==='string'&&hex.test(x.sha256)&&x.trust==='UNTRUSTED'))throw Error('INVALID_TASK');
  const b=task.budget;
  if(!plain(b)||!exact(b,['wallSeconds','memoryMb','outputMb','llmTokens','attempts'])||!Object.entries({wallSeconds:600,memoryMb:1024,outputMb:50,llmTokens:20000,attempts:2}).every(([k,max])=>Number.isSafeInteger(b[k])&&b[k]>=0&&b[k]<=max))throw Error('INVALID_BUDGET');
