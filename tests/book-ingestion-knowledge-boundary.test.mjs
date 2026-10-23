@@ -69,3 +69,12 @@ test('recursive guard bounds total object traversal',()=>{
  const result={items:Array.from({length:20001},()=>({status:'LLM_CANDIDATE'}))};
  assert.throws(()=>rejectUntrustedVerification(result),/Invalid knowledge result/);
 });
+
+test('source page upper bound agrees with queue contract',()=>{
+ assert.doesNotThrow(()=>candidateDigest({...source,page:1000000}));
+ assert.throws(()=>candidateDigest({...source,page:1000001}),/Invalid extraction candidate/);
+});
+test('nested sparse arrays fail closed',()=>{
+ const sparse=new Array(3);sparse[2]={status:'LLM_CANDIDATE'};
+ assert.throws(()=>rejectUntrustedVerification({items:sparse}),/Invalid knowledge result/);
+});
