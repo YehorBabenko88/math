@@ -60,3 +60,10 @@ test('five hosted native scenarios remain mandatory and synthetic-only',()=>{
  assert.match(verifier,/c\.status==='PASS'/);
  assert.match(verifier,/BLOCKED_PENDING_ISOLATION_REVIEW/);
 });
+
+test('native evidence rejects a missing or duplicate scenario before accepting report',()=>{
+ const verifier=read('scripts/adminit-containment/verify-native.mjs');
+ assert.match(verifier,/new Set\(r\[key\]\.map\(x=>x\?\.scenario\)\)\.size===cases\.length/);
+ assert.match(verifier,/r\[key\]\.every\(x=>cases\.includes\(x\?\.scenario\)\)/);
+ assert.match(verifier,/exact '\+key\+' inventory/);
+});
