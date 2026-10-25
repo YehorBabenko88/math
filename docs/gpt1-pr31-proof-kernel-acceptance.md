@@ -100,3 +100,13 @@ unrecognized proof fields. Added 120 seeded conditional modus-ponens
 documents checked through the JSON and expected-goal closed-theorem APIs.
 None may be promoted to a closed theorem or project-wide VERIFIED.
 These are bounded regressions, not an exhaustive security proof.
+
+## Scope and weakening regressions
+
+Added 100 generated closed-theorem attempts with out-of-range assumption
+index 1 after a single implication introduction; every attempt must reject.
+Added 100 generated conditional derivations under one unused top-level
+assumption, where the proof uses the newly introduced assumption at index 1.
+These must remain `isClosedTheorem=false` even though the conclusion is a
+Boolean tautology. This distinction intentionally tracks the supplied
+context, not whether all premises were semantically necessary.
