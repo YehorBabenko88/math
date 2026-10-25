@@ -27,3 +27,18 @@ test('Q01: pre-existing partial schema fails closed without mutation',async t=>{
   assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='queue_metadata'").get().n,0);
  }finally{check.close();}
 });
+
+test('Q01: existing metadata-only schema is rejected without auto-repair',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-metadata-only-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.exec('CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY,version INTEGER,maxAttempts INTEGER)');
+ db.exec('INSERT INTO queue_metadata VALUES(1,1,3)');
+ db.close();
+ await assert.rejects(openBookQueue({directory}),/Invalid queue state/);
+ const check=new DatabaseSync(join(directory,'queue.sqlite'),{readOnly:true});
+ try{
+  assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='jobs'").get().n,0);
+  assert.equal(check.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
+ }finally{check.close();}
+});
