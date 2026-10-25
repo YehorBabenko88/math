@@ -386,3 +386,6 @@ Inventory SHA256: `3f9fdbabfb1b86c913e17a4a7320b0ecd85a7d44a38c087de6f40a10d3496
 | [40206064321](https://github.com/YehorBabenko88/math/actions/runs/40206064321) | 1 | pull_request | .github/workflows/q01-reliability.yml | `d9310dc3136dbae81497da608e72f053be97365f` |
 | [40206064361](https://github.com/YehorBabenko88/math/actions/runs/40206064361) | 1 | pull_request | .github/workflows/adminit-synthetic-containment.yml | `d9310dc3136dbae81497da608e72f053be97365f` |
 | [40206067765](https://github.com/YehorBabenko88/math/actions/runs/40206067765) | 1 | pull_request | .github/workflows/q01-reliability.yml | `6287ccf53cfbcf419a340ec47f871eef6515c730` |
+## Byte-verification clarification
+
+The inventory SHA256 above identifies the retained original Windows worktree bytes. Git's configured text checkout policy normalizes this NEW JSON document to LF in the committed blob. The committed/downloadable inventory SHA256 is `c3506dc04242b14f8316bb1494c61c8609c1975fe44be56f2ff81ba4fc255b52`; the original worktree SHA256 remains `3f9fdbabfb1b86c913e17a4a7320b0ecd85a7d44a38c087de6f40a10d34964d2`. No historical SQL or ledger checksum is rewritten. Compare byte hashes against the appropriate transport, not an unspecified checkout.
