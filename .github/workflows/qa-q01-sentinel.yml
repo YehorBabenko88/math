@@ -26,3 +26,14 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Run sentinel contract (synthetic, not physical)
         run: node --test tests/qa-q01-sentinel-contract.test.mjs
+  coverage:
+    name: Require all sentinel cells
+    if: always()
+    needs: [sentinel]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Reject incomplete or skipped matrix
+        env:
+          RESULT: ${{ needs.sentinel.result }}
+        run: test "$RESULT" = success
