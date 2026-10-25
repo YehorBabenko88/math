@@ -241,3 +241,23 @@ test('property: weakening preserves conditional derivation but never closed stat
   assert.equal(allTrueUnder(imp(a,a),[unused]),true);
  }
 });
+
+test('negative: expected-goal API rejects oversized UTF8 before either JSON parse',()=>{
+ const valid=JSON.stringify({goal:imp(P,P),proof:intro(P,assumption(0))});
+ const oversized='€'.repeat(90000);
+ const original=JSON.parse;
+ let calls=0;
+ JSON.parse=function(...args){calls++;return original(...args);};
+ try{
+  assert.throws(()=>verifyExpectedClosedImplicationProofJson(oversized,JSON.stringify(imp(P,P))),/Invalid proof JSON size/);
+  assert.equal(calls,0);
+  assert.throws(()=>verifyExpectedClosedImplicationProofJson(valid,oversized),/Invalid expected goal JSON size/);
+  assert.equal(calls,0);
+ }finally{JSON.parse=original;}
+});
+test('negative: non-text proof input is never coerced or parsed',()=>{
+ let coerced=0;
+ const active={toString(){coerced++;throw Error('coercion executed');}};
+ assert.throws(()=>verifyExpectedClosedImplicationProofJson(active,JSON.stringify(P)),/Invalid proof JSON size/);
+ assert.equal(coerced,0);
+});
