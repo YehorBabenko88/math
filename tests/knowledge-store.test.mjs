@@ -68,3 +68,121 @@ test('nonempty dependency queries return only outgoing dependency copies',()=>{
  assert.deepEqual(graph.dependencies(c),[]);
  assert.throws(()=>graph.dependencies('unknown'),/unknown revision/);
 });
+
+test('candidate store never invokes accessor after snapshot',()=>{
+ const graph=new CandidateGraph();
+ graph.addCandidate(candidate('stable','A'));
+ let reads=0;
+ const hostile={...candidate('stable','A')};
+ Object.defineProperty(hostile,'entity_id',{enumerable:true,get(){reads++;throw Error('getter executed');}});
+ assert.throws(()=>graph.addCandidate(hostile),/invalid data record/);
+ assert.equal(reads,0);
+ assert.equal(graph.history('stable').length,1);
+});
+test('identical content revision cannot attach to a different entity',()=>{
+ const graph=new CandidateGraph();
+ graph.addCandidate(candidate('first','A'));
+ assert.throws(()=>graph.addCandidate(candidate('second','A')),/revision entity conflict/);
+ assert.equal(graph.history('second').length,0);
+});
+
+test('same revision from a different source retains independent provenance',()=>{
+ const graph=new CandidateGraph();
+ const first=graph.addCandidate(candidate('theorem','A'));
+ const other=candidate('theorem','A');
+ other.provenance={...other.provenance,source_id:'book:2'};
+ const second=graph.addCandidate(other);
+ assert.notEqual(first.revision_id,second.revision_id);
+ assert.equal(graph.history('theorem').length,2);
+ assert.equal(graph.getRevision(first.revision_id).provenance.source_id,'book:1');
+ assert.equal(graph.getRevision(second.revision_id).provenance.source_id,'book:2');
+});
+test('rejected duplicate revision cannot corrupt existing provenance',()=>{
+ const graph=new CandidateGraph();
+ const first=graph.addCandidate(candidate('first','A'));
+ assert.throws(()=>graph.addCandidate(candidate('second','A')),/revision entity conflict/);
+ assert.equal(graph.getRevision(first.revision_id).provenance.source_id,'book:1');
+ assert.equal(graph.history('first').length,1);
+});
+
+test('mutating source records after ingestion cannot rewrite provenance or statement',()=>{
+ const graph=new CandidateGraph();
+ const raw=candidate('immutable','A');
+ const stored=graph.addCandidate(raw);
+ raw.statement.content='FORGED';
+ raw.provenance.source_id='attacker';
+ raw.provenance.source_hash='sha256:'+'f'.repeat(64);
+ const recovered=graph.getRevision(stored.revision_id);
+ assert.equal(recovered.statement.content,'A');
+ assert.equal(recovered.provenance.source_id,'book:1');
+ assert.equal(recovered.provenance.source_hash,source_hash);
+ assert.equal(recovered.status,'CANDIDATE');
+});
+test('candidate status cannot be promoted through mutable history copies',()=>{
+ const graph=new CandidateGraph();
+ const c=graph.addCandidate(candidate('history','A'));
+ const history=graph.history('history');
+ history[0].status='VERIFIED';
+ history[0].provenance.source_id='forged';
+ assert.equal(graph.getRevision(c.revision_id).status,'CANDIDATE');
+ assert.equal(graph.getRevision(c.revision_id).provenance.source_id,'book:1');
+});
+
+test('edge output mutation cannot change stored dependency',()=>{
+ const graph=new CandidateGraph();
+ const a=graph.addCandidate(candidate('edge-a','A')).revision_id;
+ const b=graph.addCandidate(candidate('edge-b','B')).revision_id;
+ const edge=graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:b});
+ edge.status='VERIFIED';
+ edge.to_revision='forged';
+ assert.deepEqual(graph.dependencies(a),[{type:'DEPENDS_ON',from_revision:a,to_revision:b,status:'CANDIDATE'}]);
+});
+test('candidate input rejects forged VERIFIED status before graph mutation',()=>{
+ const graph=new CandidateGraph();
+ assert.throws(()=>graph.addCandidate({...candidate('unsafe','A'),status:'VERIFIED'}),/verification status/);
+ assert.equal(graph.history('unsafe').length,0);
+});
+
+test('proxy candidate and accessor provenance are rejected without executing traps',()=>{
+ const graph=new CandidateGraph();
+ let reads=0;
+ const proxy=new Proxy(candidate('proxy','A'),{get(){reads++;throw Error('proxy get executed');}});
+ assert.throws(()=>graph.addCandidate(proxy),/invalid data record/);
+ assert.equal(reads,0);
+ const hostile=candidate('accessor','B');
+ Object.defineProperty(hostile.provenance,'source_id',{enumerable:true,get(){reads++;throw Error('provenance getter executed');}});
+ assert.throws(()=>graph.addCandidate(hostile),/invalid data record/);
+ assert.equal(reads,0);
+ assert.equal(graph.history('proxy').length,0);
+ assert.equal(graph.history('accessor').length,0);
+});
+
+test('proxy edge and getter edge are rejected without modifying graph',()=>{
+ const graph=new CandidateGraph();
+ const a=graph.addCandidate(candidate('edge-proxy-a','A')).revision_id;
+ const b=graph.addCandidate(candidate('edge-proxy-b','B')).revision_id;
+ let invoked=0;
+ const raw={type:'DEPENDS_ON',from_revision:a,to_revision:b};
+ const proxy=new Proxy(raw,{get(){invoked++;throw Error('edge trap');}});
+ assert.throws(()=>graph.addEdge(proxy),/invalid data record/);
+ assert.equal(invoked,0);
+ const getter={...raw};
+ Object.defineProperty(getter,'type',{enumerable:true,get(){invoked++;throw Error('edge getter');}});
+ assert.throws(()=>graph.addEdge(getter),/invalid data record/);
+ assert.equal(invoked,0);
+ assert.deepEqual(graph.dependencies(a),[]);
+});
+
+for(const entityIdMode of ['omitted','undefined']) {
+ test(`identical candidate with ${entityIdMode} entity_id reuses its generated identity`,()=>{
+  const graph=new CandidateGraph();
+  const input=candidate(undefined,'auto identity');
+  if(entityIdMode==='omitted') delete input.entity_id;
+  const first=graph.addCandidate(input);
+  const duplicate=graph.addCandidate({...input});
+  assert.equal(duplicate.entity_id,first.entity_id);
+  assert.equal(duplicate.revision_id,first.revision_id);
+  assert.equal(graph.history(first.entity_id).length,1);
+  assert.equal(graph.getRevision(first.revision_id).status,'CANDIDATE');
+ });
+}
