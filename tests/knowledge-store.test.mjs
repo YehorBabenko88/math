@@ -68,3 +68,21 @@ test('nonempty dependency queries return only outgoing dependency copies',()=>{
  assert.deepEqual(graph.dependencies(c),[]);
  assert.throws(()=>graph.dependencies('unknown'),/unknown revision/);
 });
+
+test('candidate store never re-reads getter after snapshot',()=>{
+ const graph=new CandidateGraph();
+ const original=candidate('stable','A');
+ graph.addCandidate(original);
+ let reads=0;
+ const hostile={...original};
+ Object.defineProperty(hostile,'entity_id',{enumerable:true,get(){reads++;throw Error('getter executed');}});
+ assert.throws(()=>graph.addCandidate(hostile),/invalid data record/);
+ assert.equal(reads,0);
+ assert.equal(graph.history('stable').length,1);
+});
+test('same content revision cannot be attached to a different entity',()=>{
+ const graph=new CandidateGraph();
+ graph.addCandidate(candidate('first','A'));
+ assert.throws(()=>graph.addCandidate(candidate('second','A')),/revision entity conflict/);
+ assert.equal(graph.history('second').length,0);
+});
