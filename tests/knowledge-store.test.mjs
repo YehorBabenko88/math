@@ -104,3 +104,26 @@ test('rejected duplicate revision cannot corrupt existing provenance',()=>{
  assert.equal(graph.getRevision(first.revision_id).provenance.source_id,'book:1');
  assert.equal(graph.history('first').length,1);
 });
+
+test('mutating source records after ingestion cannot rewrite provenance or statement',()=>{
+ const graph=new CandidateGraph();
+ const raw=candidate('immutable','A');
+ const stored=graph.addCandidate(raw);
+ raw.statement.content='FORGED';
+ raw.provenance.source_id='attacker';
+ raw.provenance.source_hash='sha256:'+'f'.repeat(64);
+ const recovered=graph.getRevision(stored.revision_id);
+ assert.equal(recovered.statement.content,'A');
+ assert.equal(recovered.provenance.source_id,'book:1');
+ assert.equal(recovered.provenance.source_hash,source_hash);
+ assert.equal(recovered.status,'CANDIDATE');
+});
+test('candidate status cannot be promoted through mutable history copies',()=>{
+ const graph=new CandidateGraph();
+ const c=graph.addCandidate(candidate('history','A'));
+ const history=graph.history('history');
+ history[0].status='VERIFIED';
+ history[0].provenance.source_id='forged';
+ assert.equal(graph.getRevision(c.revision_id).status,'CANDIDATE');
+ assert.equal(graph.getRevision(c.revision_id).provenance.source_id,'book:1');
+});
