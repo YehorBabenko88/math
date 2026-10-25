@@ -41,3 +41,6 @@ Isolated Node.js 22.16.0 test run: 6 PASS, 0 FAIL, 0 SKIP (a minimal local recon
 
 ## Second independent hardening pass
 Pinned-source validation now requires an exact four-field own-property plain record and rejects injected `verified` fields, missing tree, inherited properties and object-format substitution. No untrusted metadata can elevate the `UNRESOLVED_OBJECT_IDS` trust level. This remains syntax-only; independent Git commit/tree resolution and attestation are not implemented. New tests require exact-HEAD CI before claiming PASS.
+
+## Accessor safety hardening
+The pinned-source validator now rejects accessor-backed and non-enumerable fields before reading untrusted values. Two regression cases exercise getter non-execution and hidden fields. This guards the pure contract against a caller-supplied getter but does not defend against hostile JavaScript Proxy traps in the same process; untrusted data must enter through a bounded inert serialization boundary. Exact-HEAD CI is required for acceptance.
