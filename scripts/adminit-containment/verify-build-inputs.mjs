@@ -6,7 +6,7 @@ export function validateBuildEntries(entries){
 export function verifyCommittedBuildInputs(sourceHead){
  if(typeof sourceHead!=='string'||!/^[a-f0-9]{40}$/.test(sourceHead))throw Error('Build inputs BLOCKED: exact source HEAD required');
  const text=execFileSync('git',['--no-replace-objects','-c','core.fsmonitor=false','ls-tree','-rz',sourceHead,'--',...requiredInputs],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
- const entries=text.split('\0').filter(Boolean).map(row=>{const match=row.match(/^(\d+) (\w+) [a-f0-9]+\t(.+)$/);if(!match)throw Error('Build inputs BLOCKED: malformed tree');return{mode:match[1],type:match[2],oid:match[3],path:match[4]};});return validateBuildEntries(entries);
+ const entries=text.split('\0').filter(Boolean).map(row=>{const match=row.match(/^(\d+) (\w+) ([a-f0-9]{40})\t(.+)$/);if(!match)throw Error('Build inputs BLOCKED: malformed tree');return{mode:match[1],type:match[2],oid:match[3],path:match[4]};});return validateBuildEntries(entries);
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{if(process.argv.length!==3)throw Error('Exact source HEAD required');verifyCommittedBuildInputs(process.argv[2]);console.log('BUILD_INPUTS_COMMITTED_REGULAR');}catch(e){console.error(e.message);process.exitCode=2;}
