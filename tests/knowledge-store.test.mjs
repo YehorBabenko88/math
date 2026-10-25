@@ -142,3 +142,17 @@ test('candidate input rejects forged VERIFIED status before graph mutation',()=>
  assert.throws(()=>graph.addCandidate({...candidate('unsafe','A'),status:'VERIFIED'}),/verification status/);
  assert.equal(graph.history('unsafe').length,0);
 });
+
+test('proxy candidate and accessor provenance are rejected without executing traps',()=>{
+ const graph=new CandidateGraph();
+ let reads=0;
+ const proxy=new Proxy(candidate('proxy','A'),{get(){reads++;throw Error('proxy get executed');}});
+ assert.throws(()=>graph.addCandidate(proxy),/invalid data record/);
+ assert.equal(reads,0);
+ const hostile=candidate('accessor','B');
+ Object.defineProperty(hostile.provenance,'source_id',{enumerable:true,get(){reads++;throw Error('provenance getter executed');}});
+ assert.throws(()=>graph.addCandidate(hostile),/invalid data record/);
+ assert.equal(reads,0);
+ assert.equal(graph.history('proxy').length,0);
+ assert.equal(graph.history('accessor').length,0);
+});
