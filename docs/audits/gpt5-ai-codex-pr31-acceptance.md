@@ -11,7 +11,7 @@ Source PR #24: `94cb8d753c0e429aef33f868593a402b39ad1354`.
 - `registry.mjs` provides SQLite uniqueness, not runner authentication, signed immutable receipts or trusted sandboxing.
 
 ## Remediation in this draft
-`pinned-source.mjs` is a pure repository-scoped syntax/format check for an exact commit+tree pair. It rejects mixed Git object formats, wrong repository, and abbreviated IDs. It does not read Git objects, authenticate provenance, verify signatures, or authorize execution. The trusted intake MUST independently resolve Git object format, commit/tree bytes and repository origin before relying on this contract. Artifact digests must remain SHA256 and MUST NOT be interpreted as Git IDs.
+`pinned-source.mjs` is a pure repository-scoped syntax/format check for an exact commit+tree pair. It rejects mixed Git object formats, wrong repository, and abbreviated IDs. For the currently known SHA1-format YehorBabenko88/math repository it now also rejects a caller's SHA256-format declaration even when both supplied IDs are 64 hex. It does not read Git objects, authenticate provenance, verify signatures, or authorize execution. The trusted intake MUST independently resolve Git object format, commit/tree bytes and repository origin before relying on this contract. Artifact digests must remain SHA256 and MUST NOT be interpreted as Git IDs.
 
 ## Acceptance gates
 P0: independently attest commit/tree identity and trusted runner; prohibit LLM self-attestation, arbitrary code execution from books, production credentials and automatic publication.
@@ -33,3 +33,8 @@ Physical execution/deployment/merge: NOT_RUN and prohibited.
 5. Independent kernel validates proof objects; authenticated results alone never confer VERIFIED.
 6. Human owner authorizes any release with a separate signed approval bound to exact artifacts.
 7. Keep production and book gates CLOSED until Q01 and physical preflight are independently accepted.
+
+## Follow-up audit and isolated execution
+A follow-up found a format-substitution hole in the initial helper: the fixed SHA1 repository name could be combined with an attacker-declared SHA256 object format and two 64-character IDs. The helper now refuses any objectFormat other than sha1 for this known repository; this is still a local syntax policy, not an independently resolved Git object.
+
+Isolated Node.js 22.16.0 test run: 6 PASS, 0 FAIL, 0 SKIP (a minimal local reconstruction of the exact helper and test source fetched from GitHub, **not** a full repository checkout). Full PR CI and other platforms: NOT_RUN in that isolated environment. Hosted CI must be checked at the new exact HEAD; no production or physical operation was attempted.
