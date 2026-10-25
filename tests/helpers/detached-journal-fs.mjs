@@ -9,7 +9,7 @@ export function lstatSync(path,...args){
   fs.writeFileSync(path,Buffer.alloc(512));const fd=fs.openSync(path,'r');
   try{fs.unlinkSync(path);detached=fs.fstatSync(fd);}finally{fs.closeSync(fd);}
   globalThis.__detachedStatReceipt={links:detached.nlink,regular:detached.isFile(),symlink:detached.isSymbolicLink(),size:detached.size,removed:!fs.existsSync(path),reads,revalidated:false};
-  if(c.mode==='hardlink'){const other=join(c.directory,'.replacement-target');fs.writeFileSync(other,'');fs.linkSync(other,path);}
+  if(c.mode==='hardlink'){const other=join(c.directory,'.replacement-target');fs.writeFileSync(other,'');fs.linkSync(other,path);globalThis.__detachedStatReceipt.replacementLinks=fs.lstatSync(path).nlink;}
   if(c.mode==='regular')fs.writeFileSync(path,'');
   if(c.mode==='oversized'){fs.writeFileSync(path,'');fs.truncateSync(path,33*1024*1024);}
   return detached;
