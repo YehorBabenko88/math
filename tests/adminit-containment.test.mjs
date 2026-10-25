@@ -29,3 +29,56 @@ test('native report validation is explicitly limited to hosted synthetic evidenc
  assert.match(s,/not filesystem\/network isolation or physical authorization/);
  assert.match(s,/sourceHead===sourceHead&&r.sourceTree===sourceTree/);
 });
+
+test('PowerShell watchdog refuses unconfirmed kill and does not equate root exit with descendant drain',()=>{
+ const workflow=read('.github/workflows/adminit-synthetic-containment.yml');
+ assert.match(workflow,/if \(-not \$owner\.WaitForExit\(5000\) -or -not \$owner\.HasExited\)/);
+ assert.match(workflow,/independent watchdog cleanup unconfirmed: BLOCKED/);
+ assert.match(workflow,/descendant status unknown/);
+ assert.doesNotMatch(workflow,/\$owner\.WaitForExit\(5000\) \| Out-Null/);
+});
+
+test('bootstrap watchdog distinguishes timeout and failed waits from signalled completion',()=>{
+ const source=read('tests/fixtures/adminit-containment/HostedMediumLauncher.cs');
+ assert.match(source,/k\.Wait\(p,120000\)==0/);
+ assert.match(source,/bootstrap descendant drain unconfirmed/);
+ assert.match(source,/k\.WaitJobEmpty\(job,5000\)/);
+ assert.match(source,/unassigned supervisor cleanup unconfirmed/);
+});
+test('native wait wrapper preserves raw Win32 wait status for fail-closed callers',()=>{
+ const source=read('scripts/q01-lab/WindowsJobContainment.cs');
+ assert.match(source,/return WaitForSingleObject\(process,milliseconds\)/);
+ assert.match(source,/native\.Wait\(process, CleanupMilliseconds\)!=0/);
+});
+
+test('watchdog reports unconfirmed cleanup without claiming descendants are drained',()=>{
+ const workflow=read('.github/workflows/adminit-synthetic-containment.yml');
+ assert.match(workflow,/descendant status unknown/);
+ assert.match(workflow,/if \(-not \$owner\.WaitForExit\(5000\) -or -not \$owner\.HasExited\)/);
+ const source=read('tests/fixtures/adminit-containment/HostedMediumLauncher.cs');
+ assert.match(source,/k\.WaitJobEmpty\(job,5000\)/);
+ assert.match(source,/bootstrap descendant drain unconfirmed/);
+});
+
+test('ADMINIT physical execution guard remains closed despite watchdog changes',()=>{
+ const guard=read('scripts/adminit-containment/verify-adminit.ps1');
+ assert.match(guard,/if\(\$Execute\)\{throw 'ADMINIT isolation criteria not integrated: BLOCKED; no local process may launch'\}/);
+ const workflow=read('.github/workflows/adminit-synthetic-containment.yml');
+ assert.match(workflow,/independent whole-fixture watchdog expired: BLOCKED, never PASS/);
+ assert.doesNotMatch(workflow,/verify-adminit\.ps1[^\n]*-Execute/);
+});
+
+test('five hosted native scenarios remain mandatory and synthetic-only',()=>{
+ const verifier=read('scripts/adminit-containment/verify-native.mjs');
+ assert.match(verifier,/\['normal','timeout','crash','assignment','cleanup'\]/);
+ assert.match(verifier,/r\[key\]\.length===cases\.length/);
+ assert.match(verifier,/c\.status==='PASS'/);
+ assert.match(verifier,/BLOCKED_PENDING_ISOLATION_REVIEW/);
+});
+
+test('native evidence rejects a missing or duplicate scenario before accepting report',()=>{
+ const verifier=read('scripts/adminit-containment/verify-native.mjs');
+ assert.match(verifier,/new Set\(r\[key\]\.map\(x=>x\?\.scenario\)\)\.size===cases\.length/);
+ assert.match(verifier,/r\[key\]\.every\(x=>cases\.includes\(x\?\.scenario\)\)/);
+ assert.match(verifier,/exact '\+key\+' inventory/);
+});

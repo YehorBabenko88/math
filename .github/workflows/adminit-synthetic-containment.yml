@@ -77,8 +77,10 @@ jobs:
           try {
             $handle = $owner.Handle
             if (-not $owner.WaitForExit(150000)) {
-              $owner.Kill()
-              $owner.WaitForExit(5000) | Out-Null
+              try { $owner.Kill() } catch { throw 'independent watchdog kill failed: BLOCKED; cleanup unconfirmed' }
+              if (-not $owner.WaitForExit(5000) -or -not $owner.HasExited) {
+                throw 'independent watchdog cleanup unconfirmed: BLOCKED; descendant status unknown'
+              }
               throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
             }
             @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
