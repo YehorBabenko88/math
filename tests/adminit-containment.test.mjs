@@ -44,3 +44,11 @@ test('watchdog reports unconfirmed cleanup without claiming descendants are drai
  assert.match(source,/k\.WaitJobEmpty\(job,5000\)/);
  assert.match(source,/bootstrap descendant drain unconfirmed/);
 });
+
+test('ADMINIT physical execution guard remains closed despite watchdog changes',()=>{
+ const guard=read('scripts/adminit-containment/verify-adminit.ps1');
+ assert.match(guard,/if\(\$Execute\)\{throw 'ADMINIT isolation criteria not integrated: BLOCKED; no local process may launch'\}/);
+ const workflow=read('.github/workflows/adminit-synthetic-containment.yml');
+ assert.match(workflow,/independent whole-fixture watchdog expired: BLOCKED, never PASS/);
+ assert.doesNotMatch(workflow,/verify-adminit\.ps1[^\n]*-Execute/);
+});
