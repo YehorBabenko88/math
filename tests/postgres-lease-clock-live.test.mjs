@@ -17,7 +17,20 @@ async function waitForDatabase(client,query,values,accept){
  assert.fail(`PostgreSQL witness not established: ${JSON.stringify(rows)}`);
 }
 async function waitForFixtureBlock(client,pids,fixturePid){
- return waitForDatabase(client,'SELECT pid,state,wait_event_type,pg_blocking_pids(pid) AS blockers FROM pg_stat_activity WHERE pid=ANY($1::int[])',[pids],rows=>rows.length===pids.length&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blockers.includes(fixturePid)));
+ // Schemas isolate rows, but the protocol advisory key is database-wide. A
+ // queued exclusive request may soft-block a later shared request: require an
+ // actual database blocking path to this fixture, not necessarily a direct edge.
+ return waitForDatabase(client,`WITH RECURSIVE blocking(origin,pid,path) AS (
+  SELECT pid,pid,ARRAY[pid] FROM unnest($1::int[]) AS pid
+  UNION ALL
+  SELECT b.origin,next_pid,b.path||next_pid FROM blocking b
+  CROSS JOIN LATERAL unnest(pg_blocking_pids(b.pid)) AS next_pid
+  WHERE NOT next_pid=ANY(b.path)
+ )
+ SELECT a.pid,a.state,a.wait_event_type,pg_blocking_pids(a.pid) AS blockers,
+  (SELECT path FROM blocking WHERE origin=a.pid AND pid=$2 LIMIT 1) AS blocker_path
+ FROM pg_stat_activity a WHERE a.pid=ANY($1::int[])`,[pids,fixturePid],
+ rows=>rows.length===pids.length&&rows.every(r=>r.state==='active'&&r.wait_event_type==='Lock'&&r.blocker_path?.length>=2&&r.blocker_path[0]===r.pid&&r.blocker_path.at(-1)===fixturePid&&r.blockers.includes(r.blocker_path[1])));
 }
 
 function assertLeaseWait(row,blockerPid){
@@ -52,6 +65,9 @@ test('real PostgreSQL: initial witness follows a queued global exclusive blocker
    await waitForDatabase(fixture,'SELECT pg_blocking_pids($1) AS blockers',[second.processID],rows=>rows[0].blockers.includes(exclusive.processID));
    const observations=await waitForFixtureBlock(fixture,[first.processID,second.processID],fixture.processID);
    assert.equal(observations.length,2);
+   const later=observations.find(row=>row.pid===second.processID);
+   assert.deepEqual(later.blocker_path,[second.processID,exclusive.processID,first.processID,fixture.processID]);
+   assert.ok(!later.blockers.includes(fixture.processID),'controlled waiter reaches fixture through queued exclusive request');
   }finally{
    await fixture.query('ROLLBACK');await Promise.allSettled(pending);
    for(const client of [fixture,first,exclusive,second]){await client.query('ROLLBACK');client.release();}
