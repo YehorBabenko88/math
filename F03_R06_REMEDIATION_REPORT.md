@@ -5,9 +5,9 @@ Date: 2026-10-22 (Europe/Berlin). Repository: YehorBabenko88/math.
 - Branch: `fix/f03-r06-independent-audit-findings`.
 - Exact base: `2ecbfd9fb050d5e863122f2a47817ab1ac69e1f4` (`integration/math-f03-r06`).
 - Implementation SHA: `f90ac4d6c5e832fc0332ca508f4daa25d0599dcb`.
-- Worktree: `C:/Users/Administrator/Documents/Codex/2026-10-14/https-github-com-yehorbabenko88-math-actions/work/fix-f03-r06-independent-audit-findings`.
+- Worktree: `<LOCAL_WORKSPACE_PATH>`.
 - Original independent audit: wrapper `outputs/F03_R06_FINAL_INDEPENDENT_AUDIT.md`.
-- Full local evidence: `C:/Users/Administrator/Documents/Codex/2026-10-14/https-github-com-yehorbabenko88-math-actions/outputs/pr12-remediation`; focused RED/GREEN logs also under worktree `outputs/remediation-f01` through `remediation-f04-f05`.
+- Full local evidence: `<LOCAL_WORKSPACE_PATH>`; focused RED/GREEN logs also under worktree `outputs/remediation-f01` through `remediation-f04-f05`.
 
 **Decision: F01–F05 remediation ready for independent review, but code integration remains NO-GO because the separately reproduced SQLite first-open runtime failure remains unresolved. Production NO-GO. Book gate CLOSED.** Green CI does not waive this finding. No PR was created or updated, and no deployment/cutover was attempted.
 
