@@ -261,3 +261,22 @@ test('negative: non-text proof input is never coerced or parsed',()=>{
  assert.throws(()=>verifyExpectedClosedImplicationProofJson(active,JSON.stringify(P)),/Invalid proof JSON size/);
  assert.equal(coerced,0);
 });
+
+test('replay: identical canonical proof is deterministic but not an authenticated receipt',()=>{
+ const document=JSON.stringify({goal:imp(P,P),proof:intro(P,assumption(0))});
+ const expected=JSON.stringify(imp(P,P));
+ const first=verifyExpectedClosedImplicationProofJson(document,expected);
+ const second=verifyExpectedClosedImplicationProofJson(document,expected);
+ assert.deepEqual(first,second);
+ assert.equal(first.formalStatus,'CHECKED_IN_EXPERIMENTAL_KERNEL');
+ assert.equal(Object.hasOwn(first,'nonce'),false);
+ assert.equal(Object.hasOwn(first,'attestation'),false);
+ assert.equal(Object.hasOwn(first,'status'),false);
+});
+test('proof substitution: changed proof is rejected even when goal stays fixed',()=>{
+ const goal=imp(P,P),expected=JSON.stringify(goal);
+ const valid=JSON.stringify({goal,proof:intro(P,assumption(0))});
+ assert.equal(verifyExpectedClosedImplicationProofJson(valid,expected).isClosedTheorem,true);
+ const invalid=JSON.stringify({goal,proof:intro(Q,assumption(0))});
+ assert.throws(()=>verifyExpectedClosedImplicationProofJson(invalid,expected),/Proof does not establish goal/);
+});
