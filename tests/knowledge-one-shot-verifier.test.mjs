@@ -54,3 +54,11 @@ test('signed result cannot authorize a request with extra unsigned fields',async
   assert.equal((await v.assessPersisted(req,result)).verdict,'PASS');
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('verifier constructor does not invoke hostile configuration getter',()=>{
+ let invoked=0;
+ const config={kernel_id:'kernel',kernel_version:'1',public_key_pem:publicKey.export({type:'spki',format:'pem'})};
+ Object.defineProperty(config,'ledger',{enumerable:true,get(){invoked++;throw Error('getter ran');}});
+ assert.throws(()=>new OneShotKernelVerifier(config),/invalid trust policy/);
+ assert.equal(invoked,0);
+});
