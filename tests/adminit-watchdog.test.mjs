@@ -8,3 +8,17 @@ test('forced watchdog proof accepts only BLOCKED outcome with signalled owned ha
 for(const [name,change] of [['PASS',p=>p.status='PASS'],['missing drain',p=>p.outerCleanupConfirmed=false],['dead before expiry',p=>p.liveBeforeExpiry=false],['no timeout',p=>p.waitResult=0],['surviving leaf',p=>p.leaf.signalled=false],['PID collision',p=>p.leaf.pid=p.root.pid],['no membership',p=>p.leafAssignedBeforeResume=false]])test('watchdog rejects '+name,()=>{const p=probe();change(p);assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);});
 test('native watchdog uses readiness barrier then zero wait, confirmed outer drain and handle waits',()=>{const s=readFileSync(new URL('./fixtures/adminit-containment/AdminitSynthetic.cs',import.meta.url),'utf8');assert.match(s,/kind=="watchdog"/);assert.match(s,/AwaitOwnerDeadline\(k,owner,0\)/);assert.match(s,/status="BLOCKED",scenario=kind,reason="forced independent owner watchdog expired"/);assert.match(s,/forced watchdog descendants survived/);});
 test('forced deadline shares production owner wait and finally cleanup, not a duplicate terminate path',()=>{const s=readFileSync(new URL('./fixtures/adminit-containment/AdminitSynthetic.cs',import.meta.url),'utf8');assert.match(s,/AwaitOwnerDeadline\(k,owner,0\)/);assert.match(s,/AwaitOwnerDeadline\(k,owner,25000\)/);assert.match(s,/if\(forcedExpiry\)/);});
+
+test('watchdog rejects swapped, malformed and aliased handle identities',()=>{
+ for(const mutate of [
+  p=>p.root.createdFileTime='0',
+  p=>p.leaf.pid=true,
+  p=>p.owner.signalled=false,
+  p=>p.outerCleanupConfirmed='true',
+  p=>p.waitResult=0xffffffff,
+  p=>p.reason='forced independent owner watchdog expired; PASS',
+ ]){
+  const p=probe();mutate(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
