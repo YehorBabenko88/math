@@ -14,3 +14,17 @@ test('ADMINIT fixture is fixed, Medium-only and supervised by owned handles',()=
  for(const token of ['AssertMedium','WaitForSingleObject','GetProcessTimes','ConfigureKillOnClose','WaitJobEmpty','--owner','--leaf','--root'])assert.ok(s.includes(token),token);
  assert.doesNotMatch(s,/Process\.Start|cmd\.exe|powershell\.exe|SqlConnection|HttpClient|WebClient|ServiceController|Process\.Kill/);
 });
+
+test('ADMINIT read-only verifier rejects execute before any package access',()=>{
+ const s=read('scripts/adminit-containment/verify-adminit.ps1');
+ const guard=s.indexOf("if($Execute){throw 'ADMINIT isolation criteria not integrated: BLOCKED; no local process may launch'}");
+ const packageCheck=s.indexOf("& $node (Join-Path $PSScriptRoot 'package.mjs')");
+ assert.ok(guard>=0&&packageCheck>guard,'Execute must fail closed before package verification');
+ assert.doesNotMatch(s,/Start-Process|Invoke-Command|New-Service|Set-ExecutionPolicy|Set-Acl|Set-NetFirewallRule/);
+});
+test('native report validation is explicitly limited to hosted synthetic evidence',()=>{
+ const s=read('scripts/adminit-containment/verify-native.mjs');
+ assert.match(s,/BLOCKED_PENDING_ISOLATION_REVIEW/);
+ assert.match(s,/not filesystem\\/network isolation or physical authorization/);
+ assert.match(s,/sourceHead===sourceHead&&r.sourceTree===sourceTree/);
+});
