@@ -33,3 +33,6 @@ BLOCKED: end-to-end provenance, actual ZIP safety and execution acceptance.
 
 ## CLI qualification correction
 The first strict helper was opt-in while the direct `package.mjs` CLI still accepted a missing external tree. The CLI now requires four user arguments including EXPECTED_SOURCE_TREE and calls `verifyAdminitPackageQualified`, failing closed otherwise. A subprocess regression verifies missing-tree exit code 2. Existing legacy library callers remain unqualified and MUST NOT be treated as independently accepted evidence. Update all hosted invocations before declaring CI PASS; no Execute authority is introduced.
+
+## Caller compatibility finding
+A source inspection found that `verify-adminit.ps1` still called `package.mjs` without the newly mandatory expected tree. This is a confirmed integration defect. The read-only verifier now declares mandatory `ExpectedSourceTree` and passes it to the package CLI; `-Execute` remains unconditionally rejected. The hosted ADMINIT workflow already passes `$tree`. All external invocations of `verify-adminit.ps1` must supply an independently trusted tree; compatibility/PowerShell tests remain NOT_RUN pending exact-HEAD CI.
