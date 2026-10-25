@@ -1,0 +1,27 @@
+[
+  {
+    "label": "final-pure-node22.tap",
+    "bytes": 58066,
+    "sha256": "042ae59684d63460dd0e21a0e42e1d0d2c0b5bd7cb8b0175888f9ee641f462d6"
+  },
+  {
+    "label": "final-pure-node24.tap",
+    "bytes": 58071,
+    "sha256": "8f4d1b839f71970868336aa0a1491623f67a90bc9e228d05594272aa42dfbed3"
+  },
+  {
+    "label": "oid-red.tap",
+    "bytes": 4377,
+    "sha256": "e3904c59e1a5e3bcc4fd32969b40c0948d34a5336875a5660fa3bb33b8d39e1d"
+  },
+  {
+    "label": "oid-green-node22.tap",
+    "bytes": 1769,
+    "sha256": "16d2a7c4c143ecec26b4663bf54bde7a45bee1e69032ee67c6af910b93e4a94c"
+  },
+  {
+    "label": "oid-green-node24.tap",
+    "bytes": 1772,
+    "sha256": "d39e4b7e80e25909a2215551c2a105793c2ca83e0a9be3a68ee48ff41252acc9"
+  }
+]

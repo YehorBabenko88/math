@@ -26,6 +26,11 @@ jobs:
       - name: Validate mandatory CI contract
         run: node --test tests/ci-coverage.test.mjs
 
+      - name: Verify current evidence publication policy
+        run: |
+          node --test tests/evidence-publication.test.mjs tests/evidence-publication-surface.test.mjs
+          node scripts/evidence-publication-policy.mjs
+
       - name: Record exact source and dependency provenance
         env:
           SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
