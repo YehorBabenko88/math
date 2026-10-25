@@ -38,3 +38,6 @@ Physical execution/deployment/merge: NOT_RUN and prohibited.
 A follow-up found a format-substitution hole in the initial helper: the fixed SHA1 repository name could be combined with an attacker-declared SHA256 object format and two 64-character IDs. The helper now refuses any objectFormat other than sha1 for this known repository; this is still a local syntax policy, not an independently resolved Git object.
 
 Isolated Node.js 22.16.0 test run: 6 PASS, 0 FAIL, 0 SKIP (a minimal local reconstruction of the exact helper and test source fetched from GitHub, **not** a full repository checkout). Full PR CI and other platforms: NOT_RUN in that isolated environment. Hosted CI must be checked at the new exact HEAD; no production or physical operation was attempted.
+
+## Second independent hardening pass
+Pinned-source validation now requires an exact four-field own-property plain record and rejects injected `verified` fields, missing tree, inherited properties and object-format substitution. No untrusted metadata can elevate the `UNRESOLVED_OBJECT_IDS` trust level. This remains syntax-only; independent Git commit/tree resolution and attestation are not implemented. New tests require exact-HEAD CI before claiming PASS.
