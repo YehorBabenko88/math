@@ -25,6 +25,6 @@ test('ADMINIT read-only verifier rejects execute before any package access',()=>
 test('native report validation is explicitly limited to hosted synthetic evidence',()=>{
  const s=read('scripts/adminit-containment/verify-native.mjs');
  assert.match(s,/BLOCKED_PENDING_ISOLATION_REVIEW/);
- assert.match(s,/not filesystem\\/network isolation or physical authorization/);
+ assert.match(s,/not filesystem\/network isolation or physical authorization/);
  assert.match(s,/sourceHead===sourceHead&&r.sourceTree===sourceTree/);
 });

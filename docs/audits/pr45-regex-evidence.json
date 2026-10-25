@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "base": "1eade92f0fdf5023e22f91766017054f9401ad6a",
+  "publication": "HASH_ONLY",
+  "files": [
+    {
+      "label": "regex-red.tap",
+      "bytes": 1197,
+      "sha256": "a28fb8b3d8bac18fc669119e5793c5135e61342e85f8f0135b400780a4edd390"
+    },
+    {
+      "label": "regex-green-node22.tap",
+      "bytes": 1390,
+      "sha256": "7082c7b3411f2a3a6205bd0a2fb12514852035dbd4e8cbd86bbb11758d9d10bf"
+    },
+    {
+      "label": "regex-green-node24.tap",
+      "bytes": 1390,
+      "sha256": "cbf129b6ff9b54a08c5ed20c6668f50fa38fad2d1d68550be3eccba53b184ca5"
+    }
+  ]
+}
