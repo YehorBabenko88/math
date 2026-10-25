@@ -182,3 +182,19 @@ test('scope: unused top-level assumptions still prevent closed-theorem promotion
  assert.equal(receipt.openAssumptions,1);
  assert.throws(()=>verifyClosedImplicationProofJson(doc),/Open assumptions/);
 });
+
+test('negative: no axiom injection or fabricated theorem by untrusted AI',()=>{
+ for(let i=0;i<100;i++){
+  const a=formula(2),b=formula(2);
+  const fabricated={goal:imp(a,b),proof:{rule:'axiom',statement:imp(a,b)}};
+  assert.throws(()=>verifyImplicationProof(fabricated));
+  const forged={goal:imp(a,b),proof:intro(a,{rule:'assumption',index:1})};
+  assert.throws(()=>verifyImplicationProof(forged));
+ }
+});
+test('negative: malformed JSON unicode and number encodings fail closed',()=>{
+ const valid=JSON.stringify({goal:imp(P,P),proof:intro(P,assumption(0))});
+ for(const text of [valid+' ',valid.replace('"index":0','"index":-0'),valid.replace('"index":0','"index":0.0')]){
+  assert.throws(()=>verifyImplicationProofJson(text),/Noncanonical/);
+ }
+});
