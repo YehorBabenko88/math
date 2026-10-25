@@ -64,3 +64,22 @@ test checks that `B -> A` plus `A` does not establish `B` unless the
 antecedent accidentally coincides with the supplied argument. Skipped
 cases are not counted as independent negative coverage. These changes are
 tests only; no new inference rule or axiom was introduced.
+
+## Cross-PR compatibility: #26 and #30
+
+PR #26 HEAD `85608195536f613aca09b5298481bf6247319d4e` adds the
+pre-parse proof-text byte guard to the expected-goal API. That guard is
+already present in candidate PR #31 HEAD `cb168925b5aeec0c957137dd94ab72c64f0bd333`.
+No duplicate implementation patch is required.
+
+PR #30 HEAD `fa6c7af6d4075a06f6681413140d99228f63050d`
+adds `tests/proof-kernel-independent.test.mjs`, a formal specification and
+an isolated CI path. Its semantics use the same ordered-context rules as
+this audit's independent suite. PR #30 is not assumed merged into #31;
+its workflow and test file must be reconciled by Codex before integration,
+not silently counted as present.
+
+This audit adds explicit scope-index and unused-top-level-assumption
+regressions. No inference rule was changed. A new audit-HEAD workflow
+result must be read before claiming PASS. Local clone was blocked by
+github.com DNS resolution, so local test execution remains NOT_RUN.
