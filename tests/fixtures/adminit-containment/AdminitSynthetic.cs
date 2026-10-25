@@ -167,7 +167,7 @@ namespace MathUniverse.Adminit {
      try{results.Add(Supervise(kind));}catch(Exception e){ok=false;results.Add(new{scenario=kind,status="FAIL",error=e.GetType().FullName+":"+e.Message});}
     }
     object watchdogProbe=null;try{watchdogProbe=Supervise("watchdog");}catch(Exception e){ok=false;watchdogProbe=new{status="FAIL",error=e.GetType().FullName+":"+e.Message};}
-    Write(Path.Combine(Suite,"results.json"),new{watchdogProbe,sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,labEvidence=LabEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(File.ReadAllText(Path.Combine(Suite,"results.json")));return ok?0:1;
+    Write(Path.Combine(Suite,"results.json"),new{watchdogProbe,sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,labEvidence=LabEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(ok?"ADMINIT_HOSTED_NATIVE_REPORT_WRITTEN":"ADMINIT_HOSTED_NATIVE_REPORT_FAILED");return ok?0:1;
    }catch(Exception e){Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
   }
  }
