@@ -1,0 +1,53 @@
+name: Q01 Hosted Windows Synthetic Containment
+on:
+  push:
+    branches: [test/pr31-windows-harness]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-native:
+    name: Disposable Windows / fixed synthetic fixtures
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Compile fixed fixture and record source identity
+        shell: pwsh
+        run: |
+          $head = git rev-parse HEAD
+          $tree = git rev-parse 'HEAD^{tree}'
+          "SOURCE_HEAD=$head" >> $env:GITHUB_ENV
+          "SOURCE_TREE=$tree" >> $env:GITHUB_ENV
+          "SOURCE_HEAD=$head`nSOURCE_TREE=$tree" | Set-Content "$env:RUNNER_TEMP/containment-source.txt"
+          dotnet build tests/fixtures/windows-containment/NativeHarness.csproj --configuration Release --output "$env:RUNNER_TEMP/containment-bin" --nologo
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run independently supervised synthetic fixtures
+        shell: pwsh
+        run: |
+          $runRoot = Join-Path $env:RUNNER_TEMP 'containment-results'
+          $exe = Join-Path $env:RUNNER_TEMP 'containment-bin/NativeHarness.exe'
+          $owner = Start-Process -FilePath $exe -ArgumentList ('"' + $runRoot + '"') -PassThru -WindowStyle Hidden -RedirectStandardOutput "$env:RUNNER_TEMP/containment-stdout.txt" -RedirectStandardError "$env:RUNNER_TEMP/containment-stderr.txt"
+          if (-not $owner.WaitForExit(90000)) {
+            $owner.Kill($true)
+            $owner.WaitForExit(10000) | Out-Null
+            throw 'independent fixture watchdog expired: BLOCKED'
+          }
+          Get-Content "$env:RUNNER_TEMP/containment-stdout.txt"
+          Get-Content "$env:RUNNER_TEMP/containment-stderr.txt"
+          if ($owner.ExitCode -ne 0) { throw "synthetic fixture exit $($owner.ExitCode)" }
+          if (-not (Test-Path -LiteralPath "$runRoot/results.json")) { throw 'missing native evidence: BLOCKED' }
+      - name: Preserve exact source and native fixture evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: q01-hosted-windows-native-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/containment-source.txt
+            ${{ runner.temp }}/containment-results/results.json
+            ${{ runner.temp }}/containment-stdout.txt
+            ${{ runner.temp }}/containment-stderr.txt
+          if-no-files-found: error
+          retention-days: 14
