@@ -40,3 +40,17 @@ Q01 OPEN. Production NO-GO. Do not merge, deploy, activate containment, or
 change the pinned integration candidate. Further acceptance requires exact
 HEAD/tree CI evidence, negative test review, and independently pinned
 provenance; Lean replay is not established by this limited calculus.
+
+## Follow-up adversarial coverage (2026-10-25)
+
+Additional deterministic tests cover 120 composition theorems of the form
+`(A -> B) -> ((B -> C) -> (A -> C))` and 100 implication-elimination
+premise-substitution attacks. Their independent Boolean oracle enumerates
+all eight valuations of P/Q/R. This is a bounded semantic cross-check only.
+
+CI for the new audit commits has not been independently confirmed at the time
+of publication; no passing status is inferred from queued or absent runs.
+Container clone was attempted using `git ls-remote` and failed DNS lookup
+for github.com. Consequently these new cases are **NOT_RUN locally**.
+The source candidate remains pinned, and no merge or physical operation
+is authorized. Q01 remains OPEN, production NO-GO.
