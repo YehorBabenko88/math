@@ -42,3 +42,15 @@ test('v2 snapshots active request and result before any ledger operation',async(
  const v=verifier(new FileReplayLedger('unused-no-ledger-operation'));
  await assert.rejects(v.assessPersisted(field==='request'?active:request,field==='result'?active:result),/inert data/);assert.equal(reads,0);}
 });
+
+test('v2 request rejects unbound extra fields',()=>{
+ assert.throws(()=>createVerificationRequestV2({...base,admin_override:true}),/unexpected request field/);
+});
+test('signed result cannot authorize a request with extra unsigned fields',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'kg-v2-extras-'));
+ try{
+  const ledger=new FileReplayLedger(dir),v=verifier(ledger),req=createVerificationRequestV2(base),result=signed(req);
+  await assert.rejects(v.assessPersisted({...req,requested_status:'PENDING',admin_override:true},result),/unexpected request field/);
+  assert.equal((await v.assessPersisted(req,result)).verdict,'PASS');
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
