@@ -29,3 +29,7 @@ Candidate `AdminitSynthetic.cs` printed the complete `results.json` to GitHub Ac
 | Production | NO-GO |
 
 No merge, rerun, deployment, production database access, physical tests or local Execute.
+
+## Follow-up privacy hardening
+
+The first isolated privacy patch still published `evidence-sha256.json` containing a raw list of runtime file paths. The follow-up replaces that public inventory with a digest-only private-inventory summary, file count, and explicit `nativeAcceptance=BLOCKED_PRIVATE_EVIDENCE_REQUIRED`. Raw inventory remains on the disposable runner and is not uploaded. A digest-only receipt does not establish independent native acceptance; private evidence transport and review remain required. No hosted execution is claimed.
