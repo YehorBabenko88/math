@@ -28,12 +28,14 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static and model regressions only
-        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs
       - name: Fail-closed local policy and parser contracts (no native fixture)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           & powershell -NoProfile -File tests/adminit-policy.mock.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & powershell -NoProfile -File tests/adminit-watchdog-wait.mock.ps1
           exit $LASTEXITCODE
   native-framework:
     name: Disposable Windows / Framework / actual Medium token
@@ -56,7 +58,9 @@ jobs:
         run: |
           $package = Join-Path $env:RUNNER_TEMP 'adminit-build/package'
           $manifest = (Get-FileHash "$package/package.json").Hash.ToLowerInvariant()
-          node scripts/adminit-containment/package.mjs $package $manifest '${{ github.sha }}'
+          $tree = git --no-replace-objects rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
+          node scripts/adminit-containment/package.mjs $package $manifest '${{ github.sha }}' $tree
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           @{sourceHead='${{ github.sha }}';sourceTree=(git --no-replace-objects rev-parse 'HEAD^{tree}');manifestSha256=$manifest;runtime='Windows PowerShell5.1 Add-Type / .NET Framework';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW'} | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/adminit-build/build-identity.json"
       - name: Independent watchdog and fixed native suite under Medium token
