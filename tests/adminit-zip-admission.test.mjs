@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{validateZipAdmission}from'../scripts/adminit-containment/zip-admission.mjs';
+const a={repository:'YehorBabenko88/math',head:'a'.repeat(40),tree:'b'.repeat(40),runId:'123',attempt:1,jobId:'456',artifactId:'789',zipSha256:'c'.repeat(64),manifestSha256:'d'.repeat(64),approved:false};
+test('metadata cannot authorize extraction or execution',()=>{const x=validateZipAdmission(a);assert.equal(x.extraction,'DENIED');assert.equal(x.execution,'DENIED');});
+for(const [name,change]of [['wrong repository',{repository:'other/math'}],['short source',{head:'a'.repeat(12)}],['missing job',{jobId:undefined}],['invalid ZIP digest',{zipSha256:'a'.repeat(40)}],['forged approval',{approved:true}],['stale attempt',{attempt:0}],['unknown field',{verified:true}]])test('reject '+name,()=>assert.throws(()=>validateZipAdmission({...a,...change}),/ZIP_ADMISSION_INVALID/));
