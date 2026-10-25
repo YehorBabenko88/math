@@ -99,7 +99,12 @@ jobs:
           $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
           $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
           if (Test-Path -LiteralPath $run) { $files += @(Get-ChildItem -LiteralPath $run -Recurse -File | ForEach-Object { @{path=('native/'+$_.FullName.Substring($run.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} }) }
-          @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';files=$files} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
+          # Do not publish the raw per-file path inventory: names may disclose runtime identity.
+          # The private full inventory remains on the ephemeral runner only.
+          $privateInventory = Join-Path $build 'private-inventory.json'
+          $files | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $privateInventory
+          $inventoryDigest = (Get-FileHash -LiteralPath $privateInventory -Algorithm SHA256).Hash.ToLowerInvariant()
+          @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';privateInventorySha256=$inventoryDigest;privateFileCount=@($files).Count;rawNativeEvidencePublished=$false;nativeAcceptance='BLOCKED_PRIVATE_EVIDENCE_REQUIRED'} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
       - name: Retain exact package (local execution still blocked)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
