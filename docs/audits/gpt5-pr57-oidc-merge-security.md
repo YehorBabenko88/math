@@ -21,3 +21,6 @@ EXECUTED: GitHub PR/comment/source review and isolated Draft changes.
 TESTS AUTHORED: synthetic merge-parent substitution and PR-head substitution.
 NOT_RUN: independent local test runner, hosted exact-head CI results, real keys/collector, ADMINIT/physical.
 Q01 OPEN, Physical G1 BLOCKED, Production NO-GO.
+
+## Follow-up negative PR merge coverage
+Added two focused synthetic tests: reject ambiguous/multiple PR association, changed run/job/commit merge SHA and signed PR-head-as-merge substitution; reject duplicate/missing/wrong check-run inventory for the attempt. These are source-authored negative regressions, not independently executed PASS. The source binding still fails closed if GitHub omits PR association metadata. No authorization or publication changes.
