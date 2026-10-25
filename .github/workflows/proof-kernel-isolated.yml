@@ -4,11 +4,15 @@ on:
     paths:
       - 'src/proof-kernel.mjs'
       - 'tests/proof-kernel.test.mjs'
+      - 'tests/proof-kernel-independent.test.mjs'
+      - 'docs/proof-kernel-v2-formal-spec.md'
       - '.github/workflows/proof-kernel-isolated.yml'
   push:
     paths:
       - 'src/proof-kernel.mjs'
       - 'tests/proof-kernel.test.mjs'
+      - 'tests/proof-kernel-independent.test.mjs'
+      - 'docs/proof-kernel-v2-formal-spec.md'
       - '.github/workflows/proof-kernel-isolated.yml'
 permissions:
   contents: read
@@ -27,4 +31,4 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Run isolated proof-kernel tests
-        run: node --test tests/proof-kernel.test.mjs
+        run: node --test tests/proof-kernel.test.mjs tests/proof-kernel-independent.test.mjs
