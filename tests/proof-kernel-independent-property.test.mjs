@@ -223,3 +223,21 @@ test('property: conditional modus ponens never becomes a closed theorem',()=>{
   assert.throws(()=>verifyExpectedClosedImplicationProofJson(document,JSON.stringify(b)),/Open assumptions/);
  }
 });
+
+test('negative: closed theorem cannot use an unscoped index',()=>{
+ for(let i=0;i<100;i++){
+  const a=formula(2);
+  const invalid=intro(a,assumption(1));
+  assert.throws(()=>verifyImplicationProof({goal:imp(a,a),proof:invalid}));
+ }
+});
+test('property: weakening preserves conditional derivation but never closed status',()=>{
+ for(let i=0;i<100;i++){
+  const a=formula(2),unused=formula(2);
+  const proof=intro(a,assumption(1));
+  const result=verifyImplicationProof({goal:imp(a,a),assumptions:[unused],proof});
+  assert.equal(result.isClosedTheorem,false);
+  assert.equal(result.openAssumptions,1);
+  assert.equal(allTrueUnder(imp(a,a),[unused]),true);
+ }
+});
