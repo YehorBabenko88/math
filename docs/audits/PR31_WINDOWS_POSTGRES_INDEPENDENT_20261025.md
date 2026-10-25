@@ -21,3 +21,11 @@ At candidate HEAD, Book Ingestion Native PDF, Experimental Proof Kernel, Validat
 
 ## Acceptance
 Q01 OPEN. Production NO-GO. No merge, deployment, production DB changes, physical host operations, or native containment trials. The only proposed patch is test-only and must not be represented as proof of runtime safety.
+
+## Follow-up 2026-10-25: fault cleanup and CI provenance
+
+Added native-free fake-kernel exception coverage for CreateJob, Close(thread), and TerminateProcess failure. The TerminateProcess case asserts all owned handles are still closed through nested finally blocks. This tests sequencing, not OS-level termination or descendant drain. These new tests are NOT_RUN at this audit HEAD.
+
+Candidate exact-SHA workflow observations: at `cb168925b5aeec0c957137dd94ab72c64f0bd333`, Windows Deployment Contracts, Book Ingestion Native PDF, Experimental Proof Kernel, Validate Math Universe, QA SQLite Q01 Diagnostic, Q01 Detached Journal Regression, Browser E2E, and AI Orchestrator Policy were completed SUCCESS; PostgreSQL Integration, Q01 Windows Containment Preparation, and Q01 Queue Reliability were still QUEUED at the follow-up read. Do not attribute these source-HEAD outcomes to this audit branch.
+
+Audit branch commit `3a8269e23bf8b78c73c438d530aff1d8a671da1e` had seven queued workflows. Until exact-HEAD jobs and TAP/Pester assertions are inspected, this branch's acceptance remains BLOCKED.
