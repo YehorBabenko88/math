@@ -28,12 +28,16 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static and model regressions only
-        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs tests/adminit-stdout-privacy.test.mjs tests/adminit-workflow-privacy.test.mjs
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs tests/adminit-stdout-privacy.test.mjs tests/adminit-workflow-privacy.test.mjs tests/adminit-package-caller-contract.test.mjs tests/adminit-package-syntax.test.mjs tests/adminit-zip-admission.test.mjs tests/adminit-zip-members.test.mjs tests/runtime-identity-publication.test.mjs tests/private-evidence-receipt.test.mjs
       - name: Fail-closed local policy and parser contracts (no native fixture)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           & powershell -NoProfile -File tests/adminit-policy.mock.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & powershell -NoProfile -File tests/adminit-workflow-parser.mock.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & powershell -NoProfile -File tests/adminit-powershell-watchdog.mock.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & powershell -NoProfile -File tests/adminit-watchdog-wait.mock.ps1
           exit $LASTEXITCODE

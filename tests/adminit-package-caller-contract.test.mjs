@@ -16,3 +16,4 @@ test('package CLI requires external source tree and qualified verifier',()=>{
  assert.match(packageSource,/process\.argv\.length===6/);
  assert.match(packageSource,/verifyAdminitPackageQualified\(\{directory:/);
 });
+test('future verify-only packet supplies external tree and avoids historical laboratory',()=>{const s=readFileSync(new URL('../docs/audits/PR51_CURRENT_VERIFY_ONLY_PACKET.md',import.meta.url),'utf8');const packet=s;assert.match(packet,/-ExpectedSourceHead \$ExpectedHead -ExpectedSourceTree \$ExpectedTree/);assert.match(packet,/MathUniverseAdminitAcceptance/);assert.doesNotMatch(packet,/MathUniverseLab\\AdminitSynthetic/);});

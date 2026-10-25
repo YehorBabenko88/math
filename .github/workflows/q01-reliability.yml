@@ -31,12 +31,20 @@ jobs:
       - name: Independently verify exact source evidence and completeness
         if: always()
         run: node scripts/q01-lab/verify.mjs --directory "${{ runner.temp }}/MathUniverseQ01/run/evidence" --expected-head "${{ github.sha }}" --expected-profile "${{ matrix.profile }}"
-      - name: Upload all outcomes including failure evidence
+      - name: Withhold private PID timeline and publish digest receipt only
+        if: always()
+        shell: pwsh
+        run: |
+          $tree = git --no-replace-objects rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
+          node scripts/private-evidence-receipt.mjs "$env:RUNNER_TEMP/MathUniverseQ01/run/evidence" "$env:RUNNER_TEMP/q01-public-receipt.json" '${{ github.sha }}' $tree '${{ github.run_id }}' '${{ github.run_attempt }}' q01-laboratory
+          exit $LASTEXITCODE
+      - name: Upload digest receipt only (private evidence review BLOCKED)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: q01-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}-${{ matrix.node }}-${{ matrix.profile }}
-          path: ${{ runner.temp }}/MathUniverseQ01/run/evidence/
+          path: ${{ runner.temp }}/q01-public-receipt.json
           if-no-files-found: error
           retention-days: 30
   windows-guards:
