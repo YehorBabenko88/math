@@ -35,3 +35,22 @@ test('no snapshot-only candidate is a verified cancellation decision',()=>{
   assert.equal(Object.hasOwn(r,'approvedCancellation'),false);
  }
 });
+
+test('PR merge candidates never carry an attested executed revision',()=>{
+ const pr=runs.filter(r=>r.proposedCancellation&&r.event==='pull_request');
+ assert.equal(pr.length,175);
+ for(const r of pr){
+  assert.equal(r.executionRevision,'UNRESOLVED_PR_MERGE_WORKFLOW');
+  assert.equal(Object.hasOwn(r,'executedWorkflowSha'),false);
+  assert.equal(Object.hasOwn(r,'verifiedMergeTree'),false);
+ }
+});
+test('source risk is not proof of publication or an approval to cancel',()=>{
+ const candidates=runs.filter(r=>r.proposedCancellation);
+ for(const r of candidates){
+  assert.equal(r.observedStatus,'queued');
+  assert.equal(Object.hasOwn(r,'artifactPrivacyVerified'),false);
+  assert.equal(Object.hasOwn(r,'currentJobsVerified'),false);
+  assert.equal(Object.hasOwn(r,'cancellationApproved'),false);
+ }
+});
