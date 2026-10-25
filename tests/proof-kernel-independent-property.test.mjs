@@ -149,3 +149,14 @@ test('negative: implication-elimination premise substitution is rejected',()=>{
   assert.throws(()=>verifyImplicationProof({goal:b,assumptions,proof}),/Invalid implication elimination/);
  }
 });
+
+test('negative: wrong implication direction cannot justify consequent',()=>{
+ for(let i=0;i<80;i++){
+  const a=formula(2),b=formula(2);
+  const wrong=imp(b,a);
+  const assumptions=[wrong,a];
+  const proof=elim(assumption(0),assumption(1));
+  if(JSON.stringify(a)!==JSON.stringify(b))
+   assert.throws(()=>verifyImplicationProof({goal:b,assumptions,proof}),/Invalid implication elimination/);
+ }
+});
