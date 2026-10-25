@@ -23,9 +23,12 @@ export function lstatSync(path,...args){
     globalThis.__detachedStatReceipt.symlinkEvidence='synthetic-windows';
     return {nlink:1,size:0,isFile:()=>false,isSymbolicLink:()=>true};
    }
-   fs.symlinkSync(join(c.directory,'.replacement-target'),path);
+   const target=join(c.directory,'.replacement-target');
+   fs.writeFileSync(target,'synthetic-target');
+   fs.symlinkSync(target,path);
    const stat=fs.lstatSync(path,...args);
    globalThis.__detachedStatReceipt.symlinkEvidence=stat.isSymbolicLink()?'real-posix':'invalid';
+   globalThis.__detachedStatReceipt.symlinkTargetExists=fs.existsSync(path);
    return stat;
   }
  }
