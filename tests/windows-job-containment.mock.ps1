@@ -34,10 +34,22 @@ namespace MathUniverse.Q01 {
    Expect(Run("resume",0),"job,limits,suspend,assign,resume,kill-job,kill-process,wait,close-3,close-2,close-1");
    Expect(Run(null,258),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,wait,close-3,close-2,close-1");
    Expect(Run("kill-job",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
+   Expect(Run("exit",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
+   Expect(Run("wait",0),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,wait,close-3,close-2,close-1");
+   Expect(Run("job",0),"job");
+   Expect(Run("close-3",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
+   Expect(Run("kill-process",258),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,close-3,close-2,close-1");
+   Expect(Run("close-2",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
+   Expect(Run("close-1",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
+   Expect(Run("kill-job",258),"job,limits,suspend,assign,resume,wait,kill-job,close-3,close-2,close-1");
+   Expect(Run("close-3",258),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,wait,close-3,close-2,close-1");
+   Expect(Run("close-2",258),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,wait,close-3,close-2,close-1");
+   Expect(Run("close-1",258),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,wait,close-3,close-2,close-1");
+   Expect(Run("assign",258),"job,limits,suspend,assign,kill-process,wait,close-3,close-2,close-1");
   }
  }
 }
 '@
 Add-Type -TypeDefinition ($source + $fixture)
 [MathUniverse.Q01.MockAcceptance]::Verify()
-Write-Output 'PASS: compilation and seven mock sequencing/cleanup cases; zero native calls'
+Write-Output 'PASS: compilation and nineteen mock sequencing/cleanup cases; zero native calls'
