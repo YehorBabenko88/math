@@ -23,3 +23,25 @@ test('PR merge binds distinct synthetic merge and PR head, rejects second-parent
  assert.throws(()=>verifyWorkload(jwt(),{...options,platform:{...platform,commit:{...platform.commit,parents:[{sha:challenge.baseHead},{sha:challenge.runHead}]}}}),/BLOCKED/);
  assert.throws(()=>verifyWorkload(jwt(),{...options,platform:{...platform,run:{...platform.run,pull_requests:[{head:{sha:'0'.repeat(40)},base:{sha:challenge.baseHead}}]}}}),/BLOCKED/);
 });
+
+test('PR merge rejects ambiguous PR inventory, stale run SHA and wrong signed merge SHA',async()=>{
+ const {verifyWorkload}=await import('../src/evidence-receiver/oidc.mjs');
+ const options={jwks:{keys:[jwk]},policy,challenge,platform,now};
+ const mutations=[
+  {...platform,run:{...platform.run,pull_requests:[...platform.run.pull_requests,...platform.run.pull_requests]}},
+  {...platform,run:{...platform.run,head_sha:'0'.repeat(40)}},
+  {...platform,job:{...platform.job,head_sha:'0'.repeat(40)}},
+  {...platform,commit:{...platform.commit,sha:'0'.repeat(40)}}
+ ];
+ for(const p of mutations)assert.throws(()=>verifyWorkload(jwt(),{...options,platform:p}),/BLOCKED/);
+ assert.throws(()=>verifyWorkload(jwt({...claims,sha:'e'.repeat(40)}),options),/BLOCKED/);
+});
+test('PR merge rejects substituted attempt job and check-run inventory',async()=>{
+ const {verifyWorkload}=await import('../src/evidence-receiver/oidc.mjs');
+ const opts={jwks:{keys:[jwk]},policy,challenge,platform,now};
+ for(const jobs of [
+  {total_count:2,jobs:[platform.job,platform.job]},
+  {total_count:1,jobs:[{...platform.job,id:999}]},
+  {total_count:1,jobs:[{...platform.job,check_run_url:'https://api.github.com/repos/YehorBabenko88/math/check-runs/999'}]}
+ ])assert.throws(()=>verifyWorkload(jwt(),{...opts,platform:{...platform,jobs}}),/BLOCKED/);
+});
