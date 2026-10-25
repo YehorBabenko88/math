@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import{mkdtempSync,writeFileSync,readFileSync,rmSync,linkSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';import{createHash}from'node:crypto';import{verifyAdminitPackage}from'../scripts/adminit-containment/package.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import{mkdtempSync,writeFileSync,readFileSync,rmSync,linkSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';import{createHash}from'node:crypto';import{verifyAdminitPackage,verifyAdminitPackageQualified}from'../scripts/adminit-containment/package.mjs';
 const sha=b=>createHash('sha256').update(b).digest('hex');
 function fixture(t){const directory=mkdtempSync(join(tmpdir(),'adminit-package-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));const exe=Buffer.from('synthetic-not-an-executable');writeFileSync(join(directory,'AdminitSyntheticHarness.exe'),exe);const m={schema:1,sourceHead:'a'.repeat(40),sourceTree:'b'.repeat(40),localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',files:[{path:'AdminitSyntheticHarness.exe',bytes:exe.length,sha256:sha(exe)}]};const bytes=Buffer.from(JSON.stringify(m));writeFileSync(join(directory,'package.json'),bytes);return{directory,expectedManifestSha256:sha(bytes),expectedSourceHead:m.sourceHead};}
 test('package verifier requires out-of-band digest and exact source identity',t=>{const f=fixture(t);assert.equal(verifyAdminitPackage(f).localExecution,'BLOCKED_PENDING_ISOLATION_REVIEW');assert.throws(()=>verifyAdminitPackage({...f,expectedManifestSha256:'0'.repeat(64)}),/digest/);assert.throws(()=>verifyAdminitPackage({...f,expectedSourceHead:'c'.repeat(40)}),/source/);});
@@ -7,3 +7,17 @@ test('package verifier rejects hardlinked executable and manifest without invent
 for(const [name,mutate]of [['execution enabled',m=>m.localExecution='ENABLED'],['extra field',m=>m.extra=true],['extra executable',m=>m.files.push({...m.files[0],path:'other.exe'})],['invalid tree',m=>m.sourceTree='invalid'],['array tree',m=>m.sourceTree=[m.sourceTree]]])test('package schema rejects '+name+' even when digest is pinned',t=>{const f=fixture(t),m=JSON.parse(readFileSync(join(f.directory,'package.json'),'utf8'));mutate(m);const bytes=Buffer.from(JSON.stringify(m));writeFileSync(join(f.directory,'package.json'),bytes);assert.throws(()=>verifyAdminitPackage({...f,expectedManifestSha256:sha(bytes)}),/BLOCKED/);});
 test('package verifier binds externally expected tree, not merely tree syntax',t=>{const f=fixture(t);assert.throws(()=>verifyAdminitPackage({...f,expectedSourceTree:'c'.repeat(40)}),/BLOCKED/);assert.equal(verifyAdminitPackage({...f,expectedSourceTree:'b'.repeat(40)}).sourceTree,'b'.repeat(40));});
 for(const [name,mutate] of [['noncanonical source',m=>m.sourceHead='A'.repeat(40)],['traversal path',m=>m.files[0].path='../AdminitSyntheticHarness.exe'],['uppercase digest',m=>m.files[0].sha256=m.files[0].sha256.toUpperCase()],['fractional bytes',m=>m.files[0].bytes+=0.5],['negative bytes',m=>m.files[0].bytes=-1],['unexpected metadata',m=>m.files[0].url='https://example.invalid']])test('package rejects pinned malicious '+name,t=>{const f=fixture(t),m=JSON.parse(readFileSync(join(f.directory,'package.json'),'utf8'));mutate(m);const bytes=Buffer.from(JSON.stringify(m));writeFileSync(join(f.directory,'package.json'),bytes);assert.throws(()=>verifyAdminitPackage({...f,expectedManifestSha256:sha(bytes)}),/BLOCKED/);});
+
+test('independent qualification refuses absent external tree',t=>{const f=fixture(t);assert.throws(()=>verifyAdminitPackageQualified(f),/external source tree required/);});
+test('independent qualification binds tree but never grants Execute',t=>{const f=fixture(t);const r=verifyAdminitPackageQualified({...f,expectedSourceTree:'b'.repeat(40)});assert.equal(r.qualification,'SOURCE_TREE_BOUND_ONLY');assert.equal(r.execution,'DENIED');});
+test('independent qualification rejects mismatched external tree',t=>{const f=fixture(t);assert.throws(()=>verifyAdminitPackageQualified({...f,expectedSourceTree:'c'.repeat(40)}),/external source tree mismatch/);});
+
+test('package CLI refuses missing external source tree',async t=>{
+ const {spawnSync}=await import('node:child_process');
+ const f=fixture(t);
+ const {fileURLToPath}=await import('node:url');
+ const cli=fileURLToPath(new URL('../scripts/adminit-containment/package.mjs',import.meta.url));
+ const r=spawnSync(process.execPath,[cli,f.directory,f.expectedManifestSha256,f.expectedSourceHead],{encoding:'utf8',windowsHide:true,timeout:10000});
+ assert.equal(r.status,2);
+ assert.match(r.stderr,/BLOCKED/);
+});

@@ -26,7 +26,7 @@ export function validateNativeReport(r,{sourceHead,sourceTree}={}){
   if(c.scenario==='cleanup')check(h.drainRejected===true&&/job drain unconfirmed/.test(c.error??''),'cleanup rejection proof');
   if(c.scenario==='timeout')check(/deadline/.test(c.error??''),'timeout proof');
  }
- return {status:'PASS',cases:cases.length,forcedWatchdogStatus:'BLOCKED',negativeWatchdogProofVerified:true,localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',scope:'hosted fixed synthetic mechanisms only; not filesystem/network isolation or physical authorization'};
+ return {status:'PASS',validationScope:'PRODUCER_LOCAL_SCHEMA_ONLY',independentAcceptance:'BLOCKED_PRIVATE_EVIDENCE_REQUIRED',cases:cases.length,forcedWatchdogStatus:'BLOCKED',negativeWatchdogProofVerified:true,localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',scope:'hosted fixed synthetic mechanisms only; not filesystem/network isolation or physical authorization'};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{check(process.argv.length===5,'DIRECTORY SOURCE_HEAD SOURCE_TREE required');const dir=resolve(process.argv[2]);for(let p=dir;;p=dirname(p)){check(!lstatSync(p).isSymbolicLink(),'reparse directory');if(dirname(p)===p)break;}const file=join(dir,'results.json'),s=lstatSync(file);check(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size<=1048576,'regular bounded report');const report=JSON.parse(readFileSync(file,'utf8'));validateForcedWatchdogProbe(report.watchdogProbe);console.log(JSON.stringify(validateNativeReport(report,{sourceHead:process.argv[3],sourceTree:process.argv[4]})));}catch(e){console.error('Native evidence verification BLOCKED; payload suppressed');process.exitCode=2;}

@@ -1,7 +1,7 @@
 $ErrorActionPreference='Stop'
 $gate=Join-Path $PSScriptRoot '../scripts/adminit-containment/verify-adminit.ps1'
 $reason=$null
-try { & $gate -PackageRoot 'C:\fixture-not-read' -ExpectedManifestSha256 ('a'*64) -ExpectedSourceHead ('b'*40) -Execute }
+try { & $gate -PackageRoot 'C:\fixture-not-read' -ExpectedManifestSha256 ('a'*64) -ExpectedSourceHead ('b'*40) -ExpectedSourceTree ('c'*40) -Execute }
 catch { $reason=$_.Exception.Message }
 if($reason -notlike '*ADMINIT isolation criteria not integrated: BLOCKED*'){throw 'local Execute did not fail closed before filesystem/native checks'}
 foreach($name in @('verify-adminit.ps1','build-hosted.ps1','collect-isolation.ps1')){
