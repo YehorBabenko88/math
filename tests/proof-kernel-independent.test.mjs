@@ -33,7 +33,7 @@ test('implication elimination respects ordered context and changed consequent',(
   assert.equal(verifyImplicationProof({goal:b,assumptions:ctx,proof}).isClosedTheorem,false);
   for(const v of valuations)
    if(ctx.every(f=>evalFormula(f,v)))assert.equal(evalFormula(b,v),true);
-  assert.throws(()=>verifyImplicationProof({goal:a,assumptions:ctx,proof}));
+  if(JSON.stringify(a)!==JSON.stringify(b)) assert.throws(()=>verifyImplicationProof({goal:a,assumptions:ctx,proof}));
  }
 });
 
