@@ -19,9 +19,14 @@ export function lstatSync(path,...args){
   if(c.mode==='denied')throw Object.assign(Error('Synthetic access denial'),{code:'EACCES'});
   if(c.mode==='symlink'){
    // Exercise the actual filesystem object, not a synthetic Stats shape.
-   if(process.platform==='win32')return {nlink:1,size:0,isFile:()=>false,isSymbolicLink:()=>true};
+   if(process.platform==='win32'){
+    globalThis.__detachedStatReceipt.symlinkEvidence='synthetic-windows';
+    return {nlink:1,size:0,isFile:()=>false,isSymbolicLink:()=>true};
+   }
    fs.symlinkSync(join(c.directory,'.replacement-target'),path);
-   return fs.lstatSync(path,...args);
+   const stat=fs.lstatSync(path,...args);
+   globalThis.__detachedStatReceipt.symlinkEvidence=stat.isSymbolicLink()?'real-posix':'invalid';
+   return stat;
   }
  }
  return fs.lstatSync(path,...args);
