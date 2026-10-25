@@ -39,3 +39,6 @@ Run exact-HEAD Node 22/24 policy tests and full Windows/Linux PG16/18 CI, record
 
 ## Correlation contract tightening
 The source correlation helper now calls existing `matchReceipt` and `correlateExecutionClaim`, covering ordered input SHA256 hashes, resource budgets, attempt count and toolchain digest as well as source commit. It still does not inspect actual artifact bytes, authenticate signatures, resolve Git objects or grant proof/publication. Three negative regressions added; exact-HEAD CI required.
+
+## Explicit no-publication trust gate
+`trust-gate.mjs` is a deliberately non-authoritative assessment helper. It accepts only an exact four-field inert-shaped evidence envelope and always returns publication DENIED, source UNRESOLVED, runner/receipt UNATTESTED and kernel NOT_INDEPENDENTLY_VERIFIED. It does not validate or authenticate evidence and MUST NOT be repurposed as a release authorization API. Five negative/closed-gate tests added; no execution or publishing capability introduced.
