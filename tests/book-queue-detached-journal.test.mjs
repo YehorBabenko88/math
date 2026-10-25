@@ -19,3 +19,6 @@ for(const phase of [1,2])test(`Q01: regular replacement survives re-stat at phas
 
 for(const phase of [1,2])test(`Q01: persistent detached journal fails closed at phase ${phase}`,()=>{const r=probe({mode:'persistent',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.links,0);assert.equal(r.receipt.reads,phase+1);});
 for(const phase of [1,2])test(`Q01: disappearing journal ENOENT is accepted at phase ${phase}`,()=>{const r=probe({mode:'vanished',phase});assert.equal(r.ok,true);assert.equal(r.receipt.removed,true);assert.equal(r.receipt.revalidated,true);assert.equal(r.count,1);assert.equal(r.integrity,'ok');});
+
+for(const phase of [1,2])test(`Q01: oversized journal replacement rejected at phase ${phase}`,()=>{const r=probe({mode:'oversized',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);});
+for(const phase of [1,2])test(`Q01: access denial on re-stat rejected at phase ${phase}`,()=>{const r=probe({mode:'denied',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);});
