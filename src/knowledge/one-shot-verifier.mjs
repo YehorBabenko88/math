@@ -7,6 +7,8 @@ const fields=['schema_version','verdict','kernel_id','kernel_version','request_i
 const canon=x=>JSON.stringify(Object.fromEntries(fields.map(k=>[k,x[k]])));
 export function createVerificationRequestV2(v1) {
  v1=inertRecord(v1);
+ const allowed=new Set(['schema_version','requested_status','theorem_revision','theorem_content_hash','proof_revision','proof_content_hash','context_hash']);
+ if(Object.keys(v1).some(k=>!allowed.has(k))) throw Error('unexpected request field');
  if(!v1||v1.schema_version!=='kg.verify-request.v1'||v1.requested_status!=='PENDING'||!fields.slice(5).every(k=>dig(v1[k]))) throw Error('invalid v1 request');
  return Object.freeze({...v1,schema_version:'kg.verify-request.v2',request_id:randomBytes(32).toString('hex')});
 }
@@ -28,6 +30,7 @@ export class OneShotKernelVerifier {
  }
  assess() { throw Error('persistent ledger required: use assessPersisted'); }
  #validateSignature(request,result) {
+  if(Object.keys(request).some(k=>!['schema_version','requested_status','request_id',...fields.slice(5)].includes(k))) throw Error('unexpected request field');
   if(!request||request.schema_version!=='kg.verify-request.v2'||!(/^[a-f0-9]{64}$/.test(request.request_id))||!fields.slice(5).every(k=>dig(request[k]))) throw Error('invalid request');
   if(!result||Object.getPrototypeOf(result)!==Object.prototype||Object.keys(result).some(k=>![...fields,'attestation'].includes(k))) throw Error('invalid result');
   if(result.schema_version!=='kg.kernel-result.v2'||!['PASS','FAIL','INDETERMINATE'].includes(result.verdict)||result.kernel_id!==this.#id||result.kernel_version!==this.#version||result.request_id!==request.request_id||!fields.slice(5).every(k=>result[k]===request[k])) throw Error('result binding mismatch');
