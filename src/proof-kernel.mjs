@@ -1,3 +1,4 @@
+import {types} from 'node:util';
 // Experimental propositional-implication proof checker. No eval, IO or AI trust.
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 const record=o=>o!==null&&typeof o==='object'&&!Array.isArray(o)&&
@@ -15,7 +16,7 @@ function inert(o,seen=new Set(),budget={n:0},depth=0){
   if(!Number.isFinite(o)||Object.is(o,-0))throw Error('Noncanonical number');
   return o;
  }
- if(typeof o!=='object'||seen.has(o))throw Error('Invalid input');
+ if(typeof o!=='object'||seen.has(o)||types.isProxy(o))throw Error('Invalid input');
  const array=Array.isArray(o);
  if(array?Object.getPrototypeOf(o)!==Array.prototype:!record(o))throw Error('Invalid prototype');
  seen.add(o);
@@ -116,7 +117,8 @@ export function verifyExpectedClosedImplicationProofJson(jsonText,expectedGoalJs
  const document=JSON.parse(jsonText);
  if(JSON.stringify(document)!==jsonText||!document||typeof document!=='object')
   throw Error('Noncanonical proof document');
- if(JSON.stringify(document.goal)!==expectedGoalJson)throw Error('Unexpected theorem goal');
+ if(!document||Array.isArray(document)||typeof document!=='object'||
+  JSON.stringify(document.goal)!==expectedGoalJson)throw Error('Unexpected theorem goal');
  return verifyClosedImplicationProofJson(jsonText);
 }
 
