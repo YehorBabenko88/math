@@ -10,7 +10,9 @@ export class CandidateGraph {
   }
   const old=this.#revisions.get(candidate.revision_id);
   if(old) {
-   if(old.entity_id!==candidate.entity_id) throw Error('revision entity conflict');
+   // createCandidate has rejected proxies/accessors and validated this optional primitive.
+   // Omitted or undefined IDs reuse the existing revision's generated identity.
+   if(input.entity_id!==undefined && old.entity_id!==candidate.entity_id) throw Error('revision entity conflict');
    return structuredClone(old);
   }
   this.#revisions.set(candidate.revision_id,candidate);

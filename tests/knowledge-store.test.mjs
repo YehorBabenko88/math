@@ -172,3 +172,17 @@ test('proxy edge and getter edge are rejected without modifying graph',()=>{
  assert.equal(invoked,0);
  assert.deepEqual(graph.dependencies(a),[]);
 });
+
+for(const entityIdMode of ['omitted','undefined']) {
+ test(`identical candidate with ${entityIdMode} entity_id reuses its generated identity`,()=>{
+  const graph=new CandidateGraph();
+  const input=candidate(undefined,'auto identity');
+  if(entityIdMode==='omitted') delete input.entity_id;
+  const first=graph.addCandidate(input);
+  const duplicate=graph.addCandidate({...input});
+  assert.equal(duplicate.entity_id,first.entity_id);
+  assert.equal(duplicate.revision_id,first.revision_id);
+  assert.equal(graph.history(first.entity_id).length,1);
+  assert.equal(graph.getRevision(first.revision_id).status,'CANDIDATE');
+ });
+}
