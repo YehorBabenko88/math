@@ -78,3 +78,12 @@ test('v2 rejects nonpending request without consuming signed result',async()=>{
   assert.equal((await v.assessPersisted(req,result)).verdict,'PASS');
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('signed result rejects missing required own field',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'kg-required-'));
+ try{
+  const ledger=new FileReplayLedger(dir),v=verifier(ledger),req=createVerificationRequestV2(base),result=signed(req);
+  delete result.proof_content_hash;
+  await assert.rejects(v.assessPersisted(req,result),/incomplete result/);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
