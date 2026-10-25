@@ -32,6 +32,7 @@ validation/use races and the harness does not assert hostile-code sandboxing.
 
 Local evidence: the mock regression was RED before the change and GREEN after it;
 three Node static contracts pass. No native API was invoked locally. The local
-machine has a .NET runtime but no SDK, so full fixture compilation and native
+machine has a .NET runtime but no SDK. PowerShell Add-Type compiled the full
+fixture and helper together without invoking them; SDK apphost build and native
 results depend on hosted execution. Report hosted SOURCE_HEAD/tree and artifact
 results separately; an absent, skipped, or failed job is not acceptance.

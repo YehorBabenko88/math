@@ -1,4 +1,9 @@
 // Fixed synthetic fixtures only. Build locally; native entry is hosted-only.
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -25,10 +30,6 @@ internal static class NativeHarness {
     static void Until(Func<bool> condition, string message) {
         var clock=Stopwatch.StartNew();
         while (!condition()) { Check(clock.ElapsedMilliseconds<8000,message); Thread.Sleep(10); }
-    }
-    static void AssertDead(int pid) {
-        try { using var process=Process.GetProcessById(pid); Check(process.WaitForExit(5000),"descendant survived: "+pid); }
-        catch (ArgumentException) { }
     }
     static int Fixture(string mode,string dir) {
         // All fixture writes are fixed names under the owned temporary test directory.
@@ -187,3 +188,4 @@ internal static class NativeHarness {
         return results.Any(x=>JsonSerializer.Serialize(x).Contains("\"FAIL\""))?1:0;
     }
 }
+
