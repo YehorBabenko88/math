@@ -1,0 +1,22 @@
+name: PR31 independent queue review
+on:
+  push:
+    branches: [test/pr31-queue-independent-review]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test tests/book-queue-detached-journal.test.mjs tests/book-ingestion-queue.test.mjs tests/book-cutover-hardening-sqlite.test.mjs tests/book-cutover-source.test.mjs tests/book-cutover-controller.test.mjs tests/book-cutover-backup.test.mjs tests/book-cutover-journal.test.mjs tests/book-sqlite-text.test.mjs
