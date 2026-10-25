@@ -198,3 +198,28 @@ test('negative: malformed JSON numeric encodings fail closed',()=>{
   assert.throws(()=>verifyImplicationProofJson(text),/Noncanonical/);
  }
 });
+
+test('negative: unsupported proof rules and extra fields never create certificates',()=>{
+ const goal=imp(P,P);
+ const base=intro(P,assumption(0));
+ for(const rule of ['axiom','admit','sorry','trust_me','rewrite','cut','eval']){
+  assert.throws(()=>verifyImplicationProof({goal,proof:{rule,body:base}}));
+ }
+ for(const extra of ['status','verified','axioms','source']){
+  const proof={...base,[extra]:true};
+  assert.throws(()=>verifyImplicationProof({goal,proof}));
+ }
+});
+test('property: conditional modus ponens never becomes a closed theorem',()=>{
+ for(let i=0;i<120;i++){
+  const a=formula(2),b=formula(2);
+  const document=JSON.stringify({
+   goal:b,assumptions:[imp(a,b),a],proof:elim(assumption(0),assumption(1))
+  });
+  const result=verifyImplicationProofJson(document);
+  assert.equal(result.openAssumptions,2);
+  assert.equal(result.isClosedTheorem,false);
+  assert.notEqual(result.formalStatus,'VERIFIED');
+  assert.throws(()=>verifyExpectedClosedImplicationProofJson(document,JSON.stringify(b)),/Open assumptions/);
+ }
+});
