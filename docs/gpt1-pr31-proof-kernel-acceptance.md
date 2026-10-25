@@ -54,3 +54,13 @@ Container clone was attempted using `git ls-remote` and failed DNS lookup
 for github.com. Consequently these new cases are **NOT_RUN locally**.
 The source candidate remains pinned, and no merge or physical operation
 is authorized. Q01 remains OPEN, production NO-GO.
+
+## Negative-test quality refinement
+
+The 100 seeded premise-substitution cases now unconditionally assert rejection:
+the replacement premise is `A -> A`, which is structurally distinct from
+`A` for every finite formula in this grammar. A separate reversed-direction
+test checks that `B -> A` plus `A` does not establish `B` unless the
+antecedent accidentally coincides with the supplied argument. Skipped
+cases are not counted as independent negative coverage. These changes are
+tests only; no new inference rule or axiom was introduced.
