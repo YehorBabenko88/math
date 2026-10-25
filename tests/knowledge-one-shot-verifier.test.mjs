@@ -69,3 +69,12 @@ test('verifier constructor rejects Proxy without triggering traps',()=>{
  assert.throws(()=>new OneShotKernelVerifier(proxy),/invalid trust policy/);
  assert.equal(reads,0);
 });
+
+test('v2 rejects nonpending request without consuming signed result',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'kg-state-'));
+ try{
+  const ledger=new FileReplayLedger(dir),v=verifier(ledger),req=createVerificationRequestV2(base),result=signed(req);
+  await assert.rejects(v.assessPersisted({...req,requested_status:'VERIFIED'},result),/invalid request/);
+  assert.equal((await v.assessPersisted(req,result)).verdict,'PASS');
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
