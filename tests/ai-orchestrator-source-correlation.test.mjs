@@ -27,3 +27,11 @@ test('receipt budget overrun rejected',()=>{
 test('claim toolchain mismatch rejected',()=>{
  assert.throws(()=>correlatePinnedSource(source,task,receipt,{...claim,toolchainHash:'b'.repeat(64)}),/CLAIM_MISMATCH/);
 });
+
+for(const [name,invalidReceipt,invalidClaim,expected] of [
+ ['receipt', {...receipt,sourceCommit:'b'.repeat(40),extra:true}, claim, /INVALID_RECEIPT/],
+ ['claim', receipt, {...claim,sourceCommit:'b'.repeat(40),extra:true}, /INVALID_CLAIM/],
+ ['claim before receipt binding', {...receipt,inputHashes:[hash]}, {...claim,extra:true}, /INVALID_CLAIM/]
+])test('strict schema validation precedes source correlation: '+name,()=>{
+ assert.throws(()=>correlatePinnedSource(source,task,invalidReceipt,invalidClaim),expected);
+});
