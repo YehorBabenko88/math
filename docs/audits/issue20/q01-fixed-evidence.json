@@ -1,0 +1,737 @@
+{
+  "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+  "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+  "q01": "OPEN",
+  "production": "NO-GO",
+  "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+  "cells": [
+    {
+      "key": "linux/22/fault",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "cases": [
+        {
+          "id": "existing-empty",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-1s",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-timeout-6.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-4.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-timeout-5.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "pause-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-delete",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-insert",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-initialization",
+          "status": "PASS"
+        },
+        {
+          "id": "rollback-write-error",
+          "status": "PASS"
+        },
+        {
+          "id": "read-error",
+          "status": "PASS"
+        },
+        {
+          "id": "malformed-schema",
+          "status": "PASS"
+        },
+        {
+          "id": "wrong-metadata-version",
+          "status": "PASS"
+        },
+        {
+          "id": "missing-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "corrupt-payload",
+          "status": "PASS"
+        },
+        {
+          "id": "incorrect-types",
+          "status": "PASS"
+        },
+        {
+          "id": "multiwriter",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-checkpoint-resume",
+          "status": "PASS"
+        },
+        {
+          "id": "restart-after-timeout",
+          "status": "PASS"
+        },
+        {
+          "id": "diagnostic-first-open-100",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "linux/22/quick",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-10",
+          "status": "PASS"
+        },
+        {
+          "id": "stale-exists-false",
+          "status": "PASS"
+        },
+        {
+          "id": "schema-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "atomic-claims",
+          "status": "PASS"
+        },
+        {
+          "id": "lease-checkpoint",
+          "status": "PASS"
+        },
+        {
+          "id": "unicode-roundtrip",
+          "status": "PASS"
+        },
+        {
+          "id": "idempotence",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "linux/22/stress",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-100",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-300",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-1000",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "linux/24/fault",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "24.21.0",
+        "sqlite": "3.53.4",
+        "os": "linux"
+      },
+      "cases": [
+        {
+          "id": "existing-empty",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-1s",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-timeout-6.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-4.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-timeout-5.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "pause-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-delete",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-insert",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-initialization",
+          "status": "PASS"
+        },
+        {
+          "id": "rollback-write-error",
+          "status": "PASS"
+        },
+        {
+          "id": "read-error",
+          "status": "PASS"
+        },
+        {
+          "id": "malformed-schema",
+          "status": "PASS"
+        },
+        {
+          "id": "wrong-metadata-version",
+          "status": "PASS"
+        },
+        {
+          "id": "missing-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "corrupt-payload",
+          "status": "PASS"
+        },
+        {
+          "id": "incorrect-types",
+          "status": "PASS"
+        },
+        {
+          "id": "multiwriter",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-checkpoint-resume",
+          "status": "PASS"
+        },
+        {
+          "id": "restart-after-timeout",
+          "status": "PASS"
+        },
+        {
+          "id": "diagnostic-first-open-100",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "linux/24/quick",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "24.21.0",
+        "sqlite": "3.53.4",
+        "os": "linux"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-10",
+          "status": "PASS"
+        },
+        {
+          "id": "stale-exists-false",
+          "status": "PASS"
+        },
+        {
+          "id": "schema-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "atomic-claims",
+          "status": "PASS"
+        },
+        {
+          "id": "lease-checkpoint",
+          "status": "PASS"
+        },
+        {
+          "id": "unicode-roundtrip",
+          "status": "PASS"
+        },
+        {
+          "id": "idempotence",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "linux/24/stress",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "24.21.0",
+        "sqlite": "3.53.4",
+        "os": "linux"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-100",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-300",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-1000",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "win32/22/fault",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "22.23.4",
+        "sqlite": "3.53.4",
+        "os": "win32"
+      },
+      "cases": [
+        {
+          "id": "existing-empty",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-1s",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-timeout-6.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-4.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-timeout-5.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "pause-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-delete",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-insert",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-initialization",
+          "status": "PASS"
+        },
+        {
+          "id": "rollback-write-error",
+          "status": "PASS"
+        },
+        {
+          "id": "read-error",
+          "status": "PASS"
+        },
+        {
+          "id": "malformed-schema",
+          "status": "PASS"
+        },
+        {
+          "id": "wrong-metadata-version",
+          "status": "PASS"
+        },
+        {
+          "id": "missing-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "corrupt-payload",
+          "status": "PASS"
+        },
+        {
+          "id": "incorrect-types",
+          "status": "PASS"
+        },
+        {
+          "id": "multiwriter",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-checkpoint-resume",
+          "status": "PASS"
+        },
+        {
+          "id": "restart-after-timeout",
+          "status": "PASS"
+        },
+        {
+          "id": "diagnostic-first-open-100",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "win32/22/quick",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "22.23.4",
+        "sqlite": "3.53.4",
+        "os": "win32"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-10",
+          "status": "PASS"
+        },
+        {
+          "id": "stale-exists-false",
+          "status": "PASS"
+        },
+        {
+          "id": "schema-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "atomic-claims",
+          "status": "PASS"
+        },
+        {
+          "id": "lease-checkpoint",
+          "status": "PASS"
+        },
+        {
+          "id": "unicode-roundtrip",
+          "status": "PASS"
+        },
+        {
+          "id": "idempotence",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "win32/22/stress",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "22.23.4",
+        "sqlite": "3.53.4",
+        "os": "win32"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-100",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-300",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-1000",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "win32/24/fault",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "24.22.1",
+        "sqlite": "3.53.4",
+        "os": "win32"
+      },
+      "cases": [
+        {
+          "id": "existing-empty",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-1s",
+          "status": "PASS"
+        },
+        {
+          "id": "initialization-timeout-6.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-4.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "lock-timeout-5.5s",
+          "status": "PASS"
+        },
+        {
+          "id": "pause-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-before-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-commit",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-delete",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-after-insert",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-initialization",
+          "status": "PASS"
+        },
+        {
+          "id": "rollback-write-error",
+          "status": "PASS"
+        },
+        {
+          "id": "read-error",
+          "status": "PASS"
+        },
+        {
+          "id": "malformed-schema",
+          "status": "PASS"
+        },
+        {
+          "id": "wrong-metadata-version",
+          "status": "PASS"
+        },
+        {
+          "id": "missing-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "corrupt-payload",
+          "status": "PASS"
+        },
+        {
+          "id": "incorrect-types",
+          "status": "PASS"
+        },
+        {
+          "id": "multiwriter",
+          "status": "PASS"
+        },
+        {
+          "id": "crash-checkpoint-resume",
+          "status": "PASS"
+        },
+        {
+          "id": "restart-after-timeout",
+          "status": "PASS"
+        },
+        {
+          "id": "diagnostic-first-open-100",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "win32/24/quick",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "24.22.1",
+        "sqlite": "3.53.4",
+        "os": "win32"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-10",
+          "status": "PASS"
+        },
+        {
+          "id": "stale-exists-false",
+          "status": "PASS"
+        },
+        {
+          "id": "schema-metadata",
+          "status": "PASS"
+        },
+        {
+          "id": "atomic-claims",
+          "status": "PASS"
+        },
+        {
+          "id": "lease-checkpoint",
+          "status": "PASS"
+        },
+        {
+          "id": "unicode-roundtrip",
+          "status": "PASS"
+        },
+        {
+          "id": "idempotence",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "key": "win32/24/stress",
+      "status": "PASS",
+      "source": {
+        "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+        "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+        "queueSha256": "a05a861a833ec9fb7136fd2ef100e63a36ab39fff4eb3fe8602b271900c9e225",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "1df47575142304a4210ad75e7af44a12303e92850fa3bf37ebcc423e3b0adc88",
+        "trackedSourceSha256": "240720aa03cd52438a1f88de59ecd3447bf9a88ce45caec721eb75db1be83a31",
+        "node": "24.22.1",
+        "sqlite": "3.53.4",
+        "os": "win32"
+      },
+      "cases": [
+        {
+          "id": "concurrent-first-open-100",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-300",
+          "status": "PASS"
+        },
+        {
+          "id": "concurrent-first-open-1000",
+          "status": "PASS"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2258 @@
+{
+  "capturedAtUtc": "2026-10-25T09:55:32.804933+00:00",
+  "meaning": "Exact-head observed workflow status; queued/running is BLOCKED, absent is NOT_RUN, no production qualification",
+  "q01": "OPEN",
+  "production": "NO-GO",
+  "fixes": [
+    {
+      "pr": 21,
+      "branch": "fix/knowledge-dependency-clone-20",
+      "scope": "dependency clone callback",
+      "head": "78d546ba257efe809e91e85179d2faad3499adf5",
+      "tree": "8f15e641a612234dc1c22f27cea7c0e6f53ad176",
+      "url": "https://github.com/YehorBabenko88/math/pull/21",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 39929205174,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:28Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929205174",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929205198,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:28Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929205198",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929205193,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:28Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929205193",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929205249,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:28Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929205249",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929205202,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:28Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929205202",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929205219,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:28Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929205219",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 39929198982,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:25Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929198982",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929199010,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:25Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929199010",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929199037,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:25Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929199037",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929198754,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:25Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929198754",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929198894,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:25Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929198894",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 39929198961,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "78d546ba257efe809e91e85179d2faad3499adf5",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T09:04:25Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/39929198961",
+          "auditStatus": "FAIL"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 39929198982
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 39929199010
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 39929198894
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 39929198754
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 39929199037
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 39929198961
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 39929205174
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 39929205193
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 39929205249
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 39929205198
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 39929205202
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 39929205219
+        }
+      ]
+    },
+    {
+      "pr": 22,
+      "branch": "fix/knowledge-inert-input-20",
+      "scope": "inert graph provenance",
+      "head": "fe4bb544d62d65bc47701f843ccff233462bac57",
+      "tree": "6827a4350145427abd186ca52af0f98afe3896b8",
+      "url": "https://github.com/YehorBabenko88/math/pull/22",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40012508224,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012508224",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012508239,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012508239",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012508249,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012508249",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40012508254,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012508254",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012508328,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012508328",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012508257,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012508257",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012500947,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012500947",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012500926,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012500926",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012500939,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012500939",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012500977,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012500977",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012501025,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012501025",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012500835,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "fe4bb544d62d65bc47701f843ccff233462bac57",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:34:44Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012500835",
+          "auditStatus": "PASS"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40012500939
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40012500926
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40012500835
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40012501025
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40012500947
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "PASS",
+          "runId": 40012500977
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40012508257
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40012508224
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40012508254
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40012508328
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40012508239
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40012508249
+        }
+      ]
+    },
+    {
+      "pr": 23,
+      "branch": "feat/q01-windows-job-containment",
+      "scope": "dormant containment preparation",
+      "head": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+      "tree": "686e4ed2e098860aa8216136bb439ddf494eee28",
+      "url": "https://github.com/YehorBabenko88/math/pull/23",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40013142763,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142763",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013142751,
+          "name": "Q01 Windows Containment Preparation",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142751",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013142805,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142805",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013142790,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142790",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40013142862,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142862",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013142852,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142852",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013142849,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:37Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013142849",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013136093,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013136093",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013136143,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013136143",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40013136191,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013136191",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013136209,
+          "name": "Q01 Windows Containment Preparation",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013136209",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013136084,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013136084",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013135981,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013135981",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40013136018,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:39:33Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40013136018",
+          "auditStatus": "PASS"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40013136191
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40013135981
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40013136084
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40013136093
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40013136018
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40013136143
+        },
+        {
+          "event": "push",
+          "name": "Q01 Windows Containment Preparation",
+          "status": "PASS",
+          "runId": 40013136209
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40013142852
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40013142862
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40013142805
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40013142763
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40013142849
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40013142790
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Windows Containment Preparation",
+          "status": "PASS",
+          "runId": 40013142751
+        }
+      ]
+    },
+    {
+      "pr": 24,
+      "branch": "fix/orchestrator-source-identity-20",
+      "scope": "Git source identity",
+      "head": "94cb8d753c0e429aef33f868593a402b39ad1354",
+      "tree": "7ad2f48c34bb5e2f162cc530fa146b32a97753f7",
+      "url": "https://github.com/YehorBabenko88/math/pull/24",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40012979290,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979290",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012979102,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979102",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012979263,
+          "name": "AI Orchestrator Policy (offline)",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979263",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012979252,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979252",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012979377,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979377",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012979144,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979144",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40012979136,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:21Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012979136",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012933067,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012933067",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40012932891,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012932891",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012932893,
+          "name": "AI Orchestrator Policy (offline)",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012932893",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012933021,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012933021",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40012932873,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012932873",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012932895,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012932895",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40012932860,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "94cb8d753c0e429aef33f868593a402b39ad1354",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:38:00Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40012932860",
+          "auditStatus": "PASS"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "FAIL",
+          "runId": 40012933067
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40012932873
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40012932860
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40012932891
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40012932895
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40012933021
+        },
+        {
+          "event": "push",
+          "name": "AI Orchestrator Policy (offline)",
+          "status": "PASS",
+          "runId": 40012932893
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40012979377
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40012979252
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40012979102
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40012979290
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40012979136
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40012979144
+        },
+        {
+          "event": "pull_request",
+          "name": "AI Orchestrator Policy (offline)",
+          "status": "PASS",
+          "runId": 40012979263
+        }
+      ]
+    },
+    {
+      "pr": 25,
+      "branch": "fix/release-required-contexts-20",
+      "scope": "required provenance contexts",
+      "head": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+      "tree": "83de2c5e6fca84ef6d36edbf87f6e25e36d807a5",
+      "url": "https://github.com/YehorBabenko88/math/pull/25",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40014574891,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:50:29Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014574891",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014574911,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:50:29Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014574911",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014574890,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:50:29Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014574890",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40014574986,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:50:29Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014574986",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014574907,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:50:29Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014574907",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014574908,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:50:29Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014574908",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40014408554,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:49:14Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014408554",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014408543,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:49:14Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014408543",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014408516,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:49:14Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014408516",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014408492,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:49:14Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014408492",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014408445,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:49:14Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014408445",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40014408536,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:49:14Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40014408536",
+          "auditStatus": "FAIL"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40014408516
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40014408445
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40014408543
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40014408492
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40014408554
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40014408536
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "FAIL",
+          "runId": 40014574890
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40014574986
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40014574911
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40014574907
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40014574891
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40014574908
+        }
+      ]
+    },
+    {
+      "pr": 26,
+      "branch": "fix/proof-input-size-boundary-20",
+      "scope": "proof text/byte boundary",
+      "head": "85608195536f613aca09b5298481bf6247319d4e",
+      "tree": "dd7cf903ac4560f34d0ba4d131cd3877401c6fb5",
+      "url": "https://github.com/YehorBabenko88/math/pull/26",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40015254989,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015254989",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015254885,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015254885",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015255052,
+          "name": "Experimental Proof Kernel",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015255052",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015254981,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015254981",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015254722,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015254722",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015254988,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015254988",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40015254806,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:50Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015254806",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015249872,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249872",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015249776,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249776",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015249814,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249814",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015249460,
+          "name": "Experimental Proof Kernel",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249460",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015249357,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249357",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015249480,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249480",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40015249526,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "85608195536f613aca09b5298481bf6247319d4e",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T19:55:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015249526",
+          "auditStatus": "PASS"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40015249526
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40015249872
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40015249776
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40015249814
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40015249357
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40015249480
+        },
+        {
+          "event": "push",
+          "name": "Experimental Proof Kernel",
+          "status": "PASS",
+          "runId": 40015249460
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40015254806
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40015254885
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40015254989
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40015254981
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40015254722
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40015254988
+        },
+        {
+          "event": "pull_request",
+          "name": "Experimental Proof Kernel",
+          "status": "PASS",
+          "runId": 40015255052
+        }
+      ]
+    },
+    {
+      "pr": 27,
+      "branch": "fix/kernel-result-inert-binding-20",
+      "scope": "kernel result/request binding",
+      "head": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+      "tree": "82d278f0edcaa5947170c19b2021a82965d9572b",
+      "url": "https://github.com/YehorBabenko88/math/pull/27",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40015808544,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:13Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015808544",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015808407,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:13Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015808407",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015808551,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:13Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015808551",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40015808417,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:13Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015808417",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015808406,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:13Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015808406",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015808422,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:13Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015808422",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015799431,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:09Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015799431",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015799396,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:09Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015799396",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015799532,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:09Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015799532",
+          "auditStatus": "FAIL"
+        },
+        {
+          "id": 40015799812,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:09Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015799812",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015799432,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:09Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015799432",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40015799628,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-23T20:00:09Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40015799628",
+          "auditStatus": "PASS"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40015799432
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40015799431
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40015799396
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40015799628
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40015799812
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40015799532
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "FAIL",
+          "runId": 40015808551
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40015808406
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40015808422
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40015808417
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40015808544
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "PASS",
+          "runId": 40015808407
+        }
+      ]
+    },
+    {
+      "pr": 28,
+      "branch": "fix/q01-detached-journal-stat-20",
+      "scope": "detached rollback-journal stat",
+      "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+      "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+      "url": "https://github.com/YehorBabenko88/math/pull/28",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40180464775,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464775",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464796,
+          "name": "QA SQLite Q01 Diagnostic",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464796",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464697,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464697",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464752,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464752",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464747,
+          "name": "Q01 Detached Journal Regression",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464747",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464778,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464778",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464754,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464754",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180464693,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:23:47Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180464693",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263817,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:52Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263817",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263741,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:52Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263741",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263735,
+          "name": "Q01 Detached Journal Regression",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:52Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263735",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263867,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:52Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263867",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263862,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:52Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263862",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263722,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:52Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263722",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180263689,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:20:51Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180263689",
+          "auditStatus": "PASS"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40180263862
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40180263817
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40180263741
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40180263867
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40180263689
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "PASS",
+          "runId": 40180263722
+        },
+        {
+          "event": "push",
+          "name": "Q01 Detached Journal Regression",
+          "status": "PASS",
+          "runId": 40180263735
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40180464754
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40180464775
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40180464697
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40180464752
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40180464778
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "PASS",
+          "runId": 40180464693
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Detached Journal Regression",
+          "status": "PASS",
+          "runId": 40180464747
+        }
+      ]
+    },
+    {
+      "pr": 29,
+      "branch": "fix/pg-wait-witness-chain-20",
+      "scope": "database lock-witness paths",
+      "head": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+      "tree": "ab987b45ee81f3409a0791b48ad4e531dea9c68a",
+      "url": "https://github.com/YehorBabenko88/math/pull/29",
+      "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+      "sqlChanged": "",
+      "runs": [
+        {
+          "id": 40180533217,
+          "name": "Book Ingestion Native PDF",
+          "event": "pull_request",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180533217",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180533206,
+          "name": "Browser E2E",
+          "event": "pull_request",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180533206",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180533197,
+          "name": "Validate Math Universe",
+          "event": "pull_request",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180533197",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180533198,
+          "name": "Windows Deployment Contracts",
+          "event": "pull_request",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180533198",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180533200,
+          "name": "PostgreSQL Integration",
+          "event": "pull_request",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180533200",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180533199,
+          "name": "Q01 Queue Reliability",
+          "event": "pull_request",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:48Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180533199",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529684,
+          "name": "Book Ingestion Native PDF",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529684",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529691,
+          "name": "Validate Math Universe",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529691",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529718,
+          "name": "Windows Deployment Contracts",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529718",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529696,
+          "name": "Browser E2E",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529696",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529681,
+          "name": "PostgreSQL Integration",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529681",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529701,
+          "name": "PostgreSQL wait witness regression",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "success",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529701",
+          "auditStatus": "PASS"
+        },
+        {
+          "id": 40180529698,
+          "name": "Q01 Queue Reliability",
+          "event": "push",
+          "head_sha": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_attempt": 1,
+          "created_at": "2026-10-25T09:24:45Z",
+          "html_url": "https://github.com/YehorBabenko88/math/actions/runs/40180529698",
+          "auditStatus": "FAIL"
+        }
+      ],
+      "requiredWorkflowObservation": [
+        {
+          "event": "push",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40180529681
+        },
+        {
+          "event": "push",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40180529684
+        },
+        {
+          "event": "push",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40180529696
+        },
+        {
+          "event": "push",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40180529718
+        },
+        {
+          "event": "push",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40180529691
+        },
+        {
+          "event": "push",
+          "name": "Q01 Queue Reliability",
+          "status": "FAIL",
+          "runId": 40180529698
+        },
+        {
+          "event": "push",
+          "name": "PostgreSQL wait witness regression",
+          "status": "PASS",
+          "runId": 40180529701
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL Integration",
+          "status": "PASS",
+          "runId": 40180533200
+        },
+        {
+          "event": "pull_request",
+          "name": "Book Ingestion Native PDF",
+          "status": "PASS",
+          "runId": 40180533217
+        },
+        {
+          "event": "pull_request",
+          "name": "Browser E2E",
+          "status": "PASS",
+          "runId": 40180533206
+        },
+        {
+          "event": "pull_request",
+          "name": "Windows Deployment Contracts",
+          "status": "PASS",
+          "runId": 40180533198
+        },
+        {
+          "event": "pull_request",
+          "name": "Validate Math Universe",
+          "status": "PASS",
+          "runId": 40180533197
+        },
+        {
+          "event": "pull_request",
+          "name": "Q01 Queue Reliability",
+          "status": "PASS",
+          "runId": 40180533199
+        },
+        {
+          "event": "pull_request",
+          "name": "PostgreSQL wait witness regression",
+          "status": "NOT_RUN",
+          "runId": null
+        }
+      ]
+    }
+  ]
+}

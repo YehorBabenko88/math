@@ -1,0 +1,47 @@
+{
+  "node": "v24.20.0",
+  "source": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+  "results": [
+    {
+      "case": "malformed.xml",
+      "bytes": 22,
+      "byteIntegrityVerified": true,
+      "qualification": "NOT_ATTESTED_BY_API"
+    },
+    {
+      "case": "skipped.xml",
+      "bytes": 165,
+      "byteIntegrityVerified": true,
+      "qualification": "NOT_ATTESTED_BY_API"
+    },
+    {
+      "case": "empty.jsonl",
+      "bytes": 0,
+      "byteIntegrityVerified": true,
+      "qualification": "NOT_ATTESTED_BY_API"
+    },
+    {
+      "case": "no-context",
+      "accepted": false,
+      "error": "QA evidence rejected: trusted run context required"
+    },
+    {
+      "case": "empty-context",
+      "accepted": false,
+      "error": "QA evidence rejected: untrusted run context"
+    },
+    {
+      "case": "omitted-jobId",
+      "accepted": false,
+      "error": "QA evidence rejected: untrusted run context"
+    },
+    {
+      "case": "required-file-omitted",
+      "byteIntegrityVerified": true,
+      "inventory": [
+        "malformed.xml"
+      ],
+      "note": "No required inventory argument; generic supplied-inventory verifier."
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "pr": 21,
+    "branch": "fix/knowledge-dependency-clone-20",
+    "scope": "dependency clone callback",
+    "head": "78d546ba257efe809e91e85179d2faad3499adf5",
+    "tree": "8f15e641a612234dc1c22f27cea7c0e6f53ad176",
+    "url": "https://github.com/YehorBabenko88/math/pull/21",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 22,
+    "branch": "fix/knowledge-inert-input-20",
+    "scope": "inert graph provenance",
+    "head": "fe4bb544d62d65bc47701f843ccff233462bac57",
+    "tree": "6827a4350145427abd186ca52af0f98afe3896b8",
+    "url": "https://github.com/YehorBabenko88/math/pull/22",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 23,
+    "branch": "feat/q01-windows-job-containment",
+    "scope": "dormant containment preparation",
+    "head": "f6c5d770ee3b9264afccc7f7ca544a499c8c80c3",
+    "tree": "686e4ed2e098860aa8216136bb439ddf494eee28",
+    "url": "https://github.com/YehorBabenko88/math/pull/23",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 24,
+    "branch": "fix/orchestrator-source-identity-20",
+    "scope": "Git source identity",
+    "head": "94cb8d753c0e429aef33f868593a402b39ad1354",
+    "tree": "7ad2f48c34bb5e2f162cc530fa146b32a97753f7",
+    "url": "https://github.com/YehorBabenko88/math/pull/24",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 25,
+    "branch": "fix/release-required-contexts-20",
+    "scope": "required provenance contexts",
+    "head": "b910f68f462b869e5696ddf217d2c4d3b7e5280f",
+    "tree": "83de2c5e6fca84ef6d36edbf87f6e25e36d807a5",
+    "url": "https://github.com/YehorBabenko88/math/pull/25",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 26,
+    "branch": "fix/proof-input-size-boundary-20",
+    "scope": "proof text/byte boundary",
+    "head": "85608195536f613aca09b5298481bf6247319d4e",
+    "tree": "dd7cf903ac4560f34d0ba4d131cd3877401c6fb5",
+    "url": "https://github.com/YehorBabenko88/math/pull/26",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 27,
+    "branch": "fix/kernel-result-inert-binding-20",
+    "scope": "kernel result/request binding",
+    "head": "2f938a6f9a1e3c648f5d06548f4db56ecf0e0721",
+    "tree": "82d278f0edcaa5947170c19b2021a82965d9572b",
+    "url": "https://github.com/YehorBabenko88/math/pull/27",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 28,
+    "branch": "fix/q01-detached-journal-stat-20",
+    "scope": "detached rollback-journal stat",
+    "head": "1993f23b6418b2359cf6aeaaa3730cb454b75ea5",
+    "tree": "c85d1da904ef44fbcaa4888d29fe5ef4a0a4ef4d",
+    "url": "https://github.com/YehorBabenko88/math/pull/28",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  },
+  {
+    "pr": 29,
+    "branch": "fix/pg-wait-witness-chain-20",
+    "scope": "database lock-witness paths",
+    "head": "4f4f4a2f05f0525bda7a9c624bcd45294ef56a5c",
+    "tree": "ab987b45ee81f3409a0791b48ad4e531dea9c68a",
+    "url": "https://github.com/YehorBabenko88/math/pull/29",
+    "base": "20ede51c6e5eddbf49fde709f8af5e77a319e1c7",
+    "sqlChanged": ""
+  }
+]

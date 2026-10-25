@@ -1,0 +1,210 @@
+{
+  "runId": 40015024687,
+  "meaning": "Native stat receipts in separately labelled diagnostic copy; not a traced syscall schedule",
+  "receipts": [
+    {
+      "source": {
+        "head": "19c73849795ef9965c34d14bd6b1de8c33d2e7b7",
+        "tree": "4c86d0966e090c580cdeebc7564364511346db5d",
+        "queueSha256": "d7507146007bf1f2e1c2635c89f85966e32b9cd2e77132ed78d6a3254c5525ca",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "cbaa9804850ad09dc2aa53e58f7cffbd436a31d0c268d44615ddc50933c73ad2",
+        "trackedSourceSha256": "2e42b5a08ec4cba11d68c4559f234096ec36bf19f180decb0d34268ec1f4fd27",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "event": {
+        "seq": 18801,
+        "caseId": "copy-first-open-3000",
+        "workerId": "w3133",
+        "event": "phase",
+        "atNs": "273596027136",
+        "data": {
+          "phase": "unsafe-storage",
+          "kind": "queue.sqlite-journal",
+          "links": 0,
+          "size": 512,
+          "regular": true,
+          "symlink": false
+        }
+      },
+      "publicResult": {
+        "ok": false,
+        "kind": "Invalid queue state",
+        "code": "REDACTED"
+      }
+    },
+    {
+      "source": {
+        "head": "19c73849795ef9965c34d14bd6b1de8c33d2e7b7",
+        "tree": "4c86d0966e090c580cdeebc7564364511346db5d",
+        "queueSha256": "d7507146007bf1f2e1c2635c89f85966e32b9cd2e77132ed78d6a3254c5525ca",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "cbaa9804850ad09dc2aa53e58f7cffbd436a31d0c268d44615ddc50933c73ad2",
+        "trackedSourceSha256": "2e42b5a08ec4cba11d68c4559f234096ec36bf19f180decb0d34268ec1f4fd27",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "event": {
+        "seq": 25306,
+        "caseId": "copy-first-open-3000",
+        "workerId": "w4218",
+        "event": "phase",
+        "atNs": "314743056383",
+        "data": {
+          "phase": "unsafe-storage",
+          "kind": "queue.sqlite-journal",
+          "links": 0,
+          "size": 512,
+          "regular": true,
+          "symlink": false
+        }
+      },
+      "publicResult": {
+        "ok": false,
+        "kind": "Invalid queue state",
+        "code": "REDACTED"
+      }
+    },
+    {
+      "source": {
+        "head": "19c73849795ef9965c34d14bd6b1de8c33d2e7b7",
+        "tree": "4c86d0966e090c580cdeebc7564364511346db5d",
+        "queueSha256": "d7507146007bf1f2e1c2635c89f85966e32b9cd2e77132ed78d6a3254c5525ca",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "cbaa9804850ad09dc2aa53e58f7cffbd436a31d0c268d44615ddc50933c73ad2",
+        "trackedSourceSha256": "2e42b5a08ec4cba11d68c4559f234096ec36bf19f180decb0d34268ec1f4fd27",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "event": {
+        "seq": 46475,
+        "caseId": "copy-first-open-3000",
+        "workerId": "w7746",
+        "event": "phase",
+        "atNs": "447008863592",
+        "data": {
+          "phase": "unsafe-storage",
+          "kind": "queue.sqlite-journal",
+          "links": 0,
+          "size": 512,
+          "regular": true,
+          "symlink": false
+        }
+      },
+      "publicResult": {
+        "ok": false,
+        "kind": "Invalid queue state",
+        "code": "REDACTED"
+      }
+    },
+    {
+      "source": {
+        "head": "19c73849795ef9965c34d14bd6b1de8c33d2e7b7",
+        "tree": "4c86d0966e090c580cdeebc7564364511346db5d",
+        "queueSha256": "d7507146007bf1f2e1c2635c89f85966e32b9cd2e77132ed78d6a3254c5525ca",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "cbaa9804850ad09dc2aa53e58f7cffbd436a31d0c268d44615ddc50933c73ad2",
+        "trackedSourceSha256": "2e42b5a08ec4cba11d68c4559f234096ec36bf19f180decb0d34268ec1f4fd27",
+        "node": "22.23.3",
+        "sqlite": "3.51.3",
+        "os": "linux"
+      },
+      "event": {
+        "seq": 56364,
+        "caseId": "copy-first-open-3000",
+        "workerId": "w9394",
+        "event": "phase",
+        "atNs": "508233311422",
+        "data": {
+          "phase": "unsafe-storage",
+          "kind": "queue.sqlite-journal",
+          "links": 0,
+          "size": 512,
+          "regular": true,
+          "symlink": false
+        }
+      },
+      "publicResult": {
+        "ok": false,
+        "kind": "Invalid queue state",
+        "code": "REDACTED"
+      }
+    },
+    {
+      "source": {
+        "head": "19c73849795ef9965c34d14bd6b1de8c33d2e7b7",
+        "tree": "4c86d0966e090c580cdeebc7564364511346db5d",
+        "queueSha256": "d7507146007bf1f2e1c2635c89f85966e32b9cd2e77132ed78d6a3254c5525ca",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "cbaa9804850ad09dc2aa53e58f7cffbd436a31d0c268d44615ddc50933c73ad2",
+        "trackedSourceSha256": "2e42b5a08ec4cba11d68c4559f234096ec36bf19f180decb0d34268ec1f4fd27",
+        "node": "24.21.0",
+        "sqlite": "3.53.4",
+        "os": "linux"
+      },
+      "event": {
+        "seq": 59315,
+        "caseId": "copy-first-open-3000",
+        "workerId": "w9885",
+        "event": "phase",
+        "atNs": "478785411731",
+        "data": {
+          "phase": "unsafe-storage",
+          "kind": "queue.sqlite-journal",
+          "links": 0,
+          "size": 512,
+          "regular": true,
+          "symlink": false
+        }
+      },
+      "publicResult": {
+        "ok": false,
+        "kind": "Invalid queue directory",
+        "code": "REDACTED"
+      }
+    },
+    {
+      "source": {
+        "head": "19c73849795ef9965c34d14bd6b1de8c33d2e7b7",
+        "tree": "4c86d0966e090c580cdeebc7564364511346db5d",
+        "queueSha256": "d7507146007bf1f2e1c2635c89f85966e32b9cd2e77132ed78d6a3254c5525ca",
+        "contractSha256": "cca519921c56c815d73f3a203e7613ff4243325476eeee8fe0df8e7c42b249be",
+        "textSha256": "62da046ccc453a4ea8b589b4ed950fc2a2fe1dc178f9b2187437e7b5eb475994",
+        "harnessSha256": "cbaa9804850ad09dc2aa53e58f7cffbd436a31d0c268d44615ddc50933c73ad2",
+        "trackedSourceSha256": "2e42b5a08ec4cba11d68c4559f234096ec36bf19f180decb0d34268ec1f4fd27",
+        "node": "24.21.0",
+        "sqlite": "3.53.4",
+        "os": "linux"
+      },
+      "event": {
+        "seq": 61908,
+        "caseId": "copy-first-open-3000",
+        "workerId": "w10318",
+        "event": "phase",
+        "atNs": "494962198352",
+        "data": {
+          "phase": "unsafe-storage",
+          "kind": "queue.sqlite-journal",
+          "links": 0,
+          "size": 512,
+          "regular": true,
+          "symlink": false
+        }
+      },
+      "publicResult": {
+        "ok": false,
+        "kind": "Invalid queue directory",
+        "code": "REDACTED"
+      }
+    }
+  ]
+}
