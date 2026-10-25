@@ -33,4 +33,3 @@ No confirmed new defect was found in the focused changes. No RED/fix worktree wa
 ## Reproduction
 
 Test list is test-files.txt: knowledge*.test.mjs and ai-orchestrator*.test.mjs excluding registry tests (SQLite), plus proof-kernel, book-ingestion-knowledge-boundary, book-knowledge-intake. PostgreSQL adapter tests in this selection use mocked query interfaces, no database connection. Run node --test with those path arguments. Logs retain exact pass/skip identities. Source head comparisons use git rev-parse <head>:<path> blob IDs versus the exact target commit; all 34 rows have a matching source head.
-
