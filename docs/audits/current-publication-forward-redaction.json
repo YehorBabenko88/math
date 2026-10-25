@@ -1,0 +1,31 @@
+{
+  "schema": "math.publication-forward-redaction.v1",
+  "sourceHead": "02b37515c8aa13154362c3108132857677b8fe5a",
+  "scope": "Only local absolute path values replaced; original Git history retained; private local originals are not publication assets. No result/count assertions altered.",
+  "files": [
+    {
+      "path": "F03_R06_REMEDIATION_REPORT.md",
+      "sourceGitBlob": "c4eaca362ef4e504ca9b3d9c21d949f638a627df",
+      "bytes": 14574,
+      "sha256": "cca1e19ec7ff7ef402ad22e643f6b609b0c69eb5d37f874b321c2e75f5982523"
+    },
+    {
+      "path": "MATH_ABC_INTEGRATION_AUDIT.md",
+      "sourceGitBlob": "5175d46cd1c70a33ad658559c3fa8af69dd15ddf",
+      "bytes": 12235,
+      "sha256": "e511b7a3cc1ac8aba2e31b06902cfb08ed248d9a60225ad6bdd7eba5a605590f"
+    },
+    {
+      "path": "MATH_F01_F02_INTEGRATION_AUDIT.md",
+      "sourceGitBlob": "d17a0227e84e6f9e99fab27d078109bc2518a676",
+      "bytes": 14234,
+      "sha256": "5abc570ea28ad5937934824e7e97d48730e0f4748265db3f7dc34e05cecc1db4"
+    },
+    {
+      "path": "docs/book-full-ci-coverage-audit.md",
+      "sourceGitBlob": "1b4470ac03cad90a59f2b5ea786d3d0e7ed6a4fd",
+      "bytes": 13076,
+      "sha256": "e8b0218d470993e365cb5f896b96e301c1d8815492e2f725dd67c6ef5a99d6e0"
+    }
+  ]
+}

@@ -20,7 +20,7 @@ Before **each** merge, the target branch name and clean worktree were checked; a
 
 Exact audited executable/test commit: **`d3d98ebeadce3822ae8420ab1d2650096eb08f8e`** (`test(integration): verify ABC evidence persistence fencing and closed gates`). The final report-only commit retains identical source/test/workflow bytes. Its exact final publication SHA and exact-SHA Actions are provided in the final handoff, because a committed report cannot contain its own Git object hash. Verify the checkout identity with `git rev-parse HEAD`.
 
-Worktree: `C:/Users/Administrator/Documents/Codex/2026-10-14/https-github-com-yehorbabenko88-math-actions/work/math-remediation-abc`.
+Worktree: `<LOCAL_WORKSPACE_PATH>`.
 
 ## Contract audit
 
