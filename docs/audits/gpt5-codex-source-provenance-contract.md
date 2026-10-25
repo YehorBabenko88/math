@@ -33,3 +33,6 @@ Independent audit Draft PR #36 is the only permitted change destination; do not 
 
 ## Acceptance and evidence
 Run exact-HEAD Node 22/24 policy tests and full Windows/Linux PG16/18 CI, recording run IDs, jobs, failures and skips separately. Q01 OPEN and Production NO-GO regardless of these tests. No automatic publish, merge, deployment, or physical action.
+
+## Pure source correlation helper
+`source-correlation.mjs` checks exact commit agreement across pinned source, task, receipt and claim, and matches task ID and attempt. It does not authenticate the pinned source, resolve its Git tree, validate receipt bytes, or grant VERIFIED/publication. Treat its `UNRESOLVED_OBJECT_IDS` result as an input consistency check only. Six focused regressions added; hosted exact-HEAD CI is required.
