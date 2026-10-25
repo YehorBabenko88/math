@@ -1,3 +1,4 @@
+import {gitObjectId} from './source-identity.mjs';
 import {sha256} from './artifacts.mjs';
 // Strict read-only verifier of runner-supplied identity claims.
 // It does NOT authenticate the runner. Trusted platform attestation is a separate gate.
@@ -8,7 +9,7 @@ export function validateExecutionClaim(claim){
  if(!plain(claim)||!exact(claim,['schemaVersion','taskId','sourceCommit','runnerId','runnerImageHash','toolchainHash','receiptHash','attempt']))throw Error('INVALID_CLAIM');
  if(claim.schemaVersion!==1||typeof claim.taskId!=='string'||!/^[-a-zA-Z0-9_]{1,80}$/.test(claim.taskId))throw Error('INVALID_CLAIM');
  if(typeof claim.runnerId!=='string'||!/^[-a-zA-Z0-9_]{1,80}$/.test(claim.runnerId))throw Error('INVALID_CLAIM');
- if(![claim.sourceCommit,claim.runnerImageHash,claim.toolchainHash,claim.receiptHash].every(x=>typeof x==='string'&&hex.test(x)))throw Error('INVALID_CLAIM');
+ if(!gitObjectId(claim.sourceCommit)||![claim.runnerImageHash,claim.toolchainHash,claim.receiptHash].every(x=>typeof x==='string'&&hex.test(x)))throw Error('INVALID_CLAIM');
  if(!Number.isSafeInteger(claim.attempt)||claim.attempt<1||claim.attempt>2)throw Error('INVALID_CLAIM');
  return Object.freeze({taskId:claim.taskId,sourceCommit:claim.sourceCommit,trust:'UNATTESTED_CLAIM'});
 }

@@ -36,3 +36,9 @@ test('tampered verdict and proof fail closed',async()=>{
   assert.equal((await v.assessPersisted(req,r )).trust,'AUTHENTICATED_RESULT_ONLY');
  } finally {await rm(dir,{recursive:true,force:true});}
 });
+test('v2 snapshots active request and result before any ledger operation',async()=>{
+ for(const field of ['request','result']){const request=createVerificationRequestV2(base),result=signed(request);let reads=0;
+ const active={...(field==='request'?request:result)};Object.defineProperty(active,'schema_version',{enumerable:true,get(){reads++;throw Error('getter called');}});
+ const v=verifier(new FileReplayLedger('unused-no-ledger-operation'));
+ await assert.rejects(v.assessPersisted(field==='request'?active:request,field==='result'?active:result),/inert data/);assert.equal(reads,0);}
+});

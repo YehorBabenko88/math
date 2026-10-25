@@ -433,3 +433,17 @@ Describe 'Integrated committed dependency gate' {
         Assert-Throws {Get-DeploymentDependencyEvidence -Repository $invalid -Sha $bad}
     }
 }
+Describe 'Required provenance policy preconditions' {
+    . (Join-Path $repository 'scripts/windows-deployment.ps1')
+    It 'rejects an empty required-context set before downloading' {
+        Assert-Throws {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run ([pscustomobject]@{id=1;run_attempt=1}) -Artifacts @() -Contexts @() -Download {throw 'must not download'}}
+    }
+    It 'rejects blank trimmed and duplicate required contexts before downloading' {
+        foreach($contexts in @(@(''),@(' '),@(' test'),@('test '),@('test','test'))) {
+            $caught=$false
+            try {Assert-DeploymentProvenance -Sha ('a'*40) -LockHash ('b'*64) -Run ([pscustomobject]@{id=1;run_attempt=1}) -Artifacts @() -Contexts $contexts -Download {throw 'must not download'}}
+            catch {$caught=$_.Exception.Message -like '*Required provenance contexts*'}
+            $caught | Should Be $true
+        }
+    }
+}

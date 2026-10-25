@@ -244,6 +244,11 @@ function Get-DeploymentDependencyEvidence {
 function Assert-DeploymentProvenance {
     param([string]$Sha,[string]$LockHash,$Run,[object[]]$Artifacts,[string[]]$Contexts,[scriptblock]$Download,$DependencyEvidence)
     if($Sha -cnotmatch '^[a-f0-9]{40}$' -or $LockHash -cnotmatch '^[a-f0-9]{64}$'){throw 'Missing source dependency provenance'}
+    if($null -eq $Contexts -or $Contexts.Count -eq 0){throw 'Required provenance contexts must be nonempty and unique'}
+    $requiredContextSet=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach($context in $Contexts){
+        if([string]::IsNullOrWhiteSpace($context) -or $context.Trim() -cne $context -or -not $requiredContextSet.Add($context)){throw 'Required provenance contexts must be nonempty and unique'}
+    }
     Add-Type -AssemblyName System.IO.Compression
     $seen=@{}
     $prefix="release-provenance-$($Run.id)-$($Run.run_attempt)-"
