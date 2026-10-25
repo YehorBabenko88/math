@@ -128,3 +128,25 @@ test('negative: expected-goal entrypoint rejects non-document JSON',()=>{
   assert.throws(()=>verifyExpectedClosedImplicationProofJson(input,JSON.stringify(P)));
  }
 });
+
+test('property: 120 seeded implication-composition proofs are closed and tautological',()=>{
+ for(let i=0;i<120;i++){
+  const a=formula(2),b=formula(2),c=formula(2);
+  const goal=imp(imp(a,b),imp(imp(b,c),imp(a,c)));
+  const proof=intro(imp(a,b),intro(imp(b,c),intro(a,
+   elim(assumption(1),elim(assumption(0),assumption(2))))));
+  const result=verifyImplicationProof({goal,proof});
+  assert.equal(result.isClosedTheorem,true);
+  assert.equal(result.trustedAxioms,0);
+  assert.equal(allTrueUnder(goal,[]),true);
+ }
+});
+test('negative: implication-elimination premise substitution is rejected',()=>{
+ for(let i=0;i<100;i++){
+  const a=formula(2),b=formula(2),c=imp(a,a);
+  const assumptions=[imp(a,b),c];
+  const proof=elim(assumption(0),assumption(1));
+  if(JSON.stringify(a)!==JSON.stringify(c))
+   assert.throws(()=>verifyImplicationProof({goal:b,assumptions,proof}),/Invalid implication elimination/);
+ }
+});
