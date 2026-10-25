@@ -77,6 +77,7 @@ export async function openBookQueue(options={}){
    if(frozen&&!readOnly&&!initialize)throw Error('Book source frozen');
    const document=readBookSnapshot(db,maxAttempts),before=JSON.stringify(document),time=clock();const result=frozen&&initialize?undefined:fn(document,time);state(document,maxAttempts);if(JSON.stringify(document)!==before)save(db,document);db.exec('COMMIT');return result===undefined?undefined:json(result,MAX_BYTES);
   }catch(e){if(db){try{db.exec('ROLLBACK')}catch{}}// Never include SQL, paths, payloads or parser errors.
+   if(initialize&&e.code==='BOOK_QUEUE_INITIALIZING')throw e;
    if(['Invalid queue input','Invalid queue state','Invalid queue clock','Lease rejected','Queue is not empty','Queue capacity reached','Book source frozen'].includes(e.message))throw e;
    throw Error('Invalid queue state');
   }finally{db?.close();}
