@@ -39,3 +39,6 @@ A source inspection found that `verify-adminit.ps1` still called `package.mjs` w
 
 ## Caller contract regression
 Added `tests/adminit-package-caller-contract.test.mjs` with three static regressions: mandatory PowerShell ExpectedSourceTree, correct CLI argument forwarding, and unconditional Execute refusal preceding package verification. These are static source contracts, not an actual Windows PowerShell execution or native isolation test. Exact-HEAD hosted qualification is still required.
+
+## Independent ZIP admission metadata prototype
+Added `zip-admission.mjs` and eight offline tests. The pure validator requires exact repository, HEAD/tree SHA1 shapes, run/attempt/job/artifact identifiers and 64-hex ZIP/manifest digests. It always returns `UNATTESTED_METADATA`, `extraction: DENIED`, `execution: DENIED`. This does NOT fetch provider metadata, verify downloaded ZIP bytes, inspect archive entries, extract files or establish trusted external expectations. These remain separate P1 gates; no new execution authority is granted.
