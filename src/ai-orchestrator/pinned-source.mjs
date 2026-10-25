@@ -4,7 +4,10 @@ const sha1=/^[a-f0-9]{40}$/;
 export function validatePinnedGitSource(value){
  if(value===null||typeof value!=='object'||Array.isArray(value)||Object.getPrototypeOf(value)!==Object.prototype)throw Error('INVALID_SOURCE');
  if(Object.keys(value).length!==4||!['repository','objectFormat','commit','tree'].every(k=>Object.hasOwn(value,k)))throw Error('INVALID_SOURCE');
- const {repository,objectFormat,commit,tree}=value;
+ const descriptors=Object.getOwnPropertyDescriptors(value);
+ if(!['repository','objectFormat','commit','tree'].every(k=>Object.hasOwn(descriptors[k],'value')&&descriptors[k].enumerable===true))throw Error('INVALID_SOURCE');
+ const repository=descriptors.repository.value,objectFormat=descriptors.objectFormat.value;
+ const commit=descriptors.commit.value,tree=descriptors.tree.value;
  if(repository!=='YehorBabenko88/math')throw Error('REPOSITORY_MISMATCH');
  if(objectFormat!=='sha1')throw Error('INVALID_OBJECT_FORMAT');
  if(typeof commit!=='string'||typeof tree!=='string'||!sha1.test(commit)||!sha1.test(tree))throw Error('GIT_OBJECT_FORMAT_MISMATCH');
