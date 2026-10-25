@@ -37,8 +37,9 @@ export class OneShotKernelVerifier {
  assess() { throw Error('persistent ledger required: use assessPersisted'); }
  #validateSignature(request,result) {
   if(Object.keys(request).some(k=>!['schema_version','requested_status','request_id',...fields.slice(5)].includes(k))) throw Error('unexpected request field');
-  if(!request||request.schema_version!=='kg.verify-request.v2'||request.requested_status!=='PENDING'||!(/^[a-f0-9]{64}$/.test(request.request_id))||!fields.slice(5).every(k=>dig(request[k]))) throw Error('invalid request');
+  if(!request||!['schema_version','requested_status','request_id',...fields.slice(5)].every(k=>Object.hasOwn(request,k))||request.schema_version!=='kg.verify-request.v2'||request.requested_status!=='PENDING'||!(/^[a-f0-9]{64}$/.test(request.request_id))||!fields.slice(5).every(k=>dig(request[k]))) throw Error('invalid request');
   if(!result||Object.getPrototypeOf(result)!==Object.prototype||Object.keys(result).some(k=>![...fields,'attestation'].includes(k))) throw Error('invalid result');
+  if(!fields.every(k=>Object.hasOwn(result,k))||!Object.hasOwn(result,'attestation')) throw Error('incomplete result');
   if(result.schema_version!=='kg.kernel-result.v2'||!['PASS','FAIL','INDETERMINATE'].includes(result.verdict)||result.kernel_id!==this.#id||result.kernel_version!==this.#version||result.request_id!==request.request_id||!fields.slice(5).every(k=>result[k]===request[k])) throw Error('result binding mismatch');
   if(typeof result.attestation!=='string'||!/^[A-Za-z0-9+/]+={0,2}$/.test(result.attestation)) throw Error('invalid signature');
   const signature=Buffer.from(result.attestation,'base64');
