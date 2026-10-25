@@ -1,0 +1,4509 @@
+{
+  "generatedAt": "2026-10-25T10:46:53.763Z",
+  "targetHead": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+  "targetBranch": "integration/math-issue20-physical-preflight-20261025",
+  "jobs": [
+    {
+      "runId": 40183990825,
+      "workflow": "Book Ingestion Native PDF",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784727,
+      "job": "native-pdf",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990825/job/121140784727",
+      "logPath": "outputs/pr31-ci/job-logs/121140784727.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 90,
+          "line": 773,
+          "pass": 90,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 139,
+          "text": "2026-10-25T10:19:30.7543103Z   node-version: 22"
+        },
+        {
+          "line": 778,
+          "text": "2026-10-25T10:19:46.3782303Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 96,
+          "text": "2026-10-25T10:19:30.1376738Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 105,
+          "text": "2026-10-25T10:19:30.5961973Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:19:30.6193963Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 123,
+          "text": "2026-10-25T10:19:30.6214183Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990746,
+      "workflow": "Validate Math Universe",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140785219,
+      "job": "test",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990746/job/121140785219",
+      "logPath": "outputs/pr31-ci/job-logs/121140785219.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 4,
+          "line": 200,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 138,
+          "text": "2026-10-25T10:20:03.5231959Z   node-version: 22"
+        },
+        {
+          "line": 205,
+          "text": "2026-10-25T10:20:08.0530164Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 95,
+          "text": "2026-10-25T10:20:02.9328967Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 104,
+          "text": "2026-10-25T10:20:03.4136132Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 105,
+          "text": "2026-10-25T10:20:03.4285260Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 122,
+          "text": "2026-10-25T10:20:03.4301999Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990756,
+      "workflow": "Experimental Proof Kernel",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784468,
+      "job": "Proof kernel Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990756/job/121140784468",
+      "logPath": "outputs/pr31-ci/job-logs/121140784468.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 27,
+          "line": 169,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 125,
+          "text": "2026-10-25T10:19:56.8785383Z   node-version: 24"
+        },
+        {
+          "line": 174,
+          "text": "2026-10-25T10:19:57.5904651Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 92,
+          "text": "2026-10-25T10:19:56.1417672Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 101,
+          "text": "2026-10-25T10:19:56.8066685Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:19:56.8295901Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 119,
+          "text": "2026-10-25T10:19:56.8313050Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990756,
+      "workflow": "Experimental Proof Kernel",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784470,
+      "job": "Proof kernel Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990756/job/121140784470",
+      "logPath": "outputs/pr31-ci/job-logs/121140784470.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 27,
+          "line": 306,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 125,
+          "text": "2026-10-25T10:19:56.0299756Z   node-version: 22"
+        },
+        {
+          "line": 311,
+          "text": "2026-10-25T10:19:59.2216187Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 92,
+          "text": "2026-10-25T10:19:55.6853223Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 101,
+          "text": "2026-10-25T10:19:55.9680862Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:19:55.9914785Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 119,
+          "text": "2026-10-25T10:19:55.9927487Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990772,
+      "workflow": ".github/workflows/windows-deployment.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784603,
+      "job": "Windows contracts / powershell",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990772/job/121140784603",
+      "logPath": "outputs/pr31-ci/job-logs/121140784603.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 13,
+          "line": 245,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "pester",
+          "pass": 51,
+          "fail": 0,
+          "skipped": 0,
+          "pending": 0,
+          "inconclusive": 0,
+          "line": 354
+        }
+      ],
+      "evidence": [
+        {
+          "line": 125,
+          "text": "2026-10-25T10:19:21.2845791Z   node-version: 22"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:19:55.1915327Z # skipped 0"
+        },
+        {
+          "line": 354,
+          "text": "2026-10-25T10:20:33.8829485Z Tests Passed: 51, Failed: 0, Skipped: 0, Pending: 0, Inconclusive: 0 "
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 82,
+          "text": "2026-10-25T10:19:16.5591697Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 91,
+          "text": "2026-10-25T10:19:19.0047427Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 92,
+          "text": "2026-10-25T10:19:19.1397558Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 109,
+          "text": "2026-10-25T10:19:19.1407638Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990772,
+      "workflow": ".github/workflows/windows-deployment.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784770,
+      "job": "Windows contracts / pwsh",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990772/job/121140784770",
+      "logPath": "outputs/pr31-ci/job-logs/121140784770.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 13,
+          "line": 245,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "pester",
+          "pass": 51,
+          "fail": 0,
+          "skipped": 0,
+          "pending": 0,
+          "inconclusive": 0,
+          "line": 354
+        }
+      ],
+      "evidence": [
+        {
+          "line": 125,
+          "text": "2026-10-25T10:20:07.4227582Z   node-version: 22"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:20:39.0281701Z # skipped 0"
+        },
+        {
+          "line": 354,
+          "text": "2026-10-25T10:21:10.6963042Z Tests Passed: 51, Failed: 0, Skipped: 0, Pending: 0, Inconclusive: 0 "
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 82,
+          "text": "2026-10-25T10:20:03.8745615Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 91,
+          "text": "2026-10-25T10:20:05.3458594Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 92,
+          "text": "2026-10-25T10:20:05.4746006Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 109,
+          "text": "2026-10-25T10:20:05.4753637Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990697,
+      "workflow": "QA SQLite Q01 Diagnostic",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784877,
+      "job": "Q01 synthetic diagnostic (not acceptance) (22)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990697/job/121140784877",
+      "logPath": "outputs/pr31-ci/job-logs/121140784877.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 4,
+          "line": 191,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:21:20.2548021Z   node-version: 22"
+        },
+        {
+          "line": 196,
+          "text": "2026-10-25T10:21:28.9240171Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:21:19.8070044Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:21:20.0970262Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:21:20.1203348Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:21:20.1220353Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990697,
+      "workflow": "QA SQLite Q01 Diagnostic",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784952,
+      "job": "Q01 synthetic diagnostic (not acceptance) (24)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990697/job/121140784952",
+      "logPath": "outputs/pr31-ci/job-logs/121140784952.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 4,
+          "line": 169,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:21:47.9543133Z   node-version: 24"
+        },
+        {
+          "line": 174,
+          "text": "2026-10-25T10:21:53.1063151Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:21:46.9923239Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:21:47.8318078Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:21:47.8513593Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:21:47.8518599Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990711,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784319,
+      "job": "Full suite Node 22 / PostgreSQL 18",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990711/job/121140784319",
+      "logPath": "outputs/pr31-ci/job-logs/121140784319.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4301,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 245,
+          "text": "2026-10-25T10:17:17.4956473Z   node-version: 22"
+        },
+        {
+          "line": 4306,
+          "text": "2026-10-25T10:17:42.8567179Z # skipped 0"
+        },
+        {
+          "line": 4715,
+          "text": "2026-10-25T10:17:44.2623578Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 202,
+          "text": "2026-10-25T10:17:17.0437284Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 211,
+          "text": "2026-10-25T10:17:17.3798546Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 212,
+          "text": "2026-10-25T10:17:17.3981749Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 229,
+          "text": "2026-10-25T10:17:17.3987815Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990711,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784473,
+      "job": "Full suite Node 24 / PostgreSQL 16",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990711/job/121140784473",
+      "logPath": "outputs/pr31-ci/job-logs/121140784473.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4273,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 249,
+          "text": "2026-10-25T10:18:16.8725493Z   node-version: 24"
+        },
+        {
+          "line": 4278,
+          "text": "2026-10-25T10:18:42.3291775Z # skipped 0"
+        },
+        {
+          "line": 4713,
+          "text": "2026-10-25T10:18:44.1074839Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 206,
+          "text": "2026-10-25T10:18:15.8620233Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 215,
+          "text": "2026-10-25T10:18:16.7596855Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 216,
+          "text": "2026-10-25T10:18:16.7775088Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 233,
+          "text": "2026-10-25T10:18:16.7780663Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990711,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784500,
+      "job": "Full suite Node 24 / PostgreSQL 18",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990711/job/121140784500",
+      "logPath": "outputs/pr31-ci/job-logs/121140784500.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4269,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 245,
+          "text": "2026-10-25T10:20:23.1269736Z   node-version: 24"
+        },
+        {
+          "line": 4274,
+          "text": "2026-10-25T10:20:53.5771178Z # skipped 0"
+        },
+        {
+          "line": 4730,
+          "text": "2026-10-25T10:20:55.7183270Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 202,
+          "text": "2026-10-25T10:20:22.5805983Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 211,
+          "text": "2026-10-25T10:20:22.9833217Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 212,
+          "text": "2026-10-25T10:20:23.0067778Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 229,
+          "text": "2026-10-25T10:20:23.0075681Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990711,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784519,
+      "job": "Full suite Node 22 / PostgreSQL 16",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990711/job/121140784519",
+      "logPath": "outputs/pr31-ci/job-logs/121140784519.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4306,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 250,
+          "text": "2026-10-25T10:18:32.7709335Z   node-version: 22"
+        },
+        {
+          "line": 4311,
+          "text": "2026-10-25T10:18:59.0093236Z # skipped 0"
+        },
+        {
+          "line": 4767,
+          "text": "2026-10-25T10:19:01.1514446Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 207,
+          "text": "2026-10-25T10:18:32.2748598Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 216,
+          "text": "2026-10-25T10:18:32.6296362Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 217,
+          "text": "2026-10-25T10:18:32.6526110Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:18:32.6533564Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990711,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121142015379,
+      "job": "Full CI coverage",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990711/job/121142015379",
+      "logPath": null,
+      "logStatus": "NOT_RUN_PENDING",
+      "blocks": [],
+      "evidence": [],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183990683,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784324,
+      "job": "Native-free contracts / powershell / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990683/job/121140784324",
+      "logPath": "outputs/pr31-ci/job-logs/121140784324.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 160,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 173
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:26:48.3403617Z   node-version: 22"
+        },
+        {
+          "line": 165,
+          "text": "2026-10-25T10:26:53.5187025Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 79,
+          "text": "2026-10-25T10:26:45.0386427Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:26:46.1673014Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:26:46.3116329Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:26:46.3124974Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990683,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784496,
+      "job": "Native-free contracts / pwsh / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990683/job/121140784496",
+      "logPath": "outputs/pr31-ci/job-logs/121140784496.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 143,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 156
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:18:10.8929795Z   node-version: 24"
+        },
+        {
+          "line": 148,
+          "text": "2026-10-25T10:18:17.4319445Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 79,
+          "text": "2026-10-25T10:18:07.2962594Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:18:08.7705504Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:18:08.9049771Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:18:08.9055462Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183990683,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784505,
+      "job": "Native-free contracts / powershell / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990683/job/121140784505",
+      "logPath": "outputs/pr31-ci/job-logs/121140784505.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 143,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 156
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:18:53.1179318Z   node-version: 24"
+        },
+        {
+          "line": 148,
+          "text": "2026-10-25T10:18:59.4516463Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 79,
+          "text": "2026-10-25T10:18:49.1015458Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:18:51.4041893Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:18:51.5140600Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:18:51.5145068Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183990683,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784510,
+      "job": "Native-free contracts / pwsh / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990683/job/121140784510",
+      "logPath": "outputs/pr31-ci/job-logs/121140784510.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 160,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 173
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:26:05.2026812Z   node-version: 22"
+        },
+        {
+          "line": 165,
+          "text": "2026-10-25T10:26:11.0616185Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 79,
+          "text": "2026-10-25T10:26:01.9565699Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:26:03.0553507Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:26:03.2039769Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:26:03.2045664Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990683,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121143261169,
+      "job": "Require all native-free preparation contracts",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990683/job/121143261169",
+      "logPath": null,
+      "logStatus": "NOT_RUN_PENDING",
+      "blocks": [],
+      "evidence": [],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183990749,
+      "workflow": "Q01 Detached Journal Regression",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784580,
+      "job": "detached-journal (windows-latest, 22)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990749/job/121140784580",
+      "logPath": "outputs/pr31-ci/job-logs/121140784580.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 11,
+          "line": 207,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:18:37.7363829Z   node-version: 22"
+        },
+        {
+          "line": 212,
+          "text": "2026-10-25T10:18:44.4851096Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 79,
+          "text": "2026-10-25T10:18:34.5408612Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:18:35.6030558Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:18:35.7399113Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:18:35.7407061Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990749,
+      "workflow": "Q01 Detached Journal Regression",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784750,
+      "job": "detached-journal (windows-latest, 24)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990749/job/121140784750",
+      "logPath": "outputs/pr31-ci/job-logs/121140784750.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 11,
+          "line": 150,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:19:08.5963127Z   node-version: 24"
+        },
+        {
+          "line": 155,
+          "text": "2026-10-25T10:19:17.4701956Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 79,
+          "text": "2026-10-25T10:19:05.7195738Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:19:07.0734339Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:19:07.1587013Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 106,
+          "text": "2026-10-25T10:19:07.1590304Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183990749,
+      "workflow": "Q01 Detached Journal Regression",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784794,
+      "job": "detached-journal (ubuntu-latest, 24)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990749/job/121140784794",
+      "logPath": "outputs/pr31-ci/job-logs/121140784794.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 11,
+          "line": 163,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 135,
+          "text": "2026-10-25T10:21:52.0539424Z   node-version: 24"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:21:56.0806728Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 92,
+          "text": "2026-10-25T10:21:51.3642638Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 101,
+          "text": "2026-10-25T10:21:51.8942917Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:21:51.9182146Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 119,
+          "text": "2026-10-25T10:21:51.9196938Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990749,
+      "workflow": "Q01 Detached Journal Regression",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784849,
+      "job": "detached-journal (ubuntu-latest, 22)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990749/job/121140784849",
+      "logPath": "outputs/pr31-ci/job-logs/121140784849.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 11,
+          "line": 220,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 135,
+          "text": "2026-10-25T10:21:53.6622567Z   node-version: 22"
+        },
+        {
+          "line": 225,
+          "text": "2026-10-25T10:21:55.3940221Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 92,
+          "text": "2026-10-25T10:21:52.1792984Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 101,
+          "text": "2026-10-25T10:21:53.5130358Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:21:53.5339363Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 119,
+          "text": "2026-10-25T10:21:53.5354518Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990654,
+      "workflow": "Browser E2E",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784215,
+      "job": "chromium",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990654/job/121140784215",
+      "logPath": "outputs/pr31-ci/job-logs/121140784215.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "playwright",
+          "pass": 14,
+          "line": 824,
+          "skipped": null
+        }
+      ],
+      "evidence": [
+        {
+          "line": 138,
+          "text": "2026-10-25T10:18:02.3425562Z   node-version: 22"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 95,
+          "text": "2026-10-25T10:18:01.5393411Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 104,
+          "text": "2026-10-25T10:18:02.2241900Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 105,
+          "text": "2026-10-25T10:18:02.2416263Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 122,
+          "text": "2026-10-25T10:18:02.2431203Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990699,
+      "workflow": "AI Orchestrator Policy (offline)",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784406,
+      "job": "offline-policy (24)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990699/job/121140784406",
+      "logPath": "outputs/pr31-ci/job-logs/121140784406.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 81,
+          "line": 233,
+          "pass": 81,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 135,
+          "text": "2026-10-25T10:17:52.1892355Z   node-version: 24"
+        },
+        {
+          "line": 238,
+          "text": "2026-10-25T10:17:53.3881256Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 92,
+          "text": "2026-10-25T10:17:51.7457895Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 101,
+          "text": "2026-10-25T10:17:52.0366011Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:17:52.0605495Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 119,
+          "text": "2026-10-25T10:17:52.0637934Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990699,
+      "workflow": "AI Orchestrator Policy (offline)",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784651,
+      "job": "offline-policy (22)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990699/job/121140784651",
+      "logPath": "outputs/pr31-ci/job-logs/121140784651.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 81,
+          "line": 235,
+          "pass": 81,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 135,
+          "text": "2026-10-25T10:23:00.5845695Z   node-version: 22"
+        },
+        {
+          "line": 240,
+          "text": "2026-10-25T10:23:01.7393655Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 92,
+          "text": "2026-10-25T10:22:59.9149060Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 101,
+          "text": "2026-10-25T10:23:00.4369317Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:23:00.4603396Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 119,
+          "text": "2026-10-25T10:23:00.4620664Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964430,
+      "workflow": "AI Orchestrator Policy (offline)",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706592,
+      "job": "offline-policy (24)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964430/job/121140706592",
+      "logPath": "outputs/pr31-ci/job-logs/121140706592.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 81,
+          "line": 217,
+          "pass": 81,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 119,
+          "text": "2026-10-25T10:17:14.3257959Z   node-version: 24"
+        },
+        {
+          "line": 222,
+          "text": "2026-10-25T10:17:15.0474503Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 101,
+          "text": "2026-10-25T10:17:14.1834147Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964430,
+      "workflow": "AI Orchestrator Policy (offline)",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706792,
+      "job": "offline-policy (22)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964430/job/121140706792",
+      "logPath": "outputs/pr31-ci/job-logs/121140706792.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 81,
+          "line": 219,
+          "pass": 81,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 119,
+          "text": "2026-10-25T10:17:55.3911486Z   node-version: 22"
+        },
+        {
+          "line": 224,
+          "text": "2026-10-25T10:17:56.0223315Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 101,
+          "text": "2026-10-25T10:17:55.2853139Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784331,
+      "job": "Q01 Windows laboratory guard contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784331",
+      "logPath": "outputs/pr31-ci/job-logs/121140784331.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "pester",
+          "pass": 8,
+          "fail": 0,
+          "skipped": 0,
+          "pending": 0,
+          "inconclusive": 0,
+          "line": 148
+        }
+      ],
+      "evidence": [
+        {
+          "line": 148,
+          "text": "2026-10-25T10:17:25.9060559Z Tests Passed: 8, Failed: 0, Skipped: 0, Pending: 0, Inconclusive: 0 "
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 78,
+          "text": "2026-10-25T10:17:15.4216043Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 87,
+          "text": "2026-10-25T10:17:16.7233920Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 88,
+          "text": "2026-10-25T10:17:16.8063288Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 105,
+          "text": "2026-10-25T10:17:16.8068346Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784443,
+      "job": "Q01 fault / ubuntu-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784443",
+      "logPath": "outputs/pr31-ci/job-logs/121140784443.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 245,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:22:54.2492340Z   node-version: 22"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:22:55.1205910Z # skipped 0"
+        },
+        {
+          "line": 257,
+          "text": "2026-10-25T10:23:00.3321526Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 258,
+          "text": "2026-10-25T10:23:01.5413828Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 259,
+          "text": "2026-10-25T10:23:08.2413113Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 260,
+          "text": "2026-10-25T10:23:13.0077839Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 261,
+          "text": "2026-10-25T10:23:18.7304120Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 262,
+          "text": "2026-10-25T10:23:18.9295315Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 263,
+          "text": "2026-10-25T10:23:19.1251125Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 264,
+          "text": "2026-10-25T10:23:19.3791831Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 265,
+          "text": "2026-10-25T10:23:19.5845085Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 266,
+          "text": "2026-10-25T10:23:19.7841355Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 267,
+          "text": "2026-10-25T10:23:24.8834868Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 268,
+          "text": "2026-10-25T10:23:25.0925690Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 269,
+          "text": "2026-10-25T10:23:25.2840711Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 270,
+          "text": "2026-10-25T10:23:25.4322553Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 271,
+          "text": "2026-10-25T10:23:25.5785928Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 272,
+          "text": "2026-10-25T10:23:25.7216054Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 273,
+          "text": "2026-10-25T10:23:25.8679810Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 274,
+          "text": "2026-10-25T10:23:26.0115842Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 275,
+          "text": "2026-10-25T10:23:26.3325761Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 276,
+          "text": "2026-10-25T10:23:26.5607611Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 277,
+          "text": "2026-10-25T10:23:33.2530952Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 278,
+          "text": "2026-10-25T10:23:49.3755821Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 279,
+          "text": "2026-10-25T10:23:49.4212641Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:22:53.5965503Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:22:54.0703263Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:22:54.1008112Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:22:54.1025734Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784494,
+      "job": "Q01 fault / ubuntu-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784494",
+      "logPath": "outputs/pr31-ci/job-logs/121140784494.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 168,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:20:05.7951933Z   node-version: 24"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:20:06.4739566Z ℹ skipped 0"
+        },
+        {
+          "line": 180,
+          "text": "2026-10-25T10:20:11.6615516Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 181,
+          "text": "2026-10-25T10:20:12.8428382Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 182,
+          "text": "2026-10-25T10:20:19.5076319Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 183,
+          "text": "2026-10-25T10:20:24.2289303Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 184,
+          "text": "2026-10-25T10:20:29.9081028Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 185,
+          "text": "2026-10-25T10:20:30.0841635Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 186,
+          "text": "2026-10-25T10:20:30.2487709Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 187,
+          "text": "2026-10-25T10:20:30.4526829Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 188,
+          "text": "2026-10-25T10:20:30.6152258Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 189,
+          "text": "2026-10-25T10:20:30.8288408Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 190,
+          "text": "2026-10-25T10:20:35.9100069Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 191,
+          "text": "2026-10-25T10:20:36.1142220Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 192,
+          "text": "2026-10-25T10:20:36.3085809Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 193,
+          "text": "2026-10-25T10:20:36.5020046Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 194,
+          "text": "2026-10-25T10:20:36.6228967Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 195,
+          "text": "2026-10-25T10:20:36.7423058Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 196,
+          "text": "2026-10-25T10:20:36.8874293Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 197,
+          "text": "2026-10-25T10:20:37.0065802Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 198,
+          "text": "2026-10-25T10:20:37.2730576Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 199,
+          "text": "2026-10-25T10:20:37.4589763Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 200,
+          "text": "2026-10-25T10:20:44.1143335Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 201,
+          "text": "2026-10-25T10:20:59.2461238Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 202,
+          "text": "2026-10-25T10:20:59.2745128Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:20:05.0445992Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:20:05.6619817Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:20:05.6810099Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:20:05.6823157Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784525,
+      "job": "Q01 stress / ubuntu-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784525",
+      "logPath": "outputs/pr31-ci/job-logs/121140784525.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 245,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:18:11.9838619Z   node-version: 22"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:18:12.7794380Z # skipped 0"
+        },
+        {
+          "line": 257,
+          "text": "2026-10-25T10:18:27.5236833Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 258,
+          "text": "2026-10-25T10:19:10.7394657Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 259,
+          "text": "2026-10-25T10:21:32.8902317Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 260,
+          "text": "2026-10-25T10:21:32.9770756Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:18:11.3019847Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:18:11.8531562Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:18:11.8715116Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:18:11.8738608Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784536,
+      "job": "Q01 quick / ubuntu-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784536",
+      "logPath": "outputs/pr31-ci/job-logs/121140784536.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 245,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:23:54.6558934Z   node-version: 22"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:23:55.1949809Z # skipped 0"
+        },
+        {
+          "line": 257,
+          "text": "2026-10-25T10:23:56.2788615Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 258,
+          "text": "2026-10-25T10:23:56.3770079Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 259,
+          "text": "2026-10-25T10:23:56.4577992Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 260,
+          "text": "2026-10-25T10:23:56.9534913Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 261,
+          "text": "2026-10-25T10:23:57.0505047Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 262,
+          "text": "2026-10-25T10:23:57.1160527Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 263,
+          "text": "2026-10-25T10:23:57.2231499Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 264,
+          "text": "2026-10-25T10:23:57.2252749Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:23:53.7934318Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:23:54.5417275Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:23:54.5577807Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:23:54.5592699Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784552,
+      "job": "Q01 quick / ubuntu-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784552",
+      "logPath": "outputs/pr31-ci/job-logs/121140784552.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 168,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:20:06.4701917Z   node-version: 24"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:20:07.3262195Z ℹ skipped 0"
+        },
+        {
+          "line": 180,
+          "text": "2026-10-25T10:20:09.1168968Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 181,
+          "text": "2026-10-25T10:20:09.2749413Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 182,
+          "text": "2026-10-25T10:20:09.4256339Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 183,
+          "text": "2026-10-25T10:20:09.9236298Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 184,
+          "text": "2026-10-25T10:20:10.0819742Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 185,
+          "text": "2026-10-25T10:20:10.1875325Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 186,
+          "text": "2026-10-25T10:20:10.3637265Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 187,
+          "text": "2026-10-25T10:20:10.3680829Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:20:05.8379204Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:20:06.3078557Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:20:06.3314469Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:20:06.3329408Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784563,
+      "job": "Q01 fault / windows-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784563",
+      "logPath": "outputs/pr31-ci/job-logs/121140784563.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 155,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:26:41.1468226Z   node-version: 24"
+        },
+        {
+          "line": 160,
+          "text": "2026-10-25T10:26:46.7642934Z ℹ skipped 0"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:27:05.1581672Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:27:06.4955953Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 169,
+          "text": "2026-10-25T10:27:13.3178193Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-25T10:27:18.2543026Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 171,
+          "text": "2026-10-25T10:27:24.1420312Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 172,
+          "text": "2026-10-25T10:27:24.4653601Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:27:24.7892909Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 174,
+          "text": "2026-10-25T10:27:25.1959026Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 175,
+          "text": "2026-10-25T10:27:25.5239305Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 176,
+          "text": "2026-10-25T10:27:25.8462906Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 177,
+          "text": "2026-10-25T10:27:31.0148042Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 178,
+          "text": "2026-10-25T10:27:31.3393104Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 179,
+          "text": "2026-10-25T10:27:31.6574014Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 180,
+          "text": "2026-10-25T10:27:31.8958567Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 181,
+          "text": "2026-10-25T10:27:32.1555101Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 182,
+          "text": "2026-10-25T10:27:32.3901974Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 183,
+          "text": "2026-10-25T10:27:32.6347331Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 184,
+          "text": "2026-10-25T10:27:32.8711988Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 185,
+          "text": "2026-10-25T10:27:33.3804031Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 186,
+          "text": "2026-10-25T10:27:33.7337162Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 187,
+          "text": "2026-10-25T10:27:40.5663438Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 188,
+          "text": "2026-10-25T10:28:21.0919417Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 189,
+          "text": "2026-10-25T10:28:21.1334892Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 80,
+          "text": "2026-10-25T10:26:38.0703420Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:26:39.0555148Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 90,
+          "text": "2026-10-25T10:26:39.2160412Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 107,
+          "text": "2026-10-25T10:26:39.2169823Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784588,
+      "job": "Q01 quick / windows-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784588",
+      "logPath": "outputs/pr31-ci/job-logs/121140784588.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 155,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:26:29.9381191Z   node-version: 24"
+        },
+        {
+          "line": 160,
+          "text": "2026-10-25T10:26:38.9604119Z ℹ skipped 0"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:26:57.1569103Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:26:57.4943660Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 169,
+          "text": "2026-10-25T10:26:57.7989621Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-25T10:26:58.6956234Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 171,
+          "text": "2026-10-25T10:26:58.9868256Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 172,
+          "text": "2026-10-25T10:26:59.1832674Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:27:13.4698039Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 174,
+          "text": "2026-10-25T10:27:13.4769873Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 80,
+          "text": "2026-10-25T10:26:26.4557704Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:26:27.6804004Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 90,
+          "text": "2026-10-25T10:26:27.8244966Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 107,
+          "text": "2026-10-25T10:26:27.8350825Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784594,
+      "job": "Q01 stress / windows-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784594",
+      "logPath": "outputs/pr31-ci/job-logs/121140784594.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 155,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:24:09.2579171Z   node-version: 24"
+        },
+        {
+          "line": 160,
+          "text": "2026-10-25T10:24:20.5401351Z ℹ skipped 0"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:24:53.2555905Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:26:02.1593517Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 169,
+          "text": "2026-10-25T10:29:54.9995690Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-25T10:29:55.0790138Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 80,
+          "text": "2026-10-25T10:24:05.3659475Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:24:07.1741501Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 90,
+          "text": "2026-10-25T10:24:07.4228695Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 107,
+          "text": "2026-10-25T10:24:07.4247194Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784615,
+      "job": "Q01 quick / windows-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784615",
+      "logPath": "outputs/pr31-ci/job-logs/121140784615.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 232,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:22:20.6756064Z   node-version: 22"
+        },
+        {
+          "line": 237,
+          "text": "2026-10-25T10:22:26.6561121Z # skipped 0"
+        },
+        {
+          "line": 244,
+          "text": "2026-10-25T10:22:42.5912536Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 245,
+          "text": "2026-10-25T10:22:42.8451254Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 246,
+          "text": "2026-10-25T10:22:43.0814268Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 247,
+          "text": "2026-10-25T10:22:43.7824424Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 248,
+          "text": "2026-10-25T10:22:44.0514336Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 249,
+          "text": "2026-10-25T10:22:44.2301402Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:22:56.8898132Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 251,
+          "text": "2026-10-25T10:22:56.8957995Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 80,
+          "text": "2026-10-25T10:22:17.4230303Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:22:18.6471582Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 90,
+          "text": "2026-10-25T10:22:18.7771319Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 107,
+          "text": "2026-10-25T10:22:18.7777743Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784625,
+      "job": "Q01 stress / windows-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784625",
+      "logPath": "outputs/pr31-ci/job-logs/121140784625.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 232,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:26:41.4489619Z   node-version: 22"
+        },
+        {
+          "line": 237,
+          "text": "2026-10-25T10:26:47.6461810Z # skipped 0"
+        },
+        {
+          "line": 244,
+          "text": "2026-10-25T10:27:29.8707902Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 245,
+          "text": "2026-10-25T10:28:52.1703408Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 246,
+          "text": "2026-10-25T10:33:45.9931287Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 247,
+          "text": "2026-10-25T10:33:46.1017622Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 80,
+          "text": "2026-10-25T10:26:38.2328742Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:26:39.3196395Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 90,
+          "text": "2026-10-25T10:26:39.4663208Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 107,
+          "text": "2026-10-25T10:26:39.4669344Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784643,
+      "job": "Q01 stress / ubuntu-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784643",
+      "logPath": "outputs/pr31-ci/job-logs/121140784643.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 168,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 136,
+          "text": "2026-10-25T10:23:53.2531522Z   node-version: 24"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:23:53.8131297Z ℹ skipped 0"
+        },
+        {
+          "line": 180,
+          "text": "2026-10-25T10:24:05.3262412Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 181,
+          "text": "2026-10-25T10:24:39.3450029Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 182,
+          "text": "2026-10-25T10:26:29.3490121Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 183,
+          "text": "2026-10-25T10:26:29.4028788Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 93,
+          "text": "2026-10-25T10:23:52.6114013Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 102,
+          "text": "2026-10-25T10:23:53.1278969Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 103,
+          "text": "2026-10-25T10:23:53.1456944Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 120,
+          "text": "2026-10-25T10:23:53.1463620Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140784648,
+      "job": "Q01 fault / windows-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121140784648",
+      "logPath": "outputs/pr31-ci/job-logs/121140784648.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 232,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:26:41.6280761Z   node-version: 22"
+        },
+        {
+          "line": 237,
+          "text": "2026-10-25T10:26:47.0159872Z # skipped 0"
+        },
+        {
+          "line": 244,
+          "text": "2026-10-25T10:27:06.2334732Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 245,
+          "text": "2026-10-25T10:27:07.6239209Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 246,
+          "text": "2026-10-25T10:27:14.4942753Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 247,
+          "text": "2026-10-25T10:27:19.4840351Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 248,
+          "text": "2026-10-25T10:27:25.4090339Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 249,
+          "text": "2026-10-25T10:27:25.7674065Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:27:26.1207583Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 251,
+          "text": "2026-10-25T10:27:26.5804222Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 252,
+          "text": "2026-10-25T10:27:26.9507405Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 253,
+          "text": "2026-10-25T10:27:27.3463155Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 254,
+          "text": "2026-10-25T10:27:32.5529220Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 255,
+          "text": "2026-10-25T10:27:32.9363271Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 256,
+          "text": "2026-10-25T10:27:33.2815372Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 257,
+          "text": "2026-10-25T10:27:33.5496188Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 258,
+          "text": "2026-10-25T10:27:33.8122726Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 259,
+          "text": "2026-10-25T10:27:34.0777753Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 260,
+          "text": "2026-10-25T10:27:34.3402490Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 261,
+          "text": "2026-10-25T10:27:34.6067699Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 262,
+          "text": "2026-10-25T10:27:35.1181829Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 263,
+          "text": "2026-10-25T10:27:35.5124905Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 264,
+          "text": "2026-10-25T10:27:42.3652411Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 265,
+          "text": "2026-10-25T10:28:24.9290601Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 266,
+          "text": "2026-10-25T10:28:24.9770130Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 80,
+          "text": "2026-10-25T10:26:38.3736241Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13:refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 89,
+          "text": "2026-10-25T10:26:39.4154252Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force refs/remotes/pull/31/merge"
+        },
+        {
+          "line": 90,
+          "text": "2026-10-25T10:26:39.5629724Z Note: switching to 'refs/remotes/pull/31/merge'."
+        },
+        {
+          "line": 107,
+          "text": "2026-10-25T10:26:39.5636968Z HEAD is now at 1b99e5c Merge cb168925b5aeec0c957137dd94ab72c64f0bd333 into 20ede51c6e5eddbf49fde709f8af5e77a319e1c7"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183990649,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121144692756,
+      "job": "Q01 complete execution coverage",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183990649/job/121144692756",
+      "logPath": null,
+      "logStatus": "NOT_RUN_PENDING",
+      "blocks": [],
+      "evidence": [],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183964442,
+      "workflow": ".github/workflows/windows-deployment.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706570,
+      "job": "Windows contracts / pwsh",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964442/job/121140706570",
+      "logPath": "outputs/pr31-ci/job-logs/121140706570.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 13,
+          "line": 229,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "pester",
+          "pass": 51,
+          "fail": 0,
+          "skipped": 0,
+          "pending": 0,
+          "inconclusive": 0,
+          "line": 338
+        }
+      ],
+      "evidence": [
+        {
+          "line": 109,
+          "text": "2026-10-25T10:15:50.5104644Z   node-version: 22"
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:16:23.3821226Z # skipped 0"
+        },
+        {
+          "line": 338,
+          "text": "2026-10-25T10:16:58.7528072Z Tests Passed: 51, Failed: 0, Skipped: 0, Pending: 0, Inconclusive: 0 "
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 91,
+          "text": "2026-10-25T10:15:48.2029094Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183964442,
+      "workflow": ".github/workflows/windows-deployment.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706685,
+      "job": "Windows contracts / powershell",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964442/job/121140706685",
+      "logPath": "outputs/pr31-ci/job-logs/121140706685.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 13,
+          "line": 229,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "pester",
+          "pass": 51,
+          "fail": 0,
+          "skipped": 0,
+          "pending": 0,
+          "inconclusive": 0,
+          "line": 338
+        }
+      ],
+      "evidence": [
+        {
+          "line": 109,
+          "text": "2026-10-25T10:16:51.4130391Z   node-version: 22"
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:17:15.9179007Z # skipped 0"
+        },
+        {
+          "line": 338,
+          "text": "2026-10-25T10:17:42.9202869Z Tests Passed: 51, Failed: 0, Skipped: 0, Pending: 0, Inconclusive: 0 "
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 91,
+          "text": "2026-10-25T10:16:49.8041654Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183964407,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706500,
+      "job": "Full suite Node 22 / PostgreSQL 18",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964407/job/121140706500",
+      "logPath": "outputs/pr31-ci/job-logs/121140706500.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4285,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 229,
+          "text": "2026-10-25T10:19:29.4516841Z   node-version: 22"
+        },
+        {
+          "line": 4290,
+          "text": "2026-10-25T10:19:51.3298534Z # skipped 0"
+        },
+        {
+          "line": 4702,
+          "text": "2026-10-25T10:19:52.9252825Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 211,
+          "text": "2026-10-25T10:19:29.3393329Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964407,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706632,
+      "job": "Full suite Node 24 / PostgreSQL 18",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964407/job/121140706632",
+      "logPath": "outputs/pr31-ci/job-logs/121140706632.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4253,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 229,
+          "text": "2026-10-25T10:20:46.6260895Z   node-version: 24"
+        },
+        {
+          "line": 4258,
+          "text": "2026-10-25T10:21:10.0975601Z # skipped 0"
+        },
+        {
+          "line": 4672,
+          "text": "2026-10-25T10:21:11.9141572Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 211,
+          "text": "2026-10-25T10:20:46.4732252Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964407,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706645,
+      "job": "Full suite Node 22 / PostgreSQL 16",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964407/job/121140706645",
+      "logPath": "outputs/pr31-ci/job-logs/121140706645.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4288,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 232,
+          "text": "2026-10-25T10:20:42.8108930Z   node-version: 22"
+        },
+        {
+          "line": 4293,
+          "text": "2026-10-25T10:21:08.1247060Z # skipped 0"
+        },
+        {
+          "line": 4711,
+          "text": "2026-10-25T10:21:09.6932763Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 214,
+          "text": "2026-10-25T10:20:42.6929997Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964407,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706686,
+      "job": "Full suite Node 24 / PostgreSQL 16",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964407/job/121140706686",
+      "logPath": "outputs/pr31-ci/job-logs/121140706686.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 649,
+          "line": 4258,
+          "pass": 649,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 234,
+          "text": "2026-10-25T10:21:05.2541851Z   node-version: 24"
+        },
+        {
+          "line": 4263,
+          "text": "2026-10-25T10:21:32.9979345Z # skipped 0"
+        },
+        {
+          "line": 4703,
+          "text": "2026-10-25T10:21:34.8019098Z  \t FOR UPDATE SKIP LOCKED LIMIT 1"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 216,
+          "text": "2026-10-25T10:21:05.1119382Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964407,
+      "workflow": "PostgreSQL Integration",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121142145986,
+      "job": "Full CI coverage",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964407/job/121142145986",
+      "logPath": null,
+      "logStatus": "NOT_RUN_PENDING",
+      "blocks": [],
+      "evidence": [],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183964363,
+      "workflow": "Book Ingestion Native PDF",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706408,
+      "job": "native-pdf",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964363/job/121140706408",
+      "logPath": "outputs/pr31-ci/job-logs/121140706408.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 90,
+          "line": 757,
+          "pass": 90,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 123,
+          "text": "2026-10-25T10:16:43.7934190Z   node-version: 22"
+        },
+        {
+          "line": 762,
+          "text": "2026-10-25T10:16:55.5726037Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 105,
+          "text": "2026-10-25T10:16:43.6399724Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706731,
+      "job": "Q01 stress / windows-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706731",
+      "logPath": "outputs/pr31-ci/job-logs/121140706731.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 216,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 107,
+          "text": "2026-10-25T10:32:52.2001228Z   node-version: 22"
+        },
+        {
+          "line": 221,
+          "text": "2026-10-25T10:32:57.8549491Z # skipped 0"
+        },
+        {
+          "line": 228,
+          "text": "2026-10-25T10:33:40.9441522Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 229,
+          "text": "2026-10-25T10:35:03.1108365Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 230,
+          "text": "2026-10-25T10:39:57.0716969Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 231,
+          "text": "2026-10-25T10:39:57.1820433Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 89,
+          "text": "2026-10-25T10:32:49.9473820Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706734,
+      "job": "Q01 Windows laboratory guard contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706734",
+      "logPath": "outputs/pr31-ci/job-logs/121140706734.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "pester",
+          "pass": 8,
+          "fail": 0,
+          "skipped": 0,
+          "pending": 0,
+          "inconclusive": 0,
+          "line": 132
+        }
+      ],
+      "evidence": [
+        {
+          "line": 132,
+          "text": "2026-10-25T10:43:55.8906090Z Tests Passed: 8, Failed: 0, Skipped: 0, Pending: 0, Inconclusive: 0 "
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 87,
+          "text": "2026-10-25T10:43:43.0550319Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706745,
+      "job": "Q01 quick / windows-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706745",
+      "logPath": "outputs/pr31-ci/job-logs/121140706745.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 139,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 107,
+          "text": "2026-10-25T10:32:47.3983692Z   node-version: 24"
+        },
+        {
+          "line": 144,
+          "text": "2026-10-25T10:32:53.1177433Z ℹ skipped 0"
+        },
+        {
+          "line": 151,
+          "text": "2026-10-25T10:33:09.4475374Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 152,
+          "text": "2026-10-25T10:33:09.7095561Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 153,
+          "text": "2026-10-25T10:33:09.9603285Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 154,
+          "text": "2026-10-25T10:33:10.6563015Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 155,
+          "text": "2026-10-25T10:33:10.9109671Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 156,
+          "text": "2026-10-25T10:33:11.0830400Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 157,
+          "text": "2026-10-25T10:33:24.1963746Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 158,
+          "text": "2026-10-25T10:33:24.2027329Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 89,
+          "text": "2026-10-25T10:32:45.3539301Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706778,
+      "job": "Q01 quick / ubuntu-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706778",
+      "logPath": "outputs/pr31-ci/job-logs/121140706778.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 229,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 120,
+          "text": "2026-10-25T10:31:39.6950002Z   node-version: 22"
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:31:40.5481968Z # skipped 0"
+        },
+        {
+          "line": 241,
+          "text": "2026-10-25T10:31:42.1661125Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 242,
+          "text": "2026-10-25T10:31:42.3114339Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 243,
+          "text": "2026-10-25T10:31:42.4443449Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 244,
+          "text": "2026-10-25T10:31:42.9505862Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 245,
+          "text": "2026-10-25T10:31:43.1005020Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 246,
+          "text": "2026-10-25T10:31:43.1992173Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 247,
+          "text": "2026-10-25T10:31:43.3629574Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 248,
+          "text": "2026-10-25T10:31:43.3666446Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 102,
+          "text": "2026-10-25T10:31:39.5396785Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706779,
+      "job": "Q01 fault / windows-latest / Node 22",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706779",
+      "logPath": null,
+      "logStatus": "NOT_RUN_PENDING",
+      "blocks": [],
+      "evidence": [],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706787,
+      "job": "Q01 quick / ubuntu-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706787",
+      "logPath": "outputs/pr31-ci/job-logs/121140706787.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 152,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 120,
+          "text": "2026-10-25T10:26:36.2660593Z   node-version: 24"
+        },
+        {
+          "line": 157,
+          "text": "2026-10-25T10:26:36.8897347Z ℹ skipped 0"
+        },
+        {
+          "line": 164,
+          "text": "2026-10-25T10:26:38.3498145Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 165,
+          "text": "2026-10-25T10:26:38.4645204Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 166,
+          "text": "2026-10-25T10:26:38.5725045Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:26:39.0280535Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:26:39.1462009Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 169,
+          "text": "2026-10-25T10:26:39.2307195Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-25T10:26:39.3733022Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 171,
+          "text": "2026-10-25T10:26:39.3764613Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 102,
+          "text": "2026-10-25T10:26:36.1564957Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706805,
+      "job": "Q01 stress / windows-latest / Node 24",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706805",
+      "logPath": null,
+      "logStatus": "NOT_RUN_PENDING",
+      "blocks": [],
+      "evidence": [],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706808,
+      "job": "Q01 stress / ubuntu-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706808",
+      "logPath": "outputs/pr31-ci/job-logs/121140706808.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 229,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 120,
+          "text": "2026-10-25T10:33:41.5747357Z   node-version: 22"
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:33:42.4018432Z # skipped 0"
+        },
+        {
+          "line": 241,
+          "text": "2026-10-25T10:33:58.6147196Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 242,
+          "text": "2026-10-25T10:34:43.5915245Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 243,
+          "text": "2026-10-25T10:37:11.6934813Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 244,
+          "text": "2026-10-25T10:37:11.7898919Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 102,
+          "text": "2026-10-25T10:33:41.4087138Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706812,
+      "job": "Q01 stress / ubuntu-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706812",
+      "logPath": "outputs/pr31-ci/job-logs/121140706812.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 152,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 120,
+          "text": "2026-10-25T10:33:50.9729881Z   node-version: 24"
+        },
+        {
+          "line": 157,
+          "text": "2026-10-25T10:33:51.7620387Z ℹ skipped 0"
+        },
+        {
+          "line": 164,
+          "text": "2026-10-25T10:34:06.1672745Z {\"case\":\"concurrent-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 165,
+          "text": "2026-10-25T10:34:48.5760384Z {\"case\":\"concurrent-first-open-300\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 166,
+          "text": "2026-10-25T10:37:10.9348395Z {\"case\":\"concurrent-first-open-1000\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:37:11.0023516Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":3}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 102,
+          "text": "2026-10-25T10:33:50.8168733Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706819,
+      "job": "Q01 fault / ubuntu-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706819",
+      "logPath": "outputs/pr31-ci/job-logs/121140706819.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 229,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 120,
+          "text": "2026-10-25T10:33:42.3097547Z   node-version: 22"
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:33:42.9382627Z # skipped 0"
+        },
+        {
+          "line": 241,
+          "text": "2026-10-25T10:33:48.1034145Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 242,
+          "text": "2026-10-25T10:33:49.2839633Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 243,
+          "text": "2026-10-25T10:33:55.9297508Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 244,
+          "text": "2026-10-25T10:34:00.6362540Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 245,
+          "text": "2026-10-25T10:34:06.3048264Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 246,
+          "text": "2026-10-25T10:34:06.4963940Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 247,
+          "text": "2026-10-25T10:34:06.8438180Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 248,
+          "text": "2026-10-25T10:34:07.1915346Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 249,
+          "text": "2026-10-25T10:34:07.4447631Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 250,
+          "text": "2026-10-25T10:34:07.5956805Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 251,
+          "text": "2026-10-25T10:34:12.6719786Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 252,
+          "text": "2026-10-25T10:34:12.8251132Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 253,
+          "text": "2026-10-25T10:34:12.9683199Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 254,
+          "text": "2026-10-25T10:34:13.0766249Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 255,
+          "text": "2026-10-25T10:34:13.1849427Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 256,
+          "text": "2026-10-25T10:34:13.2941578Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 257,
+          "text": "2026-10-25T10:34:13.4008660Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 258,
+          "text": "2026-10-25T10:34:13.5096436Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 259,
+          "text": "2026-10-25T10:34:13.7744675Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 260,
+          "text": "2026-10-25T10:34:13.9417974Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 261,
+          "text": "2026-10-25T10:34:20.5903107Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 262,
+          "text": "2026-10-25T10:34:34.4817626Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 263,
+          "text": "2026-10-25T10:34:34.5193457Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 102,
+          "text": "2026-10-25T10:33:42.1870351Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706820,
+      "job": "Q01 quick / windows-latest / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706820",
+      "logPath": "outputs/pr31-ci/job-logs/121140706820.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 216,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 107,
+          "text": "2026-10-25T10:43:47.4075262Z   node-version: 22"
+        },
+        {
+          "line": 221,
+          "text": "2026-10-25T10:43:53.8503460Z # skipped 0"
+        },
+        {
+          "line": 228,
+          "text": "2026-10-25T10:44:11.0437094Z {\"case\":\"concurrent-first-open-10\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 229,
+          "text": "2026-10-25T10:44:11.3100608Z {\"case\":\"stale-exists-false\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 230,
+          "text": "2026-10-25T10:44:11.5649167Z {\"case\":\"schema-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 231,
+          "text": "2026-10-25T10:44:12.3417176Z {\"case\":\"atomic-claims\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 232,
+          "text": "2026-10-25T10:44:12.6368512Z {\"case\":\"lease-checkpoint\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 233,
+          "text": "2026-10-25T10:44:12.8521285Z {\"case\":\"unicode-roundtrip\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 234,
+          "text": "2026-10-25T10:44:27.7226081Z {\"case\":\"idempotence\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 235,
+          "text": "2026-10-25T10:44:27.7287224Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":7}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 89,
+          "text": "2026-10-25T10:43:45.1730462Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706836,
+      "job": "Q01 fault / windows-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706836",
+      "logPath": "outputs/pr31-ci/job-logs/121140706836.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 139,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 107,
+          "text": "2026-10-25T10:37:59.6878431Z   node-version: 24"
+        },
+        {
+          "line": 144,
+          "text": "2026-10-25T10:38:04.1344487Z ℹ skipped 0"
+        },
+        {
+          "line": 151,
+          "text": "2026-10-25T10:38:21.2393936Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 152,
+          "text": "2026-10-25T10:38:22.5801809Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 153,
+          "text": "2026-10-25T10:38:29.3920213Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 154,
+          "text": "2026-10-25T10:38:34.3533036Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 155,
+          "text": "2026-10-25T10:38:40.2104303Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 156,
+          "text": "2026-10-25T10:38:40.5330150Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 157,
+          "text": "2026-10-25T10:38:40.8571716Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 158,
+          "text": "2026-10-25T10:38:41.2416547Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 159,
+          "text": "2026-10-25T10:38:41.5384309Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 160,
+          "text": "2026-10-25T10:38:41.8294766Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 161,
+          "text": "2026-10-25T10:38:46.9763790Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 162,
+          "text": "2026-10-25T10:38:47.2792575Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 163,
+          "text": "2026-10-25T10:38:47.5801721Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 164,
+          "text": "2026-10-25T10:38:47.7952611Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 165,
+          "text": "2026-10-25T10:38:48.0176227Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 166,
+          "text": "2026-10-25T10:38:48.2453904Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:38:48.4818646Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:38:48.6928332Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 169,
+          "text": "2026-10-25T10:38:49.0880534Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-25T10:38:49.4189076Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 171,
+          "text": "2026-10-25T10:38:56.2384255Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 172,
+          "text": "2026-10-25T10:39:30.5698294Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:39:30.6042320Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 89,
+          "text": "2026-10-25T10:37:57.7306580Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183964438,
+      "workflow": "Q01 Queue Reliability",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706851,
+      "job": "Q01 fault / ubuntu-latest / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964438/job/121140706851",
+      "logPath": "outputs/pr31-ci/job-logs/121140706851.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 15,
+          "line": 152,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 120,
+          "text": "2026-10-25T10:33:42.4963167Z   node-version: 24"
+        },
+        {
+          "line": 157,
+          "text": "2026-10-25T10:33:43.3270451Z ℹ skipped 0"
+        },
+        {
+          "line": 164,
+          "text": "2026-10-25T10:33:48.5321090Z {\"case\":\"existing-empty\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 165,
+          "text": "2026-10-25T10:33:49.7248050Z {\"case\":\"initialization-1s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 166,
+          "text": "2026-10-25T10:33:56.4123414Z {\"case\":\"initialization-timeout-6.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 167,
+          "text": "2026-10-25T10:34:01.1720761Z {\"case\":\"lock-4.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 168,
+          "text": "2026-10-25T10:34:06.8885853Z {\"case\":\"lock-timeout-5.5s\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 169,
+          "text": "2026-10-25T10:34:07.0812570Z {\"case\":\"pause-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-25T10:34:07.2751431Z {\"case\":\"crash-before-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 171,
+          "text": "2026-10-25T10:34:07.5088325Z {\"case\":\"crash-after-commit\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 172,
+          "text": "2026-10-25T10:34:07.7991688Z {\"case\":\"crash-after-delete\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 173,
+          "text": "2026-10-25T10:34:07.9875719Z {\"case\":\"crash-after-insert\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 174,
+          "text": "2026-10-25T10:34:13.0851323Z {\"case\":\"crash-initialization\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 175,
+          "text": "2026-10-25T10:34:13.2752712Z {\"case\":\"rollback-write-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 176,
+          "text": "2026-10-25T10:34:13.4543483Z {\"case\":\"read-error\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 177,
+          "text": "2026-10-25T10:34:13.5932035Z {\"case\":\"malformed-schema\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 178,
+          "text": "2026-10-25T10:34:13.7295149Z {\"case\":\"wrong-metadata-version\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 179,
+          "text": "2026-10-25T10:34:13.8688431Z {\"case\":\"missing-metadata\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 180,
+          "text": "2026-10-25T10:34:14.0091215Z {\"case\":\"corrupt-payload\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 181,
+          "text": "2026-10-25T10:34:14.1502799Z {\"case\":\"incorrect-types\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 182,
+          "text": "2026-10-25T10:34:14.4425477Z {\"case\":\"multiwriter\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 183,
+          "text": "2026-10-25T10:34:14.6560297Z {\"case\":\"crash-checkpoint-resume\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 184,
+          "text": "2026-10-25T10:34:21.3332805Z {\"case\":\"restart-after-timeout\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 185,
+          "text": "2026-10-25T10:34:36.8989234Z {\"case\":\"diagnostic-first-open-100\",\"status\":\"PASS\",\"q01Status\":\"OPEN\"}"
+        },
+        {
+          "line": 186,
+          "text": "2026-10-25T10:34:36.9458411Z {\"status\":\"PASS\",\"q01Status\":\"OPEN\",\"cases\":22}"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 102,
+          "text": "2026-10-25T10:33:42.3385131Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964400,
+      "workflow": "Validate Math Universe",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706455,
+      "job": "test",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964400/job/121140706455",
+      "logPath": "outputs/pr31-ci/job-logs/121140706455.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 4,
+          "line": 184,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:18:00.5770138Z   node-version: 22"
+        },
+        {
+          "line": 189,
+          "text": "2026-10-25T10:18:04.3601860Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 104,
+          "text": "2026-10-25T10:18:00.4305080Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964374,
+      "workflow": "Browser E2E",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706479,
+      "job": "chromium",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964374/job/121140706479",
+      "logPath": "outputs/pr31-ci/job-logs/121140706479.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "playwright",
+          "pass": 14,
+          "line": 808,
+          "skipped": null
+        }
+      ],
+      "evidence": [
+        {
+          "line": 122,
+          "text": "2026-10-25T10:17:34.0515320Z   node-version: 22"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 104,
+          "text": "2026-10-25T10:17:33.9340045Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964372,
+      "workflow": "Experimental Proof Kernel",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706432,
+      "job": "Proof kernel Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964372/job/121140706432",
+      "logPath": "outputs/pr31-ci/job-logs/121140706432.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 27,
+          "line": 153,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 109,
+          "text": "2026-10-25T10:15:14.3291274Z   node-version: 24"
+        },
+        {
+          "line": 158,
+          "text": "2026-10-25T10:15:15.0820762Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 101,
+          "text": "2026-10-25T10:15:14.2660326Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.21.0"
+      ]
+    },
+    {
+      "runId": 40183964372,
+      "workflow": "Experimental Proof Kernel",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706555,
+      "job": "Proof kernel Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964372/job/121140706555",
+      "logPath": "outputs/pr31-ci/job-logs/121140706555.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 27,
+          "line": 290,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "evidence": [
+        {
+          "line": 109,
+          "text": "2026-10-25T10:21:20.9854064Z   node-version: 22"
+        },
+        {
+          "line": 295,
+          "text": "2026-10-25T10:21:21.6982053Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 101,
+          "text": "2026-10-25T10:21:20.9098228Z [command]/usr/bin/git checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.3"
+      ]
+    },
+    {
+      "runId": 40183964395,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706544,
+      "job": "Native-free contracts / powershell / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964395/job/121140706544",
+      "logPath": "outputs/pr31-ci/job-logs/121140706544.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 127,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 140
+        }
+      ],
+      "evidence": [
+        {
+          "line": 106,
+          "text": "2026-10-25T10:16:37.6199912Z   node-version: 24"
+        },
+        {
+          "line": 132,
+          "text": "2026-10-25T10:16:46.4313727Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 88,
+          "text": "2026-10-25T10:16:35.4380782Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183964395,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706612,
+      "job": "Native-free contracts / pwsh / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964395/job/121140706612",
+      "logPath": "outputs/pr31-ci/job-logs/121140706612.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 144,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 157
+        }
+      ],
+      "evidence": [
+        {
+          "line": 106,
+          "text": "2026-10-25T10:16:38.4941237Z   node-version: 22"
+        },
+        {
+          "line": 149,
+          "text": "2026-10-25T10:16:44.1380965Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 88,
+          "text": "2026-10-25T10:16:36.3219499Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183964395,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706637,
+      "job": "Native-free contracts / powershell / Node 22",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964395/job/121140706637",
+      "logPath": "outputs/pr31-ci/job-logs/121140706637.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 144,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 157
+        }
+      ],
+      "evidence": [
+        {
+          "line": 106,
+          "text": "2026-10-25T10:17:30.3306627Z   node-version: 22"
+        },
+        {
+          "line": 149,
+          "text": "2026-10-25T10:17:37.2300346Z # skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 88,
+          "text": "2026-10-25T10:17:28.2430647Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v22.23.4"
+      ]
+    },
+    {
+      "runId": 40183964395,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121140706670,
+      "job": "Native-free contracts / pwsh / Node 24",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964395/job/121140706670",
+      "logPath": "outputs/pr31-ci/job-logs/121140706670.log",
+      "logStatus": "FETCHED",
+      "blocks": [
+        {
+          "framework": "node",
+          "tests": 3,
+          "line": 127,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "framework": "mock-kernel",
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "nativeCalls": 0,
+          "line": 140
+        }
+      ],
+      "evidence": [
+        {
+          "line": 106,
+          "text": "2026-10-25T10:17:30.3465519Z   node-version: 24"
+        },
+        {
+          "line": 132,
+          "text": "2026-10-25T10:17:35.9734110Z ℹ skipped 0"
+        }
+      ],
+      "checkoutEvidence": [
+        {
+          "line": 88,
+          "text": "2026-10-25T10:17:28.1452668Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" checkout --progress --force -B integration/math-issue20-physical-preflight-20261025 refs/remotes/origin/integration/math-issue20-physical-preflight-20261025"
+        }
+      ],
+      "nodeVersions": [
+        "v24.22.1"
+      ]
+    },
+    {
+      "runId": 40183964395,
+      "workflow": ".github/workflows/q01-windows-containment-preparation.yml",
+      "branch": "integration/math-issue20-physical-preflight-20261025",
+      "sha": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+      "jobId": 121141351832,
+      "job": "Require all native-free preparation contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40183964395/job/121141351832",
+      "logPath": "outputs/pr31-ci/job-logs/121141351832.log",
+      "logStatus": "FETCHED",
+      "blocks": [],
+      "evidence": [
+        {
+          "line": 30,
+          "text": "2026-10-25T10:22:08.4317815Z Complete job name: Require all native-free preparation contracts"
+        }
+      ],
+      "checkoutEvidence": [],
+      "nodeVersions": []
+    }
+  ]
+}
