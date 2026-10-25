@@ -83,3 +83,11 @@ This audit adds explicit scope-index and unused-top-level-assumption
 regressions. No inference rule was changed. A new audit-HEAD workflow
 result must be read before claiming PASS. Local clone was blocked by
 github.com DNS resolution, so local test execution remains NOT_RUN.
+
+## Adversarial AI proof fabrication checks
+
+Added 100 seeded cases of unsupported `axiom` proof nodes and invalid
+assumption indices. Both must fail closed regardless of the AI-proposed goal.
+Added canonical JSON negative tests for `-0`, `0.0`, and trailing
+whitespace. These tests do not claim to exhaust all untrusted input
+representations. They do not introduce any new rule or change a trust status.
