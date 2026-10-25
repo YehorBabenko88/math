@@ -10,7 +10,7 @@ namespace MathUniverse.Q01 {
   public System.IntPtr CreateJob() { Step("job"); return (System.IntPtr)1; }
   public void ConfigureKillOnClose(System.IntPtr j) { Step("limits"); }
   public void CreateSuspended(string e,string[] a,string d,out System.IntPtr p,out System.IntPtr t) { Step("suspend"); p=(System.IntPtr)2;t=(System.IntPtr)3; }
-  public void Assign(System.IntPtr j,System.IntPtr p) { Step("assign"); }
+  public void Assign(System.IntPtr j,System.IntPtr p) { Step("assign"); if(Fail=="deadline-before-resume") System.Threading.Thread.Sleep(1100); }
   public void Resume(System.IntPtr t) { Step("resume"); }
   public uint Wait(System.IntPtr p,uint ms) { Step("wait"); return ++Waits==1?WaitResult:0; }
   public uint ExitCode(System.IntPtr p) { Step("exit"); return 7; }
@@ -30,6 +30,7 @@ namespace MathUniverse.Q01 {
   public static void Verify() {
    Expect(Run(null,0),"job,limits,suspend,assign,resume,wait,exit,kill-job,drain,close-3,close-2,close-1");
    Expect(Run("assign",0),"job,limits,suspend,assign,kill-process,wait,close-3,close-2,close-1");
+   Expect(Run("deadline-before-resume",0),"job,limits,suspend,assign,kill-job,drain,kill-process,wait,close-3,close-2,close-1");
    Expect(Run("drain",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,drain,close-3,close-2,close-1");
    Expect(Run("drain-timeout",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,drain,close-3,close-2,close-1");
    var undrained=new FakeKernel { Fail="drain-timeout" };
@@ -48,5 +49,5 @@ namespace MathUniverse.Q01 {
 '@
 Add-Type -TypeDefinition ($source + $fixture)
 [MathUniverse.Q01.MockAcceptance]::Verify()
-Write-Output 'PASS: compilation and ten mock sequencing/cleanup cases; zero native calls'
+Write-Output 'PASS: compilation and eleven mock sequencing/cleanup cases; zero native calls'
 
