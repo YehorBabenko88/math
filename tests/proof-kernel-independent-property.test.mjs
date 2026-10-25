@@ -143,10 +143,9 @@ test('property: 120 seeded implication-composition proofs are closed and tautolo
 });
 test('negative: implication-elimination premise substitution is rejected',()=>{
  for(let i=0;i<100;i++){
-  const a=formula(2),b=formula(2),c=imp(a,a);
-  const assumptions=[imp(a,b),c];
+  const a=formula(2),b=formula(2),wrong=imp(a,a);
+  const assumptions=[imp(a,b),wrong];
   const proof=elim(assumption(0),assumption(1));
-  if(JSON.stringify(a)!==JSON.stringify(c))
-   assert.throws(()=>verifyImplicationProof({goal:b,assumptions,proof}),/Invalid implication elimination/);
+  assert.throws(()=>verifyImplicationProof({goal:b,assumptions,proof}),/Invalid implication elimination/);
  }
 });
