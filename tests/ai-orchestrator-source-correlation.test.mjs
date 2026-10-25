@@ -15,3 +15,15 @@ test('receipt source substitution rejected',()=>assert.throws(()=>correlatePinne
 test('claim source substitution rejected',()=>assert.throws(()=>correlatePinnedSource(source,task,receipt,{...claim,sourceCommit:'b'.repeat(40)}),/SOURCE_COMMIT_MISMATCH/));
 test('attempt substitution rejected',()=>assert.throws(()=>correlatePinnedSource(source,task,receipt,{...claim,attempt:2}),/SOURCE_ATTEMPT_MISMATCH/));
 test('untrusted release request rejected',()=>assert.throws(()=>correlatePinnedSource(source,{...task,kind:'RELEASE_CANDIDATE',role:'publisher'},receipt,claim),/PUBLICATION_NOT_IMPLEMENTED/));
+
+test('receipt input hash mismatch rejected',()=>{
+ const forged={...receipt,inputHashes:[hash]};
+ assert.throws(()=>correlatePinnedSource(source,task,forged,claim),/RECEIPT_MISMATCH/);
+});
+test('receipt budget overrun rejected',()=>{
+ const forged={...receipt,metrics:{...receipt.metrics,llmTokens:2}};
+ assert.throws(()=>correlatePinnedSource(source,task,forged,claim),/BUDGET_EXCEEDED/);
+});
+test('claim toolchain mismatch rejected',()=>{
+ assert.throws(()=>correlatePinnedSource(source,task,receipt,{...claim,toolchainHash:'b'.repeat(64)}),/CLAIM_MISMATCH/);
+});
