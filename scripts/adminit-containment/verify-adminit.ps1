@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$PackageRoot,[Parameter(Mandatory=$true)][string]$ExpectedManifestSha256,[Parameter(Mandatory=$true)][string]$ExpectedSourceHead,[switch]$Execute)
+param([Parameter(Mandatory=$true)][string]$PackageRoot,[Parameter(Mandatory=$true)][string]$ExpectedManifestSha256,[Parameter(Mandatory=$true)][string]$ExpectedSourceHead,[Parameter(Mandatory=$true)][string]$ExpectedSourceTree,[switch]$Execute)
 $ErrorActionPreference='Stop'
 # This trusted auditor kit must be authenticated separately before invocation.
 # No test executable is loaded or run by this verifier.
@@ -29,6 +29,6 @@ foreach($item in $inspect){
   if($rule.AccessControlType -eq 'Allow' -and ($rule.FileSystemRights -band $write) -ne 0 -and $allowed -notcontains $rule.IdentityReference.Value){throw 'Other principal can modify laboratory/package: BLOCKED'}
  }
 }
-& $node (Join-Path $PSScriptRoot 'package.mjs') $PackageRoot $ExpectedManifestSha256 $ExpectedSourceHead
+& $node (Join-Path $PSScriptRoot 'package.mjs') $PackageRoot $ExpectedManifestSha256 $ExpectedSourceHead $ExpectedSourceTree
 if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
 Write-Output 'PACKAGE VERIFIED ONLY; token integrity, native acceptance and external isolation are not proved here. LOCAL EXECUTION BLOCKED. Q01 OPEN; G1 BLOCKED.'
