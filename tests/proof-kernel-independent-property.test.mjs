@@ -160,3 +160,25 @@ test('negative: wrong implication direction cannot justify consequent',()=>{
    assert.throws(()=>verifyImplicationProof({goal:b,assumptions,proof}),/Invalid implication elimination/);
  }
 });
+
+test('scope: nested introduction preserves outermost indices and rejects swaps',()=>{
+ const theorem=imp(P,imp(Q,P));
+ const correct={rule:'imp_intro',premise:P,body:{
+  rule:'imp_intro',premise:Q,body:{rule:'assumption',index:0}
+ }};
+ const swapped={rule:'imp_intro',premise:P,body:{
+  rule:'imp_intro',premise:Q,body:{rule:'assumption',index:1}
+ }};
+ assert.equal(verifyImplicationProof({goal:theorem,proof:correct}).isClosedTheorem,true);
+ assert.throws(()=>verifyImplicationProof({goal:theorem,proof:swapped}),/Proof does not establish goal/);
+ assert.throws(()=>verifyImplicationProof({goal:theorem,proof:{
+  ...correct,body:{...correct.body,body:{rule:'assumption',index:2}}
+ }}));
+});
+test('scope: unused top-level assumptions still prevent closed-theorem promotion',()=>{
+ const doc=JSON.stringify({goal:imp(P,P),assumptions:[Q],proof:intro(P,{rule:'assumption',index:1})});
+ const receipt=verifyImplicationProofJson(doc);
+ assert.equal(receipt.isClosedTheorem,false);
+ assert.equal(receipt.openAssumptions,1);
+ assert.throws(()=>verifyClosedImplicationProofJson(doc),/Open assumptions/);
+});
