@@ -1,0 +1,13 @@
+# Independent native acceptance packet — not executed
+
+Baseline PR48 exact02b37515c8aa13154362c3108132857677b8fe5a/tree54c89f1d20385f1a86f2e7f016d123f596497818. Original21runs/76jobs were allqueued, attempt1,0steps/0artifacts at retained snapshot. No reruns requested. This packet is a checklist for AFTER qualification completes, not an execution command or admission.
+
+1. Select original exact run/attempt and expected job context; reject another branch/head/attempt, absent/cancelled/skipped cases or stale success. Push native40201755916 is direct-head source; PR native40201759416 may build synthetic merge. Validate artifact sourceHead/tree and merge parents independently, not APIhead_sha alone.
+2. Retrieve exact API artifact inventory and immutable archive digest through authorized read-only transport. Verify ZIP SHA256, size, names, no traversal/absolute/reparse/link entries before extraction into a fresh isolated audit directory. Missing artifact is BLOCKED.
+3. Verify package exact two-file inventory, external manifest digest, source HEAD/tree, executable length/SHA256 and compiler/source evidence. Producer JSON is not independent attestation; no secret extraction or credential fallback.
+4. Inspect all5native scenarios: normal exit descendants drained; timeout; owner crash with inner job kill-on-close; assignment failure before Resume; cleanup rejection fails closed. Check actual Medium/elevation measurements and lab ACL metadata, owned root/leaf handles captured before termination, PID+creation FILETIME preserved as text, specific-job leaf membership before Resume and zero-active outer drain.
+5. Independently run the pure evidence verifier against the downloaded bounded data with externally established expected identities. Verify JSON/manifest/producer hashes and raw retained provenance before deriving a public summary. Do not alter original raw evidence. Public output is a separate allowlisted projection; raw local host identifiers and diagnostics stay private.
+6. A five-case PASS does not establish independent external-watchdog forced-expiry acceptance; inspect/require separate qualified evidence of that gap. Any watchdog kill, unconfirmed process termination, incomplete case inventory or unknown protection is BLOCKED.
+7. Whole-PC test purpose and Job Objects are not proof of network/filesystem/loopback isolation. No automated local Execute, Q01 G1 or production promotion. Existing historical laboratory/source trees/PostgreSQL18 remain untouched. Explicit later admission still required.
+
+At publication of this follow-up: native acceptance NOT_RUN/BLOCKED, package digest UNAVAILABLE, isolation BLOCKED. Local model/static/pure success is recorded separately. No ADMINIT native/Q01/PG execution.

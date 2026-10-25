@@ -90,7 +90,7 @@ Workflow выполняет обязательный полный контрак
 GitHub публикация/Actions текущего HEAD фиксируются в финальном delivery report после обычного push. Никакой Draft PR автоматически не создаётся. Для публикации вручную:
 
 ```powershell
-git -C 'C:\Users\Administrator\Documents\Codex\2026-10-14\https-github-com-yehorbabenko88-math-actions\work\book-postgres-cutover-controller' push --set-upstream origin audit/book-full-ci-coverage
+git -C '<LOCAL_WORKSPACE_PATH>' push --set-upstream origin audit/book-full-ci-coverage
 ```
 
 Production gate закрыт. Main, существующие PR #1–#8, Cluster Grid и production PostgreSQL не изменялись; production migration/cutover/merge не выполнялись.

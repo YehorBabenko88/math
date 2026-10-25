@@ -17,7 +17,7 @@ Both used `git merge --no-ff <exact-SHA>` in that order, with no conflicts. Befo
 
 **Exact audited executable/test HEAD: `51691f6f6024e6a2563f6ed4e11d7b2ed741dd94`.** Relative to base this is 19 changed files, 641 additions, 38 deletions and nine reachable new commits. No integration runtime patch was needed. This final report adds only documentation; its own exact publication SHA is supplied in the final handoff/verification manifest because a committed file cannot contain its own Git object hash.
 
-Worktree: `C:/Users/Administrator/Documents/Codex/2026-10-14/https-github-com-yehorbabenko88-math-actions/work/math-f01-f02`.
+Worktree: `<LOCAL_WORKSPACE_PATH>`.
 
 The audit rechecks the author reports against retained original probes, actual databases, source and fresh combined tests. It is a separate contract cross-check in the same chat, not organizationally independent external review. A subsequent reviewer should inspect this exact combined diff rather than treating green CI as approval of earlier PRs or production.
 
