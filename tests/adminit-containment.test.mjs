@@ -35,3 +35,12 @@ test('native wait wrapper preserves raw Win32 wait status for fail-closed caller
  assert.match(source,/return WaitForSingleObject\(process,milliseconds\)/);
  assert.match(source,/native\.Wait\(process, CleanupMilliseconds\)!=0/);
 });
+
+test('watchdog reports unconfirmed cleanup without claiming descendants are drained',()=>{
+ const workflow=read('.github/workflows/adminit-synthetic-containment.yml');
+ assert.match(workflow,/descendant status unknown/);
+ assert.match(workflow,/if \(-not \$owner\.WaitForExit\(5000\) -or -not \$owner\.HasExited\)/);
+ const source=read('tests/fixtures/adminit-containment/HostedMediumLauncher.cs');
+ assert.match(source,/k\.WaitJobEmpty\(job,5000\)/);
+ assert.match(source,/bootstrap descendant drain unconfirmed/);
+});
