@@ -10,7 +10,17 @@ test('candidate SHA1 IDs retain exact bytes without attestation',()=>{
 test('reject SHA256-format claim for SHA1 IDs',()=>assert.throws(()=>validatePinnedGitSource({...candidate,objectFormat:'sha256'}),/INVALID_OBJECT_FORMAT/));
 test('reject SHA256 tree with SHA1 commit',()=>assert.throws(()=>validatePinnedGitSource({...candidate,tree:'a'.repeat(64)}),/GIT_OBJECT_FORMAT_MISMATCH/));
 test('reject wrong repository',()=>assert.throws(()=>validatePinnedGitSource({...candidate,repository:'other/math'}),/REPOSITORY_MISMATCH/));
-test('reject abbreviated IDs',()=>assert.throws(()=>validatePinnedGitSource({...candidate,commit:candidate.commit.slice(0,12)}),/INVALID_GIT_OBJECT/));
+test('reject abbreviated IDs',()=>assert.throws(()=>validatePinnedGitSource({...candidate,commit:candidate.commit.slice(0,12)}),/GIT_OBJECT_FORMAT_MISMATCH/));
 test('reject SHA256 object-format substitution even with 64-character IDs',()=>{
  assert.throws(()=>validatePinnedGitSource({...candidate,objectFormat:'sha256',commit:'a'.repeat(64),tree:'b'.repeat(64)}),/INVALID_OBJECT_FORMAT/);
+});
+
+test('reject unknown trust field',()=>assert.throws(()=>validatePinnedGitSource({...candidate,verified:true}),/INVALID_SOURCE/));
+test('reject missing tree',()=>{
+ const {tree,...rest}=candidate;
+ assert.throws(()=>validatePinnedGitSource(rest),/INVALID_SOURCE/);
+});
+test('reject inherited source properties',()=>{
+ const inherited=Object.assign(Object.create({verified:true}),candidate);
+ assert.throws(()=>validatePinnedGitSource(inherited),/INVALID_SOURCE/);
 });
