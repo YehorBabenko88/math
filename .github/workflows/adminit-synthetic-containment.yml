@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static and model regressions only
-        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs tests/adminit-stdout-privacy.test.mjs
       - name: Fail-closed local policy and parser contracts (no native fixture)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -108,15 +108,14 @@ jobs:
           path: ${{ runner.temp }}/adminit-build/package/
           if-no-files-found: error
           retention-days: 30
-      - name: Retain native outcomes and PID handle identity evidence
+      # Raw runtime results, process identity, SID and bootstrap stdout/stderr are not
+      # public-safe. Preserve only digest/identity metadata; this is NOT native acceptance.
+      - name: Retain redacted metadata only (native evidence still BLOCKED)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: adminit-native-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/adminit-native/
-            ${{ runner.temp }}/adminit-build/bootstrap-*.txt
-            ${{ runner.temp }}/adminit-build/bootstrap-process.json
             ${{ runner.temp }}/adminit-build/build-identity.json
             ${{ runner.temp }}/adminit-build/source-identity.json
             ${{ runner.temp }}/adminit-build/evidence-sha256.json
