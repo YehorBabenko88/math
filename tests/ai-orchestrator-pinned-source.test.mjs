@@ -37,3 +37,8 @@ test('non-enumerable source field is rejected',()=>{
  Object.defineProperty(forged,'tree',{enumerable:false,value:candidate.tree});
  assert.throws(()=>validatePinnedGitSource(forged),/INVALID_SOURCE/);
 });
+
+test('symbol-keyed trust metadata is rejected',()=>{
+ const forged={...candidate,[Symbol('verified')]:true};
+ assert.throws(()=>validatePinnedGitSource(forged),/INVALID_SOURCE/);
+});
