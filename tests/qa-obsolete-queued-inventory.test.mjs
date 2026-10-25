@@ -9,6 +9,10 @@ test('queued snapshot is non-atomic and never grants cancellation authority',()=
  assert.equal(runs.length,1878);
  assert.equal(new Set(runs.map(r=>r.id)).size,runs.length);
  assert.equal(runs.every(r=>r.observedStatus==='queued'),true);
+ assert.equal(inventory.classificationCounts.SOURCE_HEAD_RAW_PUBLICATION_RISK,370);
+ assert.equal(inventory.classificationCounts.OTHER_WORKFLOW_NO_TARGETED_RAW_PATH_MATCH,1498);
+ assert.equal(inventory.classificationCounts.SOURCE_HEAD_DIGEST_OR_REDACTED_ONLY,10);
+ assert.equal(Object.values(inventory.classificationCounts).reduce((a,b)=>a+b,0),runs.length);
  assert.equal(inventory.limitations.some(x=>/Non-atomic/.test(x)),true);
 });
 test('370 candidates are proposals, not verified safe-to-cancel executions',()=>{
