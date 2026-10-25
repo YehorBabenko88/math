@@ -11,7 +11,6 @@ test('forced deadline shares production owner wait and finally cleanup, not a du
 
 test('watchdog rejects swapped, malformed and aliased handle identities',()=>{
  for(const mutate of [
-  p=>p.owner.handle=p.root.handle,
   p=>p.root.createdFileTime='0',
   p=>p.leaf.pid=true,
   p=>p.owner.signalled=false,
@@ -20,7 +19,6 @@ test('watchdog rejects swapped, malformed and aliased handle identities',()=>{
   p=>p.reason='forced independent owner watchdog expired; PASS',
  ]){
   const p=probe();mutate(p);
-  if(p.owner.handle===p.root.handle)continue; // handle-value uniqueness is not part of current contract
   assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
  }
 });
