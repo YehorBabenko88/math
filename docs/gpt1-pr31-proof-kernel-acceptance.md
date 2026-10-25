@@ -110,3 +110,24 @@ assumption, where the proof uses the newly introduced assumption at index 1.
 These must remain `isClosedTheorem=false` even though the conclusion is a
 Boolean tautology. This distinction intentionally tracks the supplied
 context, not whether all premises were semantically necessary.
+
+## PR #44 infrastructure compatibility and replay scope
+
+PR #44 HEAD `e72d7f1e438d3d8873eacad8fdfc6dd78553d7be`,
+tree `724134b6c61b34c54ef72e4119b5966148f48659`, changes only
+ADMINIT synthetic containment harness, workflows, and associated fixtures;
+it does not modify `src/proof-kernel.mjs` or Knowledge Graph verification
+boundary. This is path-level non-overlap, not full integration acceptance.
+
+The proof checker is deterministic for identical canonical inputs but
+its local return object contains no nonce, signature, or authenticated
+source identity. Replay prevention belongs to the independently authenticated
+Knowledge Graph receipt/protocol boundary, not to a local Boolean derivation.
+`assessKernelResult` binds theorem/proof revisions and content hashes plus
+context hash, then requires an authenticator, but it returns
+`AUTHENTICATED_RESULT_ONLY`, not `VERIFIED`. The signed protocol's freshness,
+nonce, and one-time-use semantics require separate evidence; they are not
+established by the proof kernel.
+
+Exact-head CI for PR #35 remains unqualified while queued. PR #44 is also
+queued. No physical host or production gate was touched.
