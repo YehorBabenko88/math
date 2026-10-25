@@ -85,3 +85,22 @@ test('identical content revision cannot attach to a different entity',()=>{
  assert.throws(()=>graph.addCandidate(candidate('second','A')),/revision entity conflict/);
  assert.equal(graph.history('second').length,0);
 });
+
+test('same revision from a different source retains independent provenance',()=>{
+ const graph=new CandidateGraph();
+ const first=graph.addCandidate(candidate('theorem','A'));
+ const other=candidate('theorem','A');
+ other.provenance={...other.provenance,source_id:'book:2'};
+ const second=graph.addCandidate(other);
+ assert.notEqual(first.revision_id,second.revision_id);
+ assert.equal(graph.history('theorem').length,2);
+ assert.equal(graph.getRevision(first.revision_id).provenance.source_id,'book:1');
+ assert.equal(graph.getRevision(second.revision_id).provenance.source_id,'book:2');
+});
+test('rejected duplicate revision cannot corrupt existing provenance',()=>{
+ const graph=new CandidateGraph();
+ const first=graph.addCandidate(candidate('first','A'));
+ assert.throws(()=>graph.addCandidate(candidate('second','A')),/revision entity conflict/);
+ assert.equal(graph.getRevision(first.revision_id).provenance.source_id,'book:1');
+ assert.equal(graph.history('first').length,1);
+});
