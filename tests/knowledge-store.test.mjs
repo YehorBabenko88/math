@@ -127,3 +127,18 @@ test('candidate status cannot be promoted through mutable history copies',()=>{
  assert.equal(graph.getRevision(c.revision_id).status,'CANDIDATE');
  assert.equal(graph.getRevision(c.revision_id).provenance.source_id,'book:1');
 });
+
+test('edge output mutation cannot change stored dependency',()=>{
+ const graph=new CandidateGraph();
+ const a=graph.addCandidate(candidate('edge-a','A')).revision_id;
+ const b=graph.addCandidate(candidate('edge-b','B')).revision_id;
+ const edge=graph.addEdge({type:'DEPENDS_ON',from_revision:a,to_revision:b});
+ edge.status='VERIFIED';
+ edge.to_revision='forged';
+ assert.deepEqual(graph.dependencies(a),[{type:'DEPENDS_ON',from_revision:a,to_revision:b,status:'CANDIDATE'}]);
+});
+test('candidate input rejects forged VERIFIED status before graph mutation',()=>{
+ const graph=new CandidateGraph();
+ assert.throws(()=>graph.addCandidate({...candidate('unsafe','A'),status:'VERIFIED'}),/verification status/);
+ assert.equal(graph.history('unsafe').length,0);
+});
