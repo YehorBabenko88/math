@@ -1,0 +1,65 @@
+name: QA Evidence Fixture Portability
+on:
+  push:
+    branches: [fix/qa-evidence-symlink-portability]
+  pull_request:
+    paths:
+      - 'tests/qa-evidence-manifest.test.mjs'
+      - 'tests/qa-symlink-fixture.test.mjs'
+      - 'tests/helpers/qa-symlink-fixture.mjs'
+      - '.github/workflows/qa-evidence-portability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixtures:
+    name: Evidence fixtures / ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    env:
+      QA_JOB_ID: evidence-fixtures-${{ matrix.os }}-${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run fixtures with explicit skip evidence
+        shell: pwsh
+        run: |
+          $evidence = Join-Path $env:RUNNER_TEMP 'qa-evidence-portability'
+          New-Item -ItemType Directory -Path $evidence -Force | Out-Null
+          $head = git --no-replace-objects rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $head -cne $env:GITHUB_SHA) { throw 'source identity mismatch' }
+          $tree = git --no-replace-objects rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { throw 'tree identity unavailable' }
+          $version = node --version
+          if ($LASTEXITCODE -ne 0) { throw 'Node runtime unavailable' }
+          @{sourceSha=$head;treeSha=$tree;node=$version;os='${{ matrix.os }}';runId=$env:GITHUB_RUN_ID;attempt=$env:GITHUB_RUN_ATTEMPT;jobId=$env:QA_JOB_ID;scope='test fixtures only; Q01 OPEN; G1 BLOCKED'} | ConvertTo-Json | Set-Content "$evidence/runtime.json"
+          node --test --test-reporter=tap --test-reporter-destination="$evidence/tests.tap" --test-reporter=junit --test-reporter-destination="$evidence/junit.xml" tests/q01-evidence.test.mjs tests/q01-runner.test.mjs tests/qa-evidence-manifest.test.mjs tests/qa-symlink-fixture.test.mjs
+          $testExit = $LASTEXITCODE
+          Get-Content "$evidence/tests.tap"
+          exit $testExit
+      - name: Hash and verify evidence even on test failure
+        if: always()
+        shell: pwsh
+        run: |
+          $evidence = Join-Path $env:RUNNER_TEMP 'qa-evidence-portability'
+          node scripts/qa-evidence-manifest.mjs create $evidence "$evidence/manifest.json" tests.tap junit.xml runtime.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/qa-evidence-manifest.mjs verify $evidence "$evidence/manifest.json"
+          exit $LASTEXITCODE
+      - name: Retain PASS FAIL SKIP and source-bound evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qa-evidence-fixtures-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/qa-evidence-portability/
+          if-no-files-found: error
+          retention-days: 30
