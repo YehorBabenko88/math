@@ -41,10 +41,11 @@ namespace MathUniverse.Q01 {
    Expect(Run("kill-process",258),"job,limits,suspend,assign,resume,wait,kill-job,kill-process,close-3,close-2,close-1");
    Expect(Run("close-2",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
    Expect(Run("close-1",0),"job,limits,suspend,assign,resume,wait,exit,kill-job,close-3,close-2,close-1");
+   Expect(Run("kill-job",258),"job,limits,suspend,assign,resume,wait,kill-job,close-3,close-2,close-1");
   }
  }
 }
 '@
 Add-Type -TypeDefinition ($source + $fixture)
 [MathUniverse.Q01.MockAcceptance]::Verify()
-Write-Output 'PASS: compilation and fourteen mock sequencing/cleanup cases; zero native calls'
+Write-Output 'PASS: compilation and fifteen mock sequencing/cleanup cases; zero native calls'
