@@ -171,7 +171,7 @@ internal static class NativeHarness {
         if(args.Length>=2 && args[0]=="--owner") {
             Containment.RunOwned(new WindowsJobKernel(),Self,new[]{"--tree-wait",args[1]},args[1],60000); return 0;
         }
-        
+
         Check(args.Length==1,"one owned temporary root required"); Root=Path.GetFullPath(args[0]);
         string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+Path.DirectorySeparatorChar;
         Check(Root.StartsWith(temp,StringComparison.OrdinalIgnoreCase) && !Directory.Exists(Root),"fresh hosted temporary root required");
@@ -188,4 +188,3 @@ internal static class NativeHarness {
         return results.Any(x=>JsonSerializer.Serialize(x).Contains("\"FAIL\""))?1:0;
     }
 }
-

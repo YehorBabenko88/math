@@ -70,7 +70,7 @@ Exact PR44 push40195832471 / PR40195836730: independently checked head e72d7f1,5
 
 ## Containment result
 
-IMPLEMENTED / NOT_INDEPENDENTLY_QUALIFIED. Old hosted-only guard unchanged. Framework harness compiles without SDK, but compile/model PASS cannot establish native containment. Job assignment before Resume, kill-on-close, process handle identities and bounded drain are implemented; forced expiry of the independent external watchdog is still an acceptance gap. An absent/cancelled/queued job is not PASS. A Job Object is not filesystem/network/database isolation.
+IMPLEMENTED / NOT_INDEPENDENTLY_QUALIFIED. Old hosted-only guard unchanged. Two inherited whitespace-only defects in the old fixture were cleaned after whole-range diff --check failed; normalized content and the exact HostedOnly function were independently compared, and its golden source pin updated. No execution logic changed. Framework harness compiles without SDK, but compile/model PASS cannot establish native containment. Job assignment before Resume, kill-on-close, process handle identities and bounded drain are implemented; forced expiry of the independent external watchdog is still an acceptance gap. An absent/cancelled/queued job is not PASS. A Job Object is not filesystem/network/database isolation.
 
 ## Isolation and ADMINIT facts
 
