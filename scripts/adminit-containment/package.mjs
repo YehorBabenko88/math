@@ -14,5 +14,5 @@ export function verifyAdminitPackage({directory,expectedManifestSha256,expectedS
  return Object.freeze({sourceHead:m.sourceHead,sourceTree:m.sourceTree,manifestSha256:expectedManifestSha256,executableSha256:f.sha256,localExecution:m.localExecution,evidence:'point-in-time file identity only, not isolation or independent attestation'});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- try{check(process.argv.length===5,'usage: DIRECTORY EXPECTED_MANIFEST_SHA256 EXPECTED_SOURCE_HEAD');console.log(JSON.stringify(verifyAdminitPackage({directory:process.argv[2],expectedManifestSha256:process.argv[3],expectedSourceHead:process.argv[4]})));}catch(e){console.error(e.message);process.exitCode=2;}
+ try{check(process.argv.length===5,'usage: DIRECTORY EXPECTED_MANIFEST_SHA256 EXPECTED_SOURCE_HEAD');console.log(JSON.stringify(verifyAdminitPackage({directory:process.argv[2],expectedManifestSha256:process.argv[3],expectedSourceHead:process.argv[4]})));}catch(e){console.error('ADMINIT package verification BLOCKED; payload suppressed');process.exitCode=2;}
 }

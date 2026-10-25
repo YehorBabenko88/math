@@ -68,18 +68,22 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
           $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
           $exe = Join-Path $build 'HostedMediumLauncher.exe'
-          $args = '"' + "$build/package" + '" "' + $run + '"'
-          $owner = Start-Process -FilePath $exe -ArgumentList $args -PassThru -WindowStyle Hidden -RedirectStandardOutput "$build/bootstrap-stdout.txt" -RedirectStandardError "$build/bootstrap-stderr.txt"
-          $handle = $owner.Handle
-          if (-not $owner.WaitForExit(150000)) {
-            $owner.Kill()
-            $owner.WaitForExit(5000) | Out-Null
-            throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
+          $fixtureArguments = '"' + "$build/package" + '" "' + $run + '"'
+          $owner = Start-Process -FilePath $exe -ArgumentList $fixtureArguments -PassThru -WindowStyle Hidden -RedirectStandardOutput "$build/bootstrap-stdout.txt" -RedirectStandardError "$build/bootstrap-stderr.txt"
+          try {
+            $handle = $owner.Handle
+            if (-not $owner.WaitForExit(150000)) {
+              $owner.Kill()
+              $owner.WaitForExit(5000) | Out-Null
+              throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
+            }
+            @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
+            Get-Content "$build/bootstrap-stdout.txt"
+            Get-Content "$build/bootstrap-stderr.txt"
+            if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
+          } finally {
+            $owner.Dispose()
           }
-          @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
-          Get-Content "$build/bootstrap-stdout.txt"
-          Get-Content "$build/bootstrap-stderr.txt"
-          if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
           node scripts/adminit-containment/verify-native.mjs $run $env:SOURCE_HEAD $env:SOURCE_TREE
           exit $LASTEXITCODE
       - name: Preserve checksums and explicit outcome

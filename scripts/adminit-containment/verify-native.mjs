@@ -6,6 +6,7 @@ export function validateNativeReport(r,{sourceHead,sourceTree}={}){
  check(/^[a-f0-9]{40}$/.test(sourceHead??'')&&/^[a-f0-9]{40}$/.test(sourceTree??''),'external source identity');
  check(r?.sourceHead===sourceHead&&r.sourceTree===sourceTree&&r.token==='non-elevated Medium'&&r.localExecution==='BLOCKED_PENDING_ISOLATION_REVIEW','source/token/local policy');
  check(r.tokenEvidence?.elevation===0&&r.tokenEvidence.integrityRid===8192&&/^S-1-5-[0-9-]+$/.test(r.tokenEvidence.userSid??'')&&Number.isSafeInteger(r.tokenEvidence.pid)&&r.tokenEvidence.pid>0,'measured token evidence');
+ const lab=r.labEvidence,user=r.tokenEvidence.userSid;check(lab?.ownerSid===user&&Array.isArray(lab.writableSids)&&lab.writableSids.includes(user)&&new Set(lab.writableSids).size===lab.writableSids.length&&lab.writableSids.every(s=>[user,'S-1-5-18','S-1-5-32-544'].includes(s))&&typeof lab.sddlSha256==='string'&&/^[a-f0-9]{64}$/.test(lab.sddlSha256),'measured lab ACL evidence');
  for(const key of ['results','evidence'])check(Array.isArray(r[key])&&r[key].length===cases.length&&new Set(r[key].map(x=>x?.scenario)).size===cases.length&&r[key].every(x=>cases.includes(x?.scenario)),'exact '+key+' inventory');
  for(const e of r.evidence)check(e.outerCleanupConfirmed===true&&Number.isSafeInteger(e.elapsedMs)&&e.elapsedMs>=0&&e.elapsedMs<35000,'outer cleanup/deadline');
  for(const c of r.results){
@@ -21,5 +22,5 @@ export function validateNativeReport(r,{sourceHead,sourceTree}={}){
  return {status:'PASS',cases:cases.length,localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',scope:'hosted fixed synthetic mechanisms only; not filesystem/network isolation or physical authorization'};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- try{check(process.argv.length===5,'DIRECTORY SOURCE_HEAD SOURCE_TREE required');const dir=resolve(process.argv[2]);for(let p=dir;;p=dirname(p)){check(!lstatSync(p).isSymbolicLink(),'reparse directory');if(dirname(p)===p)break;}const file=join(dir,'results.json'),s=lstatSync(file);check(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size<=1048576,'regular bounded report');console.log(JSON.stringify(validateNativeReport(JSON.parse(readFileSync(file,'utf8')),{sourceHead:process.argv[3],sourceTree:process.argv[4]})));}catch(e){console.error(e.message);process.exitCode=2;}
+ try{check(process.argv.length===5,'DIRECTORY SOURCE_HEAD SOURCE_TREE required');const dir=resolve(process.argv[2]);for(let p=dir;;p=dirname(p)){check(!lstatSync(p).isSymbolicLink(),'reparse directory');if(dirname(p)===p)break;}const file=join(dir,'results.json'),s=lstatSync(file);check(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size<=1048576,'regular bounded report');console.log(JSON.stringify(validateNativeReport(JSON.parse(readFileSync(file,'utf8')),{sourceHead:process.argv[3],sourceTree:process.argv[4]})));}catch(e){console.error('Native evidence verification BLOCKED; payload suppressed');process.exitCode=2;}
 }

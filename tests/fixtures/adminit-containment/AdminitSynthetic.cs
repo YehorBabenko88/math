@@ -14,6 +14,8 @@ namespace MathUniverse.Adminit {
   static readonly string Self=Assembly.GetExecutingAssembly().Location;
   static string Suite;
   static object TokenEvidence;
+  static object LabEvidence;
+  static string UserSid;
   static readonly List<object> Evidence=new List<object>();
   [DllImport("kernel32.dll",SetLastError=true)] static extern uint WaitForSingleObject(IntPtr h,uint ms);
   [DllImport("kernel32.dll",SetLastError=true)] static extern uint GetProcessId(IntPtr h);
@@ -34,13 +36,25 @@ namespace MathUniverse.Adminit {
    try{uint n;Check(GetTokenInformation(token,20,data,256,out n),"elevation query BLOCKED");int elevation=Marshal.ReadInt32(data);Check(elevation==0,"elevated token BLOCKED");
     Check(GetTokenInformation(token,25,data,256,out n),"integrity query BLOCKED");IntPtr sid=Marshal.ReadIntPtr(data);byte count=Marshal.ReadByte(GetSidSubAuthorityCount(sid));
     Check(count>0,"invalid integrity SID");int rid=Marshal.ReadInt32(GetSidSubAuthority(sid,(uint)(count-1)));Check(rid==8192,"Medium integrity required: BLOCKED");
-    using(var identity=WindowsIdentity.GetCurrent()){TokenEvidence=new{elevation,integrityRid=rid,userSid=identity.User.Value,pid=GetProcessId(GetCurrentProcess())};}
+    using(var identity=WindowsIdentity.GetCurrent()){UserSid=identity.User.Value;TokenEvidence=new{elevation,integrityRid=rid,userSid=UserSid,pid=GetProcessId(GetCurrentProcess())};}
    }finally{Marshal.FreeHGlobal(data);CloseAll(token);}
   }
   static long Created(IntPtr h){long c,e,k,u;Check(GetProcessTimes(h,out c,out e,out k,out u),"process identity unavailable");return c;}
   static object Identity(IntPtr h){return new{pid=GetProcessId(h),createdFileTime=Created(h).ToString(System.Globalization.CultureInfo.InvariantCulture),handle=h.ToInt64().ToString("x"),signalled=WaitForSingleObject(h,0)==0};}
   static void NoReparse(string path){for(string p=Path.GetFullPath(path);!String.IsNullOrEmpty(p);p=Path.GetDirectoryName(p))Check((File.GetAttributes(p)&FileAttributes.ReparsePoint)==0,"reparse path BLOCKED");}
   static void Literal(string path){Check(Path.IsPathRooted(path)&&!path.StartsWith("\\\\")&&path.IndexOf('/')<0&&path.Substring(2).IndexOf(':')<0,"literal local path required");Check(String.Equals(Path.GetFullPath(path),path,StringComparison.OrdinalIgnoreCase),"path alias BLOCKED");foreach(string p in path.Substring(3).Split('\\'))Check(p.Length>0&&p!="."&&p!=".."&&!p.EndsWith(".")&&!p.EndsWith(" "),"path alias BLOCKED");}
+  static string ExpectedHostedSuite(){string package=Path.GetDirectoryName(Self),build=Path.GetDirectoryName(package);Check(Path.GetFileName(package)=="package"&&Path.GetFileName(build)=="adminit-build","fixed package layout required");NoReparse(Self);return Path.Combine(Path.GetDirectoryName(build),"adminit-native");}
+  static object ValidateLabAcl(string path){
+   var acl=Directory.GetAccessControl(path);string owner=((SecurityIdentifier)acl.GetOwner(typeof(SecurityIdentifier))).Value;
+   Check(owner==UserSid,"lab ownership BLOCKED");var writers=new HashSet<string>();int write=2|4|16|64|256|65536|262144|524288;
+   foreach(System.Security.AccessControl.FileSystemAccessRule rule in acl.GetAccessRules(true,true,typeof(SecurityIdentifier))){
+    if(rule.AccessControlType!=System.Security.AccessControl.AccessControlType.Allow||(rule.PropagationFlags&System.Security.AccessControl.PropagationFlags.InheritOnly)!=0||((int)rule.FileSystemRights&write)==0)continue;
+    string sid=rule.IdentityReference.Value;Check(sid==UserSid||sid=="S-1-5-18"||sid=="S-1-5-32-544","untrusted lab writer BLOCKED");writers.Add(sid);
+   }
+   Check(writers.Contains(UserSid),"explicit user lab write rights required: BLOCKED");string sddl=acl.GetSecurityDescriptorSddlForm(System.Security.AccessControl.AccessControlSections.All),digest;
+   using(var hash=System.Security.Cryptography.SHA256.Create()){digest=BitConverter.ToString(hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(sddl))).Replace("-","").ToLowerInvariant();}
+   return new{ownerSid=owner,writableSids=new List<string>(writers),sddlSha256=digest};
+  }
   static void Write(string path,object value){string temp=path+".partial";File.WriteAllText(temp,Json.Serialize(value));File.Move(temp,path);}
   static void Until(Func<bool> condition,int ms,string why){var t=Stopwatch.StartNew();while(!condition()){Check(t.ElapsedMilliseconds<ms,why);Thread.Sleep(10);}}
   static void SaveIdentity(string path,IntPtr h){Write(path,new{pid=GetProcessId(h),createdFileTime=Created(h).ToString(System.Globalization.CultureInfo.InvariantCulture)});}
@@ -50,7 +64,7 @@ namespace MathUniverse.Adminit {
    try{Check(GetProcessId(h)==pid&&Created(h)==created,"PID reuse/identity mismatch");return h;}catch{CloseHandle(h);throw;}
   }
   static void CaseDirectory(string dir){Literal(dir);NoReparse(dir);string name=Path.GetFileName(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup"},name)>=0,"unknown fixed case");
-   Suite=Path.GetDirectoryName(dir);Check(File.ReadAllText(Path.Combine(Suite,"synthetic-session.txt"))=="fixed-fixtures-only;not-operator-authorization","missing test coordinator");
+   Suite=Path.GetDirectoryName(dir);Check(String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase),"directory outside fixed lab BLOCKED");ValidateLabAcl(dir);Check(File.ReadAllText(Path.Combine(Suite,"synthetic-session.txt"))=="fixed-fixtures-only;not-operator-authorization","missing test coordinator");
   }
   static int Root(string dir,string kind){
    CaseDirectory(dir);Check(Path.GetFileName(dir)==kind,"root scenario mismatch");bool member;Check(IsProcessInJob(GetCurrentProcess(),IntPtr.Zero,out member)&&member,"root not contained");
@@ -100,7 +114,7 @@ namespace MathUniverse.Adminit {
    Write(Path.Combine(dir,"owner-result.json"),new{status=expected?"PASS":"FAIL",scenario=kind,error,handles});return expected?0:1;
   }
   static object Supervise(string kind){
-   string dir=Path.Combine(Suite,kind);Directory.CreateDirectory(dir);NoReparse(dir);var k=new WindowsJobKernel();IntPtr job=IntPtr.Zero,owner=IntPtr.Zero,thread=IntPtr.Zero,root=IntPtr.Zero,leaf=IntPtr.Zero;bool assigned=false,cleanupConfirmed=false;var clock=Stopwatch.StartNew();object outcome=null;
+   string dir=Path.Combine(Suite,kind);Directory.CreateDirectory(dir);NoReparse(dir);ValidateLabAcl(dir);var k=new WindowsJobKernel();IntPtr job=IntPtr.Zero,owner=IntPtr.Zero,thread=IntPtr.Zero,root=IntPtr.Zero,leaf=IntPtr.Zero;bool assigned=false,cleanupConfirmed=false;var clock=Stopwatch.StartNew();object outcome=null;
    try{job=k.CreateJob();k.ConfigureKillOnClose(job);k.CreateSuspended(Self,new[]{"--owner",dir,kind},dir,out owner,out thread);k.Assign(job,owner);assigned=true;k.Resume(thread);
     if(kind=="crash"){
      Until(()=>File.Exists(Path.Combine(dir,"root.identity.json")),8000,"crash tree startup timeout");root=Capture(Path.Combine(dir,"root.identity.json"));leaf=Capture(Path.Combine(dir,"leaf.identity.json"));
@@ -128,12 +142,12 @@ namespace MathUniverse.Adminit {
     Check(args[0]=="--hosted-suite"&&args.Length==2,"local execution policy BLOCKED");
     Check(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true"&&Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")=="github-hosted","disposable hosted gate BLOCKED");
     Suite=args[1];Literal(Suite);string parent=Path.GetDirectoryName(Suite);NoReparse(parent);string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+"\\";
-    Check(Suite.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&!Directory.Exists(Suite),"fresh hosted lab required");Directory.CreateDirectory(Suite);File.WriteAllText(Path.Combine(Suite,"synthetic-session.txt"),"fixed-fixtures-only;not-operator-authorization");
+    Check(Suite.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase)&&!Directory.Exists(Suite),"fresh fixed hosted lab required");Directory.CreateDirectory(Suite);LabEvidence=ValidateLabAcl(Suite);File.WriteAllText(Path.Combine(Suite,"synthetic-session.txt"),"fixed-fixtures-only;not-operator-authorization");
     var results=new List<object>();bool ok=true;
     foreach(string kind in new[]{"normal","timeout","crash","assignment","cleanup"}){
      try{results.Add(Supervise(kind));}catch(Exception e){ok=false;results.Add(new{scenario=kind,status="FAIL",error=e.GetType().FullName+":"+e.Message});}
     }
-    Write(Path.Combine(Suite,"results.json"),new{sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(File.ReadAllText(Path.Combine(Suite,"results.json")));return ok?0:1;
+    Write(Path.Combine(Suite,"results.json"),new{sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,labEvidence=LabEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(File.ReadAllText(Path.Combine(Suite,"results.json")));return ok?0:1;
    }catch(Exception e){Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
   }
  }
