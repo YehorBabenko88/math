@@ -1,0 +1,70 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {DatabaseSync} from 'node:sqlite';
+import {openBookQueue} from '../src/book-ingestion/queue.mjs';
+
+test('Q01: existing empty SQLite database is never silently adopted',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-existing-empty-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.close();
+ await assert.rejects(openBookQueue({directory}),/Invalid queue state/);
+});
+
+test('Q01: pre-existing partial schema fails closed without mutation',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-partial-schema-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.exec('CREATE TABLE unrelated (id INTEGER PRIMARY KEY)');
+ db.close();
+ await assert.rejects(openBookQueue({directory}),/Invalid queue state/);
+ const check=new DatabaseSync(join(directory,'queue.sqlite'),{readOnly:true});
+ try{
+  assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='unrelated'").get().n,1);
+  assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='queue_metadata'").get().n,0);
+ }finally{check.close();}
+});
+
+test('Q01: existing metadata-only schema is rejected without auto-repair',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-metadata-only-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.exec('CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY,version INTEGER,maxAttempts INTEGER)');
+ db.exec('INSERT INTO queue_metadata VALUES(1,1,3)');
+ db.close();
+ await assert.rejects(openBookQueue({directory}),/Invalid queue state/);
+ const check=new DatabaseSync(join(directory,'queue.sqlite'),{readOnly:true});
+ try{
+  assert.equal(check.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='table' AND name='jobs'").get().n,0);
+  assert.equal(check.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
+ }finally{check.close();}
+});
+
+test('Q01: malformed metadata version is rejected without normalization',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-invalid-version-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.exec('CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY,version INTEGER,maxAttempts INTEGER)');
+ db.exec('INSERT INTO queue_metadata VALUES(1,99,3)');
+ db.exec('CREATE TABLE jobs(id TEXT PRIMARY KEY)');
+ db.close();
+ await assert.rejects(openBookQueue({directory}),/Invalid queue state/);
+ const check=new DatabaseSync(join(directory,'queue.sqlite'),{readOnly:true});
+ try{assert.equal(check.prepare('SELECT version FROM queue_metadata WHERE singleton=1').get().version,99);}finally{check.close();}
+});
+
+test('Q01: metadata maxAttempts mismatch is rejected without rewrite',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-attempts-mismatch-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.exec('CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY,version INTEGER,maxAttempts INTEGER)');
+ db.exec('INSERT INTO queue_metadata VALUES(1,1,9)');
+ db.exec('CREATE TABLE jobs(id TEXT PRIMARY KEY)');
+ db.close();
+ await assert.rejects(openBookQueue({directory,maxAttempts:3}),/Invalid queue state/);
+ const check=new DatabaseSync(join(directory,'queue.sqlite'),{readOnly:true});
+ try{assert.equal(check.prepare('SELECT maxAttempts FROM queue_metadata WHERE singleton=1').get().maxAttempts,9);}finally{check.close();}
+});

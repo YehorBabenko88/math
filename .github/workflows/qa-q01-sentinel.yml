@@ -1,0 +1,40 @@
+name: Independent Q01 Sentinel Acceptance
+on:
+  pull_request:
+    paths:
+      - 'src/book-ingestion/queue.mjs'
+      - 'tests/qa-q01-sentinel-contract.test.mjs'
+      - 'tests/qa-q01-orphan-runtime.test.mjs'
+      - '.github/workflows/qa-q01-sentinel.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sentinel:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run sentinel contract (synthetic, not physical)
+        run: node --test tests/qa-q01-sentinel-contract.test.mjs tests/qa-q01-orphan-runtime.test.mjs
+  coverage:
+    name: Require all sentinel cells
+    if: always()
+    needs: [sentinel]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Reject incomplete or skipped matrix
+        env:
+          RESULT: ${{ needs.sentinel.result }}
+        run: test "$RESULT" = success
