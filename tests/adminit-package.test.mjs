@@ -15,8 +15,9 @@ test('independent qualification rejects mismatched external tree',t=>{const f=fi
 test('package CLI refuses missing external source tree',async t=>{
  const {spawnSync}=await import('node:child_process');
  const f=fixture(t);
- const cli=new URL('../scripts/adminit-containment/package.mjs',import.meta.url);
- const r=spawnSync(process.execPath,[cli.pathname,f.directory,f.expectedManifestSha256,f.expectedSourceHead],{encoding:'utf8'});
+ const {fileURLToPath}=await import('node:url');
+ const cli=fileURLToPath(new URL('../scripts/adminit-containment/package.mjs',import.meta.url));
+ const r=spawnSync(process.execPath,[cli,f.directory,f.expectedManifestSha256,f.expectedSourceHead],{encoding:'utf8',windowsHide:true,timeout:10000});
  assert.equal(r.status,2);
  assert.match(r.stderr,/BLOCKED/);
 });
