@@ -22,7 +22,13 @@ function safePath(directory){
 }
 function checkFiles(directory){
  for(const name of ['queue.sqlite','queue.sqlite-journal','queue.sqlite-wal','queue.sqlite-shm']){
-  try{const s=lstatSync(join(directory,name));assert(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1,'Unsafe queue storage');assert(s.size<=32*1024*1024,'Invalid queue state');}catch(e){if(e.code!=='ENOENT')throw e;}
+  try{const file=join(directory,name);let s=lstatSync(file);
+   // A concurrent SQLite COMMIT may unlink the rollback journal after native
+   // lookup but before getattr, yielding a regular detached inode (nlink=0).
+   // Revalidate that pathname once; ENOENT is handled below. Every replacement
+   // still has to satisfy the original guards. Never relax the database/WAL/SHM.
+   if(name==='queue.sqlite-journal'&&s.isFile()&&!s.isSymbolicLink()&&s.nlink===0)s=lstatSync(file);
+   assert(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1,'Unsafe queue storage');assert(s.size<=32*1024*1024,'Invalid queue state');}catch(e){if(e.code!=='ENOENT')throw e;}
  }
 }
 export function readBookSnapshot(db,maxAttempts){
