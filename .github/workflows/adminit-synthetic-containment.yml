@@ -1,7 +1,7 @@
 name: ADMINIT Synthetic Harness Qualification
 on:
   push:
-    branches: [test/adminit-synthetic-containment]
+    branches: [test/adminit-synthetic-containment, integration/math-adminit-readiness]
   pull_request:
     paths:
       - 'scripts/adminit-containment/**'
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static and model regressions only
-        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs
       - name: Fail-closed local policy and parser contracts (no native fixture)
         if: runner.os == 'Windows'
         shell: pwsh

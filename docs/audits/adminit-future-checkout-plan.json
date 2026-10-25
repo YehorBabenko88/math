@@ -1,0 +1,15 @@
+{
+  "schema": "math.adminit.future-checkout-plan.v1",
+  "state": "DESIGN_ONLY_NOT_EXECUTED",
+  "rootTemplate": "%LOCALAPPDATA%\\MathUniverseAdminitAcceptance",
+  "sourceTemplate": "%LOCALAPPDATA%\\MathUniverseAdminitAcceptance\\source\\<exact-reviewed-head>",
+  "checkoutKind": "fresh-standalone-clone-or-verified-archive; no linked worktree/alternates/config redirects",
+  "overwriteExisting": false,
+  "createOnAdminitNow": false,
+  "historicalMathUniverseLab": "DO_NOT_READ_WRITE_REUSE_OR_CLEAN",
+  "existingSourceTrees": "DO_NOT_REPLACE",
+  "postgresql18": "DO_NOT_CONNECT_MODIFY_RESTART_OR_RECONFIGURE",
+  "nativeExecute": "BLOCKED",
+  "nextQ01Stage": "DISABLED",
+  "required": ["independent exact-head acceptance", "qualified source/package delivery", "approved read-only collection", "objective isolation and resource protection evidence", "complete hosted native acceptance", "explicit local synthetic admission"]
+}

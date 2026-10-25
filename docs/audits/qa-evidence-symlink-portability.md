@@ -1,3 +1,7 @@
+# Publication note
+
+Original source-commit results below are historical. The current local-evidence JSON is a hash-only forward-redacted derivative; original byte-exact evidence remains retained locally and in source history. It is not fresh candidate CI acceptance.
+
 # QA evidence symlink fixture portability
 
 Base: PR31 `cb168925b5aeec0c957137dd94ab72c64f0bd333` (tree `10cfd29f5d2c75e841d88dd70bef8773dada8287`). Scope is test fixtures only. Q01 OPEN; G1 BLOCKED; production NO-GO.

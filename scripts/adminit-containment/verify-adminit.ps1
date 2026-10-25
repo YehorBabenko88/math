@@ -11,7 +11,7 @@ if($env:NODE_OPTIONS -or $env:NODE_PATH){throw 'Node preloader environment BLOCK
 $node=@(Get-Command node.exe -CommandType Application -ErrorAction Stop)[0].Source
 $version=& $node --version
 if($LASTEXITCODE -ne 0 -or $version -notmatch '^v(22|24)\.'){throw 'Approved Node22/24 runtime required: BLOCKED'}
-$lab=[IO.Path]::GetFullPath((Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'MathUniverseLab/AdminitSynthetic'))
+$lab=[IO.Path]::GetFullPath((Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'MathUniverseAdminitAcceptance'))
 $path=[IO.Path]::GetFullPath($PackageRoot)
 if(-not $path.StartsWith($lab+'\',[StringComparison]::OrdinalIgnoreCase) -or $PackageRoot -cne $path){throw 'Literal owned laboratory descendant required: BLOCKED'}
 for($p=$path;$p;$p=[IO.Path]::GetDirectoryName($p)){

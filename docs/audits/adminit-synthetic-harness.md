@@ -1,3 +1,7 @@
+# Current integration note
+
+This is the historical PR44 design/evidence snapshot. Current candidate instructions are in MATH_ADMINIT_INTEGRATION_ACCEPTANCE.md. Active new root is MathUniverseAdminitAcceptance; do not stage or inspect historical MathUniverseLab. Current public local evidence is hash-only; original raw evidence remains in source history/local retention. No local Execute is authorized.
+
 # ADMINIT synthetic Job Object harness — admission report
 
 Base PR41 exact HEAD `280096ab24ce4f32cdaf17bd4a928f66f4f2dbda`. This branch does not modify the original hosted-only NativeHarness.cs, its workflow or WindowsJobContainment.cs. No ADMINIT/ADMIN PC, LS5, PC4, service, production database, deployment, Q01 G1 or physical native execution was performed.
