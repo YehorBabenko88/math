@@ -96,7 +96,7 @@ jobs:
         run: |
           $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
           if (-not (Test-Path -LiteralPath $build)) { throw 'no build evidence: BLOCKED' }
-          $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
+          $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | Where-Object { $_.Name -ne 'private-inventory.json' } | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
           $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
           if (Test-Path -LiteralPath $run) { $files += @(Get-ChildItem -LiteralPath $run -Recurse -File | ForEach-Object { @{path=('native/'+$_.FullName.Substring($run.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} }) }
           # Do not publish the raw per-file path inventory: names may disclose runtime identity.
