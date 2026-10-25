@@ -117,7 +117,8 @@ export function verifyExpectedClosedImplicationProofJson(jsonText,expectedGoalJs
  const document=JSON.parse(jsonText);
  if(JSON.stringify(document)!==jsonText||!document||typeof document!=='object')
   throw Error('Noncanonical proof document');
- if(JSON.stringify(document.goal)!==expectedGoalJson)throw Error('Unexpected theorem goal');
+ if(!document||Array.isArray(document)||typeof document!=='object'||
+  JSON.stringify(document.goal)!==expectedGoalJson)throw Error('Unexpected theorem goal');
  return verifyClosedImplicationProofJson(jsonText);
 }
 
