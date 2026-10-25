@@ -14,3 +14,11 @@ test('ADMINIT fixture is fixed, Medium-only and supervised by owned handles',()=
  for(const token of ['AssertMedium','WaitForSingleObject','GetProcessTimes','ConfigureKillOnClose','WaitJobEmpty','--owner','--leaf','--root'])assert.ok(s.includes(token),token);
  assert.doesNotMatch(s,/Process\.Start|cmd\.exe|powershell\.exe|SqlConnection|HttpClient|WebClient|ServiceController|Process\.Kill/);
 });
+
+test('PowerShell watchdog refuses unconfirmed kill and does not equate root exit with descendant drain',()=>{
+ const workflow=read('.github/workflows/adminit-synthetic-containment.yml');
+ assert.match(workflow,/if \(-not \$owner\.WaitForExit\(5000\) -or -not \$owner\.HasExited\)/);
+ assert.match(workflow,/independent watchdog cleanup unconfirmed: BLOCKED/);
+ assert.match(workflow,/descendant status unknown/);
+ assert.doesNotMatch(workflow,/\$owner\.WaitForExit\(5000\) \| Out-Null/);
+});
