@@ -3,8 +3,8 @@
 const sha1=/^[a-f0-9]{40}$/;
 export function validatePinnedGitSource(value){
  if(value===null||typeof value!=='object'||Array.isArray(value)||Object.getPrototypeOf(value)!==Object.prototype)throw Error('INVALID_SOURCE');
- if(Object.keys(value).length!==4||!['repository','objectFormat','commit','tree'].every(k=>Object.hasOwn(value,k)))throw Error('INVALID_SOURCE');
  const descriptors=Object.getOwnPropertyDescriptors(value);
+ if(Reflect.ownKeys(descriptors).length!==4||!['repository','objectFormat','commit','tree'].every(k=>Object.hasOwn(descriptors,k)))throw Error('INVALID_SOURCE');
  if(!['repository','objectFormat','commit','tree'].every(k=>Object.hasOwn(descriptors[k],'value')&&descriptors[k].enumerable===true))throw Error('INVALID_SOURCE');
  const repository=descriptors.repository.value,objectFormat=descriptors.objectFormat.value;
  const commit=descriptors.commit.value,tree=descriptors.tree.value;
