@@ -122,3 +122,9 @@ test('property: independent truth-table oracle rejects non-entailment examples',
   }
  }
 });
+
+test('negative: expected-goal entrypoint rejects non-document JSON',()=>{
+ for(const input of ['null','[]','42','true']){
+  assert.throws(()=>verifyExpectedClosedImplicationProofJson(input,JSON.stringify(P)));
+ }
+});
