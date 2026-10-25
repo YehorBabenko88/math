@@ -42,3 +42,17 @@ test('v2 snapshots active request and result before any ledger operation',async(
  const v=verifier(new FileReplayLedger('unused-no-ledger-operation'));
  await assert.rejects(v.assessPersisted(field==='request'?active:request,field==='result'?active:result),/inert data/);assert.equal(reads,0);}
 });
+
+test('v2 rejects nonpending requests without consuming the signed result nonce',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'kg-pending-state-'));
+ try{
+  const request=createVerificationRequestV2(base),result=signed(request),v=verifier(new FileReplayLedger(dir));
+  for(const requested_status of ['VERIFIED','REJECTED',null,undefined]){
+   await assert.rejects(v.assessPersisted({...request,requested_status},result),/invalid request/);
+  }
+  const assessment=await v.assessPersisted(request,result);
+  assert.equal(assessment.verdict,'PASS');
+  assert.equal(assessment.trust,'AUTHENTICATED_RESULT_ONLY');
+  await assert.rejects(v.assessPersisted(request,result),/replayed request/);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
