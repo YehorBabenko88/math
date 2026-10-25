@@ -20,3 +20,10 @@ OS ubuntu-latest/windows-latest × Node 22/24 × quick/fault/stress. Every cell 
 
 ## Decision
 PASS only for independently verified mandatory evidence on exact source/tree. FAIL for observed invariant break. BLOCKED for missing, pending, skipped or unverified mandatory evidence. NOT_RUN for tests not executed. Q01 OPEN, integration NO-GO, production NO-GO until complete independent acceptance.
+
+## Independent runtime controls added in Draft PR37
+- Pre-existing empty SQLite file: reject, do not silently adopt.
+- Pre-existing unrelated partial schema: reject, preserve original table.
+- Pre-existing metadata-only schema: reject, do not create jobs or overwrite metadata.
+- Cross-platform Node22/24 sentinel workflow requires full matrix coverage; results pending.
+- The sentinel static test is a source contract only, not deterministic RED/GREEN runtime proof. Q01 stays OPEN.
