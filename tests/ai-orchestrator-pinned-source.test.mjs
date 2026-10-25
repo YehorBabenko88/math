@@ -24,3 +24,16 @@ test('reject inherited source properties',()=>{
  const inherited=Object.assign(Object.create({verified:true}),candidate);
  assert.throws(()=>validatePinnedGitSource(inherited),/INVALID_SOURCE/);
 });
+
+test('accessor-backed source fields are rejected without invoking getters',()=>{
+ let called=false;
+ const forged={...candidate};
+ Object.defineProperty(forged,'commit',{enumerable:true,get(){called=true;return candidate.commit;}});
+ assert.throws(()=>validatePinnedGitSource(forged),/INVALID_SOURCE/);
+ assert.equal(called,false);
+});
+test('non-enumerable source field is rejected',()=>{
+ const forged={...candidate};
+ Object.defineProperty(forged,'tree',{enumerable:false,value:candidate.tree});
+ assert.throws(()=>validatePinnedGitSource(forged),/INVALID_SOURCE/);
+});
