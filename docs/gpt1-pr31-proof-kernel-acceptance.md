@@ -1,0 +1,42 @@
+# GPT-1 independent proof-kernel acceptance — PR #31
+
+Candidate commit: `cb168925b5aeec0c957137dd94ab72c64f0bd333`
+Candidate tree: `10cfd29f5d2c75e841d88dd70bef8773dada8287`
+
+## Scope and findings
+Reviewed `src/proof-kernel.mjs`, `src/knowledge/kernel-result-boundary.mjs`,
+`src/knowledge/kernel-authenticator.mjs`, and their relevant tests. The
+implication calculus admits assumption, implication introduction, and
+implication elimination only. Top-level assumptions are explicitly counted;
+closed-theorem APIs reject them. Exact expected-goal binding is checked
+before returning a closed proof result. The 256 KiB JSON-text limit is
+checked before parsing in both JSON entrypoints. No successful API returns
+project-wide `VERIFIED`. Authenticated knowledge results are labelled
+`AUTHENTICATED_RESULT_ONLY`, not mathematical verification.
+
+P1: live JavaScript Proxy objects were not explicitly rejected before
+reflective normalization, so traps could run in-process. This audit branch
+adds Node `types.isProxy` rejection before reflection and regression tests
+asserting no traps execute. This does not make an in-process checker a
+general sandbox for arbitrary malicious code.
+
+The independent seeded regression suite checks 180 identity proofs, 180
+conditional modus-ponens derivations, and 180 goal-substitution mutations,
+plus malformed inference rules, JSON limits, getter/cycle/prototype attacks,
+and closed-theorem/VERIFIED nonpromotion. These are bounded properties, not
+a metatheoretic proof of soundness.
+
+## Evidence and acceptance
+Original candidate isolated proof workflow:
+https://github.com/YehorBabenko88/math/actions/runs/40183990756
+Status observed: SUCCESS.
+
+The audit branch adds its own isolated Node 22/24 CI coverage.
+Until an exact audit-HEAD run finishes, these new tests are NOT_RUN/UNVERIFIED,
+not PASS. No local run is claimed: direct GitHub clone was blocked by DNS
+resolution in the available execution environment.
+
+Q01 OPEN. Production NO-GO. Do not merge, deploy, activate containment, or
+change the pinned integration candidate. Further acceptance requires exact
+HEAD/tree CI evidence, negative test review, and independently pinned
+provenance; Lean replay is not established by this limited calculus.
