@@ -48,20 +48,22 @@ test('lock witness rejects late-start, unrelated and non-waiting operations',()=
 });
 test('real PostgreSQL: initial witness follows a queued global exclusive blocker',{skip:!url},async()=>{
  await withIsolatedPostgres(url,async({pool})=>{
+  // Reserve a separate database-wide key so this exact controlled path cannot
+  // absorb unrelated protocol-key contenders from the full concurrent suite.
   await pool.query('CREATE TABLE witness_fixture (id integer PRIMARY KEY)');
   await pool.query('INSERT INTO witness_fixture VALUES (1)');
   const [fixture,first,exclusive,second]=await Promise.all(Array.from({length:4},()=>pool.connect()));
   const pending=[];
   try{
    await fixture.query('BEGIN');await fixture.query('SELECT id FROM witness_fixture FOR UPDATE');
-   await first.query('BEGIN');await first.query('SELECT pg_advisory_xact_lock_shared(732814,3)');
+   await first.query('BEGIN');await first.query('SELECT pg_advisory_xact_lock_shared(732814,4)');
    pending.push(first.query('SELECT id FROM witness_fixture FOR SHARE').then(()=>first.query('COMMIT')));
    await waitForFixtureBlock(fixture,[first.processID],fixture.processID);
    await exclusive.query('BEGIN');
-   pending.push(exclusive.query('SELECT pg_advisory_xact_lock(732814,3)').then(()=>exclusive.query('COMMIT')));
+   pending.push(exclusive.query('SELECT pg_advisory_xact_lock(732814,4)').then(()=>exclusive.query('COMMIT')));
    await waitForDatabase(fixture,'SELECT pg_blocking_pids($1) AS blockers',[exclusive.processID],rows=>rows[0].blockers.includes(first.processID));
    await second.query('BEGIN');
-   pending.push(second.query('SELECT pg_advisory_xact_lock_shared(732814,3)').then(()=>second.query('COMMIT')));
+   pending.push(second.query('SELECT pg_advisory_xact_lock_shared(732814,4)').then(()=>second.query('COMMIT')));
    await waitForDatabase(fixture,'SELECT pg_blocking_pids($1) AS blockers',[second.processID],rows=>rows[0].blockers.includes(exclusive.processID));
    const observations=await waitForFixtureBlock(fixture,[first.processID,second.processID],fixture.processID);
    assert.equal(observations.length,2);
