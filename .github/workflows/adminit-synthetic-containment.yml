@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static and model regressions only
-        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs tests/adminit-stdout-privacy.test.mjs tests/adminit-workflow-privacy.test.mjs
       - name: Fail-closed local policy and parser contracts (no native fixture)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -84,8 +84,8 @@ jobs:
               throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
             }
             @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
-            Get-Content "$build/bootstrap-stdout.txt"
-            Get-Content "$build/bootstrap-stderr.txt"
+            # Do not echo raw bootstrap streams into public Actions logs.
+            Write-Output "HOSTED_BOOTSTRAP_EXIT_RECORDED"
             if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
           } finally {
             $owner.Dispose()
@@ -98,10 +98,15 @@ jobs:
         run: |
           $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
           if (-not (Test-Path -LiteralPath $build)) { throw 'no build evidence: BLOCKED' }
-          $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
+          $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | Where-Object { $_.Name -ne 'private-inventory.json' } | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
           $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
           if (Test-Path -LiteralPath $run) { $files += @(Get-ChildItem -LiteralPath $run -Recurse -File | ForEach-Object { @{path=('native/'+$_.FullName.Substring($run.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} }) }
-          @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';files=$files} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
+          # Do not publish the raw per-file path inventory: names may disclose runtime identity.
+          # The private full inventory remains on the ephemeral runner only.
+          $privateInventory = Join-Path $build 'private-inventory.json'
+          $files | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $privateInventory
+          $inventoryDigest = (Get-FileHash -LiteralPath $privateInventory -Algorithm SHA256).Hash.ToLowerInvariant()
+          @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';privateInventorySha256=$inventoryDigest;privateFileCount=@($files).Count;rawNativeEvidencePublished=$false;nativeAcceptance='BLOCKED_PRIVATE_EVIDENCE_REQUIRED'} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
       - name: Retain exact package (local execution still blocked)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -110,15 +115,14 @@ jobs:
           path: ${{ runner.temp }}/adminit-build/package/
           if-no-files-found: error
           retention-days: 30
-      - name: Retain native outcomes and PID handle identity evidence
+      # Raw runtime results, process identity, SID and bootstrap stdout/stderr are not
+      # public-safe. Preserve only digest/identity metadata; this is NOT native acceptance.
+      - name: Retain redacted metadata only (native evidence still BLOCKED)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: adminit-native-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/adminit-native/
-            ${{ runner.temp }}/adminit-build/bootstrap-*.txt
-            ${{ runner.temp }}/adminit-build/bootstrap-process.json
             ${{ runner.temp }}/adminit-build/build-identity.json
             ${{ runner.temp }}/adminit-build/source-identity.json
             ${{ runner.temp }}/adminit-build/evidence-sha256.json
