@@ -36,3 +36,6 @@ The first strict helper was opt-in while the direct `package.mjs` CLI still acce
 
 ## Caller compatibility finding
 A source inspection found that `verify-adminit.ps1` still called `package.mjs` without the newly mandatory expected tree. This is a confirmed integration defect. The read-only verifier now declares mandatory `ExpectedSourceTree` and passes it to the package CLI; `-Execute` remains unconditionally rejected. The hosted ADMINIT workflow already passes `$tree`. All external invocations of `verify-adminit.ps1` must supply an independently trusted tree; compatibility/PowerShell tests remain NOT_RUN pending exact-HEAD CI.
+
+## Caller contract regression
+Added `tests/adminit-package-caller-contract.test.mjs` with three static regressions: mandatory PowerShell ExpectedSourceTree, correct CLI argument forwarding, and unconditional Execute refusal preceding package verification. These are static source contracts, not an actual Windows PowerShell execution or native isolation test. Exact-HEAD hosted qualification is still required.
