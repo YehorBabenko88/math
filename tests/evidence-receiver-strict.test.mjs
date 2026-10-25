@@ -1,0 +1,4 @@
+import test from'node:test';import assert from'node:assert/strict';import{strictJson}from'../src/evidence-receiver/strict.mjs';
+for(const x of ['{"a":1,"a":2}','{"__proto__":{}}','{"constructor":1}','[1,]','{"a":1}tail','"\\q"','1e999', '['.repeat(18)+'0'+']'.repeat(18),'['+Array(4100).fill('0').join(',')+']'])test('strict parser rejects malformed or over-limit structured input',()=>assert.throws(()=>strictJson(x),/BLOCKED/));
+test('strict parser rejects invalid UTF8 and byte overflow',()=>{assert.throws(()=>strictJson(Buffer.from([0xff])),/BLOCKED/);assert.throws(()=>strictJson('"12345"',3),/BLOCKED/);});
+test('strict parser preserves ordinary nested Unicode JSON without invoking properties',()=>assert.deepEqual(JSON.parse(JSON.stringify(strictJson('{"alpha":[true,false,null,1.5,"\\u03bb"]}'))),{alpha:[true,false,null,1.5,'λ']}));

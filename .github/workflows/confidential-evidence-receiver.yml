@@ -1,0 +1,32 @@
+name: Confidential Evidence Receiver Contracts
+on:
+  push:
+    branches: [feat/pr56-confidential-evidence-receiver]
+  pull_request:
+    paths:
+      - 'src/evidence-receiver/**'
+      - 'tests/evidence-receiver*.test.mjs'
+      - 'tests/fixtures/evidence-receiver/**'
+      - 'tests/adminit-bootstrap-watchdog*'
+      - '.github/workflows/confidential-evidence-receiver.yml'
+permissions:
+  contents: read
+jobs:
+  receiver-contracts:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Synthetic keys and isolated receiver storage only (no native EXE or Q01)
+        run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/adminit-bootstrap-watchdog.test.mjs
+      # No id-token permission, secret, receiver endpoint, key provisioning or raw upload.
