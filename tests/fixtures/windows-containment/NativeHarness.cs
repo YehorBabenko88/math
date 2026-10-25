@@ -42,6 +42,7 @@ internal static class NativeHarness {
             Until(()=>File.Exists(Path.Combine(dir,"leaf.pid")),"leaf startup deadline");
             File.WriteAllText(Path.Combine(dir,"root.pid"),Environment.ProcessId.ToString());
             if(mode=="--tree-wait") Thread.Sleep(60000);
+            else Until(()=>File.Exists(Path.Combine(dir,"observer.ready")),"observer capture deadline");
             return 17;
         }
         if (mode=="--environment") {
@@ -60,12 +61,14 @@ internal static class NativeHarness {
         readonly string directory;
         public string Fault;
         public int Pid;
+        public Process RootProcess,LeafProcess;
         public bool Assigned,Resumed,Drained;
         public Observed(string dir) { directory=dir; }
         public IntPtr CreateJob()=>kernel.CreateJob();
         public void ConfigureKillOnClose(IntPtr j)=>kernel.ConfigureKillOnClose(j);
         public void CreateSuspended(string e,string[] a,string d,out IntPtr p,out IntPtr t) {
             kernel.CreateSuspended(e,a,d,out p,out t); Pid=(int)GetProcessId(p);
+            RootProcess=Process.GetProcessById(Pid); _=RootProcess.Handle;
             // Suspended fixture cannot write before ownership, including deliberate assignment rejection.
             Check(!File.Exists(Path.Combine(directory,"root.pid")),"fixture ran before assignment");
         }
@@ -75,7 +78,20 @@ internal static class NativeHarness {
             Check(IsProcessInJob(p,j,out bool member) && member,"root lacks owned job membership"); Assigned=true;
         }
         public void Resume(IntPtr t) { Check(Assigned,"resume before ownership"); kernel.Resume(t); Resumed=true; }
-        public uint Wait(IntPtr p,uint ms)=>kernel.Wait(p,ms);
+        public uint Wait(IntPtr p,uint ms) {
+            if(Resumed && LeafProcess==null && directory!=Path.Combine(Root,"environment")) {
+                var clock=Stopwatch.StartNew();
+                while(!File.Exists(Path.Combine(directory,"root.pid"))) {
+                    if(clock.ElapsedMilliseconds>=ms) return 258;
+                    Thread.Sleep(10);
+                }
+                LeafProcess=Process.GetProcessById(int.Parse(File.ReadAllText(Path.Combine(directory,"leaf.pid"))));
+                _=LeafProcess.Handle; // capture identity before the root can exit or any termination.
+                File.WriteAllText(Path.Combine(directory,"observer.ready"),"captured");
+                return kernel.Wait(p,(uint)Math.Max(0,ms-clock.ElapsedMilliseconds));
+            }
+            return kernel.Wait(p,ms);
+        }
         public uint ExitCode(IntPtr p)=>kernel.ExitCode(p);
         public void TerminateJob(IntPtr j)=>kernel.TerminateJob(j);
         public bool WaitJobEmpty(IntPtr j,uint ms) { Drained=kernel.WaitJobEmpty(j,ms); return Drained; }
@@ -92,14 +108,15 @@ internal static class NativeHarness {
         Check(timedOut==timeout && kernel.Assigned && kernel.Resumed && kernel.Drained,"ownership/deadline/drain evidence missing");
         Check(clock.ElapsedMilliseconds<16000,"cleanup exceeded fixture bound");
         Check(File.Exists(Path.Combine(dir,"leaf.pid")),"tree did not start");
-        AssertDead(int.Parse(File.ReadAllText(Path.Combine(dir,"leaf.pid")))); AssertDead(kernel.Pid);
+        Check(kernel.RootProcess.WaitForExit(5000) && kernel.LeafProcess.WaitForExit(5000),"owned process handle did not signal termination");
+        kernel.RootProcess.Dispose(); kernel.LeafProcess.Dispose();
     }
     static void AssignmentRejected() {
         string dir=Path.Combine(Root,"assignment"); Directory.CreateDirectory(dir);
         var kernel=new Observed(dir) { Fault="assign" }; bool rejected=false;
         try { Containment.RunOwned(kernel,Self,new[]{"--tree-wait",dir},dir,10000); }
         catch(InvalidOperationException e) { rejected=e.Message=="injected assignment rejection"; }
-        Check(rejected && !kernel.Resumed && !File.Exists(Path.Combine(dir,"root.pid")),"assignment fail-open"); AssertDead(kernel.Pid);
+        Check(rejected && !kernel.Resumed && !File.Exists(Path.Combine(dir,"root.pid")),"assignment fail-open"); Check(kernel.RootProcess.WaitForExit(5000),"unassigned suspended process survived"); kernel.RootProcess.Dispose();
     }
     static void EnvironmentAndQuoting() {
         string dir=Path.Combine(Root,"environment"); Directory.CreateDirectory(dir);
@@ -116,10 +133,11 @@ internal static class NativeHarness {
         using var owner=Start("--owner",dir);
         try {
             Until(()=>File.Exists(Path.Combine(dir,"root.pid")),"owner fixture startup deadline");
-            int root=int.Parse(File.ReadAllText(Path.Combine(dir,"root.pid")));
-            int leaf=int.Parse(File.ReadAllText(Path.Combine(dir,"leaf.pid")));
+            using var root=Process.GetProcessById(int.Parse(File.ReadAllText(Path.Combine(dir,"root.pid"))));
+            using var leaf=Process.GetProcessById(int.Parse(File.ReadAllText(Path.Combine(dir,"leaf.pid"))));
+            _=root.Handle; _=leaf.Handle; // only process handles; no duplicated/named job owner handle.
             owner.Kill(); Check(owner.WaitForExit(5000),"owner termination unconfirmed");
-            AssertDead(root); AssertDead(leaf);
+            Check(root.WaitForExit(5000) && leaf.WaitForExit(5000),"kill-on-close failed to signal captured process handles");
         } finally { if(!owner.HasExited) { owner.Kill(); owner.WaitForExit(5000); } }
     }
     static void PublicPolicy() {
@@ -142,15 +160,22 @@ internal static class NativeHarness {
         Check(blocked,"reparse validator accepted symbolic link");
     }
     public static int Main(string[] args) {
+        if(args.Length>=2 && new[]{"--leaf","--tree-exit","--tree-wait","--environment"}.Contains(args[0])) {
+            // The sanitized child has no inherited hosted-runner environment. Its
+            // fresh parent-owned fixture root is authorized by the hosted supervisor.
+            Check(File.ReadAllText(Path.Combine(Directory.GetParent(args[1]).FullName,"hosted-fixtures.authorized"))=="fixed-synthetic-only","missing hosted fixture authorization");
+            return Fixture(args[0],args[1]);
+        }
         HostedOnly();
         if(args.Length>=2 && args[0]=="--owner") {
             Containment.RunOwned(new WindowsJobKernel(),Self,new[]{"--tree-wait",args[1]},args[1],60000); return 0;
         }
-        if(args.Length>=2 && args[0].StartsWith("--")) return Fixture(args[0],args[1]);
+        
         Check(args.Length==1,"one owned temporary root required"); Root=Path.GetFullPath(args[0]);
         string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+Path.DirectorySeparatorChar;
         Check(Root.StartsWith(temp,StringComparison.OrdinalIgnoreCase) && !Directory.Exists(Root),"fresh hosted temporary root required");
         Directory.CreateDirectory(Root);
+        File.WriteAllText(Path.Combine(Root,"hosted-fixtures.authorized"),"fixed-synthetic-only");
         var results=new List<object>();
         foreach(var test in new (string Name,Action Run)[]{("root-exit-descendant-drain",()=>RunTree(false)),("deadline-tree-drain",()=>RunTree(true)),("assignment-rejection",AssignmentRejected),("environment-quoting",EnvironmentAndQuoting),("owner-crash-kill-on-close",OwnerCrash),("public-policy-reparse",PublicPolicy)}) {
             var clock=Stopwatch.StartNew();
