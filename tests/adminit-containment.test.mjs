@@ -22,3 +22,16 @@ test('PowerShell watchdog refuses unconfirmed kill and does not equate root exit
  assert.match(workflow,/descendant status unknown/);
  assert.doesNotMatch(workflow,/\$owner\.WaitForExit\(5000\) \| Out-Null/);
 });
+
+test('bootstrap watchdog distinguishes timeout and failed waits from signalled completion',()=>{
+ const source=read('tests/fixtures/adminit-containment/HostedMediumLauncher.cs');
+ assert.match(source,/k\.Wait\(p,120000\)==0/);
+ assert.match(source,/bootstrap descendant drain unconfirmed/);
+ assert.match(source,/k\.WaitJobEmpty\(job,5000\)/);
+ assert.match(source,/unassigned supervisor cleanup unconfirmed/);
+});
+test('native wait wrapper preserves raw Win32 wait status for fail-closed callers',()=>{
+ const source=read('scripts/q01-lab/WindowsJobContainment.cs');
+ assert.match(source,/return WaitForSingleObject\(process,milliseconds\)/);
+ assert.match(source,/native\.Wait\(process, CleanupMilliseconds\)!=0/);
+});
