@@ -15,3 +15,6 @@ Previous Draft PR37 claimed `BOOK_QUEUE_INITIALIZING` was swallowed by the trans
 - Synthetic success never grants physical or production approval.
 
 Current decision: Q01 OPEN; Integration NO-GO; Production NO-GO. No merge, deployment or physical work.
+
+## Independently inspected Q01 ZIP — partial acceptance evidence
+GitHub Actions run `40183990649`, attempt `1`, artifact `12594909670` (ubuntu-latest / Node24 / quick). Original ZIP SHA256 `0234be45f0040bcf0969a475ce065068732e0a143fb887b4f770f67e84a10708`. Manifest entries for events.jsonl, junit.xml and report.json matched raw extracted bytes. JUnit: 7 tests, 0 failures/errors/skips; report: 7 PASS; JSONL: 390 lines. Embedded source head is PR merge SHA `1b99e5c85bc8b98d0ea2552d3cf1f6dab470dd13`, embedded tree equals claimed candidate tree `10cfd29f5d2c75e841d88dd70bef8773dada8287`. This is ONE verified ZIP; the other 11 and independent Git tree resolution remain pending. No overall Q01 PASS.
