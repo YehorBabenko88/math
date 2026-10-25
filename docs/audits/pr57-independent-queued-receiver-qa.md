@@ -36,3 +36,7 @@ PR57 explicitly reports an accidental `npm test` during concurrent dirty-tree de
 - P2: CI source contracts require hosted exact-head results; PR57 jobs are queued in the observed snapshot.
 
 G0 confidential operational NO-GO; G1 CLOSED; Q01 OPEN; Production NO-GO. No cancellation, rerun, merge, deployment, production database or physical operations.
+
+## Recheck and CI coverage follow-up
+
+Live read-only recheck of runs 40183964438, 40184384450 and 40184389853: each workflow remains `queued`, each has 13 completed SUCCESS jobs, one queued coverage aggregator and 12 artifacts. Receiver run 40211216019 remains queued with four unassigned jobs, zero completed jobs and zero artifacts. This demonstrates two different queue states and does not imply that any one run is safe to cancel. The inventory regression suite is now wired to the receiver contract workflow on Windows/Linux Node22/24. CI execution on this audit HEAD remains unverified; no reruns or cancellations were requested.
