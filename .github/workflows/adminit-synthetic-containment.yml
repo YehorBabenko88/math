@@ -1,0 +1,116 @@
+name: ADMINIT Synthetic Harness Qualification
+on:
+  push:
+    branches: [test/adminit-synthetic-containment]
+  pull_request:
+    paths:
+      - 'scripts/adminit-containment/**'
+      - 'tests/adminit-*.test.mjs'
+      - 'tests/fixtures/adminit-containment/**'
+      - '.github/workflows/adminit-synthetic-containment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Static and model regressions only
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs
+      - name: Fail-closed local policy and parser contracts (no native fixture)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          & powershell -NoProfile -File tests/adminit-policy.mock.ps1
+          exit $LASTEXITCODE
+  native-framework:
+    name: Disposable Windows / Framework / actual Medium token
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Compile using PowerShell 5.1 Add-Type without SDK
+        shell: pwsh
+        run: |
+          & powershell -NoProfile -File scripts/adminit-containment/build-hosted.ps1 -OutputRoot "$env:RUNNER_TEMP/adminit-build" -ExpectedHead '${{ github.sha }}'
+          exit $LASTEXITCODE
+      - name: Verify compiled package before any native fixture launch
+        shell: pwsh
+        run: |
+          $package = Join-Path $env:RUNNER_TEMP 'adminit-build/package'
+          $manifest = (Get-FileHash "$package/package.json").Hash.ToLowerInvariant()
+          node scripts/adminit-containment/package.mjs $package $manifest '${{ github.sha }}'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          @{sourceHead='${{ github.sha }}';sourceTree=(git --no-replace-objects rev-parse 'HEAD^{tree}');manifestSha256=$manifest;runtime='Windows PowerShell5.1 Add-Type / .NET Framework';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW'} | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/adminit-build/build-identity.json"
+      - name: Independent watchdog and fixed native suite under Medium token
+        shell: pwsh
+        run: |
+          $env:SOURCE_HEAD = '${{ github.sha }}'
+          $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
+          $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
+          $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
+          $exe = Join-Path $build 'HostedMediumLauncher.exe'
+          $args = '"' + "$build/package" + '" "' + $run + '"'
+          $owner = Start-Process -FilePath $exe -ArgumentList $args -PassThru -WindowStyle Hidden -RedirectStandardOutput "$build/bootstrap-stdout.txt" -RedirectStandardError "$build/bootstrap-stderr.txt"
+          $handle = $owner.Handle
+          if (-not $owner.WaitForExit(150000)) {
+            $owner.Kill()
+            $owner.WaitForExit(5000) | Out-Null
+            throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
+          }
+          @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
+          Get-Content "$build/bootstrap-stdout.txt"
+          Get-Content "$build/bootstrap-stderr.txt"
+          if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
+          node scripts/adminit-containment/verify-native.mjs $run $env:SOURCE_HEAD $env:SOURCE_TREE
+          exit $LASTEXITCODE
+      - name: Preserve checksums and explicit outcome
+        if: always()
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
+          if (-not (Test-Path -LiteralPath $build)) { throw 'no build evidence: BLOCKED' }
+          $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
+          $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
+          if (Test-Path -LiteralPath $run) { $files += @(Get-ChildItem -LiteralPath $run -Recurse -File | ForEach-Object { @{path=('native/'+$_.FullName.Substring($run.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} }) }
+          @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';files=$files} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
+      - name: Retain exact package (local execution still blocked)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adminit-package-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/adminit-build/package/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Retain native outcomes and PID handle identity evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adminit-native-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/adminit-native/
+            ${{ runner.temp }}/adminit-build/bootstrap-*.txt
+            ${{ runner.temp }}/adminit-build/bootstrap-process.json
+            ${{ runner.temp }}/adminit-build/build-identity.json
+            ${{ runner.temp }}/adminit-build/source-identity.json
+            ${{ runner.temp }}/adminit-build/evidence-sha256.json
+          if-no-files-found: error
+          retention-days: 30

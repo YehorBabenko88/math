@@ -1,0 +1,25 @@
+import{readFileSync,lstatSync}from'node:fs';import{resolve,join,dirname}from'node:path';import{fileURLToPath}from'node:url';
+const cases=['normal','timeout','crash','assignment','cleanup'];
+function check(ok,why){if(!ok)throw Error('Native evidence BLOCKED: '+why);}
+const handle=x=>x&&Number.isSafeInteger(x.pid)&&x.pid>0&&typeof x.createdFileTime==='string'&&/^[1-9][0-9]{15,19}$/.test(x.createdFileTime)&&typeof x.handle==='string'&&/^[1-9a-f][0-9a-f]*$/.test(x.handle)&&x.signalled===true;
+export function validateNativeReport(r,{sourceHead,sourceTree}={}){
+ check(/^[a-f0-9]{40}$/.test(sourceHead??'')&&/^[a-f0-9]{40}$/.test(sourceTree??''),'external source identity');
+ check(r?.sourceHead===sourceHead&&r.sourceTree===sourceTree&&r.token==='non-elevated Medium'&&r.localExecution==='BLOCKED_PENDING_ISOLATION_REVIEW','source/token/local policy');
+ check(r.tokenEvidence?.elevation===0&&r.tokenEvidence.integrityRid===8192&&/^S-1-5-[0-9-]+$/.test(r.tokenEvidence.userSid??'')&&Number.isSafeInteger(r.tokenEvidence.pid)&&r.tokenEvidence.pid>0,'measured token evidence');
+ for(const key of ['results','evidence'])check(Array.isArray(r[key])&&r[key].length===cases.length&&new Set(r[key].map(x=>x?.scenario)).size===cases.length&&r[key].every(x=>cases.includes(x?.scenario)),'exact '+key+' inventory');
+ for(const e of r.evidence)check(e.outerCleanupConfirmed===true&&Number.isSafeInteger(e.elapsedMs)&&e.elapsedMs>=0&&e.elapsedMs<35000,'outer cleanup/deadline');
+ for(const c of r.results){
+  check(c.status==='PASS','scenario failure');
+  if(c.scenario==='crash'){check(handle(c.owner)&&handle(c.root)&&handle(c.leaf)&&new Set([c.owner.pid,c.root.pid,c.leaf.pid]).size===3&&c.innerJobHandleHeldByObserver===false&&c.leafAssignedBeforeResume===true,'owner crash process-handle proof');continue;}
+  const h=c.handles;check(handle(h?.root),'root identity');
+  check(Array.isArray(h.calls)&&h.calls.indexOf('create-job')>=0&&h.calls.indexOf('create-job')<h.calls.indexOf('kill-on-close')&&h.calls.indexOf('kill-on-close')<h.calls.indexOf('create-suspended')&&h.calls.indexOf('create-suspended')<h.calls.indexOf('assign'),'suspended assignment ordering');
+  if(c.scenario==='assignment')check(h.leaf===null&&h.assigned===false&&h.resumed===false&&!h.calls.includes('resume')&&h.calls.includes('terminate-process')&&Number.isSafeInteger(h.nativeAssignmentError)&&h.nativeAssignmentError>0,'assignment fail-closed');
+  else check(handle(h.leaf)&&h.leaf.pid!==h.root.pid&&h.assigned===true&&h.resumed===true&&h.drained===true&&h.leafAssignedBeforeResume===true&&h.calls.indexOf('assign')<h.calls.indexOf('resume')&&h.calls.indexOf('resume')<h.calls.indexOf('terminate-job')&&h.calls.indexOf('terminate-job')<h.calls.indexOf('drain=True'),'child handle/drain proof');
+  if(c.scenario==='cleanup')check(h.drainRejected===true&&/job drain unconfirmed/.test(c.error??''),'cleanup rejection proof');
+  if(c.scenario==='timeout')check(/deadline/.test(c.error??''),'timeout proof');
+ }
+ return {status:'PASS',cases:cases.length,localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',scope:'hosted fixed synthetic mechanisms only; not filesystem/network isolation or physical authorization'};
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ try{check(process.argv.length===5,'DIRECTORY SOURCE_HEAD SOURCE_TREE required');const dir=resolve(process.argv[2]);for(let p=dir;;p=dirname(p)){check(!lstatSync(p).isSymbolicLink(),'reparse directory');if(dirname(p)===p)break;}const file=join(dir,'results.json'),s=lstatSync(file);check(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size<=1048576,'regular bounded report');console.log(JSON.stringify(validateNativeReport(JSON.parse(readFileSync(file,'utf8')),{sourceHead:process.argv[3],sourceTree:process.argv[4]})));}catch(e){console.error(e.message);process.exitCode=2;}
+}
