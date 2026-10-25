@@ -62,3 +62,10 @@ test('verifier constructor does not invoke hostile configuration getter',()=>{
  assert.throws(()=>new OneShotKernelVerifier(config),/invalid trust policy/);
  assert.equal(invoked,0);
 });
+
+test('verifier constructor rejects Proxy without triggering traps',()=>{
+ let reads=0;
+ const proxy=new Proxy({ledger:null},{get(){reads++;throw Error('trap');}});
+ assert.throws(()=>new OneShotKernelVerifier(proxy),/invalid trust policy/);
+ assert.equal(reads,0);
+});
