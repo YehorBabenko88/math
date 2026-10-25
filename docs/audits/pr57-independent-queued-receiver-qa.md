@@ -40,3 +40,7 @@ G0 confidential operational NO-GO; G1 CLOSED; Q01 OPEN; Production NO-GO. No can
 ## Recheck and CI coverage follow-up
 
 Live read-only recheck of runs 40183964438, 40184384450 and 40184389853: each workflow remains `queued`, each has 13 completed SUCCESS jobs, one queued coverage aggregator and 12 artifacts. Receiver run 40211216019 remains queued with four unassigned jobs, zero completed jobs and zero artifacts. This demonstrates two different queue states and does not imply that any one run is safe to cancel. The inventory regression suite is now wired to the receiver contract workflow on Windows/Linux Node22/24. CI execution on this audit HEAD remains unverified; no reruns or cancellations were requested.
+
+## 2026-10-25 further exact-head receiver CI observation
+
+At audit HEAD `823d12d485e8378d09e9a344b771381e303cc951`, eight workflows were QUEUED. Receiver run https://github.com/YehorBabenko88/math/actions/runs/40212958870 exposed all four Windows/Linux × Node22/24 jobs as QUEUED, `runner_id=0`, zero steps and zero artifacts. This is runner non-assignment, not evidence of receiver test failure or success. The underlying scheduling cause remains unknown. Added negative inventory tests to prevent accidental promotion of 175 unresolved PR merge candidates into verified cancellation decisions. No rerun/cancellation.
