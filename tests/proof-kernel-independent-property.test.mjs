@@ -192,7 +192,7 @@ test('negative: no axiom injection or fabricated theorem by untrusted AI',()=>{
   assert.throws(()=>verifyImplicationProof(forged));
  }
 });
-test('negative: malformed JSON unicode and number encodings fail closed',()=>{
+test('negative: malformed JSON numeric encodings fail closed',()=>{
  const valid=JSON.stringify({goal:imp(P,P),proof:intro(P,assumption(0))});
  for(const text of [valid+' ',valid.replace('"index":0','"index":-0'),valid.replace('"index":0','"index":0.0')]){
   assert.throws(()=>verifyImplicationProofJson(text),/Noncanonical/);
