@@ -14,5 +14,5 @@ for(const target of ['queue.sqlite','queue.sqlite-wal','queue.sqlite-shm'])test(
 
 for(const phase of [1,2])test(`Q01: symlink replacement fails closed at phase ${phase}`,()=>{const r=probe({mode:'symlink',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);assert.equal(r.receipt.symlinkEvidence,process.platform==='win32'?'synthetic-windows':'real-posix');});
 
-for(const phase of [1,2])test(`Q01: hardlink replacement fails closed at phase ${phase}`,()=>{const r=probe({mode:'hardlink',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);});
+for(const phase of [1,2])test(`Q01: hardlink replacement fails closed at phase ${phase}`,()=>{const r=probe({mode:'hardlink',phase});assert.equal(r.receipt.replacementLinks,2);assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);});
 for(const phase of [1,2])test(`Q01: regular replacement survives re-stat at phase ${phase}`,()=>{const r=probe({mode:'regular',phase});assert.equal(r.ok,true);assert.equal(r.receipt.revalidated,true);assert.equal(r.integrity,'ok');assert.equal(r.count,1);});
