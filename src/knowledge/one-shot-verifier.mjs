@@ -1,4 +1,5 @@
 import {inertRecord} from './inert-record.mjs';
+import {types} from 'node:util';
 // Experimental v2 one-shot verifier. Never assigns VERIFIED.
 import {randomBytes,createPublicKey,verify} from 'node:crypto';
 import {FileReplayLedger} from './file-replay-ledger.mjs';
@@ -15,10 +16,11 @@ export function createVerificationRequestV2(v1) {
 export class OneShotKernelVerifier {
  #key; #id; #version; #consume;
  constructor(config) {
-  if(!config||typeof config!=='object'||Array.isArray(config)) throw Error('invalid trust policy');
+  if(!config||typeof config!=='object'||types.isProxy(config)||Array.isArray(config)||Object.getPrototypeOf(config)!==Object.prototype) throw Error('invalid trust policy');
   const descriptors=Object.getOwnPropertyDescriptors(config);
   if(Reflect.ownKeys(descriptors).some(k=>typeof k!=='string'||!['public_key_pem','kernel_id','kernel_version','ledger'].includes(k)||!Object.hasOwn(descriptors[k],'value'))) throw Error('invalid trust policy');
   const {public_key_pem,kernel_id,kernel_version,ledger}=Object.fromEntries(Object.entries(descriptors).map(([k,d])=>[k,d.value]));
+  if(typeof public_key_pem!=='string'||typeof kernel_id!=='string'||!kernel_id||typeof kernel_version!=='string'||!kernel_version) throw Error('invalid trust policy');
   if(!(ledger instanceof FileReplayLedger)) throw Error('trusted FileReplayLedger required');
   this.#consume=FileReplayLedger.prototype.consume.bind(ledger);
   this.#key=createPublicKey(public_key_pem);
