@@ -15,3 +15,5 @@ test('committed Git tree parser preserves full OID and correct path capture grou
  const head=execFileSync('git',['--no-replace-objects','-c','core.fsmonitor=false','rev-parse','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  assert.equal(verifyCommittedBuildInputs(head),true);
 });
+for(const oid of ['', 'A'.repeat(40), 'g'.repeat(40), 'a'.repeat(39), 'a'.repeat(41), 'a'.repeat(40)+'\n', 'a'.repeat(20)+'\0'+'a'.repeat(19), 42, ['a'.repeat(40)], null])test('build input rejects noncanonical OID '+JSON.stringify(oid),()=>{const e=entries();e[0]={...e[0],oid};assert.throws(()=>validateBuildEntries(e),/BLOCKED/);});
+test('build input rejects directory identity presented as blob',()=>{const e=entries();e[0]={...e[0],type:'tree',mode:'040000'};assert.throws(()=>validateBuildEntries(e),/BLOCKED/);});

@@ -63,7 +63,7 @@ namespace MathUniverse.Adminit {
    IntPtr h=OpenProcess(0x00100000|0x1000,false,pid);Check(h!=IntPtr.Zero,"process handle capture failed");
    try{Check(GetProcessId(h)==pid&&Created(h)==created,"PID reuse/identity mismatch");return h;}catch{CloseHandle(h);throw;}
   }
-  static void CaseDirectory(string dir){Literal(dir);NoReparse(dir);string name=Path.GetFileName(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup"},name)>=0,"unknown fixed case");
+  static void CaseDirectory(string dir){Literal(dir);NoReparse(dir);string name=Path.GetFileName(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup","watchdog"},name)>=0,"unknown fixed case");
    Suite=Path.GetDirectoryName(dir);Check(String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase),"directory outside fixed lab BLOCKED");ValidateLabAcl(dir);Check(File.ReadAllText(Path.Combine(Suite,"synthetic-session.txt"))=="fixed-fixtures-only;not-operator-authorization","missing test coordinator");
   }
   static int Root(string dir,string kind){
@@ -72,7 +72,7 @@ namespace MathUniverse.Adminit {
    var k=new WindowsJobKernel();IntPtr leaf=IntPtr.Zero,thread=IntPtr.Zero;
    try{k.CreateSuspended(Self,new[]{"--leaf",dir},dir,out leaf,out thread);Check(IsProcessInJob(leaf,IntPtr.Zero,out member)&&member,"leaf not inherited into job before Resume");SaveIdentity(Path.Combine(dir,"leaf.identity.json"),leaf);Until(()=>File.Exists(Path.Combine(dir,"leaf.assigned")),5000,"owner leaf membership confirmation deadline");k.Resume(thread);
     Until(()=>File.Exists(Path.Combine(dir,"leaf.started")),5000,"leaf startup timeout");SaveIdentity(Path.Combine(dir,"root.identity.json"),GetCurrentProcess());
-    if(kind=="timeout"||kind=="crash")Thread.Sleep(60000);else Until(()=>File.Exists(Path.Combine(dir,"observer.ready")),5000,"observer capture timeout");return 17;
+    if(kind=="timeout"||kind=="crash"||kind=="watchdog")Thread.Sleep(60000);else Until(()=>File.Exists(Path.Combine(dir,"observer.ready")),5000,"observer capture timeout");return 17;
    }finally{CloseAll(thread,leaf);}
   }
   static int Leaf(string dir){CaseDirectory(dir);bool member;Check(IsProcessInJob(GetCurrentProcess(),IntPtr.Zero,out member)&&member,"leaf not contained");File.WriteAllText(Path.Combine(dir,"leaf.started"),"started");Thread.Sleep(60000);return 0;}
@@ -87,7 +87,7 @@ namespace MathUniverse.Adminit {
    public void Assign(IntPtr j,IntPtr p){Calls.Add("assign");if(kind=="assignment"){try{k.Assign(IntPtr.Zero,p);}catch(System.ComponentModel.Win32Exception e){NativeAssignmentError=e.NativeErrorCode;Calls.Add("native-assignment-rejected:"+NativeAssignmentError);throw new InvalidOperationException("injected assignment failure",e);}throw new InvalidOperationException("invalid job unexpectedly accepted");}k.Assign(j,p);bool member;Check(IsProcessInJob(p,j,out member)&&member,"assignment not confirmed");Assigned=true;}
    public void Resume(IntPtr t){Check(Assigned,"Resume without ownership");Calls.Add("resume");k.Resume(t);Resumed=true;}
    public uint Wait(IntPtr p,uint ms){
-    if(Resumed&&LeafHandle==IntPtr.Zero){var clock=Stopwatch.StartNew();Until(()=>File.Exists(Path.Combine(dir,"leaf.identity.json")),(int)Math.Min(ms,5000),"leaf identity timeout");LeafHandle=Capture(Path.Combine(dir,"leaf.identity.json"));bool member;Check(IsProcessInJob(LeafHandle,OwnedJob,out member)&&member&&!File.Exists(Path.Combine(dir,"leaf.started")),"leaf ownership before Resume unconfirmed");LeafAssignedBeforeResume=true;Calls.Add("leaf-assigned-before-resume");Write(Path.Combine(dir,"membership.json"),new{leafAssignedBeforeResume=true,leafPid=GetProcessId(LeafHandle),leafCreatedFileTime=Created(LeafHandle).ToString(System.Globalization.CultureInfo.InvariantCulture)});File.WriteAllText(Path.Combine(dir,"leaf.assigned"),"owned inner job confirmed");Until(()=>File.Exists(Path.Combine(dir,"root.identity.json")),(int)Math.Max(1,(long)ms-clock.ElapsedMilliseconds),"root readiness timeout");File.WriteAllText(Path.Combine(dir,"observer.ready"),"process handles captured, no job handle");return k.Wait(p,(uint)Math.Max(0,(long)ms-clock.ElapsedMilliseconds));}
+    if(Resumed&&LeafHandle==IntPtr.Zero){var clock=Stopwatch.StartNew();Until(()=>File.Exists(Path.Combine(dir,"leaf.identity.json")),(int)Math.Min(ms,5000),"leaf identity timeout");LeafHandle=Capture(Path.Combine(dir,"leaf.identity.json"));bool member;Check(IsProcessInJob(LeafHandle,OwnedJob,out member)&&member&&!File.Exists(Path.Combine(dir,"leaf.started")),"leaf ownership before Resume unconfirmed");LeafAssignedBeforeResume=true;Calls.Add("leaf-assigned-before-resume");Write(Path.Combine(dir,"membership.json"),new{leafAssignedBeforeResume=true,leafPid=GetProcessId(LeafHandle),leafCreatedFileTime=Created(LeafHandle).ToString(System.Globalization.CultureInfo.InvariantCulture)});File.WriteAllText(Path.Combine(dir,"leaf.assigned"),"owned inner job confirmed");Until(()=>File.Exists(Path.Combine(dir,"root.identity.json")),(int)Math.Max(1,(long)ms-clock.ElapsedMilliseconds),"root readiness timeout");File.WriteAllText(Path.Combine(dir,"observer.ready"),"process handles captured, no job handle");if(kind=="watchdog")Thread.Sleep(60000);return k.Wait(p,(uint)Math.Max(0,(long)ms-clock.ElapsedMilliseconds));}
     return k.Wait(p,ms);
    }
    public uint ExitCode(IntPtr p){return k.ExitCode(p);}
@@ -101,7 +101,7 @@ namespace MathUniverse.Adminit {
    }
   }
   static int Owner(string dir,string kind){
-   CaseDirectory(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup"},kind)>=0&&Path.GetFileName(dir)==kind,"unknown owner scenario");
+   CaseDirectory(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup","watchdog"},kind)>=0&&Path.GetFileName(dir)==kind,"unknown owner scenario");
    var observed=new Observed(dir,kind);bool expected=false;string error=null;
    try{uint result=Containment.RunOwned(observed,Self,new[]{"--root",dir,kind},dir,kind=="timeout"?4000u:15000u);Check(kind=="normal"&&result==17,"unexpected completion");expected=true;}
    catch(TimeoutException e){expected=kind=="timeout";error=e.Message;}
@@ -113,24 +113,43 @@ namespace MathUniverse.Adminit {
    else expected=expected&&observed.Assigned&&observed.Resumed&&observed.Drained&&(kind!="cleanup"||observed.DrainRejected);
    Write(Path.Combine(dir,"owner-result.json"),new{status=expected?"PASS":"FAIL",scenario=kind,error,handles});return expected?0:1;
   }
+  public static bool OwnerWaitExpired(uint result){
+   Check(result==0||result==258,"owner wait failed: not an expiry");return result==258;
+  }
+  static void AwaitOwnerDeadline(WindowsJobKernel k,IntPtr owner,uint deadline){
+   if(OwnerWaitExpired(k.Wait(owner,deadline)))throw new TimeoutException("independent owner watchdog expired");
+  }
   static object Supervise(string kind){
-   string dir=Path.Combine(Suite,kind);Directory.CreateDirectory(dir);NoReparse(dir);ValidateLabAcl(dir);var k=new WindowsJobKernel();IntPtr job=IntPtr.Zero,owner=IntPtr.Zero,thread=IntPtr.Zero,root=IntPtr.Zero,leaf=IntPtr.Zero;bool assigned=false,cleanupConfirmed=false;var clock=Stopwatch.StartNew();object outcome=null;
+   string dir=Path.Combine(Suite,kind);Directory.CreateDirectory(dir);NoReparse(dir);ValidateLabAcl(dir);var k=new WindowsJobKernel();IntPtr job=IntPtr.Zero,owner=IntPtr.Zero,thread=IntPtr.Zero,root=IntPtr.Zero,leaf=IntPtr.Zero;bool assigned=false,cleanupConfirmed=false,forcedExpiry=false;var clock=Stopwatch.StartNew();object outcome=null;
    try{job=k.CreateJob();k.ConfigureKillOnClose(job);k.CreateSuspended(Self,new[]{"--owner",dir,kind},dir,out owner,out thread);k.Assign(job,owner);assigned=true;k.Resume(thread);
-    if(kind=="crash"){
+    if(kind=="crash"||kind=="watchdog"){
      Until(()=>File.Exists(Path.Combine(dir,"root.identity.json")),8000,"crash tree startup timeout");root=Capture(Path.Combine(dir,"root.identity.json"));leaf=Capture(Path.Combine(dir,"leaf.identity.json"));
      var membership=Json.Deserialize<Dictionary<string,object>>(File.ReadAllText(Path.Combine(dir,"membership.json")));Check(Convert.ToBoolean(membership["leafAssignedBeforeResume"])&&Convert.ToUInt32(membership["leafPid"])==GetProcessId(leaf)&&Convert.ToInt64(membership["leafCreatedFileTime"])==Created(leaf),"crash ownership witness mismatch");
-     Check(WaitForSingleObject(root,0)==258&&WaitForSingleObject(leaf,0)==258,"crash processes already exited");k.TerminateProcess(owner);Check(k.Wait(owner,5000)==0,"owner crash not confirmed");
+     Check(WaitForSingleObject(root,0)==258&&WaitForSingleObject(leaf,0)==258,"crash processes already exited");
+     if(kind=="watchdog"){
+      // Readiness and owned handle identities establish the race; no sleep as proof.
+      try{AwaitOwnerDeadline(k,owner,0);throw new InvalidOperationException("forced deadline did not expire");}
+      catch(TimeoutException){forcedExpiry=true;}
+     }else{
+
+     k.TerminateProcess(owner);Check(k.Wait(owner,5000)==0,"owner crash not confirmed");
      Check(WaitForSingleObject(root,5000)==0&&WaitForSingleObject(leaf,5000)==0,"kill-on-close descendants survived");
      outcome=new{status="PASS",scenario=kind,owner=Identity(owner),root=Identity(root),leaf=Identity(leaf),innerJobHandleHeldByObserver=false,leafAssignedBeforeResume=true};
+     }
     }else{
-     Check(k.Wait(owner,25000)==0,"independent owner watchdog expired");Check(k.ExitCode(owner)==0,"owner reported FAIL; inspect owner-result.json");
+     AwaitOwnerDeadline(k,owner,25000);Check(k.ExitCode(owner)==0,"owner reported FAIL; inspect owner-result.json");
      outcome=Json.DeserializeObject(File.ReadAllText(Path.Combine(dir,"owner-result.json")));
     }
-    return outcome;
    }finally{
-    try{if(assigned){k.TerminateJob(job);Check(k.WaitJobEmpty(job,5000),"outer watchdog cleanup unconfirmed");cleanupConfirmed=true;}else if(owner!=IntPtr.Zero){k.TerminateProcess(owner);Check(k.Wait(owner,5000)==0,"unassigned owner cleanup unconfirmed");}}
-    finally{CloseAll(root,leaf,thread,owner,job);Evidence.Add(new{scenario=kind,elapsedMs=clock.ElapsedMilliseconds,outerCleanupConfirmed=cleanupConfirmed});}
+    try{if(assigned){k.TerminateJob(job);Check(k.WaitJobEmpty(job,5000),"outer watchdog cleanup unconfirmed");cleanupConfirmed=true;
+     if(forcedExpiry){
+      Check(k.Wait(owner,5000)==0&&WaitForSingleObject(root,5000)==0&&WaitForSingleObject(leaf,5000)==0,"forced watchdog descendants survived");
+      outcome=new{status="BLOCKED",scenario=kind,reason="forced independent owner watchdog expired",waitResult=258,liveBeforeExpiry=true,outerCleanupConfirmed=true,leafAssignedBeforeResume=true,owner=Identity(owner),root=Identity(root),leaf=Identity(leaf)};
+     }
+    }else if(owner!=IntPtr.Zero){k.TerminateProcess(owner);Check(k.Wait(owner,5000)==0,"unassigned owner cleanup unconfirmed");}}
+    finally{CloseAll(root,leaf,thread,owner,job);if(kind!="watchdog")Evidence.Add(new{scenario=kind,elapsedMs=clock.ElapsedMilliseconds,outerCleanupConfirmed=cleanupConfirmed});}
    }
+   return outcome;
   }
   public static int Main(string[] args){
    try{
@@ -147,7 +166,8 @@ namespace MathUniverse.Adminit {
     foreach(string kind in new[]{"normal","timeout","crash","assignment","cleanup"}){
      try{results.Add(Supervise(kind));}catch(Exception e){ok=false;results.Add(new{scenario=kind,status="FAIL",error=e.GetType().FullName+":"+e.Message});}
     }
-    Write(Path.Combine(Suite,"results.json"),new{sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,labEvidence=LabEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(File.ReadAllText(Path.Combine(Suite,"results.json")));return ok?0:1;
+    object watchdogProbe=null;try{watchdogProbe=Supervise("watchdog");}catch(Exception e){ok=false;watchdogProbe=new{status="FAIL",error=e.GetType().FullName+":"+e.Message};}
+    Write(Path.Combine(Suite,"results.json"),new{watchdogProbe,sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,labEvidence=LabEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(File.ReadAllText(Path.Combine(Suite,"results.json")));return ok?0:1;
    }catch(Exception e){Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
   }
  }

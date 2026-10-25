@@ -2,7 +2,14 @@ import{readFileSync,lstatSync}from'node:fs';import{resolve,join,dirname}from'nod
 const cases=['normal','timeout','crash','assignment','cleanup'];
 function check(ok,why){if(!ok)throw Error('Native evidence BLOCKED: '+why);}
 const handle=x=>x&&Number.isSafeInteger(x.pid)&&x.pid>0&&typeof x.createdFileTime==='string'&&/^[1-9][0-9]{15,19}$/.test(x.createdFileTime)&&typeof x.handle==='string'&&/^[1-9a-f][0-9a-f]*$/.test(x.handle)&&x.signalled===true;
+export function validateForcedWatchdogProbe(p){
+ check(p?.scenario==='watchdog'&&p.status==='BLOCKED'&&p.reason==='forced independent owner watchdog expired','forced watchdog outcome, never PASS');
+ check(p.waitResult===258&&p.liveBeforeExpiry===true&&p.outerCleanupConfirmed===true&&p.leafAssignedBeforeResume===true,'forced watchdog readiness/expiry/drain');
+ check(handle(p.owner)&&handle(p.root)&&handle(p.leaf)&&new Set([p.owner.pid,p.root.pid,p.leaf.pid]).size===3,'forced watchdog process handle proof');
+ return Object.freeze({status:'BLOCKED',negativeProbeVerified:true,scope:'forced expiry is not native qualification PASS'});
+}
 export function validateNativeReport(r,{sourceHead,sourceTree}={}){
+ validateForcedWatchdogProbe(r?.watchdogProbe);
  check(/^[a-f0-9]{40}$/.test(sourceHead??'')&&/^[a-f0-9]{40}$/.test(sourceTree??''),'external source identity');
  check(r?.sourceHead===sourceHead&&r.sourceTree===sourceTree&&r.token==='non-elevated Medium'&&r.localExecution==='BLOCKED_PENDING_ISOLATION_REVIEW','source/token/local policy');
  check(r.tokenEvidence?.elevation===0&&r.tokenEvidence.integrityRid===8192&&/^S-1-5-[0-9-]+$/.test(r.tokenEvidence.userSid??'')&&Number.isSafeInteger(r.tokenEvidence.pid)&&r.tokenEvidence.pid>0,'measured token evidence');
@@ -19,8 +26,8 @@ export function validateNativeReport(r,{sourceHead,sourceTree}={}){
   if(c.scenario==='cleanup')check(h.drainRejected===true&&/job drain unconfirmed/.test(c.error??''),'cleanup rejection proof');
   if(c.scenario==='timeout')check(/deadline/.test(c.error??''),'timeout proof');
  }
- return {status:'PASS',cases:cases.length,localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',scope:'hosted fixed synthetic mechanisms only; not filesystem/network isolation or physical authorization'};
+ return {status:'PASS',cases:cases.length,forcedWatchdogStatus:'BLOCKED',negativeWatchdogProofVerified:true,localExecution:'BLOCKED_PENDING_ISOLATION_REVIEW',scope:'hosted fixed synthetic mechanisms only; not filesystem/network isolation or physical authorization'};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- try{check(process.argv.length===5,'DIRECTORY SOURCE_HEAD SOURCE_TREE required');const dir=resolve(process.argv[2]);for(let p=dir;;p=dirname(p)){check(!lstatSync(p).isSymbolicLink(),'reparse directory');if(dirname(p)===p)break;}const file=join(dir,'results.json'),s=lstatSync(file);check(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size<=1048576,'regular bounded report');console.log(JSON.stringify(validateNativeReport(JSON.parse(readFileSync(file,'utf8')),{sourceHead:process.argv[3],sourceTree:process.argv[4]})));}catch(e){console.error('Native evidence verification BLOCKED; payload suppressed');process.exitCode=2;}
+ try{check(process.argv.length===5,'DIRECTORY SOURCE_HEAD SOURCE_TREE required');const dir=resolve(process.argv[2]);for(let p=dir;;p=dirname(p)){check(!lstatSync(p).isSymbolicLink(),'reparse directory');if(dirname(p)===p)break;}const file=join(dir,'results.json'),s=lstatSync(file);check(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.size<=1048576,'regular bounded report');const report=JSON.parse(readFileSync(file,'utf8'));validateForcedWatchdogProbe(report.watchdogProbe);console.log(JSON.stringify(validateNativeReport(report,{sourceHead:process.argv[3],sourceTree:process.argv[4]})));}catch(e){console.error('Native evidence verification BLOCKED; payload suppressed');process.exitCode=2;}
 }
