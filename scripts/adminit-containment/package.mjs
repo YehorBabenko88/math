@@ -15,6 +15,13 @@ export function verifyAdminitPackage({directory,expectedManifestSha256,expectedS
  const exe=join(root,f.path);noLinks(exe);check(lstatSync(exe).size===f.bytes,'executable size');check(sha(readFileSync(exe))===f.sha256,'executable digest');noLinks(exe);noLinks(path);
  return Object.freeze({sourceHead:m.sourceHead,sourceTree:m.sourceTree,manifestSha256:expectedManifestSha256,executableSha256:f.sha256,localExecution:m.localExecution,evidence:'point-in-time file identity only, not isolation or independent attestation'});
 }
-// Independent qualification requires an externally supplied source tree; legacy\n// verification without it is not source-tree-qualified. Never authorizes Execute.\nexport function verifyAdminitPackageQualified(options){\n check(options&&typeof options==='object'&&typeof options.expectedSourceTree==='string'&&/^[a-f0-9]{40}$/.test(options.expectedSourceTree),'external source tree required');\n const evidence=verifyAdminitPackage(options);\n return Object.freeze({...evidence,qualification:'SOURCE_TREE_BOUND_ONLY',execution:'DENIED'});\n}\nif(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+// Independent qualification requires an externally supplied source tree; legacy
+// verification without it is not source-tree-qualified. Never authorizes Execute.
+export function verifyAdminitPackageQualified(options){
+ check(options&&typeof options==='object'&&typeof options.expectedSourceTree==='string'&&/^[a-f0-9]{40}$/.test(options.expectedSourceTree),'external source tree required');
+ const evidence=verifyAdminitPackage(options);
+ return Object.freeze({...evidence,qualification:'SOURCE_TREE_BOUND_ONLY',execution:'DENIED'});
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{check(process.argv.length===6,'usage: DIRECTORY EXPECTED_MANIFEST_SHA256 EXPECTED_SOURCE_HEAD EXPECTED_SOURCE_TREE');console.log(JSON.stringify(verifyAdminitPackageQualified({directory:process.argv[2],expectedManifestSha256:process.argv[3],expectedSourceHead:process.argv[4],expectedSourceTree:process.argv[5]})));}catch(e){console.error('ADMINIT package verification BLOCKED; payload suppressed');process.exitCode=2;}
 }
