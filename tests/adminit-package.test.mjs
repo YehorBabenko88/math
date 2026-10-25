@@ -11,3 +11,12 @@ for(const [name,mutate] of [['noncanonical source',m=>m.sourceHead='A'.repeat(40
 test('independent qualification refuses absent external tree',t=>{const f=fixture(t);assert.throws(()=>verifyAdminitPackageQualified(f),/external source tree required/);});
 test('independent qualification binds tree but never grants Execute',t=>{const f=fixture(t);const r=verifyAdminitPackageQualified({...f,expectedSourceTree:'b'.repeat(40)});assert.equal(r.qualification,'SOURCE_TREE_BOUND_ONLY');assert.equal(r.execution,'DENIED');});
 test('independent qualification rejects mismatched external tree',t=>{const f=fixture(t);assert.throws(()=>verifyAdminitPackageQualified({...f,expectedSourceTree:'c'.repeat(40)}),/external source tree mismatch/);});
+
+test('package CLI refuses missing external source tree',async t=>{
+ const {spawnSync}=await import('node:child_process');
+ const f=fixture(t);
+ const cli=new URL('../scripts/adminit-containment/package.mjs',import.meta.url);
+ const r=spawnSync(process.execPath,[cli.pathname,f.directory,f.expectedManifestSha256,f.expectedSourceHead],{encoding:'utf8'});
+ assert.equal(r.status,2);
+ assert.match(r.stderr,/BLOCKED/);
+});
