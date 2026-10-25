@@ -1,3 +1,4 @@
+import {gitObjectId} from './source-identity.mjs';
 import {verifyReceiptOutput} from './artifacts.mjs';
 // Strict shape validation only; never authenticates a runner or proof kernel.
 const hex=/^[0-9a-f]{64}$/;
@@ -6,7 +7,7 @@ const exact=(x,ks)=>Object.keys(x).length===ks.length&&ks.every(k=>Object.hasOwn
 export function validateReceipt(receipt){
  if(!plain(receipt)||!exact(receipt,['schemaVersion','taskId','attempt','sourceCommit','inputHashes','outputHash','toolchainHash','result','metrics']))throw Error('INVALID_RECEIPT');
  if(receipt.schemaVersion!==1||typeof receipt.taskId!=='string'||!/^[-a-zA-Z0-9_]{1,80}$/.test(receipt.taskId)||!Number.isSafeInteger(receipt.attempt)||receipt.attempt<1||receipt.attempt>2)throw Error('INVALID_RECEIPT');
- if(![receipt.sourceCommit,receipt.outputHash,receipt.toolchainHash].every(x=>typeof x==='string'&&hex.test(x)))throw Error('INVALID_RECEIPT');
+ if(!gitObjectId(receipt.sourceCommit)||![receipt.outputHash,receipt.toolchainHash].every(x=>typeof x==='string'&&hex.test(x)))throw Error('INVALID_RECEIPT');
  if(!Array.isArray(receipt.inputHashes)||receipt.inputHashes.length>32||!receipt.inputHashes.every(x=>typeof x==='string'&&hex.test(x)))throw Error('INVALID_RECEIPT');
  if(!['PASS','FAIL','BLOCKED'].includes(receipt.result))throw Error('INVALID_RECEIPT');
  const m=receipt.metrics;

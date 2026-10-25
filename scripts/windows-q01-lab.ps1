@@ -75,7 +75,8 @@ function Invoke-Q01WindowsLab {
     }
     # Explicit switch is a mechanical guard, never proof of user authorization.
     # A process-tree kill based on a PID has a reuse race on Windows. Until an
-    # inherited kill-on-close Job Object is available, fail closed before mkdir.
+    # independently accepted kill-on-close Job Object is available, fail closed before mkdir.
+    # Dormant WindowsJobContainment.cs is preparation, not accepted execution support.
     throw 'execution containment unavailable: BLOCKED; Windows Job Object ownership and hard timeout are required before -Execute can run'
 }
 if ($MyInvocation.InvocationName -ne '.') {

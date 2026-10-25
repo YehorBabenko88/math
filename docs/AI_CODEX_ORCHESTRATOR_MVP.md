@@ -72,3 +72,9 @@ The registry now inspects `PRAGMA table_info`, `PRAGMA index_list`, `PRAGMA inde
 
 ## First-open serialization prototype
 Registry schema creation and structural validation now run within `BEGIN IMMEDIATE` / `COMMIT`, rolling back on error. This protects the local create/inspect sequence from concurrent SQLite writers while the lock is held, but does not establish cross-process Q01 closure, crash durability, untrusted database file safety or production readiness. A true simultaneous-process stress suite and fault injection are still required.
+
+## Source identity contract clarification (issue 20)
+
+`sourceCommit` is a lowercase full Git object ID: 40 hex for SHA1-format repositories (including this repository), or 64 hex for SHA256-format repositories. Its length identifies the object format; never pad, hash or normalize one into another. The existing 64-character shape remains accepted for compatibility. Artifact, input, receipt, image and toolchain digests remain SHA256 with exactly 64 hex characters.
+
+These pure validators check syntax and exact equality only. A syntactically valid Git ID does not prove that a commit exists or belongs to this repository. A future trusted intake must independently resolve the repository/object format/commit/tree and bind those to execution evidence. Outputs stay SELF_REPORTED_UNATTESTED or UNATTESTED_CLAIM; this compatibility correction grants no verification, execution or publication authority.

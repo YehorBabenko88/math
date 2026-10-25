@@ -1,3 +1,4 @@
+import {inertRecord} from './inert-record.mjs';
 // Experimental v2 one-shot verifier. Never assigns VERIFIED.
 import {randomBytes,createPublicKey,verify} from 'node:crypto';
 import {FileReplayLedger} from './file-replay-ledger.mjs';
@@ -5,6 +6,7 @@ const dig=x=>typeof x==='string'&&/^sha256:[a-f0-9]{64}$/.test(x);
 const fields=['schema_version','verdict','kernel_id','kernel_version','request_id','theorem_revision','theorem_content_hash','proof_revision','proof_content_hash','context_hash'];
 const canon=x=>JSON.stringify(Object.fromEntries(fields.map(k=>[k,x[k]])));
 export function createVerificationRequestV2(v1) {
+ v1=inertRecord(v1);
  if(!v1||v1.schema_version!=='kg.verify-request.v1'||v1.requested_status!=='PENDING'||!fields.slice(5).every(k=>dig(v1[k]))) throw Error('invalid v1 request');
  return Object.freeze({...v1,schema_version:'kg.verify-request.v2',request_id:randomBytes(32).toString('hex')});
 }
@@ -18,6 +20,7 @@ export class OneShotKernelVerifier {
   this.#id=kernel_id;this.#version=kernel_version;
  }
  async assessPersisted(request,result) {
+  request=inertRecord(request);result=inertRecord(result);
   const assessment=this.#validateSignature(request,result);
   const accepted=await this.#consume(request.request_id);
   if(accepted!==true) throw Error('replayed request');

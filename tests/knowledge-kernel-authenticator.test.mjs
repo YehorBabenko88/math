@@ -20,3 +20,18 @@ test('tampering, kernel version mismatch and malformed signature fail',()=>{
  assert.throws(()=>assessKernelResult(request,{...original,kernel_version:'2'},auth),/untrusted/);
  assert.throws(()=>assessKernelResult(request,{...original,attestation:'invalid'},auth),/untrusted/);
 });
+test('signed result cannot change theorem identity between binding and authentication',()=>{
+ const other={...request,theorem_revision:h('f')},hostile=signed(result);let reads=0;
+ Object.defineProperty(hostile,'theorem_revision',{enumerable:true,get(){return ++reads===1?other.theorem_revision:request.theorem_revision;}});
+ assert.throws(()=>assessKernelResult(other,hostile,auth),/inert data/);
+ assert.equal(reads,0);
+});
+test('kernel result rejects request and result proxies without invoking traps',()=>{
+ for(const target of ['request','result']){let calls=0;const proxy=new Proxy(target==='request'?request:signed(result),{get(){calls++;throw Error('trap called');},getPrototypeOf(){calls++;throw Error('trap called');}});
+ assert.throws(()=>assessKernelResult(target==='request'?proxy:request,target==='result'?proxy:signed(result),auth),/inert data/);assert.equal(calls,0);}
+});
+test('authenticator sees frozen retained result rather than caller-owned input',()=>{
+ const original=signed(result);let frozen=false;
+ const assessment=assessKernelResult(request,original,value=>{frozen=Object.isFrozen(value);return auth(value);});
+ assert.equal(frozen,true);assert.equal(assessment.theorem_revision,request.theorem_revision);
+});
