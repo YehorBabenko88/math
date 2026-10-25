@@ -4,6 +4,7 @@ on:
     paths:
       - 'src/book-ingestion/queue.mjs'
       - 'tests/qa-q01-sentinel-contract.test.mjs'
+      - 'tests/qa-q01-orphan-runtime.test.mjs'
       - '.github/workflows/qa-q01-sentinel.yml'
   workflow_dispatch:
 permissions:
@@ -25,7 +26,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Run sentinel contract (synthetic, not physical)
-        run: node --test tests/qa-q01-sentinel-contract.test.mjs
+        run: node --test tests/qa-q01-sentinel-contract.test.mjs tests/qa-q01-orphan-runtime.test.mjs
   coverage:
     name: Require all sentinel cells
     if: always()
