@@ -1,12 +1,12 @@
-// Offline source-object binding contract. No Git I/O, attestation, or publication.
-import {gitObjectId} from './source-identity.mjs';
-const sha1=/^[a-f0-9]{40}$/,sha256=/^[a-f0-9]{64}$/;
-export function validatePinnedGitSource({repository,objectFormat,commit,tree}={}){
+// Strict source identity syntax for the known SHA1-format math repository.
+// Never resolves Git objects or grants execution, proof or publication authority.
+const sha1=/^[a-f0-9]{40}$/;
+export function validatePinnedGitSource(value){
+ if(value===null||typeof value!=='object'||Array.isArray(value)||Object.getPrototypeOf(value)!==Object.prototype)throw Error('INVALID_SOURCE');
+ if(Object.keys(value).length!==4||!['repository','objectFormat','commit','tree'].every(k=>Object.hasOwn(value,k)))throw Error('INVALID_SOURCE');
+ const {repository,objectFormat,commit,tree}=value;
  if(repository!=='YehorBabenko88/math')throw Error('REPOSITORY_MISMATCH');
- // This repository is currently Git SHA-1 format. SHA-256 objects require a separate verified repository identity.
  if(objectFormat!=='sha1')throw Error('INVALID_OBJECT_FORMAT');
- if(!gitObjectId(commit)||!gitObjectId(tree))throw Error('INVALID_GIT_OBJECT');
- const pattern=objectFormat==='sha1'?sha1:sha256;
- if(!pattern.test(commit)||!pattern.test(tree))throw Error('GIT_OBJECT_FORMAT_MISMATCH');
+ if(typeof commit!=='string'||typeof tree!=='string'||!sha1.test(commit)||!sha1.test(tree))throw Error('GIT_OBJECT_FORMAT_MISMATCH');
  return Object.freeze({repository,objectFormat,commit,tree,trust:'UNRESOLVED_OBJECT_IDS'});
 }
