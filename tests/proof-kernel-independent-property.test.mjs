@@ -108,3 +108,17 @@ test('negative: nested live Proxy is rejected before any reflective trap runs',(
  })),/Invalid input/);
  assert.equal(traps,0);
 });
+
+test('property: independent truth-table oracle rejects non-entailment examples',()=>{
+ const candidates=[P,Q,R,imp(P,Q),imp(Q,R),imp(R,P),imp(P,P),imp(Q,Q)];
+ for(const a of candidates)for(const b of candidates){
+  const entailed=allTrueUnder(b,[a]);
+  const proof=assumption(0);
+  if(JSON.stringify(a)===JSON.stringify(b)){
+   assert.equal(entailed,true);
+   assert.equal(verifyImplicationProof({goal:b,assumptions:[a],proof}).accepted,true);
+  }else{
+   assert.throws(()=>verifyImplicationProof({goal:b,assumptions:[a],proof}));
+  }
+ }
+});
