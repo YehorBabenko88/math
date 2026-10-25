@@ -1,0 +1,40 @@
+name: PostgreSQL wait witness regression
+on:
+  push:
+    branches: [fix/pg-wait-witness-chain-20]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  witness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ['16', '18']
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_DB: math_universe_test
+          POSTGRES_USER: math_test
+          POSTGRES_PASSWORD: math_test_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U math_test -d math_universe_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MATH_UNIVERSE_TEST_DATABASE_URL: postgres://math_test:math_test_ci_only@127.0.0.1:5432/math_universe_test
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node --test tests/postgres-lease-clock-live.test.mjs
