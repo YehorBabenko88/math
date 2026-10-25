@@ -60,15 +60,30 @@ function Get-Q01SourceHash([string]$Checkout, [string]$Node) {
     if ($LASTEXITCODE -ne 0 -or $hash -notmatch '^[0-9a-f]{64}$') { throw 'source links/hash check BLOCKED' }
     return $hash
 }
+function Assert-Q01SafeNodeEnvironment {
+    if ($env:NODE_OPTIONS -or $env:NODE_PATH) { throw 'Node preloader environment BLOCKED; use a separately reviewed clean process' }
+}
+function Get-Q01TrackedSourceIdentity([string]$Checkout, [string]$ExpectedHead, [string]$Node) {
+    # Import only this trusted auditor kit, never JavaScript from the candidate.
+    $validator = Join-Path $PSScriptRoot 'verify-source-identity.mjs'
+    Assert-Q01NoReparse $validator
+    $js = 'const {pathToFileURL}=await import(''node:url'');process.env.GIT_OPTIONAL_LOCKS=''0'';const {verifySourceIdentity}=await import(pathToFileURL(process.argv[2]).href);process.chdir(process.argv[3]);console.log(verifySourceIdentity(process.argv[4]).trackedSourceSha256);'
+    $identity = & $Node --input-type=module -e $js 'q01-source-check' $validator $Checkout $ExpectedHead 2>$null
+    if ($LASTEXITCODE -ne 0 -or $identity -cnotmatch '^[0-9a-f]{64}$') { throw 'Unverified tracked source BLOCKED' }
+    return [string]$identity
+}
 function Invoke-Q01WindowsLab {
     $ErrorActionPreference = 'Stop'
+    Assert-Q01SafeNodeEnvironment
     Assert-Q01Preflight $Source $ExpectedHead
-    $node = (Get-Command node.exe -CommandType Application -ErrorAction Stop).Source
+    $node = @(Get-Command node.exe -CommandType Application -ErrorAction Stop)[0].Source
     Assert-Q01NoReparse $node
     $version = & $node --version
     if ($LASTEXITCODE -ne 0 -or $version -notmatch '^v(22|24)\.') { throw 'existing Node 22 or 24 required: BLOCKED' }
+    $trackedBefore = Get-Q01TrackedSourceIdentity $Source $ExpectedHead $node
     $before = Get-Q01SourceHash $Source $node
     Assert-Q01Unchanged $before (Get-Q01SourceHash $Source $node)
+    Assert-Q01Unchanged $trackedBefore (Get-Q01TrackedSourceIdentity $Source $ExpectedHead $node)
     if (-not $Execute) {
         Write-Output 'PREPARED (read-only): guards passed; execution requires separate explicit user permission and -Execute. No laboratory run performed.'
         return 0

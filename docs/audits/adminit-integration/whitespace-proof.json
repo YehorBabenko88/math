@@ -1,0 +1,7 @@
+{
+  "path": "tests/fixtures/windows-containment/NativeHarness.cs",
+  "oldSha256": "76d92b38006bc351c4abb957fe2e19a9fd053d0923b09445884caf43a5dae1d7",
+  "newSha256": "1aeab3620dd89a9861f7518e710624d06a7890e9931e3abdb5b59a68912dcfb0",
+  "normalizedEqual": true,
+  "hostedOnlyIdentical": true
+}

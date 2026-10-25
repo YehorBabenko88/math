@@ -11,6 +11,7 @@ namespace MathUniverse.Q01 {
   void CreateSuspended(string executable, string[] arguments, string directory, out IntPtr process, out IntPtr thread);
   void Assign(IntPtr job, IntPtr process); void Resume(IntPtr thread);
   uint Wait(IntPtr process, uint milliseconds); uint ExitCode(IntPtr process);
+  bool WaitJobEmpty(IntPtr job, uint milliseconds);
   void TerminateJob(IntPtr job); void TerminateProcess(IntPtr process); void Close(IntPtr handle);
  }
  public static class Containment {
@@ -45,7 +46,10 @@ namespace MathUniverse.Q01 {
     // Terminate descendants even when the root has exited. A failed assignment must
     // kill the still-suspended process by its owned handle, never by a reusable PID.
     try {
-     if (job!=IntPtr.Zero && assigned) native.TerminateJob(job);
+     if (job!=IntPtr.Zero && assigned) {
+      native.TerminateJob(job);
+      if (!native.WaitJobEmpty(job, CleanupMilliseconds)) throw new InvalidOperationException("job drain unconfirmed: BLOCKED");
+     }
     } finally {
      try {
       if (process!=IntPtr.Zero && !exited) {
@@ -86,6 +90,8 @@ namespace MathUniverse.Q01 {
   [DllImport("kernel32.dll",SetLastError=true)] static extern uint ResumeThread(IntPtr thread);
   [DllImport("kernel32.dll",SetLastError=true)] static extern uint WaitForSingleObject(IntPtr handle,uint milliseconds);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetExitCodeProcess(IntPtr process,out uint code);
+  [StructLayout(LayoutKind.Sequential)] struct Accounting { public long User,Kernel,PeriodUser,PeriodKernel; public uint Faults,Total,Active,Terminated; }
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool QueryInformationJobObject(IntPtr job,int kind,out Accounting info,uint size,IntPtr length);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool TerminateJobObject(IntPtr job,uint code);
   [DllImport("kernel32.dll",EntryPoint="TerminateProcess",SetLastError=true)] static extern bool KillProcess(IntPtr process,uint code);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool CloseHandle(IntPtr handle);
@@ -112,6 +118,17 @@ namespace MathUniverse.Q01 {
   public void Resume(IntPtr thread) { if(ResumeThread(thread)!=1) throw new Win32Exception("unexpected suspended thread count"); }
   public uint Wait(IntPtr process,uint milliseconds) { return WaitForSingleObject(process,milliseconds); }
   public uint ExitCode(IntPtr process) { uint code; Check(GetExitCodeProcess(process,out code)); return code; }
+  public bool WaitJobEmpty(IntPtr job,uint milliseconds) {
+   var clock=Stopwatch.StartNew();
+   do {
+    Accounting info;
+    Check(QueryInformationJobObject(job,1,out info,(uint)Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));
+    if (info.Active==0) return true;
+    long remaining=milliseconds-clock.ElapsedMilliseconds;
+    if (remaining<=0) return false;
+    System.Threading.Thread.Sleep((int)Math.Min(10,remaining));
+   } while (true);
+  }
   public void TerminateJob(IntPtr job) { Check(TerminateJobObject(job,2)); }
   public void TerminateProcess(IntPtr process) { Check(KillProcess(process,2)); }
   public void Close(IntPtr handle) { Check(CloseHandle(handle)); }

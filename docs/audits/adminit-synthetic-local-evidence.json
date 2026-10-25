@@ -1,0 +1,75 @@
+{
+  "schema": 2,
+  "base": "280096ab24ce4f32cdaf17bd4a928f66f4f2dbda",
+  "publication": "HASH_ONLY_FORWARD_REDACTION",
+  "retention": "Original byte-exact records retained locally and in original source history; forward redaction cannot erase earlier public Git history. Not independent attestation.",
+  "originalGitBlob": "51ab5cd13639fe07baf93643beb80d5d98cdeac0",
+  "originalDocumentSha256": "8e32a1fe345caedf88a85a269126d339d0d2abeda00567599473bf69e03c900b",
+  "files": [
+    {
+      "path": "contracts-red.tap",
+      "bytes": 3206,
+      "sha256": "18cbdda99d4bfb0d9d91dd0e0c2e642bba7a49c9039eca3188e703607aa6c289"
+    },
+    {
+      "path": "package-red.tap",
+      "bytes": 3390,
+      "sha256": "c2013381ac15c797892d46e961747a7fd9164c1db2acf445130e6a8a69b1c5cb"
+    },
+    {
+      "path": "native-policy-red.tap",
+      "bytes": 10327,
+      "sha256": "06191026e1f762f75e864c841c7416cc47f83cb54c833d07a6f1c1e87cb8b7be"
+    },
+    {
+      "path": "array-tree-red.tap",
+      "bytes": 2710,
+      "sha256": "2d015944a54ee20219ae631dd98b70133a692a216b412d4211d1e7faf9940e33"
+    },
+    {
+      "path": "build-input-red.tap",
+      "bytes": 4795,
+      "sha256": "474d37e36a3d98cd8e93ad1cb836bf7dfae79a0ce6f49e22c7622d0129b9c879"
+    },
+    {
+      "path": "review-node22.tap",
+      "bytes": 5701,
+      "sha256": "810d851e35a39d5c305cd005f3ec24bec13659ceb1994dbb8a484e9d274b0c07"
+    },
+    {
+      "path": "review-node24.tap",
+      "bytes": 5699,
+      "sha256": "ec27863d9d7d68afa103ae99b0ee4337be10f30a504b9f98d2d5ddd1651ac1b9"
+    },
+    {
+      "path": "build-input-green.tap",
+      "bytes": 1002,
+      "sha256": "b8c1975167096d5c77735dd4d22cf14cf57585cc16369b1c803d298c1c2c8cd5"
+    },
+    {
+      "path": "local-policy-green.txt",
+      "bytes": 104,
+      "sha256": "9378508c0b9df721fd17a939a6bb706eb06fb869dee5e1a7c010fd782010c91d"
+    },
+    {
+      "path": "review-compile.log",
+      "bytes": 47,
+      "sha256": "870aa736b9665f90ab32f7a3cf0f7616eb389f97d6d5c2af157a618d18e2709d"
+    },
+    {
+      "path": "acl-final-compile.log",
+      "bytes": 73,
+      "sha256": "3b2782a942d1a10c3d78e9cc6dda334b817eda5a46e2abd055e73e958c988b24"
+    },
+    {
+      "path": "lab-acl-red.tap",
+      "bytes": 2834,
+      "sha256": "0d824693072e37697036e82a93d86dacf253c2d9d07c2799d51a724fc1d1b648"
+    },
+    {
+      "path": "lab-acl-green.tap",
+      "bytes": 1880,
+      "sha256": "1eb95dd15e42c8750bc094c337760cd8c9b732e81022851fe962c80c04d9c26e"
+    }
+  ]
+}
