@@ -22,3 +22,6 @@ for(const phase of [1,2])test(`Q01: disappearing journal ENOENT is accepted at p
 
 for(const phase of [1,2])test(`Q01: oversized journal replacement rejected at phase ${phase}`,()=>{const r=probe({mode:'oversized',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);});
 for(const phase of [1,2])test(`Q01: access denial on re-stat rejected at phase ${phase}`,()=>{const r=probe({mode:'denied',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.revalidated,true);assert.equal(r.receipt.reads,phase+1);});
+
+for(const phase of [1,2])test(`Q01: detached primary database rejected at phase ${phase}`,()=>{const r=probe({target:'queue.sqlite',phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.links,0);assert.equal(r.receipt.reads,phase);});
+for(const target of ['queue.sqlite-wal','queue.sqlite-shm'])for(const phase of [1,2])test(`Q01: detached ${target} rejected at phase ${phase}`,()=>{const r=probe({target,phase});assert.equal(r.ok,false);assert.equal(r.kind,'Invalid queue directory');assert.equal(r.receipt.links,0);assert.equal(r.receipt.reads,phase);});
