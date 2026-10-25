@@ -93,3 +93,18 @@ test('negative: accessors, cycles and prototype control keys fail closed',()=>{
   assert.throws(()=>verifyImplicationProof(doc));
  }
 });
+
+test('negative: nested live Proxy is rejected before any reflective trap runs',()=>{
+ let traps=0;
+ const proxy=new Proxy(P,{
+  getPrototypeOf(){traps++;throw Error('proxy trap executed');},
+  ownKeys(){traps++;throw Error('proxy trap executed');},
+  getOwnPropertyDescriptor(){traps++;throw Error('proxy trap executed');}
+ });
+ assert.throws(()=>verifyImplicationProof({goal:imp(proxy,proxy),proof:intro(P,assumption(0))}),/Invalid input/);
+ assert.equal(traps,0);
+ assert.throws(()=>verifyImplicationProof(new Proxy({goal:P,proof:assumption(0)},{
+  getPrototypeOf(){traps++;throw Error('proxy trap executed');}
+ })),/Invalid input/);
+ assert.equal(traps,0);
+});
