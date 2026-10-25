@@ -17,7 +17,11 @@ export function lstatSync(path,...args){
  if(detached&&reads===c.phase+1){
   if(c.mode==='persistent')return detached;
   if(c.mode==='denied')throw Object.assign(Error('Synthetic access denial'),{code:'EACCES'});
-  if(c.mode==='symlink')return {nlink:1,size:0,isFile:()=>false,isSymbolicLink:()=>true};
+  if(c.mode==='symlink'){
+   // Exercise the actual filesystem object, not a synthetic Stats shape.
+   fs.symlinkSync(join(c.directory,'.replacement-target'),path);
+   return fs.lstatSync(path,...args);
+  }
  }
  return fs.lstatSync(path,...args);
 }
