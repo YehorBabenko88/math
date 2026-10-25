@@ -91,3 +91,12 @@ assumption indices. Both must fail closed regardless of the AI-proposed goal.
 Added canonical JSON negative tests for `-0`, `0.0`, and trailing
 whitespace. These tests do not claim to exhaust all untrusted input
 representations. They do not introduce any new rule or change a trust status.
+
+## Proof-rule injection and conditional laundering
+
+Added negative cases for unrecognized rule names `axiom`, `admit`,
+`sorry`, `trust_me`, `rewrite`, `cut`, and `eval`, as well as
+unrecognized proof fields. Added 120 seeded conditional modus-ponens
+documents checked through the JSON and expected-goal closed-theorem APIs.
+None may be promoted to a closed theorem or project-wide VERIFIED.
+These are bounded regressions, not an exhaustive security proof.
