@@ -82,8 +82,8 @@ jobs:
               throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
             }
             @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
-            Get-Content "$build/bootstrap-stdout.txt"
-            Get-Content "$build/bootstrap-stderr.txt"
+            # Do not echo raw bootstrap streams into public Actions logs.
+            Write-Output "HOSTED_BOOTSTRAP_EXIT_RECORDED"
             if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
           } finally {
             $owner.Dispose()
