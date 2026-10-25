@@ -30,3 +30,6 @@ EXECUTED: GitHub PR/CI and source inspection, code and negative tests authored i
 NOT_RUN: local Node matrix, actual ZIP extraction, native/physical ADMINIT, production.
 PASS: static presence of exact inventory, path checks and SHA256 code.
 BLOCKED: end-to-end provenance, actual ZIP safety and execution acceptance.
+
+## CLI qualification correction
+The first strict helper was opt-in while the direct `package.mjs` CLI still accepted a missing external tree. The CLI now requires four user arguments including EXPECTED_SOURCE_TREE and calls `verifyAdminitPackageQualified`, failing closed otherwise. A subprocess regression verifies missing-tree exit code 2. Existing legacy library callers remain unqualified and MUST NOT be treated as independently accepted evidence. Update all hosted invocations before declaring CI PASS; no Execute authority is introduced.
