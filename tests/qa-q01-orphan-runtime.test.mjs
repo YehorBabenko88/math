@@ -42,3 +42,16 @@ test('Q01: existing metadata-only schema is rejected without auto-repair',async 
   assert.equal(check.prepare('SELECT count(*) AS n FROM queue_metadata').get().n,1);
  }finally{check.close();}
 });
+
+test('Q01: malformed metadata version is rejected without normalization',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'q01-invalid-version-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const db=new DatabaseSync(join(directory,'queue.sqlite'));
+ db.exec('CREATE TABLE queue_metadata(singleton INTEGER PRIMARY KEY,version INTEGER,maxAttempts INTEGER)');
+ db.exec('INSERT INTO queue_metadata VALUES(1,99,3)');
+ db.exec('CREATE TABLE jobs(id TEXT PRIMARY KEY)');
+ db.close();
+ await assert.rejects(openBookQueue({directory}),/Invalid queue state/);
+ const check=new DatabaseSync(join(directory,'queue.sqlite'),{readOnly:true});
+ try{assert.equal(check.prepare('SELECT version FROM queue_metadata WHERE singleton=1').get().version,99);}finally{check.close();}
+});
