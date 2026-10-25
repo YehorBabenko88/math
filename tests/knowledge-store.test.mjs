@@ -156,3 +156,19 @@ test('proxy candidate and accessor provenance are rejected without executing tra
  assert.equal(graph.history('proxy').length,0);
  assert.equal(graph.history('accessor').length,0);
 });
+
+test('proxy edge and getter edge are rejected without modifying graph',()=>{
+ const graph=new CandidateGraph();
+ const a=graph.addCandidate(candidate('edge-proxy-a','A')).revision_id;
+ const b=graph.addCandidate(candidate('edge-proxy-b','B')).revision_id;
+ let invoked=0;
+ const raw={type:'DEPENDS_ON',from_revision:a,to_revision:b};
+ const proxy=new Proxy(raw,{get(){invoked++;throw Error('edge trap');}});
+ assert.throws(()=>graph.addEdge(proxy),/invalid data record/);
+ assert.equal(invoked,0);
+ const getter={...raw};
+ Object.defineProperty(getter,'type',{enumerable:true,get(){invoked++;throw Error('edge getter');}});
+ assert.throws(()=>graph.addEdge(getter),/invalid data record/);
+ assert.equal(invoked,0);
+ assert.deepEqual(graph.dependencies(a),[]);
+});
