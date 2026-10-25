@@ -44,3 +44,6 @@ Pinned-source validation now requires an exact four-field own-property plain rec
 
 ## Accessor safety hardening
 The pinned-source validator now rejects accessor-backed and non-enumerable fields before reading untrusted values. Two regression cases exercise getter non-execution and hidden fields. This guards the pure contract against a caller-supplied getter but does not defend against hostile JavaScript Proxy traps in the same process; untrusted data must enter through a bounded inert serialization boundary. Exact-HEAD CI is required for acceptance.
+
+## Symbol-key metadata hardening
+The pinned-source validator uses `Reflect.ownKeys` over a single descriptor snapshot to reject symbol-keyed metadata, including hidden trust claims. The helper is still not a security boundary for arbitrary Proxy objects and does not resolve or authenticate Git objects. New negative regression added; hosted exact-HEAD status pending.
