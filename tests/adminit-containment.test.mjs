@@ -52,3 +52,11 @@ test('ADMINIT physical execution guard remains closed despite watchdog changes',
  assert.match(workflow,/independent whole-fixture watchdog expired: BLOCKED, never PASS/);
  assert.doesNotMatch(workflow,/verify-adminit\.ps1[^\n]*-Execute/);
 });
+
+test('five hosted native scenarios remain mandatory and synthetic-only',()=>{
+ const verifier=read('scripts/adminit-containment/verify-native.mjs');
+ assert.match(verifier,/\['normal','timeout','crash','assignment','cleanup'\]/);
+ assert.match(verifier,/r\[key\]\.length===cases\.length/);
+ assert.match(verifier,/c\.status==='PASS'/);
+ assert.match(verifier,/BLOCKED_PENDING_ISOLATION_REVIEW/);
+});
