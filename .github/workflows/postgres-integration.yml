@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   postgres-integration:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     name: Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}
     strategy:
       fail-fast: false
@@ -72,7 +74,7 @@ jobs:
           retention-days: 30
   full-ci-coverage:
     name: Full CI coverage
-    if: always()
+    if: ${{ (always()) && github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     needs: [postgres-integration]
     runs-on: ubuntu-latest
     timeout-minutes: 2

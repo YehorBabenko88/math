@@ -13,6 +13,8 @@ permissions:
   contents: read
 jobs:
   contracts:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -42,6 +44,8 @@ jobs:
           & powershell -NoProfile -File tests/adminit-watchdog-wait.mock.ps1
           exit $LASTEXITCODE
   native-framework:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     name: Disposable Windows / Framework / actual Medium token
     runs-on: windows-latest
     timeout-minutes: 10

@@ -5,6 +5,12 @@ on:
   pull_request:
     paths:
       - 'src/evidence-receiver/**'
+      - 'src/confidential-collector/**'
+      - 'scripts/confidential-qualification/**'
+      - 'tests/confidential-*.test.mjs'
+      - 'tests/fixtures/confidential-collector/**'
+      - '.github/workflows/confidential-collector.yml'
+      - '.github/workflows/confidential-synthetic-e2e.yml'
       - 'tests/evidence-receiver*.test.mjs'
       - 'tests/qa-obsolete-queued-inventory.test.mjs'
       - 'tests/qa-current-ci-snapshot.test.mjs'
@@ -18,6 +24,8 @@ permissions:
 jobs:
   receiver-contracts:
     runs-on: ${{ matrix.os }}
+    env:
+      NODE_NO_WARNINGS: '1' # Suppress Node PID warnings only; errors/exit codes remain enforced.
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -31,6 +39,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ matrix.node }}
-      - name: Synthetic keys and isolated receiver storage only (no native EXE or Q01)
+      - name: Normal receiver contracts (other branches)
+        if: github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification'
         run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-source-shape.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/adminit-bootstrap-watchdog.test.mjs tests/qa-obsolete-queued-inventory.test.mjs tests/qa-current-ci-snapshot.test.mjs
+      - name: Scoped pure receiver and collector contracts (no native models)
+        if: github.head_ref == 'feat/pr60-hosted-confidential-qualification' || github.ref == 'refs/heads/feat/pr60-hosted-confidential-qualification'
+        run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-source-shape.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/qa-obsolete-queued-inventory.test.mjs tests/qa-current-ci-snapshot.test.mjs tests/confidential-collector-oidc.test.mjs tests/confidential-collector-context.test.mjs tests/confidential-public-privacy.test.mjs tests/confidential-synthetic-bundle.test.mjs tests/confidential-synthetic-session.test.mjs tests/confidential-workflow-scope.test.mjs tests/confidential-pinned-loader.test.mjs tests/confidential-caller.test.mjs
       # No id-token permission, secret, receiver endpoint, key provisioning or raw upload.

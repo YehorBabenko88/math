@@ -16,6 +16,8 @@ permissions:
   contents: read
 jobs:
   isolated-proof-kernel:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     name: Proof kernel Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:

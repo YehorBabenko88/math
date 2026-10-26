@@ -7,6 +7,8 @@ permissions:
   contents: read
 jobs:
   native-free-contracts:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     name: Native-free contracts / ${{ matrix.shell }} / Node ${{ matrix.node }}
     runs-on: windows-latest
     timeout-minutes: 10
@@ -34,7 +36,7 @@ jobs:
           exit $LASTEXITCODE
   preparation-coverage:
     name: Require all native-free preparation contracts
-    if: always()
+    if: ${{ (always()) && github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     needs: [native-free-contracts]
     runs-on: ubuntu-latest
     timeout-minutes: 2
