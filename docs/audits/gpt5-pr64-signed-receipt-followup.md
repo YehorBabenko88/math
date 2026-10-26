@@ -39,3 +39,6 @@ A valid Ed25519 signature authenticates the signing key, not the independent tru
 
 ## Detached immutable projection
 Follow-up identified that shallow-freezing the caller-owned receipt still aliases the verified return object with untrusted input. The verifier now returns `Object.freeze({...result.receipt})`, a detached immutable flat projection. The strict receipt schema contains only scalar fields; a regression mutates the original input after verification and confirms the returned projection remains CLOSED/OPEN as required. This does not establish trusted expected source identity or production authorization.
+
+## Receiver projection parity
+The operational `verifyReceiverReceipt` also returned the caller's receipt object after freezing it. It now returns a detached frozen scalar projection, matching synthetic verifier behavior. Regression changes the signed input's q01 after verification and confirms the verified projection remains OPEN. No signature bypass or execution authorization is claimed. Exact-HEAD tests remain pending.
