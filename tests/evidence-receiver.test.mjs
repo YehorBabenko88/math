@@ -15,3 +15,15 @@ test('synthetically signed receiver receipts cannot inject or change trust gates
   assert.throws(()=>verifyReceiverReceipt(signed,signer.publicKey),/BLOCKED/);
  }
 });
+
+test('verified receiver receipt is detached from mutable signed input',async t=>{
+ const f=await fixture(t),r=await f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)});
+ const {verifyReceiverReceipt}=await import('../src/evidence-receiver/receiver.mjs');
+ const signed=structuredClone(r);
+ const verified=verifyReceiverReceipt(signed,signer.publicKey);
+ assert.notStrictEqual(verified,signed.receipt);
+ assert.equal(Object.isFrozen(verified),true);
+ signed.receipt.q01='CLOSED';
+ assert.equal(verified.q01,'OPEN');
+ assert.throws(()=>{verified.q01='CLOSED';},TypeError);
+});
