@@ -1,0 +1,58 @@
+name: G0 Token Combined Pure Contracts
+on:
+  pull_request:
+    paths:
+      - 'scripts/adminit-containment/WindowsTokenObservation.cs'
+      - 'tests/adminit-token-admin-flags-regression.test.mjs'
+      - 'tests/adminit-token-compile.test.mjs'
+      - 'tests/adminit-token-faults.test.mjs'
+      - 'tests/fixtures/token-cleanup/FakeNative.cs'
+      - '.github/workflows/g0-token-combined-pure.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pure-node:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Pure synthetic token policy, ABI arithmetic and source guards
+        run: node --test tests/adminit-token-admin-flags-regression.test.mjs tests/adminit-token-contract.test.mjs tests/adminit-token-wiring.test.mjs
+  fake-managed:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: C# pure policy and fake P/Invoke only (no real token query)
+        run: node --test tests/adminit-token-compile.test.mjs tests/adminit-token-faults.test.mjs
+  coverage:
+    if: always()
+    needs: [pure-node, fake-managed]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every matrix job success, never skipped
+        env:
+          PURE: ${{ needs.pure-node.result }}
+          FAKE: ${{ needs.fake-managed.result }}
+        run: test "$PURE" = success && test "$FAKE" = success
