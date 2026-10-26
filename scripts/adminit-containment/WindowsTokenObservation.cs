@@ -25,7 +25,7 @@ namespace MathUniverse.G0 {
   }
   // -1 means malformed/ambiguous admin group evidence; never a non-admin PASS.
   public static int AdminState(uint matches,uint attributes) {
-   if(matches>1 || (matches==0 && attributes!=0) || ((attributes & 4U)!=0 && (attributes & 16U)!=0))return -1;
+   if(matches>1 || (matches==0 && attributes!=0) || (attributes & ~0x0000001FU)!=0 || ((attributes & 4U)!=0 && (attributes & 16U)!=0))return -1;
    return matches==1 && (attributes & 4U)!=0?1:0;
   }
   public static TokenObservation Evaluate(byte[] sid, uint attributes, uint elevation, uint type, bool admin, bool stable) {
