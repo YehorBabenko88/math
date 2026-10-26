@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace MathUniverse.G0 {
@@ -55,40 +56,46 @@ namespace MathUniverse.G0 {
    internal QueryBuffer(IntPtr token,int kind) {
     uint n; bool first=GetTokenInformation(token,kind,IntPtr.Zero,0,out n);
     if(first || Marshal.GetLastWin32Error()!=122 || n==0 || n>65536) throw new Blocked("E_QUERY");
-    Length=(int)n; Pointer=Marshal.AllocHGlobal(Length);
+    Length=(int)n; Pointer=Marshal.AllocHGlobal(Length);if(Pointer==IntPtr.Zero)throw new Blocked("E_QUERY");
     try {
      for(int i=0;i<Length;i++) Marshal.WriteByte(Pointer,i,0);
      uint actual;
      if(!GetTokenInformation(token,kind,Pointer,n,out actual) || actual!=n) throw new Blocked("E_QUERY");
     } catch { Dispose(); throw; }
    }
-   public void Dispose(){if(Pointer!=IntPtr.Zero){for(int i=0;i<Length;i++)Marshal.WriteByte(Pointer,i,0);Marshal.FreeHGlobal(Pointer);Pointer=IntPtr.Zero;}}
+   public void Dispose(){if(Pointer!=IntPtr.Zero){IntPtr p=Pointer;Pointer=IntPtr.Zero;try{for(int i=0;i<Length;i++)Marshal.WriteByte(p,i,0);}finally{Marshal.FreeHGlobal(p);}}}
+  }
+  static void CloseOwned(IntPtr handle) {
+   try{if(!CloseHandle(handle))throw new Blocked("E_CLOSE");}catch{throw new Blocked("E_CLOSE");}
   }
   static void NoImpersonation() {
    IntPtr threadToken;
    if(OpenThreadToken(GetCurrentThread(),TOKEN_QUERY,true,out threadToken)) {
     if(threadToken==IntPtr.Zero || threadToken==new IntPtr(-1)) throw new Blocked("E_QUERY");
-    if(!CloseHandle(threadToken)) throw new Blocked("E_CLOSE");
+    CloseOwned(threadToken);
     throw new Blocked("E_IMPERSONATION");
    }
    if(Marshal.GetLastWin32Error()!=1008) throw new Blocked("E_QUERY");
   }
-  static byte[] Statistics(IntPtr token) {
+  static byte[] Own(List<byte[]> owned,int size) {
+   byte[] bytes=new byte[size];try{owned.Add(bytes);return bytes;}catch{Array.Clear(bytes,0,bytes.Length);throw;}
+  }
+  static byte[] Statistics(IntPtr token,List<byte[]> owned) {
    using(QueryBuffer q=new QueryBuffer(token,TokenStatistics)) {
     // TOKEN_STATISTICS: two LUIDs, LARGE_INTEGER, six DWORDs, ModifiedId LUID.
     if(q.Length!=56) throw new Blocked("E_FORMAT");
-    byte[] result=new byte[16];Marshal.Copy(q.Pointer,result,0,8);Marshal.Copy(IntPtr.Add(q.Pointer,48),result,8,8);return result;
+    byte[] result=Own(owned,16);Marshal.Copy(q.Pointer,result,0,8);Marshal.Copy(IntPtr.Add(q.Pointer,48),result,8,8);return result;
    }
   }
-  static byte[] CurrentStatistics() {
+  static byte[] CurrentStatistics(List<byte[]> owned) {
    IntPtr current;
    if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,out current) || current==IntPtr.Zero || current==new IntPtr(-1))throw new Blocked("E_OPEN");
-   try {return Statistics(current);}finally{if(!CloseHandle(current))throw new Blocked("E_CLOSE");}
+   try {return Statistics(current,owned);}finally{CloseOwned(current);}
   }
   static uint Dword(IntPtr token,int kind) {
    using(QueryBuffer q=new QueryBuffer(token,kind)){if(q.Length!=4)throw new Blocked("E_FORMAT");return unchecked((uint)Marshal.ReadInt32(q.Pointer));}
   }
-  static byte[] Integrity(IntPtr token,out uint attributes) {
+  static byte[] Integrity(IntPtr token,List<byte[]> owned,out uint attributes) {
    using(QueryBuffer q=new QueryBuffer(token,TokenIntegrityLevel)) {
     int header=Marshal.SizeOf(typeof(SidAttributes));
     if(q.Length<header+12)throw new Blocked("E_FORMAT");
@@ -98,7 +105,7 @@ namespace MathUniverse.G0 {
     // Never dereference a SID pointer outside the returned, fully bounded buffer.
     if(offset<header || offset>q.Length-12)throw new Blocked("E_FORMAT");
     attributes=unchecked((uint)Marshal.ReadInt32(q.Pointer,IntPtr.Size));
-    byte[] bytes=new byte[12];Marshal.Copy(sid,bytes,0,12);return bytes;
+    byte[] bytes=Own(owned,12);Marshal.Copy(sid,bytes,0,12);return bytes;
    }
   }
   static bool AdminMembership(IntPtr token) {
@@ -125,18 +132,22 @@ namespace MathUniverse.G0 {
   }
   public static TokenObservation Observe() {
    if(Environment.OSVersion.Platform!=PlatformID.Win32NT)return TokenPolicy.Unavailable("E_OS");
-   IntPtr token=IntPtr.Zero;TokenObservation result=TokenPolicy.Unavailable("E_INTERNAL");
+   IntPtr token=IntPtr.Zero;var owned=new List<byte[]>(4);TokenObservation result=TokenPolicy.Unavailable("E_INTERNAL");
    try {
     NoImpersonation();
     if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,out token) || token==IntPtr.Zero || token==new IntPtr(-1))throw new Blocked("E_OPEN");
-    byte[] before=Statistics(token);uint attributes;byte[] sid=Integrity(token,out attributes);
+    byte[] before=Statistics(token,owned);uint attributes;byte[] sid=Integrity(token,owned,out attributes);
     uint elevation=Dword(token,TokenElevation),type=Dword(token,TokenType);bool admin=AdminMembership(token);
-    NoImpersonation();byte[] after=Statistics(token),current=CurrentStatistics();NoImpersonation();bool stable=true;
+    NoImpersonation();byte[] after=Statistics(token,owned),current=CurrentStatistics(owned);NoImpersonation();bool stable=true;
     for(int i=0;i<before.Length;i++)if(before[i]!=after[i] || before[i]!=current[i])stable=false;
     result=TokenPolicy.Evaluate(sid,attributes,elevation,type,admin,stable);
-    Array.Clear(current,0,current.Length);Array.Clear(before,0,before.Length);Array.Clear(after,0,after.Length);Array.Clear(sid,0,sid.Length);
    } catch(Blocked e) {result=TokenPolicy.Unavailable(e.Code);} catch {result=TokenPolicy.Unavailable("E_INTERNAL");}
-   finally {if(token!=IntPtr.Zero && token!=new IntPtr(-1) && !CloseHandle(token))result=TokenPolicy.Unavailable("E_CLOSE");}
+   finally {
+    bool cleanupFailed=false;foreach(byte[] bytes in owned){try{Array.Clear(bytes,0,bytes.Length);}catch{cleanupFailed=true;}}
+    try{if(token!=IntPtr.Zero && token!=new IntPtr(-1))CloseOwned(token);}
+    catch{result=TokenPolicy.Unavailable("E_CLOSE");}
+    if(cleanupFailed && result.code!="E_CLOSE")result=TokenPolicy.Unavailable("E_INTERNAL");
+   }
    return result;
   }
  }
