@@ -48,3 +48,11 @@ test('forced watchdog rejects missing and duplicate handle evidence',()=>{
   assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
  }
 });
+
+test('forced watchdog rejects swapped owner/root handle values with distinct PIDs',()=>{
+ const p=probe();
+ const tmp=p.owner.handle;p.owner.handle=p.root.handle;p.root.handle=tmp;
+ // A bare numeric handle value cannot independently authenticate process ownership.
+ // This remains a synthetic schema check, not proof of actual OS handle binding.
+ assert.equal(verifier.validateForcedWatchdogProbe(p).status,'BLOCKED');
+});
