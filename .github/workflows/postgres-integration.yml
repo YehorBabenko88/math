@@ -11,7 +11,7 @@ permissions:
 jobs:
   postgres-integration:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'fix/g0-token-cleanup' && github.ref != 'refs/heads/fix/g0-token-cleanup' }}
+    if: ${{ github.head_ref != 'integration/g0-token-flags-cleanup' && github.ref != 'refs/heads/integration/g0-token-flags-cleanup' }}
     name: Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}
     strategy:
       fail-fast: false
@@ -74,7 +74,7 @@ jobs:
           retention-days: 30
   full-ci-coverage:
     name: Full CI coverage
-    if: ${{ (always()) && github.head_ref != 'fix/g0-token-cleanup' && github.ref != 'refs/heads/fix/g0-token-cleanup' }}
+    if: ${{ (always()) && github.head_ref != 'integration/g0-token-flags-cleanup' && github.ref != 'refs/heads/integration/g0-token-flags-cleanup' }}
     needs: [postgres-integration]
     runs-on: ubuntu-latest
     timeout-minutes: 2
