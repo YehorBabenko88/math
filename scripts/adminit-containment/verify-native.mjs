@@ -5,7 +5,7 @@ const handle=x=>x&&Number.isSafeInteger(x.pid)&&x.pid>0&&typeof x.createdFileTim
 export function validateForcedWatchdogProbe(p){
  check(p?.scenario==='watchdog'&&p.status==='BLOCKED'&&p.reason==='forced independent owner watchdog expired','forced watchdog outcome, never PASS');
  check(p.waitResult===258&&p.liveBeforeExpiry===true&&p.outerCleanupConfirmed===true&&p.leafAssignedBeforeResume===true,'forced watchdog readiness/expiry/drain');
- check(handle(p.owner)&&handle(p.root)&&handle(p.leaf)&&new Set([p.owner.pid,p.root.pid,p.leaf.pid]).size===3,'forced watchdog process handle proof');
+ check(handle(p.owner)&&handle(p.root)&&handle(p.leaf)&&new Set([p.owner.pid,p.root.pid,p.leaf.pid]).size===3&&new Set([p.owner.handle,p.root.handle,p.leaf.handle]).size===3,'forced watchdog process handle proof');
  return Object.freeze({status:'BLOCKED',negativeProbeVerified:true,scope:'forced expiry is not native qualification PASS'});
 }
 export function validateNativeReport(r,{sourceHead,sourceTree}={}){
