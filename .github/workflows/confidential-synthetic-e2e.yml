@@ -12,10 +12,10 @@ permissions:
   contents: read
 jobs:
   qualification:
-    if: github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.head_ref != 'integration/pr69-g0-readiness' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       id-token: write
-    uses: YehorBabenko88/math/.github/workflows/confidential-collector.yml@4da26a3c83fb6adea4f83a9a58fb90c0cc4a3195
+    uses: YehorBabenko88/math/.github/workflows/confidential-collector.yml@53aff113b29746b8b393261a59889d344ac4b376
     with:
-      collector-sha: 4da26a3c83fb6adea4f83a9a58fb90c0cc4a3195
+      collector-sha: 53aff113b29746b8b393261a59889d344ac4b376

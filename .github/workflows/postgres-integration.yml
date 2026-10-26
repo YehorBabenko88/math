@@ -11,7 +11,7 @@ permissions:
 jobs:
   postgres-integration:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'fix/pr64-hosted-failure' && github.ref != 'refs/heads/fix/pr64-hosted-failure' }}
+    if: ${{ github.head_ref != 'integration/pr69-g0-readiness' && github.ref != 'refs/heads/integration/pr69-g0-readiness' }}
     name: Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}
     strategy:
       fail-fast: false
@@ -74,7 +74,7 @@ jobs:
           retention-days: 30
   full-ci-coverage:
     name: Full CI coverage
-    if: ${{ (always()) && github.head_ref != 'fix/pr64-hosted-failure' && github.ref != 'refs/heads/fix/pr64-hosted-failure' }}
+    if: ${{ (always()) && github.head_ref != 'integration/pr69-g0-readiness' && github.ref != 'refs/heads/integration/pr69-g0-readiness' }}
     needs: [postgres-integration]
     runs-on: ubuntu-latest
     timeout-minutes: 2
