@@ -22,3 +22,10 @@ test('watchdog rejects swapped, malformed and aliased handle identities',()=>{
   assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
  }
 });
+
+test('forced watchdog rejects aliased observer handles despite distinct PIDs',()=>{
+ for(const alias of [p=>p.leaf.handle=p.root.handle,p=>p.owner.handle=p.root.handle]){
+  const p=probe();alias(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
