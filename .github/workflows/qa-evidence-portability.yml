@@ -14,7 +14,7 @@ permissions:
 jobs:
   fixtures:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'fix/pr70-g0-observation-integrity' && github.ref != 'refs/heads/fix/pr70-g0-observation-integrity' }}
+    if: ${{ github.head_ref != 'fix/g0-csv-escaped-quotes' && github.ref != 'refs/heads/fix/g0-csv-escaped-quotes' }}
     name: Evidence fixtures / ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
