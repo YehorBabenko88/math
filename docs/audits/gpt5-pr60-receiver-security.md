@@ -24,3 +24,6 @@ P2: operational telemetry, receipt versioning and independent evidence retention
 EXECUTED: GitHub PR, source and CI metadata inspection, separate Draft code/test changes.
 NOT_RUN: new exact-head CI, local Node matrix, live OIDC, real secrets/transport, physical/production.
 Decision: NO-GO. Q01 OPEN. No merge/deployment/production operations.
+
+## Second pass — signed status value pinning
+The original verifier checked several closed-gate fields but did not enforce `attestationScope`, `nativeAcceptance`, `q01` or `schema` values after signature verification. A correctly signed but overclaiming receipt could return to callers. Added exact expected values and a synthetic signed-negative test for each. This is a schema/authorization-boundary hardening, not evidence of private-key compromise. Hosted exact-HEAD PASS remains unconfirmed.
