@@ -22,3 +22,45 @@ test('watchdog rejects swapped, malformed and aliased handle identities',()=>{
   assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
  }
 });
+
+test('forced watchdog rejects aliased observer handles despite distinct PIDs',()=>{
+ for(const alias of [p=>p.leaf.handle=p.root.handle,p=>p.owner.handle=p.root.handle]){
+  const p=probe();alias(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
+
+test('forced watchdog rejects non-unique handles even when creation FILETIMEs differ',()=>{
+ const p=probe();
+ p.owner.createdFileTime='134000000000000002';
+ p.leaf.createdFileTime='134000000000000003';
+ p.leaf.handle=p.owner.handle;
+ assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+});
+
+test('forced watchdog rejects missing and duplicate handle evidence',()=>{
+ for(const mutate of [
+  p=>delete p.owner.handle,
+  p=>p.root.handle='',
+  p=>p.leaf.handle=p.root.handle,
+ ]){
+  const p=probe();mutate(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
+
+test('forced watchdog schema cannot independently bind swapped owner/root handle values',()=>{
+ const p=probe();
+ const tmp=p.owner.handle;p.owner.handle=p.root.handle;p.root.handle=tmp;
+ // A bare numeric handle value cannot independently authenticate process ownership.
+ // This remains a synthetic schema check, not proof of actual OS handle binding.
+ assert.equal(verifier.validateForcedWatchdogProbe(p).status,'BLOCKED');
+ // The accepted negative-probe schema must never be promoted to native PASS.
+});
+
+test('forced watchdog rejects missing signalled process-handle confirmation',()=>{
+ for(const name of ['owner','root','leaf']){
+  const p=probe();delete p[name].signalled;
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
