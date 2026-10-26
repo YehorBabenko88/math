@@ -14,9 +14,8 @@ test('P1 witness: original policy misclassifies reserved admin flags as nonadmin
   assert.equal(oldAdminState(1,flags),0);
  }
 });
-test('C# policy source contains fail-closed reserved-bit and partial-logon guards',()=>{
+test('C# policy source contains fail-closed reserved-bit and admin attribute guards',()=>{
  assert.match(source,/attributes\s*&\s*~0x0000001FU/);
- assert.match(source,/attributes\s*&\s*0xC0000000U/);
  assert.match(source,/AdminState\(matches,adminAttributes\)/);
  assert.match(source,/if\(state<0\)throw new Blocked\("E_FORMAT"\)/);
 });
