@@ -3,6 +3,7 @@
 param([Parameter(Mandatory=$true)][string]$SourceCheckout)
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
+. (Join-Path $PSScriptRoot 'g0-readonly-helpers.ps1')
 $checks=@{path='UNKNOWN';acl='UNKNOWN';token='UNKNOWN';firewall='UNKNOWN'}
 $network=@{activeProfiles=$null;applicableRules=$null;effectiveIsolation='UNPROVEN';loopbackProtection='UNPROVEN'}
 function Test-NoReparseAncestors([string]$Path) {
@@ -21,12 +22,13 @@ try {
  if($source -ine $SourceCheckout -or $source.StartsWith('\\') -or $source.Substring(3).Contains(':') -or $source -match '~[0-9]' -or -not $source.StartsWith($root+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'blocked'}
  if(-not (Test-NoReparseAncestors $source)){throw 'blocked'}
  $checks.path='PASS'
+ . (Join-Path $PSScriptRoot 'g0-readonly-helpers.ps1')
  $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
  $principal=New-Object Security.Principal.WindowsPrincipal($identity)
  $allowed=@($identity.User.Value,'S-1-5-18','S-1-5-32-544')
  # Conservative grant inventory, not an effective-access proof. Deny ACEs never cancel a suspicious grant here.
  $aclStatus='PASS'
- foreach($path in @($root,$source)) {
+ foreach($path in @(Get-G0AclInspectionPaths $root $source)) {
   $acl=Get-Acl -LiteralPath $path -ErrorAction Stop
   $owner=$acl.GetOwner([Security.Principal.SecurityIdentifier]).Value
   if($allowed -notcontains $owner){$aclStatus='FAIL'}
@@ -47,8 +49,7 @@ try {
   $out=$process.StandardOutput.ReadToEndAsync();$err=$process.StandardError.ReadToEndAsync()
   if(-not $process.WaitForExit(5000)){try{$process.Kill()}catch{};throw 'blocked'}
   if($process.ExitCode -ne 0 -or $out.Result.Length -gt 65536 -or $err.Result.Length -ne 0){throw 'blocked'}
-  $labels=@([regex]::Matches($out.Result,'S-1-16-[0-9]+')|ForEach-Object {$_.Value}|Select-Object -Unique)
-  if($labels.Count -eq 1){if($labels[0] -eq 'S-1-16-8192' -and -not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){$checks.token='PASS'}else{$checks.token='FAIL'}}
+  $checks.token=Get-G0TokenObservation $out.Result ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
  } finally {$process.Dispose()}
  # ActiveStore inspection only. No connectivity/port probe and no database/service access.
  try {
