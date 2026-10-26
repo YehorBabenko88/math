@@ -49,10 +49,11 @@ test('forced watchdog rejects missing and duplicate handle evidence',()=>{
  }
 });
 
-test('forced watchdog rejects swapped owner/root handle values with distinct PIDs',()=>{
+test('forced watchdog schema cannot independently bind swapped owner/root handle values',()=>{
  const p=probe();
  const tmp=p.owner.handle;p.owner.handle=p.root.handle;p.root.handle=tmp;
  // A bare numeric handle value cannot independently authenticate process ownership.
  // This remains a synthetic schema check, not proof of actual OS handle binding.
  assert.equal(verifier.validateForcedWatchdogProbe(p).status,'BLOCKED');
+ // The accepted negative-probe schema must never be promoted to native PASS.
 });
