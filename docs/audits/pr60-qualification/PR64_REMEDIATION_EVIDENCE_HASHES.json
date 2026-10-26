@@ -1,0 +1,46 @@
+[
+  {
+    "file": "jose-red.tap",
+    "sha256": "48ab54201ed2d2b6d4de0ce5872c2f02ec76e7c4da2bb8a068e27e506e644381"
+  },
+  {
+    "file": "pr62-red.tap",
+    "sha256": "befbca9b32a9277fe702e9dbb8f53c18c7cd135b3063cff3397f2d7995712b36"
+  },
+  {
+    "file": "stage-preservation-red.tap",
+    "sha256": "8d1049c44e5284d3267e83543360e7e7d5168436fa354d8fd730950fd184fc62"
+  },
+  {
+    "file": "stages-red.tap",
+    "sha256": "29253ff6938f58ed00782f331787e8d2f42ecb7676d92ee0879640d703599d8f"
+  },
+  {
+    "file": "synthetic-receipt-red.tap",
+    "sha256": "c010b5afeaaaae2569183505247d6f6a302523074d8b467ea705c3d703228a9c"
+  },
+  {
+    "file": "jose-stages-green.tap",
+    "sha256": "c804bfbf38b34ce50092fdfeac4694e0475bc60cfca40d2f4f314c6fddfe10dc"
+  },
+  {
+    "file": "pr62-green.tap",
+    "sha256": "5fe72c6291d9a99a7d9bbaeae1687907f059fd7ceea6d8d32dabf99f65ae3f30"
+  },
+  {
+    "file": "stage-preservation-green.tap",
+    "sha256": "0621ace40afd336ba60c7217b112802b464d36c0d88cfb3da3248fcaecbd23fa"
+  },
+  {
+    "file": "synthetic-receipt-green.tap",
+    "sha256": "2526782f5816e2b5d2c116182b6822a025f169b5ab1d8f27d8697abedfc93411"
+  },
+  {
+    "file": "final-node22.tap",
+    "sha256": "f89c295f03fc6d0fa295db22b58f1dda2a2c8c30a8827f17004a14e8afc39351"
+  },
+  {
+    "file": "final-node24.tap",
+    "sha256": "b62950887cbfdeecc10eb9dd7dec3a6d8700c8675c27e4731afacc88091bd2cc"
+  }
+]
