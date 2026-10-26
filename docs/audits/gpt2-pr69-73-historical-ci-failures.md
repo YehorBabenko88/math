@@ -50,3 +50,12 @@ PR74 HEAD `28826d2800c16644a8db307d8cf2c653af0db1bc` triggered:
 This new failure is **not** a recurrence of the PR69 collector or PR70/71 PowerShell timeout. The inherited branch-scoped workflow exclusions violate the mandatory PostgreSQL CI contract when PR74 uses a different branch name. This is a real CI configuration/test-scope mismatch, not evidence of SQLite corruption or token behavior. The independent audit PR does not modify production code or claim CI qualification.
 
 Do not silence the mandatory contract test, relax filesystem guards or change Token API. A future integration plan must reconcile the branch-specific workflow scoping with mandatory full-matrix requirements on its own reviewed branch. No rerun or merge authorized.
+
+## Second follow-up on exact PR74 revision
+
+Head `64c6dfb945f2d7a559279934727c1aaab8c31fa4`:
+- [Validate Math Universe 40401466939](https://github.com/YehorBabenko88/math/actions/runs/40401466939), job 121848123786, failed mandatory PostgreSQL CI contract again. This is independent of historical PowerShell/OIDC failures.
+- [Windows Deployment Contracts 40401466915](https://github.com/YehorBabenko88/math/actions/runs/40401466915), job 121848123690 (powershell) failed `Parse scripts and run synthetic deployment fixtures`, exit 1. Log shows Node 13/13 PASS, Pester integrity fixture checks PASS, then `Invoke-WebRequest` at `scripts/install-pester-verified.ps1:27` returns HTTP 404 from PowerShell Gallery. `pwsh` sibling job 121848123648 succeeded. Classify as external package availability/CI dependency, not SQLite, Token API or proof of Pester semantic failure.
+- Q01 Queue Reliability was queued and PostgreSQL Integration was in progress when checked. Do not infer terminal conclusions.
+
+Do not alter pinned Pester download URL or relax checksum/allowlist checks without independent package provenance review and a deterministic RED/GREEN fixture. No blanket retry or bypass of failed mandatory coverage.
