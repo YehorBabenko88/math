@@ -1,2 +1,4 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
 test('qualification caller pins immutable collector with one least-privilege job',()=>{const s=readFileSync(new URL('../.github/workflows/confidential-synthetic-e2e.yml',import.meta.url),'utf8');assert.match(s,/uses: YehorBabenko88\/math\/\.github\/workflows\/confidential-collector\.yml@4da26a3c83fb6adea4f83a9a58fb90c0cc4a3195/);assert.match(s,/collector-sha: 4da26a3c83fb6adea4f83a9a58fb90c0cc4a3195/);assert.equal((s.match(/^  [a-z-]+:$/gm)||[]).filter(x=>x==='  qualification:').length,1);assert.doesNotMatch(s,/secrets:|workflow_dispatch|checkout@/);assert.match(s,/id-token: write/);});
+
+test('G0 integration does not request another issuer token while PR69 run is unresolved',()=>{const s=readFileSync(new URL('../.github/workflows/confidential-synthetic-e2e.yml',import.meta.url),'utf8');assert.match(s,/github.head_ref != 'integration\/pr69-g0-readiness'/);});

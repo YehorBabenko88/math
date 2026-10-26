@@ -8,7 +8,7 @@ permissions:
 jobs:
   witness:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'fix/pr64-hosted-failure' && github.ref != 'refs/heads/fix/pr64-hosted-failure' }}
+    if: ${{ github.head_ref != 'integration/pr69-g0-readiness' && github.ref != 'refs/heads/integration/pr69-g0-readiness' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
