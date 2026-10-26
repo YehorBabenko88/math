@@ -36,3 +36,6 @@ A valid Ed25519 signature authenticates the signing key, not the independent tru
 
 ## Post-verification mutation hardening
 `verifySyntheticReceipt` previously returned the caller's mutable receipt object after signature verification. A caller could then change `q01` or another field on the same object after verification, while downstream code retained the reference. The returned receipt is now shallow-frozen, matching the existing receiver verifier behavior. Added a synthetic regression asserting mutation raises TypeError. For hostile same-process objects, immutable parsed input and deeper defensive copying remain recommended; this change alone is not an authorization boundary.
+
+## Detached immutable projection
+Follow-up identified that shallow-freezing the caller-owned receipt still aliases the verified return object with untrusted input. The verifier now returns `Object.freeze({...result.receipt})`, a detached immutable flat projection. The strict receipt schema contains only scalar fields; a regression mutates the original input after verification and confirms the returned projection remains CLOSED/OPEN as required. This does not establish trusted expected source identity or production authorization.
