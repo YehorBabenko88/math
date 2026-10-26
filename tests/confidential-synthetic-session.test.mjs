@@ -26,3 +26,14 @@ test('independently pinned synthetic receipt identity rejects stale run/job and 
  }
  assert.throws(()=>verifyBoundSyntheticReceipt(signed,keys.publicKey,{...expected,approved:true}),/BLOCKED/);
 });
+
+test('verified synthetic receipt is frozen against post-verification mutation',async()=>{
+ const {verifySyntheticReceipt}=await import('../src/confidential-collector/session.mjs');
+ const {keyId}=await import('../src/evidence-receiver/seal.mjs');
+ const keys=generateKeyPairSync('ed25519');
+ const receipt={scope:'SYNTHETIC_TRANSPORT_ONLY',sourceHead:'a'.repeat(40),sourceTree:'b'.repeat(40),runId:'1',attempt:'1',jobId:'2',zipSha256:'c'.repeat(64),runHead:'d'.repeat(40),baseHead:'e'.repeat(40),workflowSha:'f'.repeat(40),status:'SYNTHETIC_STORED_PENDING_REVIEW',checkRunId:'3',nativeAcceptance:'BLOCKED',operationalAcceptance:'UNQUALIFIED',physicalG1:'BLOCKED',production:'NO_GO',bookGate:'CLOSED',q01:'OPEN'};
+ const signed={receipt,signerKeyId:keyId(keys.publicKey),signature:sign(null,Buffer.from(JSON.stringify(receipt)),keys.privateKey).toString('base64url')};
+ const checked=verifySyntheticReceipt(signed,keys.publicKey);
+ assert.equal(Object.isFrozen(checked),true);
+ assert.throws(()=>{checked.q01='CLOSED';},TypeError);
+});
