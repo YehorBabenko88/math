@@ -5,3 +5,25 @@ function token(c,now){const encode=x=>Buffer.from(JSON.stringify(x)).toString('b
 async function fixture(t){const{ReceiverJournal}=await import('../src/evidence-receiver/journal.mjs');const{ConfidentialReceiver}=await import('../src/evidence-receiver/receiver.mjs');const d=mkdtempSync(join(tmpdir(),'confidential-receiver-'));let journal=new ReceiverJournal(join(d,'vault.db'));t.after(()=>{journal.close();rmSync(d,{recursive:true,force:true});});let now=2000000000;const receiver=new ConfidentialReceiver({journal,policy,recipientKey:recipient.privateKey,receiptKey:signer.privateKey,jwksProvider:async()=>jwks,platformReader:async c=>({run:{id:3,run_attempt:1,head_sha:c.runHead,status:'in_progress',event:'pull_request',pull_requests:[{head:{sha:'e'.repeat(40)},base:{sha:'f'.repeat(40)}}],repository:{full_name:policy.repository,id:1,owner:{id:2}}},job:{id:4,run_id:3,head_sha:c.runHead,status:'in_progress',name:policy.jobName,check_run_url:'https://api.github.com/repos/YehorBabenko88/math/check-runs/5'},jobs:{total_count:1,jobs:[{id:4,head_sha:c.runHead,name:policy.jobName,check_run_url:'https://api.github.com/repos/YehorBabenko88/math/check-runs/5'}]},commit:{sha:c.sourceHead,parents:[{sha:c.baseHead},{sha:c.runHead}],commit:{tree:{sha:c.sourceTree}}}}),clock:()=>now});const p=packageFixture();const c=receiver.issue({runId:'3',attempt:'1',jobId:'4',checkRunId:'5',sourceHead:'a'.repeat(40),sourceTree:'b'.repeat(40),runHead:'e'.repeat(40),baseHead:'f'.repeat(40),packageManifestSha256:sha(p.manifest),executableSha256:sha(p.exe)});const{seal}=await import('../src/evidence-receiver/seal.mjs');const zip=bundleFixture(c).zip,envelope=seal({schema:1,nonce:c.nonce,token:token(c,now),zipSha256:sha(zip),zipBase64:zip.toString('base64')},recipient.publicKey);return{receiver,journal,c,envelope,setNow:n=>now=n};}
 test('receiver authenticates sealed synthetic bundle, durably stores ciphertext and signs only pending-review projection',async t=>{const f=await fixture(t);const r=await f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)});assert.equal(r.receipt.status,'STORED_PENDING_INDEPENDENT_REVIEW');assert.equal(r.receipt.physicalG1,'BLOCKED');assert.doesNotMatch(JSON.stringify(r),/userSid|S-1-5|createdFileTime|private-token/);assert.equal(f.journal.read(f.c.nonce).state,'ACCEPTED');const capture=f.journal.readCaptured(f.c.nonce);assert.equal(sha(capture),r.receipt.providerCaptureSha256);assert.doesNotMatch(capture.toString(),/check_run_url|private-token/);const{verifyReceiverReceipt}=await import('../src/evidence-receiver/receiver.mjs');assert.equal(verifyReceiverReceipt(r,signer.publicKey).status,'STORED_PENDING_INDEPENDENT_REVIEW');const bad=structuredClone(r);bad.receipt.status='PASS';assert.throws(()=>verifyReceiverReceipt(bad,signer.publicKey),/BLOCKED/);assert.throws(()=>verifyReceiverReceipt(r,generateKeyPairSync('ed25519').publicKey),/BLOCKED/);await assert.rejects(()=>f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)}),/BLOCKED/);});
 test('receiver refuses wrong transport digest, expired challenge and forged reviewer receipt',async t=>{const f=await fixture(t);await assert.rejects(()=>f.receiver.receive(f.envelope,{expectedEnvelopeSha256:'f'.repeat(64)}),/BLOCKED/);f.setNow(2000000400);await assert.rejects(()=>f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)}),/BLOCKED/);assert.equal(f.journal.read(f.c.nonce).state,'ISSUED');});
+
+test('synthetically signed receiver receipts cannot inject or change trust gates',async t=>{
+ const f=await fixture(t),r=await f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)});
+ const {verifyReceiverReceipt}=await import('../src/evidence-receiver/receiver.mjs');
+ for(const [field,value] of [['verified',true],['Execute',true],['ownerApproved',true],['attestationScope','FULL_PROOF'],['nativeAcceptance','PASS'],['q01','CLOSED'],['schema',2]]){
+  const receipt={...r.receipt,[field]:value};
+  const signed={receipt,signerKeyId:r.signerKeyId,signature:sign(null,Buffer.from(JSON.stringify(receipt)),signer.privateKey).toString('base64url')};
+  assert.throws(()=>verifyReceiverReceipt(signed,signer.publicKey),/BLOCKED/);
+ }
+});
+
+test('verified receiver receipt is detached from mutable signed input',async t=>{
+ const f=await fixture(t),r=await f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)});
+ const {verifyReceiverReceipt}=await import('../src/evidence-receiver/receiver.mjs');
+ const signed=structuredClone(r);
+ const verified=verifyReceiverReceipt(signed,signer.publicKey);
+ assert.notStrictEqual(verified,signed.receipt);
+ assert.equal(Object.isFrozen(verified),true);
+ signed.receipt.q01='CLOSED';
+ assert.equal(verified.q01,'OPEN');
+ assert.throws(()=>{verified.q01='CLOSED';},TypeError);
+});
