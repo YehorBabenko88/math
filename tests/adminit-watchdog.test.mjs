@@ -22,3 +22,34 @@ test('watchdog rejects swapped, malformed and aliased handle identities',()=>{
   assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
  }
 });
+
+for(const [name,mutate] of [
+ ['WAIT_FAILED',p=>p.waitResult=0xffffffff],
+ ['unexpected wait code',p=>p.waitResult=128],
+ ['owner survives cleanup',p=>p.owner.signalled=false],
+ ['root survives cleanup',p=>p.root.signalled=false],
+ ['leaf survives cleanup',p=>p.leaf.signalled=false],
+ ['lost root creation identity',p=>delete p.root.createdFileTime],
+ ['lost leaf handle identity',p=>p.leaf.handle='0'],
+ ['duplicate process identity',p=>{p.leaf.pid=p.root.pid;p.leaf.createdFileTime=p.root.createdFileTime;}],
+ ['cleanup confirmation missing',p=>delete p.outerCleanupConfirmed],
+ ['cleanup confirmation string',p=>p.outerCleanupConfirmed='true'],
+ ['false PASS on forced expiry',p=>p.status='PASS'],
+])test('forced watchdog fail-closed negative: '+name,()=>{
+ const p=probe();mutate(p);
+ assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+});
+
+test('forced watchdog verifier rejects invalid process identity and cleanup evidence',()=>{
+ for(const mutate of [
+  p=>p.owner.pid=0,
+  p=>p.root.handle='not-hex',
+  p=>p.leaf.createdFileTime='not-a-filetime',
+  p=>p.liveBeforeExpiry=false,
+  p=>p.leafAssignedBeforeResume=false,
+  p=>p.waitResult=null,
+ ]){
+  const p=probe();mutate(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
