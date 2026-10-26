@@ -35,5 +35,8 @@ test('verified synthetic receipt is frozen against post-verification mutation',a
  const signed={receipt,signerKeyId:keyId(keys.publicKey),signature:sign(null,Buffer.from(JSON.stringify(receipt)),keys.privateKey).toString('base64url')};
  const checked=verifySyntheticReceipt(signed,keys.publicKey);
  assert.equal(Object.isFrozen(checked),true);
+ assert.notStrictEqual(checked,receipt);
  assert.throws(()=>{checked.q01='CLOSED';},TypeError);
+ receipt.q01='CLOSED';
+ assert.equal(checked.q01,'OPEN');
 });
