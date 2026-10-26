@@ -32,4 +32,6 @@ test('public failure cannot be mistaken for success evidence',()=>{
  assert.match(workflow,/PINNED_SYNTHETIC_QUALIFICATION_BLOCKED/);
  assert.match(workflow,/process\.exitCode=child\.status===0\?0:1/);
  assert.match(workflow,/if: always\(\) && steps\.collect\.outputs\.safe_public == 'true'/);
+ assert.match(workflow,/if-no-files-found: error/);
+ assert.match(workflow,/retention-days: 14/);
 });
