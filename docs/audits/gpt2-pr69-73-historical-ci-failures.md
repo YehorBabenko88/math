@@ -39,3 +39,14 @@ P2: Missing explicit subprocess error metadata in PR71 fixture catch reduces dia
 P0 gate: Q01 OPEN, G1 BLOCKED, Book gate CLOSED, production NO-GO.
 
 No Token API source edits. No merge, deployment, stress, cancellation or physical tests. This report is a source/log classification, not a qualification receipt.
+
+## PR74 exact-head CI follow-up (separate new failure)
+
+PR74 HEAD `28826d2800c16644a8db307d8cf2c653af0db1bc` triggered:
+- [Validate Math Universe run 40399495084](https://github.com/YehorBabenko88/math/actions/runs/40399495084), job 121841239703: `mandatory PostgreSQL CI covers the full matrix without selective triggers or file filters` FAIL; 3 PASS / 1 FAIL, step exit 1.
+- [PostgreSQL Integration run 40399495185](https://github.com/YehorBabenko88/math/actions/runs/40399495185), Node22/PG16 job 121841240248: the same mandatory-CI contract test fails (`not ok 515`), 1049 PASS / 1 FAIL / 13 SKIP, step exit 1. The PostgreSQL server's expected negative-test errors do not establish additional failures.
+- Other jobs: Book Ingestion Native PDF, Browser E2E, Windows Deployment Contracts and Q01 Windows Containment Preparation SUCCESS; Q01 Queue Reliability was queued at inspection.
+
+This new failure is **not** a recurrence of the PR69 collector or PR70/71 PowerShell timeout. The inherited branch-scoped workflow exclusions violate the mandatory PostgreSQL CI contract when PR74 uses a different branch name. This is a real CI configuration/test-scope mismatch, not evidence of SQLite corruption or token behavior. The independent audit PR does not modify production code or claim CI qualification.
+
+Do not silence the mandatory contract test, relax filesystem guards or change Token API. A future integration plan must reconcile the branch-specific workflow scoping with mandatory full-matrix requirements on its own reviewed branch. No rerun or merge authorized.
