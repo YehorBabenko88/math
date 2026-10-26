@@ -29,3 +29,11 @@ test('forced watchdog rejects aliased observer handles despite distinct PIDs',()
   assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
  }
 });
+
+test('forced watchdog rejects non-unique handles even when creation FILETIMEs differ',()=>{
+ const p=probe();
+ p.owner.createdFileTime='134000000000000002';
+ p.leaf.createdFileTime='134000000000000003';
+ p.leaf.handle=p.owner.handle;
+ assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+});
