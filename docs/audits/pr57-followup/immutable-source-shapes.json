@@ -1,0 +1,151 @@
+{
+  "clientReviewDate": "2026-10-26",
+  "capturedAt": "2026-10-26T08:58:00.367Z",
+  "scope": "API source-shape observation; immutable commit objects; not actual run checkout/OIDC-token attestation",
+  "pr": {
+    "number": 57,
+    "head": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+    "base": "920fd4977192bdd29606cb58d193fc7998a1c862",
+    "observedMerge": "b0a37f40b66f5733e5dd13b1203889867dabdf1b"
+  },
+  "commits": {
+    "merge": {
+      "sha": "b0a37f40b66f5733e5dd13b1203889867dabdf1b",
+      "tree": "2f598f6ead0707bbcc626b9800876514bc9b645b",
+      "parents": [
+        "920fd4977192bdd29606cb58d193fc7998a1c862",
+        "d18a95d2a0936c35d1c0d74febeb4b05d25f4366"
+      ]
+    },
+    "head": {
+      "sha": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+      "tree": "2f598f6ead0707bbcc626b9800876514bc9b645b",
+      "parents": [
+        "305b0f4f5128fa78522cf9ec518f9e5322755b01"
+      ]
+    },
+    "base": {
+      "sha": "920fd4977192bdd29606cb58d193fc7998a1c862",
+      "tree": "03f9666ee4a77ad15dc3eb5dee355a175f3a9f3d",
+      "parents": [
+        "02c7b1bc58baadd63213f92ba450ce724638a286"
+      ]
+    }
+  },
+  "run": {
+    "id": 40211216019,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "attempt": 1,
+    "headSha": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+    "pullRequests": [
+      {
+        "number": 57,
+        "head": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+        "base": "920fd4977192bdd29606cb58d193fc7998a1c862"
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "id": 121222640478,
+      "headSha": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121222640722,
+      "headSha": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121222640726,
+      "headSha": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121222640744,
+      "headSha": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "sources": [
+    {
+      "pr": 58,
+      "head": "eab8b8c88b1913ee19c7aa8c8456f04bf7ce2a5a",
+      "tree": "e78dba0edfe57f005c68b6b9c8bf508d38ce4f7a",
+      "base": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366"
+    },
+    {
+      "pr": 59,
+      "head": "6453f28647b1f510d439025c984cf72f9cc83d6e",
+      "tree": "a92b5a2b5ba15d418e4d7d47f3ea496afe578f95",
+      "base": "d18a95d2a0936c35d1c0d74febeb4b05d25f4366"
+    }
+  ],
+  "privateMetadataSha256": [
+    {
+      "label": "pr57.json",
+      "sha256": "a43a682d70ebec55a6fd420433b54f25aa201c3df2d24846db79a25791a6b707",
+      "bytes": 17502
+    },
+    {
+      "label": "pr57-receiver-run.json",
+      "sha256": "7d5d429d827d427f3995d1c47674e6ccf70f19c4412d4b004ba3560983d18c34",
+      "bytes": 12885
+    },
+    {
+      "label": "pr57-receiver-jobs.json",
+      "sha256": "e00d12a0baf3d393800e74478a148fed5b591be80bd2fb11e67771316f34d8df",
+      "bytes": 9306
+    },
+    {
+      "label": "commit-merge.json",
+      "sha256": "e11f474d8d4f600697b5750f8a819c576da15e8cc776627e84ade41f1c381974",
+      "bytes": 2622
+    },
+    {
+      "label": "commit-head.json",
+      "sha256": "2070b080469f67aeb58a0ee1a251d5b572023f305f402b64d533c3ee30a4a1b0",
+      "bytes": 1154
+    },
+    {
+      "label": "commit-base.json",
+      "sha256": "94ca97450c02d55ab8082f186ad3ac89b9c716c7999eb7b2343ae53efd31f6ee",
+      "bytes": 1149
+    },
+    {
+      "label": "pr58.json",
+      "sha256": "2efd608ef855c374ffcca8c58e07e3d7c08a29f236918cf8c4ca458b9bfb1bfa",
+      "bytes": 16233
+    },
+    {
+      "label": "commit-pr58.json",
+      "sha256": "3754c7216b65c5808a2b7e81462c87938a27df8b6b363304d363a010c7645e28",
+      "bytes": 1160
+    },
+    {
+      "label": "pr59.json",
+      "sha256": "8f4669d240ceb41adf6f33aa2975fc1b106d5dd5b573bd0bad9c7c7fc20325ab",
+      "bytes": 16591
+    },
+    {
+      "label": "commit-pr59.json",
+      "sha256": "573a2f1c4c32feef8e278e02a642831f4276722b0dff1084cb1d04ee09a4014f",
+      "bytes": 1158
+    }
+  ],
+  "gitObjectVerification": {
+    "sha": "b0a37f40b66f5733e5dd13b1203889867dabdf1b",
+    "tree": "2f598f6ead0707bbcc626b9800876514bc9b645b",
+    "parents": [
+      "920fd4977192bdd29606cb58d193fc7998a1c862",
+      "d18a95d2a0936c35d1c0d74febeb4b05d25f4366"
+    ],
+    "method": "fetch.fsckObjects=true; immutable Git commit read with --no-replace-objects"
+  }
+}

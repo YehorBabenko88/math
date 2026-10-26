@@ -1,0 +1,65 @@
+{
+  "scope": "Private local log hashes, not hosted authentication/native attestation",
+  "records": [
+    {
+      "label": "pr58-integration-red.tap",
+      "status": "EXPECTED_FAIL_RECEIVER_INTEROPERABILITY",
+      "bytes": 2786,
+      "sha256": "a0a7d3fd96566e41674114b7df4d5ed35b0281dc4e2d1213bd5ddb9e1bbe8818"
+    },
+    {
+      "label": "source-shape-red.tap",
+      "status": "EXPECTED_FAIL_BEFORE_RELATIONAL_HELPER",
+      "bytes": 15590,
+      "sha256": "3084307610cde6c22ea41bf5e0cce42b0ecadfddcda494bbe480445ef3a27373"
+    },
+    {
+      "label": "source-binding-green.tap",
+      "status": "INTERMEDIATE_PASS",
+      "bytes": 2286,
+      "sha256": "502b5e5eaa9a31bbe158173e38c96062c338ccc2bc0695da4b80d3f1afba681b"
+    },
+    {
+      "label": "fixture-ci-trigger-red.tap",
+      "status": "EXPECTED_FAIL_FIXTURE_COVERAGE",
+      "bytes": 1454,
+      "sha256": "390c9b275427e6df3a1c4830ee168c3225daca49a63c6b187660699daa5b0433"
+    },
+    {
+      "label": "fixture-ci-trigger-green.tap",
+      "status": "PASS",
+      "bytes": 386,
+      "sha256": "a40734461aaed7e4c942fc96008c71ebd93866951cc9fdedd2539a8cd62196c3"
+    },
+    {
+      "label": "report-correction-red.tap",
+      "status": "EXPECTED_FAIL_DOCUMENTATION",
+      "bytes": 8516,
+      "sha256": "2dc07d1d34bf973c2d38abd351e6e82d33541d1a264d5574a4d7f787cfac498c"
+    },
+    {
+      "label": "report-correction-green.tap",
+      "status": "PASS",
+      "bytes": 482,
+      "sha256": "fa4255e2f99d631e727ef8ecf5de341bca72ff18a3ffa436c815436dbc30dc85"
+    },
+    {
+      "label": "final-receiver-v2-node22.tap",
+      "status": "PASS",
+      "bytes": 17883,
+      "sha256": "cd8ea3aff7ac5db8fd3f9a8ea2c1ac9abcc3c62b960bf72ef36619a5079b7178"
+    },
+    {
+      "label": "final-receiver-v2-node24.tap",
+      "status": "PASS",
+      "bytes": 17184,
+      "sha256": "1df20881a133444800a646fa97834133f8d9fdb9bb0ac228433a244d3f4f651d"
+    },
+    {
+      "label": "final-authorized-receiver-tests.json",
+      "status": "AUTHORIZED_SELECTION",
+      "bytes": 460,
+      "sha256": "0a34a97b3ca7d988832a9e5a11d7b3be195c1fe09a1bf82cf084ad3c5ffb0319"
+    }
+  ]
+}
