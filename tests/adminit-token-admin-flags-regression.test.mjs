@@ -24,3 +24,24 @@ test('Token API observation never grants execute or isolation authority',()=>{
  assert.match(source,/public bool localExecute \{ get \{ return false; \} \}/);
  assert.match(source,/public string admission \{ get \{ return "BLOCKED"; \} \}/);
 });
+
+test('combined source retains PR76 cleanup and identity fail-closed wiring',()=>{
+ assert.match(source,/var owned=new List<byte\[\]>\(4\)/);
+ assert.match(source,/byte\[\] before=Statistics\(token,owned\)/);
+ assert.match(source,/Integrity\(token,owned,out attributes\)/);
+ assert.match(source,/CurrentStatistics\(owned\)/);
+ assert.match(source,/foreach\(byte\[\] bytes in owned\)/);
+ assert.match(source,/if\(cleanupFailed && result\.code!="E_CLOSE"\)/);
+ assert.match(source,/CloseOwned\(token\)/);
+ assert.match(source,/NoImpersonation\(\);byte\[\] after=/);
+ assert.match(source,/before\[i\]!=after\[i\] \|\| before\[i\]!=current\[i\]/);
+});
+test('combined admin group policy preserves enabled, deny-only and ambiguous states',()=>{
+ // Synthetic reference truth table for one Administrators SID.
+ const policy=(matches,flags)=>matches>1||(matches===0&&flags!==0)||(flags&~0x1f)!==0||((flags&4)!==0&&(flags&16)!==0)?-1:matches===1&&(flags&4)!==0?1:0;
+ for(const [flags,expected] of [[0,0],[4,1],[16,0],[20,-1],[32,-1],[64,-1],[128,-1],[132,-1],[0xc0000000,-1]]){
+  assert.equal(policy(1,flags),expected,flags.toString(16));
+ }
+ assert.equal(policy(0,0),0);
+ assert.equal(policy(2,4),-1);
+});
