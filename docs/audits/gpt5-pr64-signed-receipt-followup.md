@@ -30,3 +30,6 @@ Q01 OPEN; Physical G1 BLOCKED; Production NO-GO; Book gate CLOSED.
 
 ## Codex handoff
 Integrate only after independently reviewing this Draft against exact PR64 tree. Run focused `node --test tests/evidence-receiver.test.mjs tests/confidential-synthetic-session.test.mjs` on Node22/24, then full authorized hosted CI. Never treat a signed receipt as VERIFIED/Execute or override closed status. Preserve provenance and privacy constraints.
+
+## Third pass — independently expected identity binding
+A valid Ed25519 signature authenticates the signing key, not the independent truth of source/run/job claims. Added opt-in `verifyBoundSyntheticReceipt` to require an exact, externally supplied sourceHead/sourceTree/runHead/baseHead/workflowSha/runId/attempt/jobId/checkRunId/zipSha256 record and compare it to a strictly verified signed synthetic receipt. It returns only `SIGNED_SYNTHETIC_IDENTITY_MATCH`, `authority: NONE`, `execution: DENIED`. A synthetic test rejects stale source, run, attempt, job, check-run, ZIP digest and extra approval fields. The caller must independently establish the expected record and key custody; this helper is not operational acceptance.
