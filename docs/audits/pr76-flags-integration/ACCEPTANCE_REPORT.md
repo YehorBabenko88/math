@@ -40,6 +40,6 @@ EVIDENCE_HASHES.json references private local RED/GREEN/final TAP. The older ari
 
 ## Hosted qualification and readiness
 
-Only bounded receiver/G0 contracts are enabled for this branch. Extra issuer/native/full/PG/stress jobs are intentionally skipped and are not qualification PASS. On Linux fourteen Windows-only parser/compile/fake tests are expected explicit SKIP (219 PASS/14 SKIP if the same233-test inventory runs); Windows must execute all233 tests. Exact-head run/job/attempt and actual step results must be inspected after publication; no stale base-CI result qualifies the successor and no blind rerun/cancellation is requested.
+Only bounded receiver/G0 contracts are enabled for this branch. Extra issuer/native/full/PG/stress jobs are intentionally skipped and are not qualification PASS. On Linux sixteen Windows-only parser/compile/fake tests are expected explicit SKIP (217 PASS/16 SKIP if the same233-test inventory runs); Windows must execute all233 tests. Exact-head run/job/attempt and actual step results must be inspected after publication; no stale base-CI result qualifies the successor and no blind rerun/cancellation is requested.
 
 GO for independent code review only after exact-head hosted contract evidence. No synthetic PASS grants physical qualification. Q01 OPEN. Physical G1 BLOCKED. Production NO-GO. Book gate CLOSED. authority NONE, isolationConfirmed false, localExecute false, admission BLOCKED remain unchanged.
