@@ -20,6 +20,10 @@
     "sha256": "c010b5afeaaaae2569183505247d6f6a302523074d8b467ea705c3d703228a9c"
   },
   {
+    "file": "yaml-indent-red.tap",
+    "sha256": "34b5048051ac0f05abb1be479a8d110ab4989fc241efb5c95f46c95e8f7b1c56"
+  },
+  {
     "file": "jose-stages-green.tap",
     "sha256": "c804bfbf38b34ce50092fdfeac4694e0475bc60cfca40d2f4f314c6fddfe10dc"
   },
@@ -36,11 +40,15 @@
     "sha256": "2526782f5816e2b5d2c116182b6822a025f169b5ab1d8f27d8697abedfc93411"
   },
   {
+    "file": "yaml-indent-green.tap",
+    "sha256": "17728797db141bb11d5271385ce856b1ffc65d57f65eab37a9242596e2d38150"
+  },
+  {
     "file": "final-node22.tap",
-    "sha256": "f89c295f03fc6d0fa295db22b58f1dda2a2c8c30a8827f17004a14e8afc39351"
+    "sha256": "95636d8b81292a180eb0324047c57c26e7d5bdeaccd30cfc10dd98310484aeb2"
   },
   {
     "file": "final-node24.tap",
-    "sha256": "b62950887cbfdeecc10eb9dd7dec3a6d8700c8675c27e4731afacc88091bd2cc"
+    "sha256": "f7a5b75c4dadc3f8748a5a7c087bf3c3936c7bb9e789f8cf6c6a1e500d42b315"
   }
 ]

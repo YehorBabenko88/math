@@ -36,17 +36,21 @@ Only reviewed file changes were transferred onto the isolated PR64-based branch;
 
 |Environment|PASS|FAIL|SKIP|
 |---|---:|---:|---:|
-|Local Node22.23.3, enumerated receiver/collector contracts|133|0|0|
-|Local Node24.20.0, same 20 files|133|0|0|
+|Local Node22.23.3, enumerated receiver/collector contracts|134|0|0|
+|Local Node24.20.0, same 20 files|134|0|0|
 |New hosted real issuer qualification|PENDING|—|—|
 |Native/ADMINIT/Q01/full npm/PG|NOT_RUN|—|—|
 
 RED/GREEN TAP SHA-256 references: PR64_REMEDIATION_EVIDENCE_HASHES.json. Raw TAP/logs remain outside Git. git diff --check and current tracked-document publication policy pass; that policy does not certify runtime logs or clear Git history.
 
-New immutable collector snapshot: c08f61f2a8b1fabe6dfaf7d75700353da00dc1e2. Caller pins this exact SHA; final branch HEAD is the commit containing this report, not a self-referential attestation. Only receiver and synthetic workflow jobs are enabled for this branch; unrelated jobs are explicitly skipped and are NOT acceptance success.
+New immutable collector snapshot: 4da26a3c83fb6adea4f83a9a58fb90c0cc4a3195. Caller pins this exact SHA; final branch HEAD is the commit containing this report, not a self-referential attestation. Only receiver and synthetic workflow jobs are enabled for this branch; unrelated jobs are explicitly skipped and are NOT acceptance success.
 
 ## Acceptance
 
 GO only for one new synthetic hosted attempt justified by the reproduced JOSE defect and corrected diagnostics. No rerun/cancellation. After completion independently inspect exact run/attempt/job/source, one allowlisted artifact, ZIP digest/inventory/schema and all relevant logs. A signature observation is not workload authorization; success cannot be inferred from an upload on failure.
 
 Operational confidential receiver/custody is still UNQUALIFIED. Q01 OPEN. Physical G1 BLOCKED. Production NO-GO. Book gate CLOSED. No physical/native execution, production actions or merge.
+
+### Workflow-format correction
+
+The first remediation candidate 914df59c16b606dd4a8d4bf7ad7042a197328f85 was rejected before job execution: regenerated manifest lost YAML literal indentation. Run40309109748 has no collector jobs. This preparation defect was reproduced by a new literal-block regression (RED) and corrected (GREEN). It gives no OIDC authorization evidence. The next ordinary push is justified by this concrete fix, not a blind rerun. Prior candidate/evidence are retained.
