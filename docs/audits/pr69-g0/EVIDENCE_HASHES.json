@@ -1,0 +1,42 @@
+[
+  {
+    "file": "g0-red.tap",
+    "sha256": "f157771bc9cb4491bc8abafd5c7a94d53d44edd2b4798fd64f5a4e2c6acc55b3"
+  },
+  {
+    "file": "pr65-red.tap",
+    "sha256": "2fb12145b04dbe46a8b30d8f1f653347d982ba54828fc627b7e42b724c859a6e"
+  },
+  {
+    "file": "pr66-red.tap",
+    "sha256": "0a30366fb72a462a2adf23fcf3ee7b99d3427bf7b11823cd9fd1d3cac5cfda22"
+  },
+  {
+    "file": "pr67-red.tap",
+    "sha256": "61ee9ef456a86c38d7dce0f47523b637cc1e26083a1b659b3fd7d3a413095b06"
+  },
+  {
+    "file": "g0-green.tap",
+    "sha256": "f55817bd9f9356b9da59a5dfd9d8003b97750e5e3a2c1db6fc74520abd3a72a0"
+  },
+  {
+    "file": "pr65-green.tap",
+    "sha256": "825bf15dbf68981fa90af2ca718d9f7f5854c2e1ab980aa171b43e8d5a857893"
+  },
+  {
+    "file": "pr66-green.tap",
+    "sha256": "09ff143e17c9c806acb72478c61be330e391d831f9446d6c813d9b01357a2916"
+  },
+  {
+    "file": "pr67-green.tap",
+    "sha256": "3746f6a52cd6529333415d45e5b85c8a17c0f6c5c3f3f89e5765ff38adeb3bb5"
+  },
+  {
+    "file": "g0-final-node22.tap",
+    "sha256": "a4f6333744db7f46371081f15437f6ccfacf7709ac59f34e0547c64ce4e33a55"
+  },
+  {
+    "file": "g0-final-node24.tap",
+    "sha256": "1732e5ca04731200f7dd2a8593e73a133d61396cfd63a45c85358a659abb9c60"
+  }
+]

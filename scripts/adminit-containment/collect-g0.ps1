@@ -25,16 +25,17 @@ try {
  $principal=New-Object Security.Principal.WindowsPrincipal($identity)
  $allowed=@($identity.User.Value,'S-1-5-18','S-1-5-32-544')
  # Conservative grant inventory, not an effective-access proof. Deny ACEs never cancel a suspicious grant here.
- $checks.acl='PASS'
+ $aclStatus='PASS'
  foreach($path in @($root,$source)) {
   $acl=Get-Acl -LiteralPath $path -ErrorAction Stop
   $owner=$acl.GetOwner([Security.Principal.SecurityIdentifier]).Value
-  if($allowed -notcontains $owner){$checks.acl='FAIL'}
+  if($allowed -notcontains $owner){$aclStatus='FAIL'}
   foreach($rule in $acl.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier])) {
    $writeMask=2 -bor 4 -bor 16 -bor 64 -bor 256 -bor 65536 -bor 262144 -bor 524288
-   if($rule.AccessControlType -eq 'Allow' -and ($rule.PropagationFlags -band [Security.AccessControl.PropagationFlags]::InheritOnly) -eq 0 -and ($rule.FileSystemRights -band $writeMask) -ne 0 -and $allowed -notcontains $rule.IdentityReference.Value){$checks.acl='FAIL'}
+   if($rule.AccessControlType -eq 'Allow' -and ($rule.PropagationFlags -band [Security.AccessControl.PropagationFlags]::InheritOnly) -eq 0 -and ($rule.FileSystemRights -band $writeMask) -ne 0 -and $allowed -notcontains $rule.IdentityReference.Value){$aclStatus='FAIL'}
   }
  }
+ $checks.acl=$aclStatus
  # Fixed Windows read-only utility; arguments are not supplied by the caller.
  $psi=New-Object Diagnostics.ProcessStartInfo
  $psi.FileName=Join-Path ([Environment]::GetFolderPath('System')) 'whoami.exe'
