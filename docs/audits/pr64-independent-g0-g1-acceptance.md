@@ -67,3 +67,7 @@ The original ZIP was independently re-opened and its exact member inventory conf
 ## Scoped QA regression follow-up (2026-10-26)
 
 Added `tests/confidential-pr64-blocked-projection.test.mjs`, picked up by the existing `tests/confidential-*.test.mjs` CI selection. It asserts that a synthetic failure projection cannot be modified into native/operational/physical/production/book GO, cannot contain extra token, stack, job ID or forged signature fields, and cannot accept arbitrary failure-phase text. It also guards that the pinned collector emits a fixed blocked code, returns nonzero on child failure, and only uploads a public allowlisted projection. This is **source and synthetic policy regression**, not a new successful hosted transport qualification. No full suite, real OIDC, rerun, ADMINIT or production operation was performed. The PR68 HEAD will need fresh scoped CI to claim test execution.
+
+## Follow-up CI state and artifact retention
+
+At audit HEAD `e4dbeff15bfdf36e8414cd5105a5e8245e6b97d9`, nine workflow runs were QUEUED. Receiver run `40309186341` showed four QUEUED matrix jobs and zero artifacts. These jobs do not qualify the newly added regression as PASS. The isolated regression now also guards `if-no-files-found: error` and `retention-days: 14` for the public failure-only upload. No rerun or manual dispatch was requested; exact new-head CI must be checked before acceptance.
