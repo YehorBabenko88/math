@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import{gene
 const kp=generateKeyPairSync('rsa',{modulusLength:2048}),jwk={...kp.publicKey.export({format:'jwk'}),kid:'fixture',alg:'RS256',use:'sig'};
 const now=2000000000,head='a'.repeat(40),tree='b'.repeat(40),nonce='c'.repeat(64);
 const policy={repository:'YehorBabenko88/math',repositoryId:'1',ownerId:'2',subject:'repo:YehorBabenko88/math:pull_request',workflowRef:'YehorBabenko88/math/.github/workflows/collector.yml@refs/heads/trusted',workflowSha:'d'.repeat(40),jobName:'independent-collector',event:'pull_request',sourceRelation:'pr-merge'};
-const challenge={nonce,audience:'urn:math-universe:evidence:'+nonce,issuedAt:now-10,expiresAt:now+60,runId:'3',attempt:'1',jobId:'4',checkRunId:'5',sourceHead:head,sourceTree:tree,runHead:head,baseHead:'f'.repeat(40)};
+const challenge={nonce,audience:'urn:math-universe:evidence:'+nonce,issuedAt:now-10,expiresAt:now+60,runId:'3',attempt:'1',jobId:'4',checkRunId:'5',sourceHead:head,sourceTree:tree,runHead:'e'.repeat(40),baseHead:'f'.repeat(40)};
 const claims={iss:'https://token.actions.githubusercontent.com',aud:challenge.audience,sub:policy.subject,iat:now-5,nbf:now-5,exp:now+50,jti:'fixture-token-unique',repository:policy.repository,repository_id:'1',repository_owner_id:'2',workflow_ref:policy.workflowRef,workflow_sha:policy.workflowSha,run_id:'3',run_attempt:'1',check_run_id:'5',sha:head,event_name:'pull_request',runner_environment:'github-hosted'};
 const platform={run:{id:3,run_attempt:1,head_sha:challenge.runHead,status:'in_progress',event:'pull_request',pull_requests:[{head:{sha:'e'.repeat(40)},base:{sha:'f'.repeat(40)}}],repository:{full_name:policy.repository,id:1,owner:{id:2}}},job:{id:4,run_id:3,head_sha:challenge.runHead,status:'in_progress',name:policy.jobName,check_run_url:'https://api.github.com/repos/YehorBabenko88/math/check-runs/5'},commit:{sha:head,parents:[{sha:'f'.repeat(40)},{sha:'e'.repeat(40)}],commit:{tree:{sha:tree}}}};
 platform.jobs={total_count:1,jobs:[platform.job]};
@@ -19,8 +19,9 @@ test('signed claims cannot bypass missing attempt-specific job inventory',async(
 test('PR merge binds distinct synthetic merge and PR head, rejects second-parent substitution',async()=>{
  const {verifyWorkload}=await import('../src/evidence-receiver/oidc.mjs');
  const options={jwks:{keys:[jwk]},policy,challenge,platform,now};
- assert.equal(verifyWorkload(jwt(),options).sourceHead,challenge.runHead);
- assert.throws(()=>verifyWorkload(jwt(),{...options,platform:{...platform,commit:{...platform.commit,parents:[{sha:challenge.baseHead},{sha:challenge.runHead}]}}}),/BLOCKED/);
+ assert.equal(verifyWorkload(jwt(),options).sourceHead,challenge.sourceHead);
+ assert.notEqual(challenge.sourceHead,challenge.runHead);
+ assert.throws(()=>verifyWorkload(jwt(),{...options,platform:{...platform,commit:{...platform.commit,parents:[{sha:challenge.baseHead},{sha:challenge.sourceHead}]}}}),/BLOCKED/);
  assert.throws(()=>verifyWorkload(jwt(),{...options,platform:{...platform,run:{...platform.run,pull_requests:[{head:{sha:'0'.repeat(40)},base:{sha:challenge.baseHead}}]}}}),/BLOCKED/);
 });
 

@@ -1,5 +1,7 @@
 # GPT-5 independent PR57 OIDC and courier audit
 
+> Integration correction (2026-10-26): the REST `run.head_sha == synthetic merge` premise below is NOT accepted. Actual run40211216019 and its jobs report PR head d18a95d; immutable merge b0a37f40 has parents [920fd497,d18a95d]. GitHub GITHUB_SHA and REST run head are distinct. PR58's equality change was a fail-closed interoperability regression in the tested shape, not a demonstrated original PR57 vulnerability. The historical review text is retained; see [current contract/evidence](pr57-followup/SOURCE_BINDING_CONTRACT.md).
+
 Base exact HEAD: `d18a95d2a0936c35d1c0d74febeb4b05d25f4366`.
 Base tree: `2f598f6ead0707bbcc626b9800876514bc9b645b` (as reported by independent Git API review comment; not independently re-resolved in this audit).
 

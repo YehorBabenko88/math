@@ -1,6 +1,15 @@
 import{createHash,createPublicKey,verify}from'node:crypto';import{need,blocked,strictJson,exact,oid,id,hex}from'./strict.mjs';
 const issuer='https://token.actions.githubusercontent.com';
 function part(value){need(typeof value==='string'&&/^[A-Za-z0-9_-]+$/.test(value));const b=Buffer.from(value,'base64url');need(b.toString('base64url')===value);return b;}
+// Relational source evidence only: not workload authentication or admission.
+export function verifySourceBinding(input={}){try{
+ const {policy:p,challenge:c,platform}=input;const {run:r,commit:s}=platform??{};
+ need(p&&c&&r&&s&&oid(c.sourceHead)&&oid(c.sourceTree)&&oid(c.runHead)&&r.head_sha===c.runHead&&s.sha===c.sourceHead&&s.commit?.tree?.sha===c.sourceTree);
+ let prHead=null;
+ if(p.sourceRelation==='direct'){need(['push','workflow_dispatch'].includes(p.event)&&c.sourceHead===c.runHead&&c.baseHead===null);}
+ else{need(p.sourceRelation==='pr-merge'&&p.event==='pull_request'&&oid(c.baseHead)&&Array.isArray(r.pull_requests)&&r.pull_requests.length===1&&Array.isArray(s.parents)&&s.parents.length===2);const pr=r.pull_requests[0];prHead=pr.head?.sha;need(oid(prHead)&&prHead===c.runHead&&c.sourceHead!==prHead&&pr.base?.sha===c.baseHead&&s.parents[0].sha===c.baseHead&&s.parents[1].sha===prHead);}
+ return Object.freeze({sourceHead:c.sourceHead,sourceTree:c.sourceTree,runHead:c.runHead,baseHead:c.baseHead,prHead});
+ }catch{blocked();}}
 export function verifyWorkload(token,{jwks,policy:p,challenge:c,platform,now}={}){
  try{
  need(typeof token==='string'&&token.length<=32768&&Number.isSafeInteger(now));const pieces=token.split('.');need(pieces.length===3);const h=strictJson(part(pieces[0])),v=strictJson(part(pieces[1]));exact(h,['alg','typ','kid']);need(h.alg==='RS256'&&h.typ==='JWT'&&typeof h.kid==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(h.kid));
@@ -12,7 +21,7 @@ export function verifyWorkload(token,{jwks,policy:p,challenge:c,platform,now}={}
  const {run:r,job:j0,commit:s,jobs}=platform??{};need(r&&j0&&s&&jobs);need(Number.isSafeInteger(jobs.total_count)&&jobs.total_count>0&&jobs.total_count<=100&&Array.isArray(jobs.jobs)&&jobs.jobs.length===jobs.total_count&&new Set(jobs.jobs.map(j=>j.id)).size===jobs.total_count);const matches=jobs.jobs.filter(j=>String(j.id)===c.jobId);need(matches.length===1&&matches[0].check_run_url===j0.check_run_url&&matches[0].name===j0.name&&matches[0].head_sha===j0.head_sha);const same=(n,str)=>Number.isSafeInteger(n)&&String(n)===str;
  need(same(r.id,c.runId)&&same(r.run_attempt,c.attempt)&&r.head_sha===c.runHead&&r.status==='in_progress'&&r.event===p.event&&r.repository?.full_name===p.repository&&same(r.repository?.id,p.repositoryId)&&same(r.repository?.owner?.id,p.ownerId));
  need(same(j0.id,c.jobId)&&same(j0.run_id,c.runId)&&j0.head_sha===c.runHead&&j0.status==='in_progress'&&j0.name===p.jobName&&j0.check_run_url==='https://api.github.com/repos/'+p.repository+'/check-runs/'+c.checkRunId);need(s.sha===c.sourceHead&&s.commit?.tree?.sha===c.sourceTree);
- if(p.sourceRelation==='direct'){need(p.event!=='pull_request'&&c.sourceHead===c.runHead&&c.baseHead===null);}else{need(p.event==='pull_request'&&oid(c.baseHead)&&Array.isArray(s.parents)&&s.parents.length===2&&s.sha===c.runHead&&c.sourceHead===c.runHead&&s.parents[0].sha===c.baseHead&&Array.isArray(r.pull_requests)&&r.pull_requests.length===1&&oid(r.pull_requests[0].head?.sha)&&r.pull_requests[0].head.sha!==c.runHead&&s.parents[1].sha===r.pull_requests[0].head.sha&&r.pull_requests[0].base?.sha===c.baseHead);}
+ verifySourceBinding({policy:p,challenge:c,platform});
  return Object.freeze({repository:p.repository,sourceHead:c.sourceHead,sourceTree:c.sourceTree,runId:c.runId,attempt:c.attempt,jobId:c.jobId,checkRunId:c.checkRunId,tokenSha256:createHash('sha256').update(token).digest('hex'),jtiSha256:createHash('sha256').update(v.jti).digest('hex'),expiresAt:Math.min(v.exp,c.expiresAt)});
  }catch{blocked();}
 }

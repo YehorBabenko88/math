@@ -7,6 +7,8 @@ on:
       - 'src/evidence-receiver/**'
       - 'tests/evidence-receiver*.test.mjs'
       - 'tests/qa-obsolete-queued-inventory.test.mjs'
+      - 'tests/qa-current-ci-snapshot.test.mjs'
+      - 'docs/audits/pr57-followup/**'
       - 'docs/audits/pr56-receiver/obsolete-queued-inventory.json'
       - 'tests/fixtures/evidence-receiver/**'
       - 'tests/adminit-bootstrap-watchdog*'
@@ -30,5 +32,5 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Synthetic keys and isolated receiver storage only (no native EXE or Q01)
-        run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/adminit-bootstrap-watchdog.test.mjs tests/qa-obsolete-queued-inventory.test.mjs
+        run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-source-shape.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/adminit-bootstrap-watchdog.test.mjs tests/qa-obsolete-queued-inventory.test.mjs tests/qa-current-ci-snapshot.test.mjs
       # No id-token permission, secret, receiver endpoint, key provisioning or raw upload.
