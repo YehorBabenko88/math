@@ -57,3 +57,10 @@ test('forced watchdog schema cannot independently bind swapped owner/root handle
  assert.equal(verifier.validateForcedWatchdogProbe(p).status,'BLOCKED');
  // The accepted negative-probe schema must never be promoted to native PASS.
 });
+
+test('forced watchdog rejects missing signalled process-handle confirmation',()=>{
+ for(const name of ['owner','root','leaf']){
+  const p=probe();delete p[name].signalled;
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
