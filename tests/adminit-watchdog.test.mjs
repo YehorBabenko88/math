@@ -39,3 +39,17 @@ for(const [name,mutate] of [
  const p=probe();mutate(p);
  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
 });
+
+test('forced watchdog verifier rejects invalid process identity and cleanup evidence',()=>{
+ for(const mutate of [
+  p=>p.owner.pid=0,
+  p=>p.root.handle='not-hex',
+  p=>p.leaf.createdFileTime='not-a-filetime',
+  p=>p.liveBeforeExpiry=false,
+  p=>p.leafAssignedBeforeResume=false,
+  p=>p.waitResult=null,
+ ]){
+  const p=probe();mutate(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
