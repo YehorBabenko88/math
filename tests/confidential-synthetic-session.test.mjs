@@ -12,3 +12,17 @@ test('signed synthetic receipt cannot self-assert operational authority',async()
  for(const [field,value] of [['verified',true],['Execute',true],['ownerApproved',true],['q01','CLOSED'],['bookGate','OPEN']])
   assert.throws(()=>verifySyntheticReceipt(signed({...receipt,[field]:value}),keys.publicKey),/BLOCKED/);
 });
+
+test('independently pinned synthetic receipt identity rejects stale run/job and digest',async()=>{
+ const {verifyBoundSyntheticReceipt}=await import('../src/confidential-collector/session.mjs');
+ const {keyId}=await import('../src/evidence-receiver/seal.mjs');
+ const keys=generateKeyPairSync('ed25519');
+ const expected={sourceHead:'a'.repeat(40),sourceTree:'b'.repeat(40),runHead:'c'.repeat(40),baseHead:'d'.repeat(40),workflowSha:'e'.repeat(40),runId:'11',attempt:'1',jobId:'22',checkRunId:'33',zipSha256:'f'.repeat(64)};
+ const receipt={scope:'SYNTHETIC_TRANSPORT_ONLY',...expected,status:'SYNTHETIC_STORED_PENDING_REVIEW',nativeAcceptance:'BLOCKED',operationalAcceptance:'UNQUALIFIED',physicalG1:'BLOCKED',production:'NO_GO',bookGate:'CLOSED',q01:'OPEN'};
+ const signed={receipt,signerKeyId:keyId(keys.publicKey),signature:sign(null,Buffer.from(JSON.stringify(receipt)),keys.privateKey).toString('base64url')};
+ assert.equal(verifyBoundSyntheticReceipt(signed,keys.publicKey,expected).execution,'DENIED');
+ for(const [field,value] of [['sourceHead','0'.repeat(40)],['runId','12'],['attempt','2'],['jobId','23'],['checkRunId','34'],['zipSha256','0'.repeat(64)]]){
+  assert.throws(()=>verifyBoundSyntheticReceipt(signed,keys.publicKey,{...expected,[field]:value}),/BLOCKED/);
+ }
+ assert.throws(()=>verifyBoundSyntheticReceipt(signed,keys.publicKey,{...expected,approved:true}),/BLOCKED/);
+});
