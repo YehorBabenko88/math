@@ -36,7 +36,7 @@ jobs:
   "src/evidence-receiver/seal.mjs": "b081be5d7789bd508026c748075e2435e4e61df8f21905119f4e1cc2f0508c9f",
   "src/evidence-receiver/journal.mjs": "298d5fcaa8ce16a0f55a028702f2c6cd0efaf3bf4448c0321bbc31e29edf6fa7",
   "src/evidence-receiver/zip.mjs": "633be9954ee26f182989592a24829de6f2318a5552263c23f2c6b871e98a08f2",
-  "src/confidential-collector/oidc-client.mjs": "6b15e4337fdadd924d17864167f8be8f4b9d947b0a453d3dde9ce29ef22d2900",
+  "src/confidential-collector/oidc-client.mjs": "90d0c2b13d83567c28c9589de71c4084ee4d52a5ff69bde3cb99b374cf5c466c",
   "src/confidential-collector/context.mjs": "cc2fbb7c2787ec6dd8f455b271ee5e452edb432e9e70338c8a75b0d3ea498d6d",
   "src/confidential-collector/session.mjs": "6461e9c8535747a3e1ca4098289c8658f52abbf76140bfc1d027bcd2d3ec600b",
   "src/confidential-collector/synthetic-bundle.mjs": "d7e585f586b17ef6597027bb3341b3661106681065382d909d05717bcddf312b",
