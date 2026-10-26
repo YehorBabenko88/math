@@ -37,3 +37,14 @@ test('forced watchdog rejects non-unique handles even when creation FILETIMEs di
  p.leaf.handle=p.owner.handle;
  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
 });
+
+test('forced watchdog rejects missing and duplicate handle evidence',()=>{
+ for(const mutate of [
+  p=>delete p.owner.handle,
+  p=>p.root.handle='',
+  p=>p.leaf.handle=p.root.handle,
+ ]){
+  const p=probe();mutate(p);
+  assert.throws(()=>verifier.validateForcedWatchdogProbe(p),/BLOCKED/);
+ }
+});
