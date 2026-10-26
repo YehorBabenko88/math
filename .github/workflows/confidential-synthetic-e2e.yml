@@ -1,0 +1,21 @@
+name: Synthetic Confidential Hosted Qualification
+on:
+  pull_request:
+    paths:
+      - 'src/evidence-receiver/**'
+      - 'src/confidential-collector/**'
+      - 'scripts/confidential-qualification/**'
+      - 'tests/confidential-*.test.mjs'
+      - '.github/workflows/confidential-collector.yml'
+      - '.github/workflows/confidential-synthetic-e2e.yml'
+permissions:
+  contents: read
+jobs:
+  qualification:
+    if: github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      id-token: write
+    uses: YehorBabenko88/math/.github/workflows/confidential-collector.yml@fa9508b00d285c58a435b37a0a581f0f84b486b3
+    with:
+      collector-sha: fa9508b00d285c58a435b37a0a581f0f84b486b3
