@@ -14,3 +14,8 @@ export function exact(object,keys){need(object!==null&&typeof object==='object'&
 export const oid=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x);
 export const hex=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
 export const id=x=>typeof x==='string'&&/^[1-9][0-9]{0,19}$/.test(x);
+
+// Public diagnostic codes are closed enums; never copy error text or claim values.
+export const evidenceStages=Object.freeze(['E_INTERNAL','E_ENVELOPE','E_UNSEAL','E_API','E_OIDC_HEADER','E_OIDC_JWKS','E_OIDC_SIGNATURE','E_OIDC_ISSUER','E_OIDC_POLICY','E_OIDC_CHALLENGE','E_OIDC_BINDING','E_OIDC_TIME','E_OIDC_PLATFORM','E_OIDC_SOURCE','E_COLLECTOR_PIN','E_ZIP','E_JOURNAL','E_BOOTSTRAP','E_LOADER_API','E_LOADER_BYTES','E_CHILD']);
+export function stageCode(error,fallback='E_INTERNAL'){return evidenceStages.includes(error?.code)?error.code:(evidenceStages.includes(fallback)?fallback:'E_INTERNAL');}
+export function stageBlocked(code){const error=Error('Confidential evidence BLOCKED');error.code=stageCode({code});throw error;}

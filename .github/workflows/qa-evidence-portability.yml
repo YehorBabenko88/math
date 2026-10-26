@@ -14,7 +14,7 @@ permissions:
 jobs:
   fixtures:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
+    if: ${{ github.head_ref != 'fix/pr64-hosted-failure' && github.ref != 'refs/heads/fix/pr64-hosted-failure' }}
     name: Evidence fixtures / ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
