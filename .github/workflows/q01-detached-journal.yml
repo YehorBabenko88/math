@@ -12,6 +12,8 @@ permissions:
   contents: read
 jobs:
   detached-journal:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     strategy:
       fail-fast: false
       matrix:

@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   native-pdf:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

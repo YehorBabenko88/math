@@ -1,0 +1,347 @@
+{
+  "repository": "YehorBabenko88/math",
+  "run_id": 40298775250,
+  "head_sha": "b24d2d6ca264926c1a65a96f574057192bfeca03",
+  "run_attempt": 1,
+  "status": "completed",
+  "conclusion": "success",
+  "job_count": 4,
+  "artifact_count": 0,
+  "jobs": [
+    {
+      "id": 121491235562,
+      "name": "receiver-contracts (windows-latest, 22)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "started_at": "2026-10-26T09:20:45Z",
+      "completed_at": "2026-10-26T09:21:11Z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:46Z",
+          "completed_at": "2026-10-26T09:20:47Z"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:47Z",
+          "completed_at": "2026-10-26T09:20:55Z"
+        },
+        {
+          "number": 3,
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:55Z",
+          "completed_at": "2026-10-26T09:20:59Z"
+        },
+        {
+          "number": 4,
+          "name": "Synthetic keys and isolated receiver storage only (no native EXE or Q01)",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:59Z",
+          "completed_at": "2026-10-26T09:21:06Z"
+        },
+        {
+          "number": 7,
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:21:06Z",
+          "completed_at": "2026-10-26T09:21:06Z"
+        },
+        {
+          "number": 8,
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:21:06Z",
+          "completed_at": "2026-10-26T09:21:09Z"
+        },
+        {
+          "number": 9,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:21:09Z",
+          "completed_at": "2026-10-26T09:21:09Z"
+        }
+      ]
+    },
+    {
+      "id": 121491235797,
+      "name": "receiver-contracts (windows-latest, 24)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "started_at": "2026-10-26T09:22:33Z",
+      "completed_at": "2026-10-26T09:23:08Z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:34Z",
+          "completed_at": "2026-10-26T09:22:35Z"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:35Z",
+          "completed_at": "2026-10-26T09:22:45Z"
+        },
+        {
+          "number": 3,
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:45Z",
+          "completed_at": "2026-10-26T09:22:53Z"
+        },
+        {
+          "number": 4,
+          "name": "Synthetic keys and isolated receiver storage only (no native EXE or Q01)",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:53Z",
+          "completed_at": "2026-10-26T09:23:05Z"
+        },
+        {
+          "number": 7,
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:23:05Z",
+          "completed_at": "2026-10-26T09:23:05Z"
+        },
+        {
+          "number": 8,
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:23:05Z",
+          "completed_at": "2026-10-26T09:23:07Z"
+        },
+        {
+          "number": 9,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:23:07Z",
+          "completed_at": "2026-10-26T09:23:07Z"
+        }
+      ]
+    },
+    {
+      "id": 121491235829,
+      "name": "receiver-contracts (ubuntu-latest, 24)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "started_at": "2026-10-26T09:22:23Z",
+      "completed_at": "2026-10-26T09:22:31Z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:24Z",
+          "completed_at": "2026-10-26T09:22:25Z"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:25Z",
+          "completed_at": "2026-10-26T09:22:26Z"
+        },
+        {
+          "number": 3,
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:26Z",
+          "completed_at": "2026-10-26T09:22:27Z"
+        },
+        {
+          "number": 4,
+          "name": "Synthetic keys and isolated receiver storage only (no native EXE or Q01)",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:27Z",
+          "completed_at": "2026-10-26T09:22:28Z"
+        },
+        {
+          "number": 7,
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:28Z",
+          "completed_at": "2026-10-26T09:22:28Z"
+        },
+        {
+          "number": 8,
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:28Z",
+          "completed_at": "2026-10-26T09:22:28Z"
+        },
+        {
+          "number": 9,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:22:28Z",
+          "completed_at": "2026-10-26T09:22:28Z"
+        }
+      ]
+    },
+    {
+      "id": 121491235847,
+      "name": "receiver-contracts (ubuntu-latest, 22)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "started_at": "2026-10-26T09:20:47Z",
+      "completed_at": "2026-10-26T09:20:52Z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:47Z",
+          "completed_at": "2026-10-26T09:20:48Z"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:48Z",
+          "completed_at": "2026-10-26T09:20:49Z"
+        },
+        {
+          "number": 3,
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:49Z",
+          "completed_at": "2026-10-26T09:20:49Z"
+        },
+        {
+          "number": 4,
+          "name": "Synthetic keys and isolated receiver storage only (no native EXE or Q01)",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:49Z",
+          "completed_at": "2026-10-26T09:20:50Z"
+        },
+        {
+          "number": 7,
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:50Z",
+          "completed_at": "2026-10-26T09:20:51Z"
+        },
+        {
+          "number": 8,
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:51Z",
+          "completed_at": "2026-10-26T09:20:51Z"
+        },
+        {
+          "number": 9,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T09:20:51Z",
+          "completed_at": "2026-10-26T09:20:51Z"
+        }
+      ]
+    }
+  ],
+  "log_files": [
+    {
+      "job_id": 121491235562,
+      "file": "job-121491235562.log",
+      "sha256": "0aee66b0ccf62bbfe780fa3b07e7b3af0c59fa95342244ffb82b6f1307c59f26",
+      "bytes": 51157,
+      "lines": 791,
+      "pattern_occurrences": {
+        "bearer_like": 2,
+        "jwt": 0,
+        "private_key_header": 0,
+        "native_sid": 0,
+        "node_pid_warning": 6,
+        "windows_account_path": 0,
+        "unix_account_path": 0
+      }
+    },
+    {
+      "job_id": 121491235797,
+      "file": "job-121491235797.log",
+      "sha256": "89de6aed65acde5742325aa515b3e8c09b3eb24ce85af9127de3f52f66549842",
+      "bytes": 24353,
+      "lines": 266,
+      "pattern_occurrences": {
+        "bearer_like": 1,
+        "jwt": 0,
+        "private_key_header": 0,
+        "native_sid": 0,
+        "node_pid_warning": 2,
+        "windows_account_path": 0,
+        "unix_account_path": 0
+      }
+    },
+    {
+      "job_id": 121491235829,
+      "file": "job-121491235829.log",
+      "sha256": "86b3c2a261b09c2002157a18cf0872a2e73e8b55515fddf5830cff6da584dad9",
+      "bytes": 24579,
+      "lines": 279,
+      "pattern_occurrences": {
+        "bearer_like": 1,
+        "jwt": 0,
+        "private_key_header": 0,
+        "native_sid": 0,
+        "node_pid_warning": 2,
+        "windows_account_path": 0,
+        "unix_account_path": 8
+      }
+    },
+    {
+      "job_id": 121491235847,
+      "file": "job-121491235847.log",
+      "sha256": "4e0e25305efa499daf044f31b042c3072a7edba194e918d26f141e4c7adff0cd",
+      "bytes": 50878,
+      "lines": 804,
+      "pattern_occurrences": {
+        "bearer_like": 2,
+        "jwt": 0,
+        "private_key_header": 0,
+        "native_sid": 0,
+        "node_pid_warning": 6,
+        "windows_account_path": 0,
+        "unix_account_path": 8
+      }
+    }
+  ],
+  "privacy_note": "Runner identifiers, runner names, labels, matched private values and raw logs intentionally omitted."
+}

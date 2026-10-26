@@ -7,6 +7,8 @@ permissions:
   contents: read
 jobs:
   laboratory:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     name: Q01 ${{ matrix.profile }} / ${{ matrix.os }} / Node ${{ matrix.node }}
     strategy:
       fail-fast: false
@@ -48,6 +50,8 @@ jobs:
           if-no-files-found: error
           retention-days: 30
   windows-guards:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     name: Q01 Windows laboratory guard contracts
     runs-on: windows-latest
     timeout-minutes: 10
@@ -66,7 +70,7 @@ jobs:
           exit $LASTEXITCODE
   q01-coverage:
     name: Q01 complete execution coverage
-    if: always()
+    if: ${{ (always()) && github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
     needs: [laboratory, windows-guards]
     runs-on: ubuntu-latest
     timeout-minutes: 2
