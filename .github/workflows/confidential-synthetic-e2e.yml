@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   qualification:
-    if: github.head_ref != 'integration/pr69-g0-readiness' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.head_ref != 'fix/pr70-g0-observation-integrity' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       id-token: write
