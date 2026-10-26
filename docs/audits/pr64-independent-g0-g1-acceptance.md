@@ -55,3 +55,11 @@ At PR #64 HEAD, `verifyReceiverReceipt` still checks only signature plus selecte
 | Book gate | CLOSED |
 
 **G0 operational NO-GO; G1 CLOSED.** No reruns or privileged operations. Send exact identities and this failure localization to Codex. Avoid interpreting artifact upload as successful qualification.
+
+## Follow-up: bounded root-cause evidence, not a diagnosis by step title
+
+Independent exact-HEAD inspection of `src/confidential-collector/{worker,session,oidc-client}.mjs` and `scripts/confidential-qualification/hosted.mjs` establishes: the public artifact contains no `diagnostics` field. The worker sets `phase=STRICT_OIDC_OR_TRANSPORT` for **any** exception in the `receive` handler; `SyntheticSession.receive` sets `diagnostics` only **after** successful `verifyOidcSignature`. Consequently, a missing diagnostics object is consistent with failure during sealed-envelope validation, platform/JWKS acquisition, or OIDC signature verification; it does **not** independently prove a specific OIDC claim or collector pin mismatch. A public log step named “Authenticate immutable collector inputs” is the encompassing step, not a precise exception location.
+
+Suggested scoped RED/GREEN before any new hosted run: use synthetic token and fake platform fixtures to inject one failure per stage; assert distinct **fixed enum codes** for `SEALED_ENVELOPE`, `PLATFORM_CAPTURE`, `OIDC_SIGNATURE`, `OIDC_CLAIMS`, `ZIP_INVENTORY`, `REPLAY` while ensuring no exception strings, JWT, claims, key material, paths, or stack traces cross the worker/public-summary boundary. Avoid logging real claims or changing strict authorization predicates. The existing `BLOCKED` receipt is correct until a new independently reviewed, explicitly authorized qualification run succeeds. This recommendation is not a claim that such diagnostic changes or tests were executed.
+
+The original ZIP was independently re-opened and its exact member inventory confirmed: one `qualification.json` of 284 bytes. ZIP SHA256 `d1c0148f97eea94bd9dacb4bab507055e94e5f34021441ceb4596a012483b108`. No hidden second member or original encrypted evidence is present. This failure artifact cannot establish job-level independent success binding.
