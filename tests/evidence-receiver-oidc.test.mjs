@@ -46,3 +46,13 @@ test('PR merge rejects substituted attempt job and check-run inventory',async()=
   {total_count:1,jobs:[{...platform.job,check_run_url:'https://api.github.com/repos/YehorBabenko88/math/check-runs/999'}]}
  ])assert.throws(()=>verifyWorkload(jwt(),{...opts,platform:{...platform,jobs}}),/BLOCKED/);
 });
+
+test('documented GitHub JOSE thumbprint header retains strict RS256 and selected-JWK binding',async()=>{
+ const {verifyWorkload}=await import('../src/evidence-receiver/oidc.mjs');
+ const thumb=Buffer.alloc(20,7).toString('base64url');
+ const header={alg:'RS256',kid:'fixture',typ:'JWT',x5t:thumb};
+ const options={jwks:{keys:[{...jwk,x5t:thumb}]},policy,challenge,platform,now};
+ assert.equal(verifyWorkload(jwt(claims,header),options).jobId,'4');
+ for(const h of [{...header,x5t:'bad'},{...header,x5t:Buffer.alloc(20,8).toString('base64url')},{...header,jku:'https://invalid.test'},{...header,alg:'none'},{...header,crit:['x5t']}])assert.throws(()=>verifyWorkload(jwt(claims,h),options),/BLOCKED/);
+ assert.throws(()=>verifyWorkload(jwt(claims,header),{...options,jwks:{keys:[jwk]}}),/BLOCKED/);
+});

@@ -31,33 +31,33 @@ jobs:
           node --input-type=module <<'COLLECTOR'
           import{mkdirSync,writeFileSync,readFileSync,lstatSync}from'node:fs';import{resolve,dirname,join}from'node:path';import{createHash}from'node:crypto';import{spawnSync}from'node:child_process';
           const manifest = {
-            "src/evidence-receiver/strict.mjs": "0cabca60437de91791747303aa4645d86db004afe336c0683f75a3c613736229",
-            "src/evidence-receiver/oidc.mjs": "febe8bc9de3cc1d84983b5bd57ff36cc417300467aab0df4565bd81f90399fd1",
+            "src/evidence-receiver/strict.mjs": "e9ff646d74986d04882803f513274f6055e2b2d5b200afe3d1a6ef243c441f3a",
+            "src/evidence-receiver/oidc.mjs": "e01ace2edecdf8d1e530bcbd60754d6f748ab826f2243d0e57e3e2085711ea94",
             "src/evidence-receiver/seal.mjs": "b081be5d7789bd508026c748075e2435e4e61df8f21905119f4e1cc2f0508c9f",
             "src/evidence-receiver/journal.mjs": "298d5fcaa8ce16a0f55a028702f2c6cd0efaf3bf4448c0321bbc31e29edf6fa7",
             "src/evidence-receiver/zip.mjs": "633be9954ee26f182989592a24829de6f2318a5552263c23f2c6b871e98a08f2",
-            "src/confidential-collector/oidc-client.mjs": "73c59255e85b25cfa1b73cdf86ede7b32d2ef4c27a6d257e9e9a1bfe4484887c",
+            "src/confidential-collector/oidc-client.mjs": "90d0c2b13d83567c28c9589de71c4084ee4d52a5ff69bde3cb99b374cf5c466c",
             "src/confidential-collector/context.mjs": "cc2fbb7c2787ec6dd8f455b271ee5e452edb432e9e70338c8a75b0d3ea498d6d",
-            "src/confidential-collector/session.mjs": "a1e5e422d360a2551142e0bfedca7c6dfca79184561beb5ef1892cf789c25378",
+            "src/confidential-collector/session.mjs": "76096f12d0d001f3cefcb0ed005f3966be055a57b9ba5fa13534faf3b5341a43",
             "src/confidential-collector/synthetic-bundle.mjs": "d7e585f586b17ef6597027bb3341b3661106681065382d909d05717bcddf312b",
-            "src/confidential-collector/public-schema.mjs": "faa8bd590abed1f1b413f77fdd040a75e0435a7f78531fa094250ff62319984e",
-            "src/confidential-collector/worker.mjs": "d3e726d7703a7171612ce65709699016f35cb0e69b9278fffeefe97b7975c3ce",
-            "scripts/confidential-qualification/hosted.mjs": "2a7ed9e5fb417d2d03dfc5fb3961806c15bc88c9a0d2a41cabefc139787fd451"
+            "src/confidential-collector/public-schema.mjs": "bba208c5922cc58bc622ffab843179d85b0c43601e87c82b2d33e8901af4b14e",
+            "src/confidential-collector/worker.mjs": "7d1c97bd7f32ee02364dbf8b4d6fd4f52f205086235544eee674134a6bbe86e0",
+            "scripts/confidential-qualification/hosted.mjs": "8f4b7eda0885a798ec3e702b11919ee08da4a0175d9399d0228747f3847543ae"
           };
-          let safe=false;const temp=resolve(process.env.RUNNER_TEMP),publicFile=join(temp,'math-confidential-public/qualification.json');
+          let code='E_BOOTSTRAP',safe=false;const temp=resolve(process.env.RUNNER_TEMP),publicFile=join(temp,'math-confidential-public/qualification.json');
           const check=ok=>{if(!ok)throw Error('blocked');};
           try{
            check(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_ENVIRONMENT==='github-hosted'&&process.platform==='linux'&&!process.env.NODE_OPTIONS&&!process.env.NODE_PATH&&!process.env.NODE_DEBUG&&!process.env.NODE_DEBUG_NATIVE);
            const ref=process.env.QUALIFICATION_COLLECTOR_SHA;check(/^[a-f0-9]{40}$/.test(ref));for(let p=temp;;p=dirname(p)){check(lstatSync(p).isDirectory()&&!lstatSync(p).isSymbolicLink());if(dirname(p)===p)break;}
            const root=join(temp,'math-confidential-kit');mkdirSync(root,{mode:0o700});
            const api=async path=>{const r=await fetch('https://api.github.com/repos/YehorBabenko88/math/'+path,{headers:{Authorization:'Bearer '+process.env.QUALIFICATION_API_TOKEN,Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(5000)});check(r.ok);let n=0;const chunks=[];for await(const chunk of r.body){n+=chunk.length;check(n<=1048576);chunks.push(Buffer.from(chunk));}return JSON.parse(Buffer.concat(chunks).toString('utf8'));};
-           const commit=await api('git/commits/'+ref);check(commit.sha===ref&&/^[a-f0-9]{40}$/.test(commit.tree?.sha));const tree=await api('git/trees/'+commit.tree.sha+'?recursive=1');check(tree.truncated===false&&Array.isArray(tree.tree));
-           for(const[path,expected]of Object.entries(manifest)){const matches=tree.tree.filter(e=>e.path===path);check(matches.length===1&&matches[0].mode==='100644'&&matches[0].type==='blob'&&/^[a-f0-9]{40}$/.test(matches[0].sha));const blob=await api('git/blobs/'+matches[0].sha);check(blob.encoding==='base64'&&Number.isSafeInteger(blob.size)&&blob.size<131072);const bytes=Buffer.from(blob.content,'base64');check(bytes.length===blob.size&&createHash('sha256').update(bytes).digest('hex')===expected);mkdirSync(dirname(join(root,path)),{recursive:true,mode:0o700});writeFileSync(join(root,path),bytes,{flag:'wx',mode:0o600});}
-           const child=spawnSync(process.execPath,[join(root,'scripts/confidential-qualification/hosted.mjs')],{encoding:'utf8',timeout:180000,maxBuffer:65536,env:process.env});
+           code='E_LOADER_API';const commit=await api('git/commits/'+ref);check(commit.sha===ref&&/^[a-f0-9]{40}$/.test(commit.tree?.sha));const tree=await api('git/trees/'+commit.tree.sha+'?recursive=1');check(tree.truncated===false&&Array.isArray(tree.tree));
+           code='E_LOADER_BYTES';for(const[path,expected]of Object.entries(manifest)){const matches=tree.tree.filter(e=>e.path===path);check(matches.length===1&&matches[0].mode==='100644'&&matches[0].type==='blob'&&/^[a-f0-9]{40}$/.test(matches[0].sha));const blob=await api('git/blobs/'+matches[0].sha);check(blob.encoding==='base64'&&Number.isSafeInteger(blob.size)&&blob.size<131072);const bytes=Buffer.from(blob.content,'base64');check(bytes.length===blob.size&&createHash('sha256').update(bytes).digest('hex')===expected);mkdirSync(dirname(join(root,path)),{recursive:true,mode:0o700});writeFileSync(join(root,path),bytes,{flag:'wx',mode:0o600});}
+           code='E_CHILD';const child=spawnSync(process.execPath,[join(root,'scripts/confidential-qualification/hosted.mjs')],{encoding:'utf8',timeout:180000,maxBuffer:65536,env:process.env});
            const data=JSON.parse(readFileSync(publicFile,'utf8'));const {validatePublicSummary}=await import('node:url').then(({pathToFileURL})=>import(pathToFileURL(join(root,'src/confidential-collector/public-schema.mjs')).href));validatePublicSummary(data);
            check(!child.error&&((child.status===0&&data.status!=='BLOCKED'&&child.stdout.trim()==='SYNTHETIC_CONFIDENTIAL_QUALIFICATION_PASS'&&child.stderr==='')||(child.status!==0&&data.status==='BLOCKED'&&child.stdout===''&&child.stderr.trim()==='SYNTHETIC_CONFIDENTIAL_QUALIFICATION_BLOCKED')));
-           safe=true;writeFileSync(process.env.GITHUB_OUTPUT,'safe_public=true\n',{flag:'a'});console.log(child.status===0?'PINNED_SYNTHETIC_QUALIFICATION_PASS':'PINNED_SYNTHETIC_QUALIFICATION_BLOCKED');process.exitCode=child.status===0?0:1;
-          }catch{console.error('PINNED_SYNTHETIC_QUALIFICATION_BLOCKED');process.exitCode=1;}
+           safe=true;writeFileSync(process.env.GITHUB_OUTPUT,'safe_public=true\n',{flag:'a'});console.log(child.status===0?'PINNED_SYNTHETIC_QUALIFICATION_PASS':'PINNED_SYNTHETIC_QUALIFICATION_BLOCKED:'+data.code);process.exitCode=child.status===0?0:1;
+          }catch{console.error('PINNED_SYNTHETIC_QUALIFICATION_BLOCKED:'+code);process.exitCode=1;}
           
           COLLECTOR
       - name: Public allowlist summary only; never raw claims, keys or ciphertext

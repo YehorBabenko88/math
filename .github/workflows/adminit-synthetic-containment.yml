@@ -14,7 +14,7 @@ permissions:
 jobs:
   contracts:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
+    if: ${{ github.head_ref != 'fix/pr64-hosted-failure' && github.ref != 'refs/heads/fix/pr64-hosted-failure' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -45,7 +45,7 @@ jobs:
           exit $LASTEXITCODE
   native-framework:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/pr60-hosted-confidential-qualification' && github.ref != 'refs/heads/feat/pr60-hosted-confidential-qualification' }}
+    if: ${{ github.head_ref != 'fix/pr64-hosted-failure' && github.ref != 'refs/heads/fix/pr64-hosted-failure' }}
     name: Disposable Windows / Framework / actual Medium token
     runs-on: windows-latest
     timeout-minutes: 10

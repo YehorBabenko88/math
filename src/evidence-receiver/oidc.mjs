@@ -1,4 +1,4 @@
-import{createHash,createPublicKey,verify}from'node:crypto';import{need,blocked,strictJson,exact,oid,id,hex}from'./strict.mjs';
+import{createHash,createPublicKey,verify}from'node:crypto';import{need,blocked,strictJson,exact,oid,id,hex,stageBlocked}from'./strict.mjs';
 const issuer='https://token.actions.githubusercontent.com';
 function part(value){need(typeof value==='string'&&/^[A-Za-z0-9_-]+$/.test(value));const b=Buffer.from(value,'base64url');need(b.toString('base64url')===value);return b;}
 // Relational source evidence only: not workload authentication or admission.
@@ -11,24 +11,24 @@ export function verifySourceBinding(input={}){try{
  return Object.freeze({sourceHead:c.sourceHead,sourceTree:c.sourceTree,runHead:c.runHead,baseHead:c.baseHead,prHead});
  }catch{blocked();}}
 // Private signature-verified claims only; no workload authorization.
-export function verifyOidcSignature(token,jwks){try{
- need(typeof token==='string'&&token.length<=32768);const pieces=token.split('.');need(pieces.length===3);const h=strictJson(part(pieces[0])),v=strictJson(part(pieces[1]));exact(h,['alg','typ','kid']);need(h.alg==='RS256'&&h.typ==='JWT'&&typeof h.kid==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(h.kid));
- need(Array.isArray(jwks?.keys)&&jwks.keys.length>0&&jwks.keys.length<=16&&new Set(jwks.keys.map(k=>k.kid)).size===jwks.keys.length);const j=jwks.keys.find(k=>k.kid===h.kid);need(j?.kty==='RSA'&&j.alg==='RS256'&&j.use==='sig');const key=createPublicKey({key:j,format:'jwk'});need(key.asymmetricKeyDetails.modulusLength>=2048&&key.asymmetricKeyDetails.modulusLength<=4096);need(verify('RSA-SHA256',Buffer.from(pieces[0]+'.'+pieces[1]),key,part(pieces[2])));
- need(v.iss===issuer);return v;
- }catch{blocked();}}
+export function verifyOidcSignature(token,jwks){let stage='E_OIDC_HEADER';try{
+ need(typeof token==='string'&&token.length<=32768);const pieces=token.split('.');need(pieces.length===3);const h=strictJson(part(pieces[0])),v=strictJson(part(pieces[1]));exact(h,['alg','typ','kid',...(Object.hasOwn(h,'x5t')?['x5t']:[])]);if(Object.hasOwn(h,'x5t'))need(typeof h.x5t==='string'&&part(h.x5t).length===20);need(h.alg==='RS256'&&h.typ==='JWT'&&typeof h.kid==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(h.kid));
+ stage='E_OIDC_JWKS';need(Array.isArray(jwks?.keys)&&jwks.keys.length>0&&jwks.keys.length<=16&&new Set(jwks.keys.map(k=>k.kid)).size===jwks.keys.length);const j=jwks.keys.find(k=>k.kid===h.kid);need(j?.kty==='RSA'&&j.alg==='RS256'&&j.use==='sig');if(Object.hasOwn(h,'x5t'))need(j.x5t===h.x5t);const key=createPublicKey({key:j,format:'jwk'});need(key.asymmetricKeyDetails.modulusLength>=2048&&key.asymmetricKeyDetails.modulusLength<=4096);stage='E_OIDC_SIGNATURE';need(verify('RSA-SHA256',Buffer.from(pieces[0]+'.'+pieces[1]),key,part(pieces[2])));
+ stage='E_OIDC_ISSUER';need(v.iss===issuer);return v;
+ }catch{stageBlocked(stage);}}
 export function verifyWorkload(token,{jwks,policy:p,challenge:c,platform,now}={}){
- try{
+ let stage='E_OIDC_POLICY';try{
  need(Number.isSafeInteger(now));const v=verifyOidcSignature(token,jwks);
  need(p?.repository==='YehorBabenko88/math'&&id(p.repositoryId)&&id(p.ownerId)&&typeof p.subject==='string'&&p.subject.length<=512&&typeof p.workflowRef==='string'&&p.workflowRef.startsWith(p.repository+'/.github/workflows/')&&oid(p.workflowSha)&&['direct','pr-merge'].includes(p.sourceRelation)&&typeof p.jobName==='string'&&p.jobName.length>0&&['push','pull_request','workflow_dispatch'].includes(p.event));
- need(hex(c?.nonce)&&c.audience==='urn:math-universe:evidence:'+c.nonce&&Number.isSafeInteger(c.issuedAt)&&Number.isSafeInteger(c.expiresAt)&&c.issuedAt<=now&&now<c.expiresAt&&c.expiresAt-c.issuedAt>0&&c.expiresAt-c.issuedAt<=300&&id(c.runId)&&id(c.attempt)&&id(c.jobId)&&id(c.checkRunId)&&oid(c.sourceHead)&&oid(c.sourceTree)&&oid(c.runHead));
- need(v.iss===issuer&&v.aud===c.audience&&v.sub===p.subject&&v.repository===p.repository&&v.repository_id===p.repositoryId&&v.repository_owner_id===p.ownerId&&v.workflow_ref===p.workflowRef&&v.workflow_sha===p.workflowSha&&v.runner_environment==='github-hosted'&&v.event_name===p.event&&v.sha===c.sourceHead&&v.run_id===c.runId&&v.run_attempt===c.attempt&&v.check_run_id===c.checkRunId);
- need([v.iat,v.nbf,v.exp].every(Number.isSafeInteger)&&v.iat>=c.issuedAt&&v.iat<=now&&v.nbf<=now&&v.nbf>=v.iat-60&&v.exp>now&&v.exp-v.iat<=600&&typeof v.jti==='string'&&v.jti.length>0&&v.jti.length<=256);
- const {run:r,job:j0,commit:s,jobs}=platform??{};need(r&&j0&&s&&jobs);need(Number.isSafeInteger(jobs.total_count)&&jobs.total_count>0&&jobs.total_count<=100&&Array.isArray(jobs.jobs)&&jobs.jobs.length===jobs.total_count&&new Set(jobs.jobs.map(j=>j.id)).size===jobs.total_count);const matches=jobs.jobs.filter(j=>String(j.id)===c.jobId);need(matches.length===1&&matches[0].check_run_url===j0.check_run_url&&matches[0].name===j0.name&&matches[0].head_sha===j0.head_sha);const same=(n,str)=>Number.isSafeInteger(n)&&String(n)===str;
+ stage='E_OIDC_CHALLENGE';need(hex(c?.nonce)&&c.audience==='urn:math-universe:evidence:'+c.nonce&&Number.isSafeInteger(c.issuedAt)&&Number.isSafeInteger(c.expiresAt)&&c.issuedAt<=now&&now<c.expiresAt&&c.expiresAt-c.issuedAt>0&&c.expiresAt-c.issuedAt<=300&&id(c.runId)&&id(c.attempt)&&id(c.jobId)&&id(c.checkRunId)&&oid(c.sourceHead)&&oid(c.sourceTree)&&oid(c.runHead));
+ stage='E_OIDC_BINDING';need(v.iss===issuer&&v.aud===c.audience&&v.sub===p.subject&&v.repository===p.repository&&v.repository_id===p.repositoryId&&v.repository_owner_id===p.ownerId&&v.workflow_ref===p.workflowRef&&v.workflow_sha===p.workflowSha&&v.runner_environment==='github-hosted'&&v.event_name===p.event&&v.sha===c.sourceHead&&v.run_id===c.runId&&v.run_attempt===c.attempt&&v.check_run_id===c.checkRunId);
+ stage='E_OIDC_TIME';need([v.iat,v.nbf,v.exp].every(Number.isSafeInteger)&&v.iat>=c.issuedAt&&v.iat<=now&&v.nbf<=now&&v.nbf>=v.iat-60&&v.exp>now&&v.exp-v.iat<=600&&typeof v.jti==='string'&&v.jti.length>0&&v.jti.length<=256);
+ stage='E_OIDC_PLATFORM';const {run:r,job:j0,commit:s,jobs}=platform??{};need(r&&j0&&s&&jobs);need(Number.isSafeInteger(jobs.total_count)&&jobs.total_count>0&&jobs.total_count<=100&&Array.isArray(jobs.jobs)&&jobs.jobs.length===jobs.total_count&&new Set(jobs.jobs.map(j=>j.id)).size===jobs.total_count);const matches=jobs.jobs.filter(j=>String(j.id)===c.jobId);need(matches.length===1&&matches[0].check_run_url===j0.check_run_url&&matches[0].name===j0.name&&matches[0].head_sha===j0.head_sha);const same=(n,str)=>Number.isSafeInteger(n)&&String(n)===str;
  need(same(r.id,c.runId)&&same(r.run_attempt,c.attempt)&&r.head_sha===c.runHead&&r.status==='in_progress'&&r.event===p.event&&r.repository?.full_name===p.repository&&same(r.repository?.id,p.repositoryId)&&same(r.repository?.owner?.id,p.ownerId));
  need(same(j0.id,c.jobId)&&same(j0.run_id,c.runId)&&j0.head_sha===c.runHead&&j0.status==='in_progress'&&j0.name===p.jobName&&j0.check_run_url==='https://api.github.com/repos/'+p.repository+'/check-runs/'+c.checkRunId);need(s.sha===c.sourceHead&&s.commit?.tree?.sha===c.sourceTree);
- verifySourceBinding({policy:p,challenge:c,platform});
+ stage='E_OIDC_SOURCE';verifySourceBinding({policy:p,challenge:c,platform});
  return Object.freeze({repository:p.repository,sourceHead:c.sourceHead,sourceTree:c.sourceTree,runId:c.runId,attempt:c.attempt,jobId:c.jobId,checkRunId:c.checkRunId,tokenSha256:createHash('sha256').update(token).digest('hex'),jtiSha256:createHash('sha256').update(v.jti).digest('hex'),expiresAt:Math.min(v.exp,c.expiresAt)});
- }catch{blocked();}
+ }catch(error){if(error.code)throw error;stageBlocked(stage);}
 }
 // Fixed HTTPS origin and bounded response; no sender-supplied URL or redirects.
 export async function fetchGitHubJson(path,{fetcher=fetch,authorization}={}){try{need(typeof path==='string'&&/^\/(?:repos\/YehorBabenko88\/math\/[A-Za-z0-9_./?=-]+|\.well-known\/jwks)$/.test(path)&&!path.includes('..'));const jwks=path==='/.well-known/jwks';const url=(jwks?issuer:'https://api.github.com')+path;const headers={Accept:'application/json'};if(!jwks&&authorization)headers.Authorization=authorization;const response=await fetcher(url,{headers,redirect:'error',signal:AbortSignal.timeout(5000)});need(response.ok&&new URL(response.url||url).origin===new URL(url).origin);let size=0;const chunks=[];for await(const chunk of response.body){size+=chunk.length;need(size<=1048576);chunks.push(Buffer.from(chunk));}return strictJson(Buffer.concat(chunks),1048576);}catch{blocked();}}
