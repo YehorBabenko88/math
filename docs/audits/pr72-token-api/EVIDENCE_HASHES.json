@@ -1,0 +1,42 @@
+[
+  {
+    "file": "token-red.tap",
+    "sha256": "39b142010cd5fdfb72e8364f076aef173d6016899166cc4736cf52ebe6d58303"
+  },
+  {
+    "file": "token-green.tap",
+    "sha256": "8567a1566c1d3d33fc71ff75a277615a15d9df17e358bcfbef21c3f9470976a3"
+  },
+  {
+    "file": "wiring-red.tap",
+    "sha256": "298599a9092f4f72bec2acb3423ac0f86232731e691db6651ff95a82986c2be7"
+  },
+  {
+    "file": "wiring-green.tap",
+    "sha256": "89802fb64dde784adf34fe2cf2562336febab517fef422b1ed02e689eebc1182"
+  },
+  {
+    "file": "admin-binding-red.tap",
+    "sha256": "648d95ebf8ccdf383f163a826ffe2bc3c6c994d754490e5a8f155535344334a3"
+  },
+  {
+    "file": "admin-binding-green.tap",
+    "sha256": "b88a17fdc6bfc6e2e6f19f6a9b4d57597b6f501e87b7bda67a5201a136cb648c"
+  },
+  {
+    "file": "cli-red.tap",
+    "sha256": "d4b715c63a70ba254d5875e68101aa6eab51efd3ad3f1ab49c5a2e36706211e5"
+  },
+  {
+    "file": "cli-green.tap",
+    "sha256": "bfad690bc0f0bbc217cbfa9a06c5ca484816264355aa44a30e5b2c501f6a785d"
+  },
+  {
+    "file": "final-node22.tap",
+    "sha256": "50f2b5f89935f1363662b95804db6f203925bd54d09089fbaa846edbdc7bf432"
+  },
+  {
+    "file": "final-node24.tap",
+    "sha256": "2b0a9fec7aceb4e07ee888f4277e723a525e42c3fcc51323e356b4968dee8d2b"
+  }
+]
