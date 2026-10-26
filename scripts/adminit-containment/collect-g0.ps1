@@ -3,7 +3,6 @@
 param([Parameter(Mandatory=$true)][string]$SourceCheckout)
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
-. (Join-Path $PSScriptRoot 'g0-readonly-helpers.ps1')
 $checks=@{path='UNKNOWN';acl='UNKNOWN';token='UNKNOWN';firewall='UNKNOWN'}
 $network=@{activeProfiles=$null;applicableRules=$null;effectiveIsolation='UNPROVEN';loopbackProtection='UNPROVEN'}
 function Test-NoReparseAncestors([string]$Path) {
@@ -38,19 +37,10 @@ try {
   }
  }
  $checks.acl=$aclStatus
- # Fixed Windows read-only utility; arguments are not supplied by the caller.
- $psi=New-Object Diagnostics.ProcessStartInfo
- $psi.FileName=Join-Path ([Environment]::GetFolderPath('System')) 'whoami.exe'
- $psi.Arguments='/groups /fo csv /nh';$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true
- $psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true
- $process=New-Object Diagnostics.Process;$process.StartInfo=$psi
- try {
-  if(-not $process.Start()){throw 'blocked'}
-  $out=$process.StandardOutput.ReadToEndAsync();$err=$process.StandardError.ReadToEndAsync()
-  if(-not $process.WaitForExit(5000)){try{$process.Kill()}catch{};throw 'blocked'}
-  if($process.ExitCode -ne 0 -or $out.Result.Length -gt 65536 -or $err.Result.Length -ne 0){throw 'blocked'}
-  $checks.token=Get-G0TokenObservation $out.Result ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
- } finally {$process.Dispose()}
+ # Current-process Token API observation only; never fall back to CSV.
+ . (Join-Path $PSScriptRoot 'g0-token-api.ps1')
+ $tokenObservation=Get-G0StructuredTokenObservation
+ $checks.token=$tokenObservation.status
  # ActiveStore inspection only. No connectivity/port probe and no database/service access.
  try {
   $profiles=@(Get-NetConnectionProfile -ErrorAction Stop)
