@@ -1,0 +1,26 @@
+[
+  {
+    "file": "csv-baseline.tap",
+    "sha256": "43fef3a2706df1ad2a3d3266e506bdc9a5bc759d5852eff6c57b827f4fdc9624"
+  },
+  {
+    "file": "quote-shape-baseline.tap",
+    "sha256": "ab2d9906afc55f423e0cb5faee8e4a8011bb6d449032bf349951db562972ae8b"
+  },
+  {
+    "file": "sid-ambiguity-red.tap",
+    "sha256": "a2e3e8b90bc559a34ecdac39c9c21c20afa02423a59af1a4ceb811bf6f4bc50a"
+  },
+  {
+    "file": "sid-ambiguity-green.tap",
+    "sha256": "d369e2c1aac96a61ea67730174dcfe851af3a64503981dbe16ce39ab4800e6f7"
+  },
+  {
+    "file": "final-node22.tap",
+    "sha256": "fc046395015f18fd37d88620b431c0d1b2ad61e8554b4a3a3efc349173f7f157"
+  },
+  {
+    "file": "final-node24.tap",
+    "sha256": "97241857bd0af284d3b1e3ee4b7d7ca36137a904fa1b6d8b5689d4ebd8cbf761"
+  }
+]

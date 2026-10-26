@@ -8,7 +8,13 @@ function Get-G0TokenObservation([string]$Csv,[bool]$AdminRoleEnabled) {
  foreach($line in $lines) {
   if($line -cnotmatch '^"(?:[^"]|"")*","(?:[^"]|"")*","(?:[^"]|"")*","(?:[^"]|"")*"$'){return 'UNKNOWN'}
   try {$row=$line|ConvertFrom-Csv -Header Name,Type,Sid,Attributes -WarningAction Stop -ErrorAction Stop} catch {return 'UNKNOWN'}
-  if($row.Sid -cmatch '^S-1-16-[0-9]+$'){$labels.Add($row.Sid)}
+  # Reject malformed SID fields even on non-integrity rows: never silently skip ambiguity.
+  if($row.Sid -cnotmatch '\AS-1-(?:0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*)){1,15}\z'){return 'UNKNOWN'}
+  try {
+   $parsedSid=[Security.Principal.SecurityIdentifier]::new($row.Sid)
+   if($parsedSid.Value -cne $row.Sid){return 'UNKNOWN'}
+  } catch {return 'UNKNOWN'}
+  if($row.Sid -cmatch '\AS-1-16-[0-9]+\z'){$labels.Add($row.Sid)}
  }
  if($labels.Count -ne 1){return 'UNKNOWN'}
  if($labels[0] -ceq 'S-1-16-8192'){return 'PASS'}
