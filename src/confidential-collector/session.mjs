@@ -13,3 +13,17 @@ export class SyntheticSession{
  for(const [name,field,value]of [['source','sourceHead',this.#c.sourceHead==='0'.repeat(40)?'1'.repeat(40):'0'.repeat(40)],['run','runId',String(BigInt(this.#c.runId)+1n)],['attempt','attempt',String(BigInt(this.#c.attempt)+1n)],['job','jobId',String(BigInt(this.#c.jobId)+1n)],['check-run','checkRunId',String(BigInt(this.#c.checkRunId)+1n)]])deny(name,()=>this.#authenticate(l.token,l.jwks,l.platform,{[field]:value}));
  const publicKey=createPublicKey(this.#signer);verifySyntheticReceipt(l.result,publicKey);const unsigned={...l.result};delete unsigned.signature;deny('unsigned-receipt',()=>verifySyntheticReceipt(unsigned,publicKey));deny('wrong-receipt-key',()=>verifySyntheticReceipt(l.result,generateKeyPairSync('ed25519').publicKey));const corrupt=Buffer.from(l.zip);corrupt[0]^=1;deny('corrupt-zip',()=>validateSyntheticBundle(corrupt,{expectedSha256:sha(corrupt),context:select(this.#c)}));let replay=false;try{await this.receive(l.sealed,sha(l.sealed));}catch{replay=true;}need(replay);rejected.push('replay');this.#authenticate(l.token,l.jwks,l.platform);return Object.freeze(rejected);}
 }
+
+/** Compare signed synthetic receipt against independently pinned expected identity.
+ * Does not authenticate the expected record or grant execution/VERIFIED.
+ */
+export function verifyBoundSyntheticReceipt(result,key,expected){
+ try{
+  exact(expected,['sourceHead','sourceTree','runHead','baseHead','workflowSha','runId','attempt','jobId','checkRunId','zipSha256']);
+  const r=verifySyntheticReceipt(result,key);
+  for(const field of ['sourceHead','sourceTree','runHead','baseHead','workflowSha'])need(oid(expected[field])&&r[field]===expected[field]);
+  for(const field of ['runId','attempt','jobId','checkRunId'])need(id(expected[field])&&r[field]===expected[field]);
+  need(hex(expected.zipSha256)&&r.zipSha256===expected.zipSha256);
+  return Object.freeze({status:'SIGNED_SYNTHETIC_IDENTITY_MATCH',authority:'NONE',execution:'DENIED',production:'NO_GO'});
+ }catch{blocked();}
+}
