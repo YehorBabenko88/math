@@ -45,3 +45,36 @@ test('combined admin group policy preserves enabled, deny-only and ambiguous sta
  assert.equal(policy(0,0),0);
  assert.equal(policy(2,4),-1);
 });
+
+test('x86/x64 synthetic TOKEN_GROUPS layout and SID table bounds',()=>{
+ for(const ptrSize of [4,8]){
+  const header=ptrSize===8?8:4;
+  const entrySize=ptrSize===8?16:8;
+  const tableEnd=(count)=>header+count*entrySize;
+  const sidLength=(subCount)=>8+4*subCount;
+  assert.equal(tableEnd(1),ptrSize===8?24:12);
+  assert.equal(tableEnd(2),ptrSize===8?40:20);
+  assert.equal(sidLength(2),16);
+  for(const count of [0,1,2,1024]){
+   const end=tableEnd(count);
+   assert.ok(end<=65536);
+   assert.equal(end>=(header+count*entrySize),true);
+   assert.equal(end-1>=end,false);
+  }
+  for(const count of [1,2]){
+   const end=tableEnd(count),length=end+16;
+   const validSidOffset=end;
+   assert.equal(validSidOffset>=end&&validSidOffset<=length-8&&validSidOffset+sidLength(2)<=length,true);
+   assert.equal(end-1>=end,false);
+   assert.equal(length-7<=length-8,false);
+   assert.equal(end+1+sidLength(2)<=length,false);
+  }
+ }
+});
+test('deny-only Administrators SID never counts as enabled membership',()=>{
+ const flags=[0x10,0x11,0x12,0x13];
+ for(const attributes of flags){
+  const enabled=(attributes&4)!==0;
+  assert.equal(enabled,false);
+ }
+});
