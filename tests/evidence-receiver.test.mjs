@@ -16,3 +16,14 @@ test('even a correctly signed receipt cannot inject VERIFIED or Execute fields',
   assert.throws(()=>verifyReceiverReceipt(signed,signer.publicKey),/BLOCKED/);
  }
 });
+
+test('correctly signed receipt cannot claim changed attestation scope or native/Q01 acceptance',async t=>{
+ const f=await fixture(t);
+ const r=await f.receiver.receive(f.envelope,{expectedEnvelopeSha256:sha(f.envelope)});
+ const {verifyReceiverReceipt}=await import('../src/evidence-receiver/receiver.mjs');
+ for(const [field,value] of [['attestationScope','FULL_PROOF'],['nativeAcceptance','PASS'],['q01','CLOSED'],['schema',2]]){
+  const receipt={...r.receipt,[field]:value};
+  const signed={receipt,signerKeyId:r.signerKeyId,signature:sign(null,Buffer.from(JSON.stringify(receipt)),signer.privateKey).toString('base64url')};
+  assert.throws(()=>verifyReceiverReceipt(signed,signer.publicKey),/BLOCKED/);
+ }
+});
