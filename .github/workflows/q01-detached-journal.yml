@@ -13,7 +13,7 @@ permissions:
 jobs:
   detached-journal:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/g0-structured-token' && github.ref != 'refs/heads/feat/g0-structured-token' }}
+    if: ${{ github.head_ref != 'fix/g0-token-cleanup' && github.ref != 'refs/heads/fix/g0-token-cleanup' }}
     strategy:
       fail-fast: false
       matrix:
