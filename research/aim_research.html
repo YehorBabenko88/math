@@ -14,7 +14,7 @@ $('build').addEventListener('click',async()=>{
   const problem=$('problem').value,context=$('context').value;
   if(!problem.trim()){ $('status').textContent='Problem cannot be empty';return }
   if(problem.length>100000||context.length>100000){$('status').textContent='Input too long';return}
-  const bytes=new TextEncoder().encode(problem+'\0'+context);
+  if(!globalThis.crypto?.subtle){$('status').textContent='SHA-256 unavailable: serve this page on localhost or HTTPS';return}\n  const bytes=new TextEncoder().encode(problem+'\0'+context);
   const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
   serialized=JSON.stringify({schema:'math.aim.research.v1',problem,context,digest,status:'UNVERIFIED'},null,2);
   $('output').textContent=serialized;$('save').disabled=false;
