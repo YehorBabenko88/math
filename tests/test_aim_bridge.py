@@ -21,7 +21,7 @@ class ResearchBridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             run_local({"schema": "unknown"}, "/nonexistent")
 
-    def test_tampered_request_rejected_before_execution(self):\n        request = prepare("x=x")\n        request["problem"] = "x=1"\n        with self.assertRaises(ValueError):\n            run_local(request, "/nonexistent")\n\n    def test_no_implicit_binary(self):
+    def test_tampered_request_rejected_before_execution(self):\n        request = prepare("x=x")\n        request["problem"] = "x=1"\n        with self.assertRaises(ValueError):\n            run_local(request, "/nonexistent")\n\n    def test_relative_binary_rejected(self):\n        with self.assertRaises(ValueError):\n            run_local(prepare("x"), "aim")\n\n    def test_no_implicit_binary(self):
         with self.assertRaises(FileNotFoundError):
             run_local(prepare("x"), "/nonexistent")
 
