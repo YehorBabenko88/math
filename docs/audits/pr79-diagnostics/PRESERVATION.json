@@ -1,0 +1,26 @@
+{
+  "base": "a6fc45c04fd382e6ace5751e150fb7dd1efe728c",
+  "scope": "SELECTED_SOURCE_INVARIANTS_NOT_RUNTIME_ATTESTATION",
+  "receipts": [
+    {
+      "name": "AdminState",
+      "normalizedSha256": "840836a3270db4786db3396cad830602a3d715704f53ba346f02d7f9a88f0e5b",
+      "equal": true
+    },
+    {
+      "name": "Own",
+      "normalizedSha256": "7a057176d7b56a2bc47bd4b23bcc96d7998b87add75ceee2566ac8ca03d28d73",
+      "equal": true
+    },
+    {
+      "name": "nativeDeclarations",
+      "normalizedSha256": "edf26be09417d3c066370662f035a2242383c51035edaa8295a214f08e8ea446",
+      "equal": true
+    },
+    {
+      "name": "allArrayCleanup",
+      "normalizedSha256": "e8a93bfef1a1a4b70a5b610b46bf89edb676ef8809efdf07352ebdda8f6b4be0",
+      "equal": true
+    }
+  ]
+}

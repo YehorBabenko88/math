@@ -11,7 +11,7 @@ on:
 jobs:
   q01-diagnostic:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'audit/g0-query-contract' && github.ref != 'refs/heads/audit/g0-query-contract' }}
+    if: ${{ github.head_ref != 'feat/g0-bounded-diagnostics' && github.ref != 'refs/heads/feat/g0-bounded-diagnostics' }}
     name: Q01 synthetic diagnostic (not acceptance)
     runs-on: ubuntu-latest
     timeout-minutes: 15
