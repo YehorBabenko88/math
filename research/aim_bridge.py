@@ -20,7 +20,7 @@ def prepare(problem: str, context: str = "") -> dict:
 
 def run_local(request: dict, executable: str, timeout: int = 120) -> dict:
     """Explicit opt-in subprocess. Does not grant a proof-validity claim."""
-    if not 1 <= timeout <= 3600:
+    if type(timeout) is not int or not 1 <= timeout <= 3600:
         raise ValueError("timeout out of range")
     if request.get("schema") != "math.aim.research.v1":
         raise ValueError("unsupported request")
