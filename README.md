@@ -22,7 +22,7 @@ Open `index.html` in a modern browser. No build, backend or API keys required fo
 4. Sandbox future expression parsing; do not use JavaScript `eval` for submitted formulas.
 5. Future AI guidance is advisory: deterministic numerical and symbolic engines must check claims.
 
-## Roadmap
+## AIM research (experimental)\n\nThe [AIM Research Lab](research/README.md) provides a local research-request composer and an optional Python-to-Rust AIM bridge. For the browser composer, serve the repository on localhost (for example `python -m http.server 8000`) and open `http://localhost:8000/research/aim_research.html`. Requests and outputs are **UNVERIFIED**; no mathematical proof is implied. The base mathematical laboratory remains offline and independent.\n\n## Roadmap
 
 - Safe AST expression parser with units/domains.
 - WebGL/Three.js 3D scenes and animation timelines.
