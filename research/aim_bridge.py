@@ -5,7 +5,7 @@ import hashlib
 import json
 import pathlib
 import subprocess
-import tempfile
+import tempfile\nfrom validate_request import validate
 
 MAX_TEXT = 100_000
 
