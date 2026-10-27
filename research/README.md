@@ -15,3 +15,7 @@ To opt into running AIM, compile and independently review a pinned upstream Rust
 Results are advisory and always `UNVERIFIED`, even on exit code zero. Numerical, symbolic, and out-of-sample validation must be independent. Do not connect to Grid runtime, PostgreSQL, trade execution, or physical hosts.
 
 This is a first integration stage; it does not yet expose a browser UI or implement automatic theorem verification.
+
+## Offline browser composer
+
+Open `research/aim_research.html` in a secure context (HTTPS or localhost; Web Crypto may not be available from `file://`). It prepares a compatible JSON research request without executing AIM or contacting a network service. This is a separate UI, not yet wired into the main Math Universe page.
