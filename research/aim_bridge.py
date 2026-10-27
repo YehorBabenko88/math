@@ -15,7 +15,7 @@ def prepare(problem: str, context: str = "") -> dict:
     if not isinstance(context, str) or len(context) > MAX_TEXT:
         raise ValueError("context must contain at most 100000 characters")
     return {"schema": "math.aim.research.v1", "problem": problem, "context": context,
-            "digest": hashlib.sha256((problem + "\\0" + context).encode()).hexdigest(),
+            "digest": hashlib.sha256((problem + "\0" + context).encode()).hexdigest(),
             "status": "UNVERIFIED"}
 
 def run_local(request: dict, executable: str, timeout: int = 120) -> dict:
