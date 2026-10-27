@@ -24,7 +24,7 @@ def run_local(request: dict, executable: str, timeout: int = 120) -> dict:
         raise ValueError("timeout out of range")
     if request.get("schema") != "math.aim.research.v1":
         raise ValueError("unsupported request")
-    binary = pathlib.Path(executable).resolve(strict=True)
+    binary = pathlib.Path(executable).resolve(strict=True)\n    if not binary.is_absolute():\n        raise ValueError("absolute executable path required")
     if not binary.is_file():
         raise ValueError("executable is not a file")
     with tempfile.TemporaryDirectory(prefix="math-aim-") as directory:
