@@ -9,3 +9,16 @@ const errorV2=(change={})=>v2({apiStatus:'ERROR',status:'UNKNOWN',code:'E_QUERY'
 test('v2 diagnostics are bounded metadata and never change error or admission',async()=>{const{validateTokenObservation:v}=await import('../scripts/adminit-containment/token-contract.mjs');assert.equal(v(v2()).status,'PASS');for(const stage of ['Q1','Q2','Q3','Q4','Q5','Q6','Q7'])for(const category of ['PROBE','READ','BOUNDS']){const r=v(errorV2({diagnosticStage:stage,diagnosticCategory:category}));assert.equal(r.code,'E_QUERY');assert.equal(r.status,'UNKNOWN');assert.equal(r.admission,'BLOCKED');}assert.equal(v(errorV2({code:'E_CLOSE',diagnosticStage:'CLEANUP',diagnosticCategory:'CLOSE'})).code,'E_CLOSE');assert.equal(v(errorV2({code:'E_FORMAT',diagnosticCategory:'BOUNDS'})).code,'E_FORMAT');});
 test('v2 rejects private, malformed, impossible and mixed-version diagnostic fields',async()=>{const{validateTokenObservation:v}=await import('../scripts/adminit-containment/token-contract.mjs');for(const patch of [{diagnosticStage:'Q8'},{diagnosticStage:2},{diagnosticStage:'private-marker'},{diagnosticCategory:'5'},{diagnosticCategory:{raw:5}},{diagnosticCategory:null},{diagnosticCategory:'CLOSE'},{code:'E_INTERNAL',diagnosticCategory:'OPEN'},{code:'E_CLOSE'},{diagnosticStage:'NONE',diagnosticCategory:'NONE'},{status:'PASS'},{localExecute:true},{authority:'OPERATOR'},{rawError:5},{sid:'private-marker'},{pid:1},{path:'private-marker'}])assert.throws(()=>v(errorV2(patch)),/BLOCKED/);for(const field of ['diagnosticStage','diagnosticCategory']){const r=errorV2();delete r[field];assert.throws(()=>v(r),/BLOCKED/);}assert.throws(()=>v({...sample(),diagnosticStage:'NONE',diagnosticCategory:'NONE'}),/BLOCKED/);assert.throws(()=>v(v2({diagnosticStage:'Q1',diagnosticCategory:'PROBE'})),/BLOCKED/);});
 test('v2 CLI keeps exit2 and never echoes rejected diagnostic data',()=>{const path=fileURLToPath(new URL('../scripts/adminit-containment/token-contract.mjs',import.meta.url));for(const r of [v2(),errorV2(),errorV2({code:'E_CLOSE',diagnosticStage:'CLEANUP',diagnosticCategory:'CLOSE'})]){const out=spawnSync(process.execPath,[path],{input:JSON.stringify(r),encoding:'utf8',timeout:5000,windowsHide:true});assert.equal(out.status,2);assert.deepEqual(JSON.parse(out.stdout),r);assert.equal(out.stderr,'');}for(const change of [{diagnosticStage:'private-marker'},{diagnosticCategory:'private-marker'},{rawError:'private-marker'}]){const out=spawnSync(process.execPath,[path],{input:JSON.stringify(errorV2(change)),encoding:'utf8',timeout:5000,windowsHide:true});assert.equal(out.status,2);assert.equal(out.stdout,'');assert.equal(out.stderr.trim(),'G0_TOKEN_OBSERVATION_BLOCKED');}});
+
+test('v2 rejects impossible OS/OS internal-error attribution',async()=>{
+ const {validateTokenObservation:v}=await import('../scripts/adminit-containment/token-contract.mjs');
+ const r={...sample(),schema:'math.g0.token-api.v2',
+  apiStatus:'ERROR',status:'UNKNOWN',code:'E_INTERNAL',tokenType:'UNKNOWN',
+  integrityRid:null,elevated:null,adminEnabled:null,
+  diagnosticStage:'OS',diagnosticCategory:'OS'};
+ assert.throws(()=>v(r),/BLOCKED/);
+ const actualOs={...r,code:'E_OS'};
+ assert.equal(v(actualOs).code,'E_OS');
+ const unknown={...r,diagnosticStage:'UNKNOWN',diagnosticCategory:'UNKNOWN'};
+ assert.equal(v(unknown).status,'UNKNOWN');
+});
