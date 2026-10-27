@@ -17,7 +17,7 @@ permissions:
 jobs:
   isolated-proof-kernel:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'audit/g0-query-contract' && github.ref != 'refs/heads/audit/g0-query-contract' }}
+    if: ${{ github.head_ref != 'feat/g0-bounded-diagnostics' && github.ref != 'refs/heads/feat/g0-bounded-diagnostics' }}
     name: Proof kernel Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
