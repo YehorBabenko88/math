@@ -1,0 +1,30 @@
+{
+  "schema": "math.synthetic-evidence-hashes.v1",
+  "scope": "SCOPED_CONTRACTS_NOT_FULL_OR_PHYSICAL_ACCEPTANCE",
+  "files": [
+    {
+      "name": "red.tap",
+      "sha256": "dbc608b902d1858eca0b5f0043fcdc9da630c56d65c70ce32c7d777b10174c86"
+    },
+    {
+      "name": "green.tap",
+      "sha256": "235ed179a83c71b0763ce1a1d26be3932e8a10ed4d6ed6f7eceb08e99cbb5371"
+    },
+    {
+      "name": "matrix-green.tap",
+      "sha256": "adae39780b43e678d93ae8719da33ac7a924178f83d5a16fb4a2aaadbc0e5cee"
+    },
+    {
+      "name": "node22.tap",
+      "sha256": "eac3b8b8abb38a246a03789ad85076d3491abe6547a4cfa07d5e295fc15e721e"
+    },
+    {
+      "name": "node24.tap",
+      "sha256": "def07131d6fef8b4877dcf26363c651862e1d39ffb60f18fdc71f203bf56ba26"
+    },
+    {
+      "name": "ci-coverage-red.tap",
+      "sha256": "57d3e74b85dfa3a57a4231a7f55a77382d7e7b200333d2080dc6deec277c2f77"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "path": "scripts/adminit-containment/WindowsTokenObservation.cs",
+    "equalAfterEolNormalization": true,
+    "sha256": "5950de960ef8e3a42435ea38bad2808fd8af312d8a77847d7e63d5ce0fd080d8"
+  },
+  {
+    "path": "scripts/adminit-containment/g0-token-api.ps1",
+    "equalAfterEolNormalization": true,
+    "sha256": "df722113d73e01e513062e1678003187aec8c0bad6b0247f5cdbce096c8bdf69"
+  },
+  {
+    "path": "scripts/adminit-containment/collect-g0.ps1",
+    "equalAfterEolNormalization": true,
+    "sha256": "6927ff1695805ac36933e5092e991b75eb27f36a6321918302b013621bb13b1c"
+  },
+  {
+    "path": "tests/adminit-token-faults.test.mjs",
+    "equalAfterEolNormalization": true,
+    "sha256": "406ff6b328e3aa1310e6e2f6ab47ba016c174db18ff3b1a0a1bc1ededeabf796"
+  },
+  {
+    "path": "tests/fixtures/token-cleanup/FakeNative.cs",
+    "equalAfterEolNormalization": true,
+    "sha256": "951b2f8e359afa29aa0b64d7401969d2503ea3008111730371b304b5579c6e77"
+  },
+  {
+    "path": "tests/ci-coverage.test.mjs",
+    "equalAfterEolNormalization": true,
+    "sha256": "e6e9bb786c941f92258d35cb77be7524ddc3385f3c2f16ecee4550038f31681f"
+  },
+  {
+    "path": "scripts/install-pester-verified.ps1",
+    "equalAfterEolNormalization": true,
+    "sha256": "1f63cda9e3f943b798494a4bca59d384da7bc5a1f67e25e37825bbfe0bf2cc32"
+  },
+  {
+    "path": "tests/pester-integrity.Tests.ps1",
+    "equalAfterEolNormalization": true,
+    "sha256": "4ef4d5f32a6d6b7234d49335b0b0c871df990bd9e8a6fcd0f9a98fa14f120cab"
+  }
+]

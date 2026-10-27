@@ -18,7 +18,7 @@ function validateDiagnostic(r){
  E_CHANGED:s==='POLICY'&&c==='IDENTITY',
  E_IMPERSONATION:t&&c==='IMPERSONATION',
  E_OS:s==='OS'&&c==='OS',E_LOAD:s==='LOAD'&&c==='LOAD',
- E_INTERNAL:(q&&['PROBE','READ','BOUNDS','CLEANUP'].includes(c))||(t&&c==='PROBE')||(s==='OPEN'&&c==='OPEN')||(s==='POLICY'&&['BOUNDS','IDENTITY'].includes(c))||(s==='CLEANUP'&&c==='CLEANUP')||(s==='OS'&&c==='OS')
+ E_INTERNAL:(q&&['PROBE','READ','BOUNDS','CLEANUP'].includes(c))||(t&&c==='PROBE')||(s==='OPEN'&&c==='OPEN')||(s==='POLICY'&&['BOUNDS','IDENTITY'].includes(c))||(s==='CLEANUP'&&c==='CLEANUP')
  };
  need(valid[r.code]===true);
 }
