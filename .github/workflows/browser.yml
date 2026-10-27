@@ -5,7 +5,7 @@ on:
 jobs:
   chromium:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/g0-bounded-diagnostics' && github.ref != 'refs/heads/feat/g0-bounded-diagnostics' }}
+    if: ${{ github.head_ref != 'integration/g0-diagnostic-os-fix' && github.ref != 'refs/heads/integration/g0-diagnostic-os-fix' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
