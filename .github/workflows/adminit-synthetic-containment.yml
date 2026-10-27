@@ -14,7 +14,7 @@ permissions:
 jobs:
   contracts:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'integration/g0-token-flags-cleanup' && github.ref != 'refs/heads/integration/g0-token-flags-cleanup' }}
+    if: ${{ github.head_ref != 'audit/g0-query-contract' && github.ref != 'refs/heads/audit/g0-query-contract' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -45,7 +45,7 @@ jobs:
           exit $LASTEXITCODE
   native-framework:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'integration/g0-token-flags-cleanup' && github.ref != 'refs/heads/integration/g0-token-flags-cleanup' }}
+    if: ${{ github.head_ref != 'audit/g0-query-contract' && github.ref != 'refs/heads/audit/g0-query-contract' }}
     name: Disposable Windows / Framework / actual Medium token
     runs-on: windows-latest
     timeout-minutes: 10

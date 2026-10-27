@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   qualification:
-    if: github.head_ref != 'integration/g0-token-flags-cleanup' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.head_ref != 'audit/g0-query-contract' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       id-token: write

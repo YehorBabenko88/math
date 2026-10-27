@@ -5,7 +5,7 @@ on:
 jobs:
   test:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'integration/g0-token-flags-cleanup' && github.ref != 'refs/heads/integration/g0-token-flags-cleanup' }}
+    if: ${{ github.head_ref != 'audit/g0-query-contract' && github.ref != 'refs/heads/audit/g0-query-contract' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
