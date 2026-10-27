@@ -22,3 +22,29 @@ test('v2 rejects impossible OS/OS internal-error attribution',async()=>{
  const unknown={...r,diagnosticStage:'UNKNOWN',diagnosticCategory:'UNKNOWN'};
  assert.equal(v(unknown).status,'UNKNOWN');
 });
+
+test('v1/v2 diagnostic schema boundaries reject mixed fields and private identifiers',async()=>{
+ const {validateTokenObservation:v}=await import('../scripts/adminit-containment/token-contract.mjs');
+ const base={...sample()};
+ const v2={...base,schema:'math.g0.token-api.v2',diagnosticStage:'NONE',diagnosticCategory:'NONE'};
+ assert.equal(v(base).schema,'math.g0.token-api.v1');
+ assert.equal(v(v2).schema,'math.g0.token-api.v2');
+ assert.throws(()=>v({...base,diagnosticStage:'NONE'}),/BLOCKED/);
+ assert.throws(()=>v({...v2,diagnosticCategory:undefined}),/BLOCKED/);
+ for(const field of ['sid','pid','handle','rawWin32Error','tokenBuffer','path']){
+  assert.throws(()=>v({...v2,[field]:'private-marker'}),/BLOCKED/);
+ }
+});
+test('v2 E_CLOSE is restricted to close-capable stages, never PASS',async()=>{
+ const {validateTokenObservation:v}=await import('../scripts/adminit-containment/token-contract.mjs');
+ const error={...sample(),schema:'math.g0.token-api.v2',apiStatus:'ERROR',
+  status:'UNKNOWN',code:'E_CLOSE',tokenType:'UNKNOWN',integrityRid:null,
+  elevated:null,adminEnabled:null,diagnosticStage:'CLEANUP',diagnosticCategory:'CLOSE'};
+ for(const stage of ['T1','T2','T3','Q7','CLEANUP']){
+  assert.equal(v({...error,diagnosticStage:stage}).status,'UNKNOWN');
+ }
+ for(const stage of ['OS','LOAD','OPEN','Q1','Q2','Q3','Q4','Q5','Q6','POLICY']){
+  assert.throws(()=>v({...error,diagnosticStage:stage}),/BLOCKED/);
+ }
+ assert.throws(()=>v({...error,status:'PASS'}),/BLOCKED/);
+});
