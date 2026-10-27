@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - 'research/**'
-      - 'tests/test_aim_bridge.py'
+      - 'tests/test_aim_*.py'
       - '.github/workflows/aim-research.yml'
   pull_request:
     paths:
@@ -26,5 +26,5 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Compile and unit tests
         run: |
-          python -m py_compile research/aim_bridge.py
-          python -m unittest discover -s tests -p test_aim_bridge.py -v
+          python -m py_compile research/aim_bridge.py research/validate_request.py
+          python -m unittest discover -s tests -p 'test_aim_*.py' -v
