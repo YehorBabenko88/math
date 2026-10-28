@@ -1,0 +1,27 @@
+{
+  "schema": "math.contract-test-hashes.v1",
+  "physicalRuntime": "NOT_RUN",
+  "hostAcceptance": "MISSING",
+  "files": [
+    {
+      "name": "red.tap",
+      "sha256": "4761636dcf488b4d85d2242bc8ec9cd8bf3fba9df6af3c378621e7f85d3ee9bc"
+    },
+    {
+      "name": "review-red.tap",
+      "sha256": "7bffb96021afc558ff59ec050868e0b9f192239675314cfec48322af57662903"
+    },
+    {
+      "name": "review-green.tap",
+      "sha256": "76176e0ed27b3e440c7da9713362dfe9ed8f04dcf3339d1277815b0a6e4a0a52"
+    },
+    {
+      "name": "node22.tap",
+      "sha256": "a689bc2507fb2fcd23d9c3a5a505b50a6c9e9872ae57ecb3c5c9d7d7f031b0e8"
+    },
+    {
+      "name": "node24.tap",
+      "sha256": "d1d5a6b768c0aea23aff50a07ffe39cc9780187ca0fb4bf99addf7dd653c8bfe"
+    }
+  ]
+}
