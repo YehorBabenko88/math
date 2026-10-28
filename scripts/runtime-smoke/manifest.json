@@ -1,0 +1,47 @@
+{
+  "schema": "math.disposable-vm-process-smoke.v1",
+  "preparationOnly": true,
+  "hostControllerImplemented": false,
+  "sourceBase": "d102f579279f7f7496413999c64bc8058dae9ed3",
+  "candidateBinding": "INDEPENDENT_EXACT_SHA_TREE_REQUIRED",
+  "payload": "scripts/runtime-smoke/process-only.mjs",
+  "payloadSha256": "0bfac02f9d3d366235905f15b580988debc3c7ebd31f8d19ed86c8579590b729",
+  "stdoutBytes": 30,
+  "stdoutSha256": "2925397637559d00800a2b8cca3b3685fa24a19a176c7def73dde3a8f3e972bc",
+  "maxLaunches": 1,
+  "nodeVersions": [
+    "22",
+    "24"
+  ],
+  "fixedNodeFlags": [
+    "--max-old-space-size=32",
+    "--no-addons",
+    "--disable-proto=throw"
+  ],
+  "limits": {
+    "wallMs": 2000,
+    "stdoutMaxBytes": 128,
+    "stderrMaxBytes": 0,
+    "maxLaunches": 1,
+    "heapMiB": 32,
+    "jobMemoryMiB": 256,
+    "jobCpuMs": 1000,
+    "jobActiveProcesses": 1,
+    "monitorPeriodMs": 100,
+    "maxObservationGapMs": 250,
+    "postExitObservationMs": 1000
+  },
+  "limitsHash": "d55e896dd3924a714cb9e590db85f0929ef788c100ad0e5537edd603677ada35",
+  "phase2": "SEPARATE_APPROVAL_AND_IMPLEMENTATION_REQUIRED",
+  "requiredEnforcement": [
+    "INDEPENDENT_VM_HOST_ADMISSION",
+    "NON_ELEVATED_ACCOUNT",
+    "NO_PRODUCTION_CREDENTIALS_OR_NETWORK_PATHS",
+    "AV_GAP_AWARE_MONITOR",
+    "JOB_ASSIGNMENT_BEFORE_RESUME",
+    "KILL_ON_JOB_CLOSE",
+    "HOST_SINGLE_USE_LEDGER",
+    "INDEPENDENT_HOST_WATCHDOG",
+    "PRIVATE_PIPE_CAPS_AND_HANDLE_REAPING"
+  ]
+}

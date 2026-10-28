@@ -1,0 +1,23 @@
+{
+  "schema": "math.model-evidence-hashes.v1",
+  "physicalRuntime": "NOT_RUN",
+  "adminit": "SECURITY_HOLD",
+  "files": [
+    {
+      "name": "red.tap",
+      "sha256": "469c0778f272e565dd8f3370bbd62cb741e08c65ce7aded3a3d9adbc683211a6"
+    },
+    {
+      "name": "review-red.tap",
+      "sha256": "96499342141d1768815efad927e9e0d9eab778de44cab7747a9d1b9e7492351d"
+    },
+    {
+      "name": "node22.tap",
+      "sha256": "f5d215b3c68b4aa55f325918747505f978b1fb2abd24765c4409798af924a590"
+    },
+    {
+      "name": "node24.tap",
+      "sha256": "5a3aaf6cba846298b499b4f206dcafbaf4189a0ad91af5d4afca8e64e60eca13"
+    }
+  ]
+}
