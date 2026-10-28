@@ -1,0 +1,27 @@
+[
+  {
+    "path": "scripts/adminit-containment/WindowsTokenObservation.cs",
+    "normalizedSha256": "5950de960ef8e3a42435ea38bad2808fd8af312d8a77847d7e63d5ce0fd080d8",
+    "unchanged": true
+  },
+  {
+    "path": "scripts/adminit-containment/g0-token-api.ps1",
+    "normalizedSha256": "df722113d73e01e513062e1678003187aec8c0bad6b0247f5cdbce096c8bdf69",
+    "unchanged": true
+  },
+  {
+    "path": "scripts/adminit-containment/observe-token-api.ps1",
+    "normalizedSha256": "2f3f887b0dbda276895827f6fb078a77e712cfe336e74857509ad45d0c096a1c",
+    "unchanged": true
+  },
+  {
+    "path": "scripts/adminit-containment/collect-g0.ps1",
+    "normalizedSha256": "6927ff1695805ac36933e5092e991b75eb27f36a6321918302b013621bb13b1c",
+    "unchanged": true
+  },
+  {
+    "path": "scripts/adminit-containment/token-contract.mjs",
+    "normalizedSha256": "fcf3082765cdd49c95ef57b933e4f3c6634d3813dd515cfb3ae62037ee09a7e3",
+    "unchanged": true
+  }
+]

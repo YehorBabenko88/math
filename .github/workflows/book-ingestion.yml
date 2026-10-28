@@ -11,7 +11,7 @@ permissions:
 jobs:
   native-pdf:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'integration/g0-diagnostic-os-fix' && github.ref != 'refs/heads/integration/g0-diagnostic-os-fix' }}
+    if: ${{ github.head_ref != 'feat/g0-offline-preflight' && github.ref != 'refs/heads/feat/g0-offline-preflight' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
