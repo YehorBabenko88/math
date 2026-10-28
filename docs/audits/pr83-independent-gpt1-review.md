@@ -99,3 +99,44 @@ mutation is an acceptable workaround.
 Audit HEAD `9cecd35d6074c3552a11da985b2f7ac192318224`
 had Browser E2E SUCCESS; the other six observed workflows were QUEUED
 when checked. This is not exact-head full-suite PASS.
+
+## Gate C exact-byte and observer-binding acceptance requirements
+
+The phrase "bounded JSON" in the admission dossier must be enforced by a
+concrete pre-parse byte limit, not only a post-parse object shape check.
+The existing Node token-contract CLI has a 16,384-byte input bound; the
+private producer-to-validator channel must reject larger output *before*
+JSON parsing or any public logging. Use the strict JSON parser to reject
+duplicate keys and malformed encoding. Do not treat a normal process exit
+as evidence that only one record was emitted.
+
+For the future independently approved single observation, acceptance must
+bind all of the following in one immutable evidence chain: trusted GitHub
+source SHA/tree and expected blob identities; actual checkout bytes;
+the wrapper and transitive source imports; the exact launched executable
+image and arguments; and the private producer bytes consumed by the pinned
+validator. A pre-launch path hash is not a substitute for custody across
+launch. A same-user-writable staging area or self-reported receipt leaves
+this chain UNPROVEN. If a trusted launch-time witness is unavailable, Gate A
+is BLOCKED rather than conditionally passed.
+
+These requirements are **not a command to perform a physical observation**.
+No raw stdout, stderr, SID, PID, token buffer, path, handle, Win32 error
+number or machine-specific identity should be added to public evidence.
+Do not weaken the v1/v2 strict allowlist or change exit-2 semantics.
+
+## Additional deterministic negative fixture requirements
+
+- Input of 16,385 UTF-8 bytes must be rejected before parse; 16,384 bytes
+  alone do not imply valid JSON or valid token fields.
+- Two concatenated valid JSON objects, duplicate keys and invalid UTF-8
+  must reject with fixed blocked diagnostics and no echoed payload.
+- A producer that exits 2 but emits nonempty stderr, or a validator that
+  exits unexpectedly, must not qualify an observation.
+- A same-user replacement of an already inspected wrapper with the same
+  file length and timestamp must not pass source custody.
+- A child executable with different image identity than the independently
+  approved executable must not inherit the parent's Medium preflight result.
+
+All listed fixtures remain NOT_RUN. No physical G0/G1 or Windows/PG mutation
+is authorized.
