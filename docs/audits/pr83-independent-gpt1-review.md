@@ -1,0 +1,142 @@
+# GPT-1 independent admission review of PR #83
+
+Source: PR #83 HEAD `a7113b3f0ae18d21948f0a71db26ea3ab9636b7e`, tree `9a3a5a60e58c802f26d55763da45b027f1292c3f`.
+PR #82 control HEAD `26e4651bf39312b7e2169dab0e4d72f717d53aee`, tree `ddce920f465dde2ec2eb9a06fbaa45ff50c999b7`.
+
+## Independent findings
+
+**P1 / ADMISSION BLOCKER (unproven custody, not demonstrated exploitation):**
+Git blob identity, detached checkout, no-reparse checks, and a Medium Integrity
+administrator session do not prevent a same-user actor from replacing the
+checkout, wrapper, compiler input, or observer between checks and execution.
+The dossier already acknowledges this limitation and explicitly refuses to
+authorize Gate B. Do not represent Gate A as independent observer custody.
+A future physical procedure must independently bind the approved immutable
+source bytes and actual launched observer, preserve custody across the launch,
+and fail closed on drift; same-account self-reported hashes do not suffice.
+No new physical step is authorized by this report.
+
+**P1 / CI acceptance blocker:** PR #83 exact-head Validate Math Universe
+run 40499253559 FAILED at mandatory PostgreSQL CI coverage contract.
+Windows Deployment Contracts run 40499253678 FAILED in the pwsh
+fixture-preparation step with HTTP 404 from the Pester dependency endpoint.
+PostgreSQL Integration run 40499253809 FAILED in four matrix jobs;
+the DB server log contains expected-looking negative-path errors, which
+alone do not establish the test failure cause. The coverage job also failed.
+Do not count these as token/physical acceptance PASS.
+
+**P2 / protocol and privacy:** The dossier correctly prohibits inventing
+Q/T stages for historical v1 E_QUERY, forbids v1/v2 mixed fields, and limits
+public projection to the normalized allowlist. Its private stdout custody,
+independent host identity and exact observer execution are not demonstrated
+by this documentation-only PR. No executable admission or Execute authority
+was added in PR #83.
+
+## Negative acceptance fixtures for future independent qualification
+
+1. After source hash verification, replace a wrapper with a same-user file
+   of the same length and mtime but different bytes. Must BLOCK before
+   observer launch; host-local hash alone is not an independent witness.
+2. Replace a verified child-process executable between path inspection and
+   process creation. Require independently bound launched image identity,
+   otherwise BLOCK.
+3. Use a v1 result with v2 diagnostic fields, and a v2 result missing either
+   field. Both must BLOCK without exposing rejected bytes.
+4. Supply two JSON records, nonempty stderr, or wrong producer/validator exit.
+   Must BLOCK without retry and without public raw output.
+5. Return a synthetic token PASS while a cleanup/CloseHandle failure is
+   injected. Final status must be UNKNOWN, admission BLOCKED.
+6. Use an elevated/admin-enabled or impersonating child after a Medium parent
+   precheck. Must BLOCK; parent-only evidence is insufficient.
+
+These are acceptance requirements, **not executed test results**. No native
+Token API, physical ADMINIT, G1, PostgreSQL, or Q01 stress was run here.
+
+## Decision
+
+Gate A documentation review: PARTIAL, custody UNPROVEN.
+One new read-only physical G0: **NOT_AUTHORIZED / NO-GO** until independent
+custody, completed scoped evidence and fresh explicit operator approval.
+Q01 OPEN. Production NO-GO. No merge or deployment.
+
+## Exact-head hosted follow-up
+
+For audit HEAD `bace92991d573d798c0a52a3cc64311cc42b3090`,
+the later observed hosted status is: Book Ingestion SUCCESS, Browser E2E
+SUCCESS, Q01 Windows Containment Preparation SUCCESS, Windows Deployment
+Contracts SUCCESS; Validate Math Universe FAILURE; Q01 Queue Reliability
+IN_PROGRESS and PostgreSQL Integration IN_PROGRESS. These are separate
+from the earlier PR83 exact-head runs and do not supersede their failure
+receipts. No physical G0 acceptance follows from any of these CI outcomes.
+
+The dossier's Gate A remains a design and document review only. Source
+and observer custody must be attested independently of the same-user
+checkout, with an explicit launch-time identity binding. Any inability to
+obtain that evidence remains BLOCKED, not a reason to weaken a guard.
+
+## Gate A adversarial decision table (offline design only)
+
+| Synthetic adversarial condition | Required outcome | Executed |
+| --- | --- | --- |
+| Same-user modifies source after hash check | BLOCK, no observer launch | NOT_RUN |
+| Approved checkout remains unchanged but wrapper/transitive import differs | BLOCK | NOT_RUN |
+| Parent is Medium but child is elevated or impersonating | BLOCK | NOT_RUN |
+| v1 carries v2 diagnostic metadata | BLOCK | NOT_RUN |
+| v2 omits stage or category | BLOCK | NOT_RUN |
+| Normalized result is PASS but producer exit is not 2 | BLOCK | NOT_RUN |
+| Raw stderr, duplicate JSON or unallowlisted private identifiers | BLOCK without public echo | NOT_RUN |
+| CloseHandle fails after a nominal token PASS | E_CLOSE / UNKNOWN, no admission | NOT_RUN |
+| Identity changes after first token read | E_CHANGED / UNKNOWN, no retry | NOT_RUN |
+
+The above are acceptance criteria, not evidence of successful tests. An
+independent custody witness must attest the actual launched observer and
+immutable source identity, not merely a prior path or same-user digest.
+No privilege escalation, UAC relaxation, new service, firewall or filesystem
+mutation is an acceptable workaround.
+
+## Current CI snapshot
+
+Audit HEAD `9cecd35d6074c3552a11da985b2f7ac192318224`
+had Browser E2E SUCCESS; the other six observed workflows were QUEUED
+when checked. This is not exact-head full-suite PASS.
+
+## Gate C exact-byte and observer-binding acceptance requirements
+
+The phrase "bounded JSON" in the admission dossier must be enforced by a
+concrete pre-parse byte limit, not only a post-parse object shape check.
+The existing Node token-contract CLI has a 16,384-byte input bound; the
+private producer-to-validator channel must reject larger output *before*
+JSON parsing or any public logging. Use the strict JSON parser to reject
+duplicate keys and malformed encoding. Do not treat a normal process exit
+as evidence that only one record was emitted.
+
+For the future independently approved single observation, acceptance must
+bind all of the following in one immutable evidence chain: trusted GitHub
+source SHA/tree and expected blob identities; actual checkout bytes;
+the wrapper and transitive source imports; the exact launched executable
+image and arguments; and the private producer bytes consumed by the pinned
+validator. A pre-launch path hash is not a substitute for custody across
+launch. A same-user-writable staging area or self-reported receipt leaves
+this chain UNPROVEN. If a trusted launch-time witness is unavailable, Gate A
+is BLOCKED rather than conditionally passed.
+
+These requirements are **not a command to perform a physical observation**.
+No raw stdout, stderr, SID, PID, token buffer, path, handle, Win32 error
+number or machine-specific identity should be added to public evidence.
+Do not weaken the v1/v2 strict allowlist or change exit-2 semantics.
+
+## Additional deterministic negative fixture requirements
+
+- Input of 16,385 UTF-8 bytes must be rejected before parse; 16,384 bytes
+  alone do not imply valid JSON or valid token fields.
+- Two concatenated valid JSON objects, duplicate keys and invalid UTF-8
+  must reject with fixed blocked diagnostics and no echoed payload.
+- A producer that exits 2 but emits nonempty stderr, or a validator that
+  exits unexpectedly, must not qualify an observation.
+- A same-user replacement of an already inspected wrapper with the same
+  file length and timestamp must not pass source custody.
+- A child executable with different image identity than the independently
+  approved executable must not inherit the parent's Medium preflight result.
+
+All listed fixtures remain NOT_RUN. No physical G0/G1 or Windows/PG mutation
+is authorized.
