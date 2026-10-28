@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   qualification:
-    if: github.head_ref != 'integration/g0-diagnostic-os-fix' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.head_ref != 'feat/g0-offline-preflight' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       id-token: write
