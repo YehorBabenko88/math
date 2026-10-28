@@ -58,3 +58,18 @@ Gate A documentation review: PARTIAL, custody UNPROVEN.
 One new read-only physical G0: **NOT_AUTHORIZED / NO-GO** until independent
 custody, completed scoped evidence and fresh explicit operator approval.
 Q01 OPEN. Production NO-GO. No merge or deployment.
+
+## Exact-head hosted follow-up
+
+For audit HEAD `bace92991d573d798c0a52a3cc64311cc42b3090`,
+the later observed hosted status is: Book Ingestion SUCCESS, Browser E2E
+SUCCESS, Q01 Windows Containment Preparation SUCCESS, Windows Deployment
+Contracts SUCCESS; Validate Math Universe FAILURE; Q01 Queue Reliability
+IN_PROGRESS and PostgreSQL Integration IN_PROGRESS. These are separate
+from the earlier PR83 exact-head runs and do not supersede their failure
+receipts. No physical G0 acceptance follows from any of these CI outcomes.
+
+The dossier's Gate A remains a design and document review only. Source
+and observer custody must be attested independently of the same-user
+checkout, with an explicit launch-time identity binding. Any inability to
+obtain that evidence remains BLOCKED, not a reason to weaken a guard.
