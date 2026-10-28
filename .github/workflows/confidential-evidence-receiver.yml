@@ -40,9 +40,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Normal receiver contracts (other branches)
-        if: github.head_ref != 'feat/g0-offline-preflight' && github.ref != 'refs/heads/feat/g0-offline-preflight'
+        if: github.head_ref != 'feat/disposable-vm-runtime-smoke' && github.ref != 'refs/heads/feat/disposable-vm-runtime-smoke'
         run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-source-shape.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/adminit-bootstrap-watchdog.test.mjs tests/qa-obsolete-queued-inventory.test.mjs tests/qa-current-ci-snapshot.test.mjs
-      - name: Scoped offline preflight and pure token contracts
-        if: github.head_ref == 'feat/g0-offline-preflight' || github.ref == 'refs/heads/feat/g0-offline-preflight'
-        run: node --test tests/adminit-offline-preflight.test.mjs tests/adminit-token-contract.test.mjs tests/adminit-token-cli.test.mjs tests/adminit-token-wiring.test.mjs tests/adminit-token-admin-flags-regression.test.mjs tests/confidential-workflow-scope.test.mjs tests/confidential-caller.test.mjs
+      - name: Scoped VM smoke preparation models (no payload execution)
+        if: github.head_ref == 'feat/disposable-vm-runtime-smoke' || github.ref == 'refs/heads/feat/disposable-vm-runtime-smoke'
+        run: node --test tests/disposable-vm-smoke.test.mjs tests/confidential-workflow-scope.test.mjs tests/confidential-caller.test.mjs
       # No id-token permission, secret, receiver endpoint, key provisioning or raw upload.

@@ -13,7 +13,7 @@ permissions:
 jobs:
   detached-journal:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/g0-offline-preflight' && github.ref != 'refs/heads/feat/g0-offline-preflight' }}
+    if: ${{ github.head_ref != 'feat/disposable-vm-runtime-smoke' && github.ref != 'refs/heads/feat/disposable-vm-runtime-smoke' }}
     strategy:
       fail-fast: false
       matrix:

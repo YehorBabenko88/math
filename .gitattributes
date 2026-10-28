@@ -2,3 +2,4 @@
 /sql/**/*.sql -text
 /sql/*.sql -text
 package-lock.json -text
+/scripts/runtime-smoke/* -text
