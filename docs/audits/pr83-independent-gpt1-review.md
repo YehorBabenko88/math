@@ -73,3 +73,29 @@ The dossier's Gate A remains a design and document review only. Source
 and observer custody must be attested independently of the same-user
 checkout, with an explicit launch-time identity binding. Any inability to
 obtain that evidence remains BLOCKED, not a reason to weaken a guard.
+
+## Gate A adversarial decision table (offline design only)
+
+| Synthetic adversarial condition | Required outcome | Executed |
+| --- | --- | --- |
+| Same-user modifies source after hash check | BLOCK, no observer launch | NOT_RUN |
+| Approved checkout remains unchanged but wrapper/transitive import differs | BLOCK | NOT_RUN |
+| Parent is Medium but child is elevated or impersonating | BLOCK | NOT_RUN |
+| v1 carries v2 diagnostic metadata | BLOCK | NOT_RUN |
+| v2 omits stage or category | BLOCK | NOT_RUN |
+| Normalized result is PASS but producer exit is not 2 | BLOCK | NOT_RUN |
+| Raw stderr, duplicate JSON or unallowlisted private identifiers | BLOCK without public echo | NOT_RUN |
+| CloseHandle fails after a nominal token PASS | E_CLOSE / UNKNOWN, no admission | NOT_RUN |
+| Identity changes after first token read | E_CHANGED / UNKNOWN, no retry | NOT_RUN |
+
+The above are acceptance criteria, not evidence of successful tests. An
+independent custody witness must attest the actual launched observer and
+immutable source identity, not merely a prior path or same-user digest.
+No privilege escalation, UAC relaxation, new service, firewall or filesystem
+mutation is an acceptable workaround.
+
+## Current CI snapshot
+
+Audit HEAD `9cecd35d6074c3552a11da985b2f7ac192318224`
+had Browser E2E SUCCESS; the other six observed workflows were QUEUED
+when checked. This is not exact-head full-suite PASS.
