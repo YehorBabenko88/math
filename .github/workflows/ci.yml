@@ -5,7 +5,7 @@ on:
 jobs:
   test:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/disposable-vm-runtime-smoke' && github.ref != 'refs/heads/feat/disposable-vm-runtime-smoke' }}
+    if: ${{ github.head_ref != 'feat/external-vm-host-contract' && github.ref != 'refs/heads/feat/external-vm-host-contract' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

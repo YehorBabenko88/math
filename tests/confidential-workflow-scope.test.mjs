@@ -1,3 +1,3 @@
 import test from'node:test';import assert from'node:assert/strict';import{readFileSync,readdirSync}from'node:fs';
-const branch='feat/disposable-vm-runtime-smoke';
+const branch='feat/external-vm-host-contract';
 test('unrelated workflows explicitly exclude the no-native/no-Q01 qualification branch',()=>{for(const file of readdirSync(new URL('../.github/workflows/',import.meta.url)).filter(f=>f.endsWith('.yml')&&!['confidential-evidence-receiver.yml','confidential-collector.yml','confidential-synthetic-e2e.yml'].includes(f))){const text=readFileSync(new URL('../.github/workflows/'+file,import.meta.url),'utf8');const jobs=text.slice(text.indexOf('\njobs:'));const blocks=jobs.split(/\n(?=  [A-Za-z0-9_-]+:\s*\r?\n)/).slice(1);assert.ok(blocks.length>0,file);for(const block of blocks){assert.ok(block.includes("github.head_ref != '"+branch+"'"),file);assert.ok(block.includes("github.ref != 'refs/heads/"+branch+"'"),file);}}});
