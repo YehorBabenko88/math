@@ -32,6 +32,46 @@ export function roots(coefficients,{maxIterations=500,tolerance=1e-9}={}){
  }
  return zs;
 }
+// Opt-in diagnostics: roots() above deliberately retains its legacy behavior.
+export function rootsWithDiagnostics(coefficients,{maxIterations=500,tolerance=1e-9,residualTolerance=tolerance}={}){
+ const coeffs=Array.from(coefficients);
+ if(coeffs.length<2||coeffs.some(x=>!Number.isFinite(x))||coeffs[0]===0)throw Error('Expected finite polynomial coefficients in descending order with a nonzero leading coefficient');
+ if(!Number.isSafeInteger(maxIterations)||maxIterations<0||!Number.isFinite(tolerance)||tolerance<=0||!Number.isFinite(residualTolerance)||residualTolerance<0)throw RangeError('Expected nonnegative integer maxIterations, positive finite tolerance and nonnegative finite residualTolerance');
+ const normalized=coeffs.map(x=>x/coeffs[0]),n=coeffs.length-1;
+ const finite=z=>Number.isFinite(z.re)&&Number.isFinite(z.im);
+ function measure(zs){
+  if(zs.length!==n||!zs.every(finite))return{maxResidual:null,maxNormalizedResidual:null};
+  let raw=0,norm=0;
+  for(const z of zs){const p=evaluatePolynomial(coeffs,z),q=evaluatePolynomial(normalized,z);raw=Math.max(raw,Math.hypot(p.re,p.im));norm=Math.max(norm,Math.hypot(q.re,q.im));}
+  return{maxResidual:Number.isFinite(raw)?raw:null,maxNormalizedResidual:Number.isFinite(norm)?norm:null};
+ }
+ const accepted=s=>s.maxResidual!==null&&s.maxNormalizedResidual!==null&&s.maxResidual<=residualTolerance&&s.maxNormalizedResidual<=residualTolerance;
+ const finish=(reason,zs,iterations,stats=measure(zs))=>({roots:zs.map(z=>({re:z.re,im:z.im})),converged:reason==='CONVERGED',iterations,...stats,reason});
+ if(normalized.some(x=>!Number.isFinite(x)))return finish('NON_FINITE',[],0);
+ if(normalized.some((x,i)=>x===0&&coeffs[i]!==0))return finish('NORMALIZATION_UNDERFLOW',[],0);
+ if(n===1){const zs=[{re:-normalized[1],im:0}],stats=measure(zs);return finish(stats.maxResidual===null||stats.maxNormalizedResidual===null?'NON_FINITE':accepted(stats)?'CONVERGED':'RESIDUAL_NOT_MET',zs,0,stats);}
+ let radius=1;for(const c of normalized.slice(1))radius=Math.max(radius,1+Math.abs(c));
+ let zs=Array.from({length:n},(_,i)=>({re:radius*Math.cos(2*Math.PI*(i+.17)/n),im:radius*Math.sin(2*Math.PI*(i+.17)/n)}));
+ if(!zs.every(finite))return finish('NON_FINITE',[],0);
+ for(let iteration=1;iteration<=maxIterations;iteration++){
+  let worst=0,changed=false;const next=[];
+  for(let i=0;i<n;i++){
+   let denominator={re:1,im:0};for(let j=0;j<n;j++)if(i!==j)denominator=mul(denominator,sub(zs[i],zs[j]));
+   const value=evaluatePolynomial(normalized,zs[i]);
+   const divisor=denominator.re*denominator.re+denominator.im*denominator.im;
+   const numerator={re:value.re*denominator.re+value.im*denominator.im,im:value.im*denominator.re-value.re*denominator.im};
+   if(!finite(value)||!finite(denominator)||!Number.isFinite(divisor)||divisor===0||!finite(numerator))return finish('NON_FINITE',zs,iteration);
+   const delta={re:numerator.re/divisor,im:numerator.im/divisor},z=sub(zs[i],delta);
+   if(!finite(delta)||!finite(z))return finish('NON_FINITE',zs,iteration);
+   worst=Math.max(worst,Math.hypot(delta.re,delta.im));changed ||= z.re!==zs[i].re||z.im!==zs[i].im;next.push(z);
+  }
+  zs=next;const stats=measure(zs);
+  if(!Number.isFinite(worst)||stats.maxResidual===null||stats.maxNormalizedResidual===null)return finish('NON_FINITE',zs,iteration,stats);
+  if(worst<tolerance&&accepted(stats))return finish('CONVERGED',zs,iteration,stats);
+  if(!changed)return finish('STAGNATION',zs,iteration,stats);
+ }
+ return finish('MAX_ITERATIONS',zs,maxIterations);
+}
 export function sampleBitcoinIllustration(){
  return [64,66,65,70,73,71,76,74].map((y,i)=>({x:i,y}));
 }

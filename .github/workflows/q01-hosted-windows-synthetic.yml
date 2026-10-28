@@ -8,7 +8,7 @@ permissions:
 jobs:
   synthetic-native:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/disposable-vm-runtime-smoke' && github.ref != 'refs/heads/feat/disposable-vm-runtime-smoke' }}
+    if: ${{ github.head_ref != 'feat/roots-convergence-diagnostics' && github.ref != 'refs/heads/feat/roots-convergence-diagnostics' }}
     name: Disposable Windows / fixed synthetic fixtures
     runs-on: windows-latest
     timeout-minutes: 8

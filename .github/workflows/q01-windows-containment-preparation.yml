@@ -8,7 +8,7 @@ permissions:
 jobs:
   native-free-contracts:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/disposable-vm-runtime-smoke' && github.ref != 'refs/heads/feat/disposable-vm-runtime-smoke' }}
+    if: ${{ github.head_ref != 'feat/roots-convergence-diagnostics' && github.ref != 'refs/heads/feat/roots-convergence-diagnostics' }}
     name: Native-free contracts / ${{ matrix.shell }} / Node ${{ matrix.node }}
     runs-on: windows-latest
     timeout-minutes: 10
@@ -36,7 +36,7 @@ jobs:
           exit $LASTEXITCODE
   preparation-coverage:
     name: Require all native-free preparation contracts
-    if: ${{ (always()) && github.head_ref != 'feat/disposable-vm-runtime-smoke' && github.ref != 'refs/heads/feat/disposable-vm-runtime-smoke' }}
+    if: ${{ (always()) && github.head_ref != 'feat/roots-convergence-diagnostics' && github.ref != 'refs/heads/feat/roots-convergence-diagnostics' }}
     needs: [native-free-contracts]
     runs-on: ubuntu-latest
     timeout-minutes: 2
