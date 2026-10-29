@@ -29,3 +29,19 @@ test('camera, opacity, intersection and animation controls respond',async({page}
  await page.getByRole('button',{name:'Пауза'}).click();
  await expect(page.getByRole('button',{name:'Воспроизвести'})).toBeVisible();
 });
+
+test('3D Build button rebuilds after invalid equation and clears stale canvas',async({page})=>{
+ await page.goto('/');
+ const first=page.locator('#equationInput'),second=page.locator('#equationSecond'),status=page.locator('#equationStatus');
+ await first.fill('x^2+y^2+z^2=1');await second.fill('z=0');
+ await page.locator('#equationQuality').selectOption('12');
+ await page.locator('#equationRender').click();
+ await expect(status).toContainText('Построено за');
+ await first.fill('x²+y²+z²=1');
+ await page.locator('#equationRender').click();
+ await expect(status).toContainText('Предыдущее построение очищено');
+ await first.fill('x^2+y^2+z^2=1');
+ await page.locator('#equationQuality').selectOption('28');
+ await page.locator('#equationRender').click();
+ await expect(status).toContainText('Построено за');
+});
