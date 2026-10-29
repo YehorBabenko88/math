@@ -1,0 +1,11 @@
+{
+  "base": "773aa361f37e67c6c61031ff787d8f77eec92811",
+  "kind": "LOCAL_SYNTHETIC_ONLY",
+  "files": {
+    "red.tap": "65b24349b93d4749ba51211ac13984f509531e91f5add75ecbdc8202bfdbcaf9",
+    "red-validation.tap": "5931ff87da008d320610aea9e0110acb62c6eb526ac7f82e6c094de33d203dc5",
+    "node22.tap": "0536d6d7ffff5db4c2bc3793394632adbfa6a7f7ba9df268a484b79a6e02cb66",
+    "node24.tap": "60291d50afb1b49215a794460c92ea236bccdf1e4c0a549d046264b39645d337",
+    "COMPARISON.json": "cac2321db298b409ac0ae1ebdfb89c3c7c8e188bde20cd5fc3a4b8bbc09e61ab"
+  }
+}

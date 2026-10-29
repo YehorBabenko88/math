@@ -11,7 +11,7 @@ permissions:
 jobs:
   postgres-integration:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/roots-convergence-diagnostics' && github.ref != 'refs/heads/feat/roots-convergence-diagnostics' }}
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     name: Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}
     strategy:
       fail-fast: false
@@ -74,7 +74,7 @@ jobs:
           retention-days: 30
   full-ci-coverage:
     name: Full CI coverage
-    if: ${{ (always()) && github.head_ref != 'feat/roots-convergence-diagnostics' && github.ref != 'refs/heads/feat/roots-convergence-diagnostics' }}
+    if: ${{ (always()) && github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     needs: [postgres-integration]
     runs-on: ubuntu-latest
     timeout-minutes: 2
