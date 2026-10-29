@@ -32,9 +32,9 @@ export function startMathEngine({host='127.0.0.1',port=8788}={}){
   const len=Number(req.headers['content-length']);
   if(!Number.isSafeInteger(len)||len<2||len>MAX_BYTES)return reply(413,{error:'BODY_LIMIT'});
   let count=0,text='';
-  req.setTimeout(5000,()=>req.destroy());
-  req.on('data',chunk=>{count+=chunk.length;if(count>MAX_BYTES){req.destroy();return}text+=chunk.toString('utf8')});
-  req.on('end',()=>{try{if(count!==len)throw Error('LENGTH_MISMATCH');
+  req.setTimeout(5000,()=>{if(!res.headersSent)reply(408,{error:'REQUEST_TIMEOUT'});req.destroy()});
+  req.on('data',chunk=>{count+=chunk.length;if(count>MAX_BYTES){if(!res.headersSent)reply(413,{error:'BODY_LIMIT'});req.destroy();return}text+=chunk.toString('utf8')});
+  req.on('end',()=>{if(res.writableEnded)return;try{if(count!==len)throw Error('LENGTH_MISMATCH');
    const out=evaluateMathRequest(JSON.parse(text));reply(200,out)}
    catch{reply(422,{error:'INVALID_RESEARCH_REQUEST',trading_authorized:false})}});
  });
