@@ -11,7 +11,7 @@ permissions:
 jobs:
   contracts:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'feat/roots-convergence-diagnostics' && github.ref != 'refs/heads/feat/roots-convergence-diagnostics' }}
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     name: Windows contracts / ${{ matrix.shell }}
     strategy:
       fail-fast: false
