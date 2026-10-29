@@ -41,7 +41,7 @@ export function startMathEngine({host='127.0.0.1',port=8788}={}){
  });
  return server.listen(port,host);
 }
-if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1].replaceAll('\\','/')).href){
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const port=Number(process.env.MATH_ENGINE_PORT??8788);
  startMathEngine({port});
  console.log('MATH_ENGINE_OFFLINE_READY 127.0.0.1:'+port);
