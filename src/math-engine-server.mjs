@@ -1,6 +1,7 @@
 import {createServer} from 'node:http';
 import {pathToFileURL} from 'node:url';
 import {evaluateReturnResearch} from './returns-research.mjs';
+import {evaluateResearchGraph} from './math-graph-api.mjs';
 const MAX_BYTES=262144;
 export function evaluateMathRequest(body) {
  if(!body||typeof body!=='object'||Array.isArray(body)||body.schema!=='math.evaluate.v1'||body.mode!=='HISTORICAL_RESEARCH'||body.execution_authority!==false)
@@ -28,7 +29,7 @@ export function startMathEngine({host='127.0.0.1',port=8788}={}){
   if(hostHeader!==`127.0.0.1:${port}`||req.headers.origin) return reply(403,{error:'LOCAL_ORIGIN_REQUIRED'});
   if(req.url==='/healthz'&&req.method==='GET')return reply(200,{service:'math-engine',
    schema:'math.engine.v1',state:'READY_OFFLINE',market_source:'NOT_CONNECTED',trading_authorized:false});
-  if(req.url!=='/v1/evaluate'||req.method!=='POST')return reply(404,{error:'NOT_FOUND'});
+  if(!['/v1/evaluate','/v1/graph/execute'].includes(req.url)||req.method!=='POST')return reply(404,{error:'NOT_FOUND'});
   if(req.headers['content-type']!=='application/json')return reply(415,{error:'CONTENT_TYPE'});
   const len=Number(req.headers['content-length']);
   if(!Number.isSafeInteger(len)||len<2||len>MAX_BYTES)return reply(413,{error:'BODY_LIMIT'});
@@ -36,7 +37,7 @@ export function startMathEngine({host='127.0.0.1',port=8788}={}){
   req.setTimeout(5000,()=>{if(!res.headersSent)reply(408,{error:'REQUEST_TIMEOUT'});req.destroy()});
   req.on('data',chunk=>{count+=chunk.length;if(count>MAX_BYTES){if(!res.headersSent)reply(413,{error:'BODY_LIMIT'});req.destroy();return}text+=chunk.toString('utf8')});
   req.on('end',()=>{if(res.writableEnded)return;try{if(count!==len)throw Error('LENGTH_MISMATCH');
-   const out=evaluateMathRequest(JSON.parse(text));reply(200,out)}
+   const payload=JSON.parse(text);const out=req.url==='/v1/graph/execute'?evaluateResearchGraph(payload):evaluateMathRequest(payload);reply(200,out)}
    catch{reply(422,{error:'INVALID_RESEARCH_REQUEST',trading_authorized:false})}});
  });
  return server.listen(port,host);
