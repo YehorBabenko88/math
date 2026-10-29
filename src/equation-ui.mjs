@@ -16,7 +16,7 @@ function draw(){
 }
 
 function update(){
- try{const equations=[input.value,second.value.trim()].filter(Boolean);const funcs=equations.map(compileImplicit);const next=funcs.map(f=>implicitPoints(f,{steps:22,threshold:.09}));const nextMeshes=funcs.map(f=>isosurface(f,{steps:20}));clouds=next;meshes=nextMeshes;crossings=funcs.length===2?intersectionPoints(funcs[0],funcs[1],{steps:36,tolerance:.1}):[];status.textContent=`Построено: ${nextMeshes.map(p=>p.length).join(" / ")} треугольников; ${crossings.length} приближённых точек пересечения. Цвета соответствуют уравнениям. Пересечения двух облаков пока не вычисляются отдельно.`;draw()}
+ try{const equations=[input.value,second.value.trim()].filter(Boolean);const funcs=equations.map(compileImplicit);const quality=Number(document.getElementById("equationQuality").value);if(![12,20,28].includes(quality))throw Error("Invalid quality setting");const started=performance.now();const next=funcs.map(f=>implicitPoints(f,{steps:Math.min(quality+2,36),threshold:.09}));const nextMeshes=funcs.map(f=>isosurface(f,{steps:quality}));clouds=next;meshes=nextMeshes;crossings=funcs.length===2?intersectionPoints(funcs[0],funcs[1],{steps:36,tolerance:.1}):[];status.textContent=`Построено за ${(performance.now()-started).toFixed(1)} мс: ${nextMeshes.map(p=>p.length).join(" / ")} треугольников; ${crossings.length} приближённых точек пересечения. Цвета соответствуют уравнениям. Пересечения двух облаков пока не вычисляются отдельно.`;draw()}
  catch(e){status.textContent="Ошибка уравнения: "+e.message}
 }
 button.addEventListener("click",update);
@@ -24,5 +24,6 @@ canvas.addEventListener("pointerdown",e=>{down=true;lastX=e.clientX;lastY=e.clie
 canvas.addEventListener("pointermove",e=>{if(!down)return;yaw+=(e.clientX-lastX)*.008;pitch=Math.max(-1.45,Math.min(1.45,pitch+(e.clientY-lastY)*.008));lastX=e.clientX;lastY=e.clientY;draw()});
 canvas.addEventListener("pointerup",()=>down=false);canvas.addEventListener("pointercancel",()=>down=false);update();
 
+document.getElementById("equationQuality").addEventListener("change",update);
 for(const id of ["surfaceOpacity","showIntersections"])document.getElementById(id).addEventListener("input",draw);
 document.getElementById("cameraReset").addEventListener("click",()=>{yaw=.6;pitch=.45;draw()});
