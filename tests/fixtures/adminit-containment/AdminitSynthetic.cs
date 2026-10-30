@@ -137,7 +137,7 @@ namespace MathUniverse.Adminit {
      outcome=new{status="PASS",scenario=kind,owner=Identity(owner),root=Identity(root),leaf=Identity(leaf),innerJobHandleHeldByObserver=false,leafAssignedBeforeResume=true};
      }
     }else{
-     AwaitOwnerDeadline(k,owner,25000);Check(k.ExitCode(owner)==0,"owner reported FAIL; inspect owner-result.json");
+     AwaitOwnerDeadline(k,owner,25000);uint ownerExit=k.ExitCode(owner);Check(ownerExit==0,"owner reported FAIL exit="+ownerExit.ToString("x8")+"; inspect owner-result.json");
      outcome=Json.DeserializeObject(File.ReadAllText(Path.Combine(dir,"owner-result.json")));
     }
    }finally{
