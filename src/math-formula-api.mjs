@@ -18,7 +18,7 @@ export function evaluateFormulaDocument(d){
     k.attested!==false)throw Error('KNOWLEDGE_SOURCE_UNATTESTED');
  }
  const fn=compileExpression(d.formula);
- const values=d.values.map(x=>fn({x}));
+ const values=d.values.map(x=>fn.evaluate(x));
  if(values.some(x=>typeof x!=='number'||!Number.isFinite(x)))throw Error('NONFINITE_FORMULA_RESULT');
  return {schema:'math.formula.result.v1',status:'RESEARCH_ONLY',values,
   inputUnit:d.inputUnit,outputUnit:d.outputUnit,knowledge:d.knowledge??null,
