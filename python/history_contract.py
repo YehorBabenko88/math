@@ -47,6 +47,7 @@ def evaluate_timed_request(q):
             'dataset_id':q['dataset_id'],'prefix_digest':digest(rows),'model_version':MODEL,
             'source':source,'source_authenticity':'NOT_EVALUATED_BY_MATH',
             'feature_available_at_ms':max(r['available_at_ms'] for r in rows),
+            'feature_event_end_ms':rows[-1]['event_end_ms'],'sample_count':len(rows),
             'watermark_ms':max(r['watermark_ms'] for r in rows),'decision_ms':q['decision_ms'],
             'train_end_ms':q['train_end_ms'],'train_count':train}
     except (KeyError,TypeError,OverflowError) as exc:
