@@ -42,6 +42,8 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ matrix.node }}
@@ -58,28 +60,118 @@ jobs:
         run: node scripts/verify-sql-bytes.mjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: 'python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r scripts/book-ingestion-requirements.txt'
-      - name: Full unfiltered suite (zero skips or todo)
+      - name: Complete Linux-owned and cross-platform suite (zero skips or todo)
         run: node scripts/test-full-ci.mjs
       - name: Record exact source and dependency provenance
+        if: always()
         env:
           SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
           PROVENANCE_CONTEXT: 'Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}'
         run: node scripts/ci-provenance.mjs
       - name: Upload source provenance
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: release-provenance-${{ github.run_id }}-${{ github.run_attempt }}-postgres-${{ matrix.node }}-${{ matrix.postgres }}
           path: release-provenance.json
           if-no-files-found: error
           retention-days: 30
+      - name: Upload mandatory platform evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: platform-linux-${{ matrix.node }}-${{ matrix.postgres }}
+          path: |
+            platform-evidence/
+            release-provenance.json
+          if-no-files-found: error
+          retention-days: 30
+  windows-platform:
+    # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
+    name: Windows platform Node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      PROVENANCE_CONTEXT: 'Windows platform Node ${{ matrix.node }}'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Use exact committed LF bytes for mechanical assertion proof
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git -c core.autocrlf=false checkout-index --all --force
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Verify tracked source before tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+        run: node scripts/verify-source-identity.mjs --before
+      - name: Verify dependency artifact locks
+        run: node scripts/verify-dependency-locks.mjs
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Complete Windows-owned and cross-platform suite (zero skips or todo)
+        run: node scripts/test-full-ci.mjs
+      - name: Record exact source and dependency provenance
+        if: always()
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+        run: node scripts/ci-provenance.mjs
+      - name: Upload Windows mandatory evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: platform-windows-${{ matrix.node }}
+          path: |
+            platform-evidence/
+            release-provenance.json
+          if-no-files-found: error
+          retention-days: 30
   full-ci-coverage:
     name: Full CI coverage
     if: ${{ (always()) && github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
-    needs: [postgres-integration]
+    needs: [postgres-integration, windows-platform]
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: platform-*
+          path: mandatory-platform-artifacts
       - name: Require every matrix cell to succeed
         env:
           MATRIX_RESULT: ${{ needs.postgres-integration.result }}
+          WINDOWS_RESULT: ${{ needs.windows-platform.result }}
         run: test "$MATRIX_RESULT" = success
+      - name: Require Windows cells and verify actual identity union
+        env:
+          WINDOWS_RESULT: ${{ needs.windows-platform.result }}
+        run: |
+          test "$WINDOWS_RESULT" = success
+          node scripts/verify-platform-coverage.mjs mandatory-platform-artifacts
+
+      - name: Upload independently verified identity union
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mandatory-platform-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: mandatory-platform-coverage.json
+          if-no-files-found: error
+          retention-days: 30
