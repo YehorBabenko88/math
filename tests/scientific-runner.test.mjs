@@ -8,9 +8,10 @@ const runner=new URL('../scripts/scientific/run-contracts.mjs',import.meta.url);
 function fixture(t,code){
  const dir=mkdtempSync(join(tmpdir(),'math-science-receipt-'));
  t.after(()=>{const rel=relative(resolve(tmpdir()),resolve(dir));if(!rel||rel.startsWith('..')||rel.includes(':'))throw Error('Invalid temporary path');rmSync(dir,{recursive:true,force:true});});
- for(const d of ['src','tests','scripts/scientific'])mkdirSync(join(dir,d),{recursive:true});
+ for(const d of ['src','tests','scripts/scientific','examples'])mkdirSync(join(dir,d),{recursive:true});
  copyFileSync(runner,join(dir,'scripts/scientific/run-contracts.mjs'));writeFileSync(join(dir,'scripts/scientific/test-inventory.json'),JSON.stringify(['tests/fixture.test.mjs']));
  writeFileSync(join(dir,'src/value.mjs'),'export default 1;\n');writeFileSync(join(dir,'tests/fixture.test.mjs'),code);
+ writeFileSync(join(dir,'examples/payload.json'),'{"value":1}\n');
  const git=(...args)=>{const r=spawnSync('git',args,{cwd:dir,encoding:'utf8',windowsHide:true});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
  git('init');git('add','.');git('-c','user.name=Synthetic','-c','user.email=synthetic@example.invalid','commit','-m','synthetic fixture');
  const sha=git('rev-parse','HEAD');return {dir,sha,git,run:expected=>spawnSync(process.execPath,['scripts/scientific/run-contracts.mjs'],{cwd:dir,env:{...process.env,EXPECTED_SOURCE_SHA:expected??sha},encoding:'utf8',windowsHide:true,timeout:10000}),receipt:()=>JSON.parse(readFileSync(join(dir,'outputs/scientific-engine/receipt.json')))};
@@ -29,4 +30,7 @@ test('test-time source mutation cannot claim an unchanged tested tree',t=>{
 });
 test('assume-unchanged cannot hide source drift from exact committed identity',t=>{
  const f=fixture(t,"import test from 'node:test';test('synthetic',()=>{});");f.git('update-index','--assume-unchanged','src/value.mjs');writeFileSync(join(f.dir,'src/value.mjs'),'export default 2;\n');assert.equal(f.git('status','--porcelain'),'');const r=f.run();assert.equal(r.status,1);assert.match(r.stderr,/SCIENTIFIC_QUALIFICATION_BLOCKED/);
+});
+test('hidden drift in scientific example data is bound to committed identity too',t=>{
+ const f=fixture(t,"import test from 'node:test';test('synthetic',()=>{});");f.git('update-index','--assume-unchanged','examples/payload.json');writeFileSync(join(f.dir,'examples/payload.json'),'{"value":2}\n');assert.equal(f.git('status','--porcelain'),'');const r=f.run();assert.equal(r.status,1);assert.match(r.stderr,/SCIENTIFIC_QUALIFICATION_BLOCKED/);
 });

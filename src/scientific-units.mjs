@@ -1,9 +1,23 @@
 import {fromUnit} from './si-dimensions.mjs';
 import {compileExpression} from './expression.mjs';
 const zero=()=>Array(10).fill(0);
-export function unitSpec(name){
+function atomicUnit(name){
  if(['USD','USDT','BTC'].includes(name)){const dimensions=zero();dimensions[7+['USD','USDT','BTC'].indexOf(name)]=1;return {name,factor:1,dimensions};}
+ if(['cm','mm','ms'].includes(name)){const base=name==='ms'?'s':'m',q=fromUnit(1,base);return {name,factor:name==='cm'?.01:.001,dimensions:[...q.dimensions,0,0,0]};}
  const q=fromUnit(1,name==='dimensionless'?'1':name);return {name,factor:q.siValue,dimensions:[...q.dimensions,0,0,0]};
+}
+export function unitSpec(name){
+ if(typeof name!=='string'||name.length<1||name.length>96)throw Error('INVALID_UNIT');
+ try{return atomicUnit(name);}catch{}
+ const parts=name.split(/([*/])/);if(parts.length>15||parts.length%2!==1)throw Error('UNIT_COMPLEXITY');
+ let factor=1,dimensions=zero();
+ for(let i=0;i<parts.length;i+=2){
+  const m=/^([A-Za-z]+|1)(?:\^(-?[1-8]))?$/.exec(parts[i]);if(!m)throw Error('INVALID_COMPOUND_UNIT');
+  const u=atomicUnit(m[1]),exponent=Number(m[2]??1)*(i&&parts[i-1]==='/'?-1:1),scale=u.factor**exponent;
+  factor*=scale;dimensions=dimensions.map((x,j)=>x+exponent*u.dimensions[j]);
+  if(!Number.isFinite(factor)||factor<=0||dimensions.some(x=>Math.abs(x)>16))throw Error('UNIT_COMPLEXITY');
+ }
+ return {name,factor,dimensions};
 }
 export const sameDimensions=(a,b)=>a.every((x,i)=>x===b[i]);
 export function compileDimensionalFormula(expression,inputUnit,outputUnit){

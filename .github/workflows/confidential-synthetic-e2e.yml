@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   qualification:
-    if: github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       id-token: write

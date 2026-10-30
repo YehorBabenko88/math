@@ -28,5 +28,6 @@
   "tests/knowledge-kernel-authenticator.test.mjs",
   "tests/knowledge-one-shot-verifier.test.mjs",
   "tests/knowledge-verification-request.test.mjs",
-  "tests/scientific-runner.test.mjs"
+  "tests/scientific-runner.test.mjs",
+  "tests/scientific-composition.test.mjs"
 ]

@@ -63,3 +63,7 @@ Limits: 128 nodes,256 edges,2048 samples per source,16384 values across all eval
 ## Integration qualification
 
 Node-only Windows/Linux22/24 workflow checks the exact source SHA, committed object bytes (JS/JSON LF checkout equivalence only), raw tested hashes before/after, nonzero test counts and zero failed/cancelled/skipped tests. It publishes only a synthetic test receipt and SHA256, not raw data. It is a self-reported qualification record corroborated by GitHub job logs, not independent cryptographic attestation. A fresh trusted checkout and independent review remain required. Historical SQL bytes/checksums, PostgreSQL, Book gates, native APIs, ADMINIT, Grid and trading integrations are unchanged. Terminan rendering/proxy and Strattester consumer acceptance are independent follow-up checks.
+
+## Revision 2.1
+
+The additive scientific-composition revision extends named output ports, causal calculus, fixed models and bounded compound units. See docs/scientific-engine-v21.md. The original contract description above records the PR101 baseline; the revision document governs added operations and expanded unit support.
