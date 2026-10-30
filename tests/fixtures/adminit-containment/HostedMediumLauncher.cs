@@ -22,6 +22,37 @@ namespace MathUniverse.AdminitHosted {
   [DllImport("kernel32.dll")] static extern IntPtr GetCurrentProcess();
   static void Check(bool ok,string why){if(!ok)throw new InvalidOperationException(why+" win32="+Marshal.GetLastWin32Error());}
   static string Quote(string s){Check(!String.IsNullOrEmpty(s)&&s.IndexOf('"')<0&&s.IndexOf('\r')<0&&s.IndexOf('\n')<0&&!s.EndsWith("\\"),"invalid fixed path");return "\""+s+"\"";}
+  [DllImport("advapi32.dll",EntryPoint="GetTokenInformation",SetLastError=true)] static extern bool ReadTokenInfo(IntPtr token,int kind,IntPtr data,uint size,out uint required);
+  [DllImport("advapi32.dll")] static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+  [DllImport("advapi32.dll")] static extern IntPtr GetSidSubAuthority(IntPtr sid,uint index);
+  static void AssertMeasuredToken(int rid,int elevation){Check(rid==8192&&elevation==0,"measured supervisor must be non-elevated Medium");}
+  static void VerifyMediumToken(IntPtr token){
+   IntPtr data=Marshal.AllocHGlobal(256);
+   try{uint n;Check(ReadTokenInfo(token,20,data,4,out n),"supervisor elevation query");int elevation=Marshal.ReadInt32(data);
+    Check(ReadTokenInfo(token,25,data,256,out n),"supervisor integrity query");IntPtr sid=Marshal.ReadIntPtr(data);byte count=Marshal.ReadByte(GetSidSubAuthorityCount(sid));Check(count>0,"invalid supervisor integrity SID");
+    AssertMeasuredToken(Marshal.ReadInt32(GetSidSubAuthority(sid,(uint)(count-1))),elevation);
+   }finally{Marshal.FreeHGlobal(data);}
+  }
+  static void ConfirmSupervisorToken(IntPtr process){IntPtr token;Check(OpenProcessToken(process,8,out token),"suspended supervisor token query");try{VerifyMediumToken(token);}finally{Check(CloseHandle(token),"supervisor token close failed");}}
+  [DllImport("user32.dll")] static extern IntPtr GetProcessWindowStation();
+  [DllImport("user32.dll")] static extern IntPtr GetThreadDesktop(uint thread);
+  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+  [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool GetUserObjectInformation(IntPtr obj,int kind,StringBuilder data,uint size,out uint required);
+  [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr OpenWindowStation(string name,bool inherit,uint access);
+  [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr OpenDesktop(string name,uint flags,bool inherit,uint access);
+  [DllImport("user32.dll")] static extern bool CloseWindowStation(IntPtr station);
+  [DllImport("user32.dll")] static extern bool CloseDesktop(IntPtr desktop);
+  [DllImport("advapi32.dll",SetLastError=true)] static extern bool ImpersonateLoggedOnUser(IntPtr token);
+  [DllImport("advapi32.dll",SetLastError=true)] static extern bool RevertToSelf();
+  static string ObjectName(IntPtr obj){var text=new StringBuilder(512);uint n;Check(GetUserObjectInformation(obj,2,text,1024,out n),"desktop diagnostic name query");return text.ToString();}
+  static void ObserveDesktopAccess(IntPtr token){
+   string station=ObjectName(GetProcessWindowStation()),desktop=ObjectName(GetThreadDesktop(GetCurrentThreadId()));IntPtr s=IntPtr.Zero,d=IntPtr.Zero;
+   Check(ImpersonateLoggedOnUser(token),"desktop diagnostic impersonation");
+   try{s=OpenWindowStation(station,false,0x23);int se=s==IntPtr.Zero?Marshal.GetLastWin32Error():0;
+    d=OpenDesktop(desktop,0,false,0x83);int de=d==IntPtr.Zero?Marshal.GetLastWin32Error():0;
+    Console.WriteLine("RESTRICTED_DESKTOP_READONLY_PROBE stationError="+se+" desktopError="+de+"; diagnostic only, not causal proof");
+   }finally{try{Check(RevertToSelf(),"desktop diagnostic revert failed");}finally{bool closed=true;if(d!=IntPtr.Zero)closed=CloseDesktop(d)&&closed;if(s!=IntPtr.Zero)closed=CloseWindowStation(s)&&closed;Check(closed,"desktop diagnostic handles close failed");}}
+  }
   public static int Main(string[] args){
    IntPtr token=IntPtr.Zero,limited=IntPtr.Zero,sid=IntPtr.Zero,label=IntPtr.Zero,env=IntPtr.Zero,job=IntPtr.Zero,p=IntPtr.Zero,t=IntPtr.Zero;bool assigned=false;var k=new WindowsJobKernel();int result=2;
    try{
@@ -39,7 +70,7 @@ namespace MathUniverse.AdminitHosted {
     Startup startup=new Startup();startup.Size=(uint)Marshal.SizeOf(typeof(Startup));ProcessInfo info;
     job=k.CreateJob();k.ConfigureKillOnClose(job);
     Check(CreateProcessAsUser(limited,exe,new StringBuilder(Quote(exe)+" --hosted-suite "+Quote(run)),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,package,ref startup,out info),"restricted fixed process creation BLOCKED; no privilege enabling/fallback");
-    p=info.Process;t=info.Thread;k.Assign(job,p);assigned=true;k.Resume(t);
+    p=info.Process;t=info.Thread;k.Assign(job,p);assigned=true;ConfirmSupervisorToken(p);Console.WriteLine("SUSPENDED_SUPERVISOR_TOKEN_MEDIUM_NON_ELEVATED");ObserveDesktopAccess(limited);k.Resume(t);
     Check(k.Wait(p,120000)==0,"independent whole-suite watchdog expired: BLOCKED");result=(int)k.ExitCode(p);Console.WriteLine("Fixed Medium supervisor exit="+result+"; inspect results.json; missing evidence is BLOCKED");return result;
    }catch(Exception e){Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
    finally{

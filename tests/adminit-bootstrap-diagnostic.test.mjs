@@ -12,3 +12,8 @@ test('unknown stderr and missing drain proof never become successful cleanup or 
 test('an unexited bootstrap cannot claim cleanup even with a marker',()=>{
  assert.equal(projectBootstrapDiagnostic({exitCode:2,exited:false,stdout:'BOOTSTRAP_CLEANUP_CONFIRMED',stderr:''}).cleanup,'UNCONFIRMED');
 });
+test('native DLL initialization failure is classified without inventing a failing DLL or desktop cause',()=>{
+ const d=projectBootstrapDiagnostic({exitCode:-1073741502,exited:true,stdout:'Fixed Medium supervisor exit=-1073741502; inspect results.json; missing evidence is BLOCKED\r\nBOOTSTRAP_CLEANUP_CONFIRMED\r\n',stderr:''});
+ assert.equal(d.failure,'STATUS_DLL_INIT_FAILED');assert.equal(d.nativeAcceptance,'BLOCKED');
+ assert.equal(d.cleanup,'CONFIRMED_BY_BOOTSTRAP');
+});
