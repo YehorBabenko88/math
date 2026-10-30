@@ -1,5 +1,6 @@
 """Qualification must refuse a different/dirty HEAD and hash both languages."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -41,3 +42,10 @@ class QualificationGuard(unittest.TestCase):
         receipt = json.loads((self.root / '.history-evidence/receipt.json').read_text())
         self.assertIn('src/engine.mjs', receipt['sources'])
         self.assertEqual(receipt['head'], self.head)
+
+    def test_git_blob_hash_is_raw_even_with_autocrlf_enabled(self):
+        self.git('config', 'core.autocrlf', 'true')
+        r = self.run_ci(); self.assertEqual(r.returncode, 0, r.stderr.decode())
+        receipt = json.loads((self.root / '.history-evidence/receipt.json').read_text())
+        blob = subprocess.check_output(['git', '-C', str(self.root), 'show', 'HEAD:src/engine.mjs'])
+        self.assertEqual(receipt['sources']['src/engine.mjs']['git_blob_sha256'], hashlib.sha256(blob).hexdigest())
