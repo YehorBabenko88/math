@@ -66,6 +66,11 @@ namespace MathUniverse.Adminit {
   static void CaseDirectory(string dir){Literal(dir);NoReparse(dir);string name=Path.GetFileName(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup","watchdog"},name)>=0,"unknown fixed case");
    Suite=Path.GetDirectoryName(dir);Check(String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase),"directory outside fixed lab BLOCKED");ValidateLabAcl(dir);Check(File.ReadAllText(Path.Combine(Suite,"synthetic-session.txt"))=="fixed-fixtures-only;not-operator-authorization","missing test coordinator");
   }
+  static void TerminateOwnedProcess(IJobKernel kernel,IntPtr process){
+   uint state=kernel.Wait(process,0);Check(state==0||state==258,"owned cleanup wait failed: BLOCKED");if(state==0)return;
+   try{kernel.TerminateProcess(process);}
+   catch(System.ComponentModel.Win32Exception error){if(error.NativeErrorCode!=5||kernel.Wait(process,0)!=0)throw;}
+  }
   // The fixed file-protocol fixture needs no console. Do not change the pinned
   // shared Q01 kernel: only synthetic ADMINIT descendants use this adapter.
   sealed class FixtureKernel : IJobKernel {
@@ -91,7 +96,7 @@ namespace MathUniverse.Adminit {
    public uint ExitCode(IntPtr p){return inner.ExitCode(p);}
    public void TerminateJob(IntPtr j){inner.TerminateJob(j);}
    public bool WaitJobEmpty(IntPtr j,uint ms){return inner.WaitJobEmpty(j,ms);}
-   public void TerminateProcess(IntPtr p){inner.TerminateProcess(p);}
+   public void TerminateProcess(IntPtr p){TerminateOwnedProcess(inner,p);}
    public void Close(IntPtr h){inner.Close(h);}
   }
   static int Root(string dir,string kind){
