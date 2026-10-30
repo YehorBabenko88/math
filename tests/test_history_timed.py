@@ -12,6 +12,7 @@ def request():
     rows=[{'open':100+i*.1,'high':102+i*.1,'low':99+i*.1,'close':101+i*.1,'volume':3.,
        'event_start_ms':i*60000,'event_end_ms':(i+1)*60000,'available_at_ms':(i+1)*60000,
        'watermark_ms':(i+1)*60000,'revision':'a'*64,'source_receipt_hash':'b'*64} for i in range(40)]
+    for row in rows:row.update(source_event_start_ms=row['event_start_ms']+1,source_event_end_ms=row['event_end_ms']-2)
     return {'schema':'math.history.request.v1.1','dataset_id':'c'*64,'dataset_fingerprint':'d'*64,
       'source':{'identity':'fixture','source_revision':'a'*40,'epoch':'fixture'},
       'market':{'venue':'bybit','market_type':'linear','symbol':'BTCUSDT'},
