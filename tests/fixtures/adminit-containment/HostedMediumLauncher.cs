@@ -69,7 +69,7 @@ namespace MathUniverse.AdminitHosted {
     var block=new StringBuilder();foreach(var pair in values){Check(pair.Value!=null&&pair.Value.IndexOf('\0')<0,"invalid fixed environment");block.Append(pair.Key).Append('=').Append(pair.Value).Append('\0');}block.Append('\0');env=Marshal.StringToHGlobalUni(block.ToString());
     Startup startup=new Startup();startup.Size=(uint)Marshal.SizeOf(typeof(Startup));ProcessInfo info;
     job=k.CreateJob();k.ConfigureKillOnClose(job);
-    Check(CreateProcessAsUser(limited,exe,new StringBuilder(Quote(exe)+" --hosted-suite "+Quote(run)),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,package,ref startup,out info),"restricted fixed process creation BLOCKED; no privilege enabling/fallback");
+    Check(CreateProcessAsUser(limited,exe,new StringBuilder(Quote(exe)+" --hosted-suite "+Quote(run)),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x8,env,package,ref startup,out info),"restricted fixed process creation BLOCKED; no privilege enabling/fallback");
     p=info.Process;t=info.Thread;k.Assign(job,p);assigned=true;ConfirmSupervisorToken(p);Console.WriteLine("SUSPENDED_SUPERVISOR_TOKEN_MEDIUM_NON_ELEVATED");ObserveDesktopAccess(limited);k.Resume(t);
     Check(k.Wait(p,120000)==0,"independent whole-suite watchdog expired: BLOCKED");result=(int)k.ExitCode(p);Console.WriteLine("Fixed Medium supervisor exit="+result+"; inspect results.json; missing evidence is BLOCKED");return result;
    }catch(Exception e){Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
