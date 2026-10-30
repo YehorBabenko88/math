@@ -9,8 +9,15 @@ test('symlink fixture policy records successful creation without skipping',()=>{
 });
 for(const code of ['EPERM','EACCES'])test(`symlink fixture policy marks Windows ${code} BLOCKED instead of passing`,()=>{
  const error=Object.assign(new Error('fixture permission denied'),{code}),skips=[];
- assert.equal(createSymlinkFixture({skip:r=>skips.push(r)},'target','link','dir',{platform:'win32',create:()=>{throw error;}}),false);
+ assert.equal(createSymlinkFixture({skip:r=>skips.push(r)},'target','link','dir',{platform:'win32',strict:false,create:()=>{throw error;}}),false);
  assert.equal(skips.length,1);assert.match(skips[0],new RegExp(`BLOCKED.*${code}`));
+});
+test('strict qualification never turns missing link privilege into a skip',()=>{
+ const error=Object.assign(new Error('denied'),{code:'EPERM'});
+ assert.throws(()=>createSymlinkFixture({skip:()=>assert.fail('strict skip')},'t','l','file',{
+  platform:'win32',strict:true,create:()=>{throw error;}}),e=>e===error);
+ const calls=[];createSymlinkFixture({skip:()=>assert.fail('skip')},'t','l','dir',{platform:'win32',create:(...a)=>calls.push(a)});
+ assert.deepEqual(calls,[['t','l','junction']]);
 });
 test('symlink fixture policy does not hide Linux permission failures',()=>{
  for(const code of ['EPERM','EACCES']){

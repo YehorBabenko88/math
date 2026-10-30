@@ -1,4 +1,4 @@
-import test from 'node:test';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync,mkdtempSync,rmSync} from 'node:fs';

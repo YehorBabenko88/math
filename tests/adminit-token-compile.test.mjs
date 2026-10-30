@@ -1,5 +1,5 @@
 import{validateTokenObservation}from'../scripts/adminit-containment/token-contract.mjs';
-import test from 'node:test';import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 for(const shell of ['powershell.exe','pwsh.exe'])test('Token API compile and synthetic policy only: '+shell,{skip:process.platform!=='win32'?'Windows compiler unavailable; NOT live API qualification':false},()=>{const script=String.raw`$ErrorActionPreference='Stop'
 foreach($path in @($env:G0_TOKEN_WRAPPER,$env:G0_TOKEN_CLI,$env:G0_COLLECTOR)){$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors);if($errors.Count){throw 'wrapper parser'}}
 [void](Add-Type -TypeDefinition ([IO.File]::ReadAllText($env:G0_TOKEN_SOURCE)) -ErrorAction Stop)

@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 for(const shell of ['powershell.exe','pwsh.exe'])test('pure G0 token/ACL fixtures: '+shell,{skip:process.platform!=='win32'?'Windows PowerShell unavailable; pure fixtures NOT_RUN':false},()=>{const script=String.raw`$ErrorActionPreference='Stop';. $env:G0_PURE_HELPERS
 $fake='"S-1-16-8192","Group","S-1-5-21-1","Enabled"'
 # Reproduce the old whole-text classification without querying a machine.

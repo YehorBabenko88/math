@@ -1,0 +1,141 @@
+{
+  "schema": "math.ci.platform-policy.v1",
+  "cases": [
+    {
+      "file": "tests/adminit-bootstrap-watchdog.test.mjs",
+      "name": "bootstrap deadline cleanup source and PowerShell branch MODEL mocks",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-csv-shape.test.mjs",
+      "name": "physical anonymous quote-shape and canonical RFC counterpart: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-csv-shape.test.mjs",
+      "name": "physical anonymous quote-shape and canonical RFC counterpart: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-contracts.test.mjs",
+      "name": "G0 parse only: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-contracts.test.mjs",
+      "name": "G0 parse only: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-csv-negative.test.mjs",
+      "name": "CSV complete-row SID and boundary negatives: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-csv-negative.test.mjs",
+      "name": "CSV complete-row SID and boundary negatives: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-pure-fixtures.test.mjs",
+      "name": "pure G0 token/ACL fixtures: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-pure-fixtures.test.mjs",
+      "name": "pure G0 token/ACL fixtures: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-csv.test.mjs",
+      "name": "13-line CSV with one escaped quote: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-g0-csv.test.mjs",
+      "name": "13-line CSV with one escaped quote: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-token-compile.test.mjs",
+      "name": "Token API compile and synthetic policy only: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-token-compile.test.mjs",
+      "name": "Token API compile and synthetic policy only: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-token-flags-integration.test.mjs",
+      "name": "compiled AdminState flag semantics: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-token-flags-integration.test.mjs",
+      "name": "compiled AdminState flag semantics: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-token-faults.test.mjs",
+      "name": "instrumented production orchestration: powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-token-faults.test.mjs",
+      "name": "instrumented production orchestration: pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-offline-preflight.test.mjs",
+      "name": "Windows Framework compile-only produces a file without loading adapter types",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-offline-preflight.test.mjs",
+      "name": "Windows parser/compiler/runtime and preloaded-type failures stay BLOCKED",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-offline-preflight.test.mjs",
+      "name": "preflight worker parser-only powershell.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-offline-preflight.test.mjs",
+      "name": "preflight worker parser-only pwsh.exe",
+      "platform": "win32"
+    },
+    {
+      "file": "tests/adminit-offline-preflight.test.mjs",
+      "name": "disposable hosted Windows full offline CLI and fail-closed pins/source checks",
+      "platform": "win32",
+      "hostedOnly": true
+    },
+    {
+      "file": "tests/knowledge-ledger-directory.test.mjs",
+      "name": "ledger rejects group-writable directory on POSIX",
+      "platform": "linux"
+    },
+    {
+      "file": "tests/knowledge-ledger-directory.test.mjs",
+      "name": "ledger rejects symlink directory",
+      "platform": "all"
+    },
+    {
+      "file": "tests/knowledge-ledger-directory.test.mjs",
+      "name": "ledger rejects a symlinked ancestor even when leaf is a directory",
+      "platform": "all"
+    },
+    {
+      "file": "tests/qa-evidence-manifest.test.mjs",
+      "name": "QA evidence rejects symbolic evidence",
+      "platform": "all"
+    },
+    {
+      "file": "tests/qa-evidence-manifest.test.mjs",
+      "name": "QA evidence rejects linked parent directory",
+      "platform": "all"
+    }
+  ]
+}

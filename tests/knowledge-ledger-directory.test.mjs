@@ -1,4 +1,4 @@
-import test from 'node:test';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);
 import assert from 'node:assert/strict';
 import {mkdtemp,rm,symlink,chmod,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -8,8 +8,8 @@ test('ledger rejects symlink directory',async t=>{
  const root=await mkdtemp(join(tmpdir(),'kg-dirguard-'));
  try {
   await mkdir(join(root,'real'),{mode:0o700});
-  try {await symlink(join(root,'real'),join(root,'link'),'dir');}
-  catch(e) {if(['EPERM','EACCES','ENOTSUP'].includes(e.code)){t.skip('symlink privilege unavailable');return;}throw e;}
+  try {await symlink(join(root,'real'),join(root,'link'),process.platform==='win32'?'junction':'dir');}
+  catch(e) {if(process.env.MATH_CI_PLATFORM_PROFILE)throw e;if(['EPERM','EACCES','ENOTSUP'].includes(e.code)){t.skip('symlink privilege unavailable');return;}throw e;}
   await assert.rejects(new FileReplayLedger(join(root,'link')).consume('a'.repeat(64)),/unsafe ledger ancestor/);
  } finally {await rm(root,{recursive:true,force:true});}
 });
@@ -36,8 +36,8 @@ test('ledger rejects a symlinked ancestor even when leaf is a directory',async t
  try {
   const real=join(root,'real'),alias=join(root,'alias');
   await mkdir(join(real,'ledger'),{recursive:true,mode:0o700});
-  try {await symlink(real,alias,'dir');}
-  catch(error) {if(['EPERM','EACCES','ENOTSUP'].includes(error.code)){t.skip('symlink privilege unavailable');return;}throw error;}
+  try {await symlink(real,alias,process.platform==='win32'?'junction':'dir');}
+  catch(error) {if(process.env.MATH_CI_PLATFORM_PROFILE)throw error;if(['EPERM','EACCES','ENOTSUP'].includes(error.code)){t.skip('symlink privilege unavailable');return;}throw error;}
   await assert.rejects(new FileReplayLedger(join(alias,'ledger')).consume('d'.repeat(64)),/unsafe ledger ancestor/);
  } finally {await rm(root,{recursive:true,force:true});}
 });

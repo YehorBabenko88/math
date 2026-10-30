@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 for(const shell of ['powershell.exe','pwsh.exe'])test('physical anonymous quote-shape and canonical RFC counterpart: '+shell,{skip:process.platform!=='win32'?'Windows PowerShell unavailable':false},()=>{const script=String.raw`$ErrorActionPreference='Stop';. $env:G0_CSV_HELPERS
 $bad='"Synthetic group "unescaped"","Group type","S-1-5-21-1","Enabled, status"'
 $good='"Synthetic group ""escaped""","Group type","S-1-5-21-1","Enabled, status"'

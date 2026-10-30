@@ -8,7 +8,11 @@ test('mandatory PostgreSQL CI covers the full matrix without selective triggers 
  const sql=await readFile(new URL('../.github/workflows/postgres-integration.yml',import.meta.url),'utf8');
  assert.match(sql,/node: \['22', '24'\]/);assert.match(sql,/postgres: \['16', '18'\]/);
  assert.doesNotMatch(sql,/\b(?:paths|branches):|test-(?:skip|name)-pattern|\*-live\.test|continue-on-error/);
- assert.match(sql,/node scripts\/test-full-ci\.mjs/);assert.match(sql,/BOOK_INGESTION_PYTHON: python/);
+ assert.match(sql,/node scripts\/run-platform-qualification\.mjs postgres/);assert.match(sql,/BOOK_INGESTION_PYTHON: python/);
+ const wrapper=await readFile(new URL('../scripts/run-platform-qualification.mjs',import.meta.url),'utf8');
+ assert.match(wrapper,/scripts\/test-full-ci\.mjs/);
+ assert.match(sql,/needs: \[postgres-integration, windows-platform\]/);
+ assert.match(sql,/node scripts\/ci-platform-coverage\.mjs \.ci-downloaded/);
  assert.match(sql,/persist-credentials: false/);assert.match(sql,/fail-fast: false/);
  assert.match(sql,/Full CI coverage/);assert.match(sql,/if: always\(\)/);
 });
