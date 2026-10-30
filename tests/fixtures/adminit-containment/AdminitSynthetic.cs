@@ -66,10 +66,38 @@ namespace MathUniverse.Adminit {
   static void CaseDirectory(string dir){Literal(dir);NoReparse(dir);string name=Path.GetFileName(dir);Check(Array.IndexOf(new[]{"normal","timeout","crash","assignment","cleanup","watchdog"},name)>=0,"unknown fixed case");
    Suite=Path.GetDirectoryName(dir);Check(String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase),"directory outside fixed lab BLOCKED");ValidateLabAcl(dir);Check(File.ReadAllText(Path.Combine(Suite,"synthetic-session.txt"))=="fixed-fixtures-only;not-operator-authorization","missing test coordinator");
   }
+  // The fixed file-protocol fixture needs no console. Do not change the pinned
+  // shared Q01 kernel: only synthetic ADMINIT descendants use this adapter.
+  sealed class FixtureKernel : IJobKernel {
+   readonly WindowsJobKernel inner=new WindowsJobKernel();
+   [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] struct Startup {public uint Size;public string Reserved,Desktop,Title;public uint X,Y,XS,YS,XC,YC,Fill,Flags;public ushort Show,RS;public IntPtr R2,Input,Output,Error;}
+   [StructLayout(LayoutKind.Sequential)] struct ProcessInfo {public IntPtr Process,Thread;public uint Pid,Tid;}
+   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool CreateProcess(string app,System.Text.StringBuilder command,IntPtr pa,IntPtr ta,bool inherit,uint flags,IntPtr environment,string cwd,ref Startup startup,out ProcessInfo info);
+   static string Quote(string s){Check(!String.IsNullOrEmpty(s)&&s.IndexOf('"')<0&&s.IndexOf('\r')<0&&s.IndexOf('\n')<0&&!s.EndsWith("\\"),"invalid fixed fixture argument");return "\""+s+"\"";}
+   public void CreateSuspended(string executable,string[] arguments,string directory,out IntPtr process,out IntPtr thread){
+    Check(String.Equals(executable,Self,StringComparison.OrdinalIgnoreCase),"fixed fixture executable required");NoReparse(executable);Literal(directory);NoReparse(directory);
+    var command=new System.Text.StringBuilder(Quote(executable));foreach(string argument in arguments)command.Append(' ').Append(Quote(argument));
+    string windows=Environment.GetFolderPath(Environment.SpecialFolder.Windows),environment="SystemRoot="+windows+"\0TEMP="+directory+"\0TMP="+directory+"\0WINDIR="+windows+"\0\0";
+    IntPtr block=Marshal.StringToHGlobalUni(environment);
+    try{var startup=new Startup{Size=(uint)Marshal.SizeOf(typeof(Startup))};ProcessInfo info;
+     Check(CreateProcess(executable,command,IntPtr.Zero,IntPtr.Zero,false,0x4|0x400|0x8,block,directory,ref startup,out info),"detached suspended fixture creation failed");process=info.Process;thread=info.Thread;
+    }finally{Marshal.FreeHGlobal(block);}
+   }
+   public IntPtr CreateJob(){return inner.CreateJob();}
+   public void ConfigureKillOnClose(IntPtr j){inner.ConfigureKillOnClose(j);}
+   public void Assign(IntPtr j,IntPtr p){inner.Assign(j,p);}
+   public void Resume(IntPtr t){inner.Resume(t);}
+   public uint Wait(IntPtr p,uint ms){return inner.Wait(p,ms);}
+   public uint ExitCode(IntPtr p){return inner.ExitCode(p);}
+   public void TerminateJob(IntPtr j){inner.TerminateJob(j);}
+   public bool WaitJobEmpty(IntPtr j,uint ms){return inner.WaitJobEmpty(j,ms);}
+   public void TerminateProcess(IntPtr p){inner.TerminateProcess(p);}
+   public void Close(IntPtr h){inner.Close(h);}
+  }
   static int Root(string dir,string kind){
    CaseDirectory(dir);Check(Path.GetFileName(dir)==kind,"root scenario mismatch");bool member;Check(IsProcessInJob(GetCurrentProcess(),IntPtr.Zero,out member)&&member,"root not contained");
    foreach(string key in new[]{"NODE_OPTIONS","NODE_PATH","DATABASE_URL","PGHOST","PGPASSWORD","MATH_UNIVERSE_TEST_DATABASE_URL"})Check(Environment.GetEnvironmentVariable(key)==null,"inherited environment BLOCKED");
-   var k=new WindowsJobKernel();IntPtr leaf=IntPtr.Zero,thread=IntPtr.Zero;
+   var k=new FixtureKernel();IntPtr leaf=IntPtr.Zero,thread=IntPtr.Zero;
    try{k.CreateSuspended(Self,new[]{"--leaf",dir},dir,out leaf,out thread);Check(IsProcessInJob(leaf,IntPtr.Zero,out member)&&member,"leaf not inherited into job before Resume");SaveIdentity(Path.Combine(dir,"leaf.identity.json"),leaf);Until(()=>File.Exists(Path.Combine(dir,"leaf.assigned")),5000,"owner leaf membership confirmation deadline");k.Resume(thread);
     Until(()=>File.Exists(Path.Combine(dir,"leaf.started")),5000,"leaf startup timeout");SaveIdentity(Path.Combine(dir,"root.identity.json"),GetCurrentProcess());
     if(kind=="timeout"||kind=="crash"||kind=="watchdog")Thread.Sleep(60000);else Until(()=>File.Exists(Path.Combine(dir,"observer.ready")),5000,"observer capture timeout");return 17;
@@ -77,7 +105,7 @@ namespace MathUniverse.Adminit {
   }
   static int Leaf(string dir){CaseDirectory(dir);bool member;Check(IsProcessInJob(GetCurrentProcess(),IntPtr.Zero,out member)&&member,"leaf not contained");File.WriteAllText(Path.Combine(dir,"leaf.started"),"started");Thread.Sleep(60000);return 0;}
   sealed class Observed : IJobKernel {
-   readonly WindowsJobKernel k=new WindowsJobKernel();readonly string dir;readonly string kind;
+   readonly FixtureKernel k=new FixtureKernel();readonly string dir;readonly string kind;
    public IntPtr RootHandle,LeafHandle;IntPtr OwnedJob;public bool Assigned,Resumed,Drained;public bool DrainRejected,LeafAssignedBeforeResume;public int NativeAssignmentError;
    public readonly List<string> Calls=new List<string>();
    public Observed(string d,string c){dir=d;kind=c;}
@@ -116,11 +144,11 @@ namespace MathUniverse.Adminit {
   public static bool OwnerWaitExpired(uint result){
    Check(result==0||result==258,"owner wait failed: not an expiry");return result==258;
   }
-  static void AwaitOwnerDeadline(WindowsJobKernel k,IntPtr owner,uint deadline){
+  static void AwaitOwnerDeadline(IJobKernel k,IntPtr owner,uint deadline){
    if(OwnerWaitExpired(k.Wait(owner,deadline)))throw new TimeoutException("independent owner watchdog expired");
   }
   static object Supervise(string kind){
-   string dir=Path.Combine(Suite,kind);Directory.CreateDirectory(dir);NoReparse(dir);ValidateLabAcl(dir);var k=new WindowsJobKernel();IntPtr job=IntPtr.Zero,owner=IntPtr.Zero,thread=IntPtr.Zero,root=IntPtr.Zero,leaf=IntPtr.Zero;bool assigned=false,cleanupConfirmed=false,forcedExpiry=false;var clock=Stopwatch.StartNew();object outcome=null;
+   string dir=Path.Combine(Suite,kind);Directory.CreateDirectory(dir);NoReparse(dir);ValidateLabAcl(dir);var k=new FixtureKernel();IntPtr job=IntPtr.Zero,owner=IntPtr.Zero,thread=IntPtr.Zero,root=IntPtr.Zero,leaf=IntPtr.Zero;bool assigned=false,cleanupConfirmed=false,forcedExpiry=false;var clock=Stopwatch.StartNew();object outcome=null;
    try{job=k.CreateJob();k.ConfigureKillOnClose(job);k.CreateSuspended(Self,new[]{"--owner",dir,kind},dir,out owner,out thread);k.Assign(job,owner);assigned=true;k.Resume(thread);
     if(kind=="crash"||kind=="watchdog"){
      Until(()=>File.Exists(Path.Combine(dir,"root.identity.json")),8000,"crash tree startup timeout");root=Capture(Path.Combine(dir,"root.identity.json"));leaf=Capture(Path.Combine(dir,"leaf.identity.json"));
