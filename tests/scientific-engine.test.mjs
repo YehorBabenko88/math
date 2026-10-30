@@ -29,8 +29,10 @@ test('multiple sinks, scalar ports, cycle and unknown port checks',()=>{
 test('book formula binds extraction bytes/version/page and never proves a hypothesis',()=>{
  const record={id:'book-formula',sourceId:'book',source:{sourceHash:hash,edition:'edition1',page:7,extractionVersion:'ocr1',text:'Synthetic relation y=2x'},status:'SOURCE_REVIEWED',expression:'x*2',inputUnit:'m',outputUnit:'m',hypothesis:'Scale relation in stated assumptions',confidence:'NOT_VERIFIED'};
  const catalog=createScientificCatalog([record]);const ref=catalog.describe()[0];
+ assert.equal(Object.hasOwn(ref.source,'text'),false);
  const d=graph([source('s'),{id:'f',kind:'knowledge',reference:{id:ref.id,sha256:ref.sha256}}],[edge('s','f')]);
  const result=executeScientificGraph(d,{catalog});assert.deepEqual(result.outputs[0].values,[2,4,6]);assert.equal(result.trace[1].knowledge.source.page,7);assert.equal(result.mathematicallyVerified,false);
+ assert.equal(Object.hasOwn(result.trace[1].knowledge.source,'text'),false);
  const changed=structuredClone(record);changed.expression='x*3';assert.throws(()=>executeScientificGraph(d,{catalog:createScientificCatalog([changed])}),/SOURCE/);
  assert.throws(()=>createScientificCatalog([{...record,status:'KERNEL_VERIFIED'}]));
  assert.throws(()=>executeScientificGraph(d));

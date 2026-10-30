@@ -17,6 +17,7 @@ The v2 route supports multiple outputs,128 nodes,256 edges,2048 source points,16
 - P2: final-value-only AST checking accepted 1/exp(1000) as finite zero despite infinite intermediate. RED confirmed; opt-in evaluateFinite validates all AST intermediates while preserving legacy evaluate.
 - P2 (new implementation, caught independently): exposed capabilities input arrays changed difference sign without changing graph. RED 7 became-7; copied arrays fix mutation.
 - P2 (new evidence runner, caught independently): assume-unchanged hid modified source while receipt claimed original SHA. RED confirmed using disposable git fixtures; committed blobs are checked with --no-replace-objects. Only JS/JSON checkout CRLF equivalence is allowed; raw tested hashes remain recorded. Other bytes stay exact. No historical SQL migration or ledger is altered.
+- P2 response minimization: raw extracted book text was echoed in catalog and per-node knowledge trace, enabling unnecessary amplification. Separate RED confirmed it; public metadata projection now excludes text while preserving exact source hashes/page/version and a2MiB serialized result cap. No claim of an external exploit or independent source authentication.
 - Evidence quality: test-time source mutation could be labeled unchanged in a failed receipt; RED confirmed and corrected. Skipped tests are a qualification failure, not PASS. Wrong source SHA blocks before testing.
 
 ## Local qualification

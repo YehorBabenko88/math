@@ -6,8 +6,12 @@ import {concepts} from './knowledge.mjs';
 import {snapshotJSON,exact,text,digest,fingerprint} from './scientific-data.mjs';
 import {unitSpec,sameDimensions,compileDimensionalFormula} from './scientific-units.mjs';
 
-export const SCIENTIFIC_LIMITS=Object.freeze({nodes:128,edges:256,points:2048,totalValues:16384,operations:1000000,requestBytes:262144});
+export const SCIENTIFIC_LIMITS=Object.freeze({nodes:128,edges:256,points:2048,totalValues:16384,operations:1000000,requestBytes:262144,responseBytes:2097152});
 const catalogs=new WeakMap();
+function publicKnowledge(record){
+ const {source,...metadata}=record;const {text:privateText,...location}=source;
+ return {...structuredClone(metadata),source:{...location}};
+}
 // Trusted host configuration only. No HTTP endpoint installs caller catalogs.
 export function createScientificCatalog(input=[]){
  const records=snapshotJSON(input);if(!Array.isArray(records)||records.length>64)throw Error('CATALOG_LIMIT');
@@ -21,7 +25,7 @@ export function createScientificCatalog(input=[]){
   compileDimensionalFormula(r.expression,r.inputUnit,r.outputUnit);
   map.set(r.id,{...r,sha256:fingerprint(r),candidateDigest:assessment.candidateDigest,mathematicallyVerified:false});
  }
- const handle=Object.freeze({describe:()=>[...map.values()].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).map(r=>structuredClone(r))});catalogs.set(handle,map);return handle;
+ const handle=Object.freeze({describe:()=>[...map.values()].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).map(publicKnowledge)});catalogs.set(handle,map);return handle;
 }
 const emptyCatalog=createScientificCatalog();
 function identifier(id){if(typeof id!=='string'||!/^[a-z][a-z0-9_-]{0,63}$/.test(id))throw Error('INVALID_ID');return id;}
@@ -69,7 +73,7 @@ export function executeScientificGraph(input,{catalog=emptyCatalog}={}){
    if(n.kind==='formula'||n.kind==='knowledge'){
     let expression,outputUnit;
     if(n.kind==='formula'){exact(n,['id','kind','expression','outputUnit']);({expression,outputUnit}=n);}
-    else{exact(n,['id','kind','reference']);exact(n.reference,['id','sha256']);digest(n.reference.sha256);const r=library.get(n.reference.id);if(!r||r.sha256!==n.reference.sha256)throw Error('SOURCE_BINDING_MISMATCH');if(r.inputUnit!==a.unit)throw Error('SOURCE_INPUT_UNIT_MISMATCH');knowledge=structuredClone(r);({expression,outputUnit}=r);}
+    else{exact(n,['id','kind','reference']);exact(n.reference,['id','sha256']);digest(n.reference.sha256);const r=library.get(n.reference.id);if(!r||r.sha256!==n.reference.sha256)throw Error('SOURCE_BINDING_MISMATCH');if(r.inputUnit!==a.unit)throw Error('SOURCE_INPUT_UNIT_MISMATCH');knowledge=publicKnowledge(r);({expression,outputUnit}=r);}
     const fn=compileDimensionalFormula(expression,a.unit,outputUnit);cost=fn.cost;values=a.values.map(x=>fn.evaluate(x));unit=outputUnit;
    }else if(n.kind==='convert'){
     exact(n,['id','kind','unit']);const from=unitSpec(a.unit),to=unitSpec(n.unit);if(!sameDimensions(from.dimensions,to.dimensions))throw Error('INCOMPATIBLE_UNITS');
@@ -99,7 +103,8 @@ export function executeScientificGraph(input,{catalog=emptyCatalog}={}){
  const outputs=d.outputs.map(o=>({node:o.node,port:o.port,...results.get(o.node)}));
  operations+=outputs.reduce((sum,o)=>sum+o.values.length,0);if(operations>SCIENTIFIC_LIMITS.operations)throw Error('COMPUTATION_LIMIT');
  const summaries=outputs.map(o=>{const mean=o.values.reduce((s,v)=>s+v/o.values.length,0);if(!Number.isFinite(mean))throw Error('NONFINITE_METRIC');return {node:o.node,port:o.port,unit:o.unit,count:o.values.length,min:Math.min(...o.values),max:Math.max(...o.values),mean};});
- return {schema:'math.scientific.result.v2',status:'RESEARCH_ONLY',requestSHA256:fingerprint(normalized),order,outputs,metrics:{kind:'DESCRIPTIVE_OUTPUT_SUMMARIES',outputs:summaries},trace,source:'CALLER_SUPPLIED_UNATTESTED',mathematicallyVerified:false,execution_authority:false,trading_authorized:false,training_authorized:false};
+ const result={schema:'math.scientific.result.v2',status:'RESEARCH_ONLY',requestSHA256:fingerprint(normalized),order,outputs,metrics:{kind:'DESCRIPTIVE_OUTPUT_SUMMARIES',outputs:summaries},trace,source:'CALLER_SUPPLIED_UNATTESTED',mathematicallyVerified:false,execution_authority:false,trading_authorized:false,training_authorized:false};
+ if(Buffer.byteLength(JSON.stringify(result))>SCIENTIFIC_LIMITS.responseBytes)throw Error('RESPONSE_LIMIT');return result;
 }
 
 export function scientificCapabilities({catalog=emptyCatalog}={}){if(!catalogs.has(catalog))throw Error('UNTRUSTED_CATALOG');return {schema:'math.scientific.capabilities.v2',limits:SCIENTIFIC_LIMITS,ports:Object.fromEntries(Object.entries(ports).map(([kind,inputs])=>[kind,{inputs:[...inputs],outputs:['value']}])),units:[...listSIUnits(),'dimensionless','USD','USDT','BTC'],unitMetadata:[...listSIUnits(),'dimensionless','USD','USDT','BTC'].map(unit=>({unit,dimensions:unitSpec(unit).dimensions})),dimensionBasis:['length','mass','time','current','temperature','amount','luminousIntensity','USD','USDT','BTC'],methods:['polynomial','sine','gaussian'],knowledge:catalog.describe(),execution_authority:false,training_authorized:false,trading_authorized:false,mathematicallyVerified:false};}

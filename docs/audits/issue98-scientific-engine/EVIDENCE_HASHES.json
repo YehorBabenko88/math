@@ -17,13 +17,14 @@
     }
   ],
   "files": {
-    "node22.tap": "056d60783b85ccc13ae0f263f3ac0e882ab4b41c3a06fd67f8f518a89d6cf795",
-    "node24.tap": "636eac75b1b02b7094e01f7e8a552bc1764ec5b8f7f50db245c551f99778e5fb",
+    "node22.tap": "9650c8dfba7432624682ecc0a524f471a833bff9c6f2a10e2b73eef0216fbc9d",
+    "node24.tap": "3505742c183ee818579ebe9ed8362a01741a43835b96ae8c837b0f02979236a9",
     "red-capabilities.tap": "24e8ecdf4774b41e349e92e184c8c290d918ac093ee11061cff7047442bd6c92",
     "red-http-ast.tap": "b9c3d5ed14ceb3364eaa0151d18d858bf2426bc3d693e36dc92040fa57b9fe57",
     "red-metrics.tap": "5bfddd183bb8b640cb4b8e2a9afb10a592fc095840ffcc918bbe5272d2f11081",
     "red-receipt.tap": "af0314a8752df8986b294f3956320cfa5358ae8ed18efa89d52d88ac097d3785",
     "red-source-proof.tap": "903b352825eb17317663a4a1fe44834ea9d8f406d23ff45acfb215d6a8396f4c",
-    "red.tap": "2a4ee0d5939210f959ed87f3d95a87e221c065414eda2b8dffb1185cd824a04a"
+    "red.tap": "2a4ee0d5939210f959ed87f3d95a87e221c065414eda2b8dffb1185cd824a04a",
+    "red-source-projection.tap": "18165b1023bee108d9a6d1536cba2c37dc968e6d0d084672d1c1b164a24a8b05"
   }
 }
