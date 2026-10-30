@@ -60,8 +60,17 @@ jobs:
       - name: Compile using PowerShell 5.1 Add-Type without SDK
         shell: pwsh
         run: |
-          & powershell -NoProfile -File scripts/adminit-containment/build-hosted.ps1 -OutputRoot "$env:RUNNER_TEMP/adminit-build" -ExpectedHead '${{ github.sha }}'
-          exit $LASTEXITCODE
+          $env:RUNNER_TEMP = & ./scripts/adminit-containment/hosted-private-root.ps1 -Create
+          $privateLog=Join-Path $env:RUNNER_TEMP "private-step-0.log"
+          try {
+            & {
+              & powershell -NoProfile -File scripts/adminit-containment/build-hosted.ps1 -OutputRoot "$env:RUNNER_TEMP/adminit-build" -ExpectedHead '${{ github.sha }}'
+              exit $LASTEXITCODE
+            } *> $privateLog
+          } catch {
+            try { $_ | Out-File -LiteralPath $privateLog -Append } catch {}
+            throw 'Private native step BLOCKED; raw payload suppressed'
+          }
       - name: Actual token handle access regression (no subprocess fixture)
         shell: pwsh
         run: |
@@ -70,59 +79,95 @@ jobs:
       - name: Verify compiled package before any native fixture launch
         shell: pwsh
         run: |
-          $package = Join-Path $env:RUNNER_TEMP 'adminit-build/package'
-          $manifest = (Get-FileHash "$package/package.json").Hash.ToLowerInvariant()
-          $tree = git --no-replace-objects rev-parse 'HEAD^{tree}'
-          if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
-          node scripts/adminit-containment/package.mjs $package $manifest '${{ github.sha }}' $tree
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          @{sourceHead='${{ github.sha }}';sourceTree=(git --no-replace-objects rev-parse 'HEAD^{tree}');manifestSha256=$manifest;runtime='Windows PowerShell5.1 Add-Type / .NET Framework';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW'} | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/adminit-build/build-identity.json"
+          $env:RUNNER_TEMP = & ./scripts/adminit-containment/hosted-private-root.ps1
+          $privateLog=Join-Path $env:RUNNER_TEMP "private-step-1.log"
+          try {
+            & {
+              $package = Join-Path $env:RUNNER_TEMP 'adminit-build/package'
+              $manifest = (Get-FileHash "$package/package.json").Hash.ToLowerInvariant()
+              $tree = git --no-replace-objects rev-parse 'HEAD^{tree}'
+              if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
+              node scripts/adminit-containment/package.mjs $package $manifest '${{ github.sha }}' $tree
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              @{sourceHead='${{ github.sha }}';sourceTree=(git --no-replace-objects rev-parse 'HEAD^{tree}');manifestSha256=$manifest;runtime='Windows PowerShell5.1 Add-Type / .NET Framework';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW'} | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/adminit-build/build-identity.json"
+            } *> $privateLog
+          } catch {
+            try { $_ | Out-File -LiteralPath $privateLog -Append } catch {}
+            throw 'Private native step BLOCKED; raw payload suppressed'
+          }
       - name: Independent watchdog and fixed native suite under Medium token
         shell: pwsh
         run: |
-          $env:SOURCE_HEAD = '${{ github.sha }}'
-          $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
-          if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
-          $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
-          $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
-          $exe = Join-Path $build 'HostedMediumLauncher.exe'
-          $fixtureArguments = '"' + "$build/package" + '" "' + $run + '"'
-          $owner = Start-Process -FilePath $exe -ArgumentList $fixtureArguments -PassThru -WindowStyle Hidden -RedirectStandardOutput "$build/bootstrap-stdout.txt" -RedirectStandardError "$build/bootstrap-stderr.txt"
+          $env:RUNNER_TEMP = & ./scripts/adminit-containment/hosted-private-root.ps1
+          $privateLog=Join-Path $env:RUNNER_TEMP "private-step-2.log"
           try {
-            $handle = $owner.Handle
-            if (-not $owner.WaitForExit(150000)) {
-              try { $owner.Kill() } catch { throw 'independent watchdog kill failed: BLOCKED; cleanup unconfirmed' }
-              if (-not $owner.WaitForExit(5000) -or -not $owner.HasExited) {
-                throw 'independent watchdog cleanup unconfirmed: BLOCKED; descendant status unknown'
+            & {
+              $env:SOURCE_HEAD = '${{ github.sha }}'
+              $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
+              if ($LASTEXITCODE -ne 0) { throw 'source tree unavailable' }
+              $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
+              $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
+              $exe = Join-Path $build 'HostedMediumLauncher.exe'
+              $fixtureArguments = '"' + "$build/package" + '" "' + $run + '"'
+              $owner = Start-Process -FilePath $exe -ArgumentList $fixtureArguments -PassThru -WindowStyle Hidden -RedirectStandardOutput "$build/bootstrap-stdout.txt" -RedirectStandardError "$build/bootstrap-stderr.txt"
+              try {
+                $handle = $owner.Handle
+                if (-not $owner.WaitForExit(150000)) {
+                  try { $owner.Kill() } catch { throw 'independent watchdog kill failed: BLOCKED; cleanup unconfirmed' }
+                  if (-not $owner.WaitForExit(5000) -or -not $owner.HasExited) {
+                    throw 'independent watchdog cleanup unconfirmed: BLOCKED; descendant status unknown'
+                  }
+                  throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
+                }
+                @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
+                # Do not echo raw bootstrap streams into public Actions logs.
+                Write-Output "HOSTED_BOOTSTRAP_EXIT_RECORDED"
+                node scripts/adminit-containment/bootstrap-diagnostic.mjs $build
+                if ($LASTEXITCODE -ne 0) { throw 'bootstrap diagnostic unavailable: BLOCKED' }
+                if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
+              } finally {
+                $owner.Dispose()
               }
-              throw 'independent whole-fixture watchdog expired: BLOCKED, never PASS'
-            }
-            @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
-            # Do not echo raw bootstrap streams into public Actions logs.
-            Write-Output "HOSTED_BOOTSTRAP_EXIT_RECORDED"
-            node scripts/adminit-containment/bootstrap-diagnostic.mjs $build
-            if ($LASTEXITCODE -ne 0) { throw 'bootstrap diagnostic unavailable: BLOCKED' }
-            if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
-          } finally {
-            $owner.Dispose()
+              node scripts/adminit-containment/verify-native.mjs $run $env:SOURCE_HEAD $env:SOURCE_TREE
+              exit $LASTEXITCODE
+            } *> $privateLog
+          } catch {
+            try { $_ | Out-File -LiteralPath $privateLog -Append } catch {}
+            throw 'Private native step BLOCKED; raw payload suppressed'
           }
-          node scripts/adminit-containment/verify-native.mjs $run $env:SOURCE_HEAD $env:SOURCE_TREE
-          exit $LASTEXITCODE
       - name: Preserve checksums and explicit outcome
         if: always()
         shell: pwsh
         run: |
-          $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
-          if (-not (Test-Path -LiteralPath $build)) { throw 'no build evidence: BLOCKED' }
-          $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | Where-Object { $_.Name -ne 'private-inventory.json' } | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
-          $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
-          if (Test-Path -LiteralPath $run) { $files += @(Get-ChildItem -LiteralPath $run -Recurse -File | ForEach-Object { @{path=('native/'+$_.FullName.Substring($run.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} }) }
-          # Do not publish the raw per-file path inventory: names may disclose runtime identity.
-          # The private full inventory remains on the ephemeral runner only.
-          $privateInventory = Join-Path $build 'private-inventory.json'
-          $files | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $privateInventory
-          $inventoryDigest = (Get-FileHash -LiteralPath $privateInventory -Algorithm SHA256).Hash.ToLowerInvariant()
-          @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';privateInventorySha256=$inventoryDigest;privateFileCount=@($files).Count;rawNativeEvidencePublished=$false;nativeAcceptance='BLOCKED_PRIVATE_EVIDENCE_REQUIRED'} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
+          $publicTemp=$env:RUNNER_TEMP
+          $env:RUNNER_TEMP = & ./scripts/adminit-containment/hosted-private-root.ps1
+          $privateLog=Join-Path $env:RUNNER_TEMP "private-step-3.log"
+          try {
+            & {
+              $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
+              if (-not (Test-Path -LiteralPath $build)) { throw 'no build evidence: BLOCKED' }
+              $files = @(Get-ChildItem -LiteralPath $build -Recurse -File | Where-Object { $_.Name -ne 'private-inventory.json' } | ForEach-Object { @{path=('build/'+$_.FullName.Substring($build.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} })
+              $run = Join-Path $env:RUNNER_TEMP 'adminit-native'
+              if (Test-Path -LiteralPath $run) { $files += @(Get-ChildItem -LiteralPath $run -Recurse -File | ForEach-Object { @{path=('native/'+$_.FullName.Substring($run.Length+1));bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()} }) }
+              # Do not publish the raw per-file path inventory: names may disclose runtime identity.
+              # The private full inventory remains on the ephemeral runner only.
+              $privateInventory = Join-Path $build 'private-inventory.json'
+              $files | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $privateInventory
+              $inventoryDigest = (Get-FileHash -LiteralPath $privateInventory -Algorithm SHA256).Hash.ToLowerInvariant()
+              @{sourceHead='${{ github.sha }}';runId='${{ github.run_id }}';attempt='${{ github.run_attempt }}';localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';privateInventorySha256=$inventoryDigest;privateFileCount=@($files).Count;rawNativeEvidencePublished=$false;nativeAcceptance='BLOCKED_PRIVATE_EVIDENCE_REQUIRED'} | ConvertTo-Json -Depth 6 | Set-Content "$build/evidence-sha256.json"
+              # Export only the pre-existing public allowlist to the identity-free runner path.
+              $publicBuild=Join-Path $publicTemp 'adminit-build'
+              New-Item -ItemType Directory -Path (Join-Path $publicBuild 'package') | Out-Null
+              foreach($name in @('AdminitSyntheticHarness.exe','package.json')) { Copy-Item -LiteralPath (Join-Path $build ('package/'+$name)) -Destination (Join-Path $publicBuild ('package/'+$name)) }
+              foreach($name in @('build-identity.json','source-identity.json','evidence-sha256.json','bootstrap-diagnostic.json')) {
+                $file=Join-Path $build $name
+                if(Test-Path -LiteralPath $file) { Copy-Item -LiteralPath $file -Destination (Join-Path $publicBuild $name) }
+              }
+            } *> $privateLog
+          } catch {
+            try { $_ | Out-File -LiteralPath $privateLog -Append } catch {}
+            throw 'Private native step BLOCKED; raw payload suppressed'
+          }
       - name: Retain exact package (local execution still blocked)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -135,9 +180,20 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
-          node scripts/adminit-containment/seal-audit.mjs "$env:RUNNER_TEMP/adminit-build" "$env:RUNNER_TEMP/adminit-native" "$env:RUNNER_TEMP/native-audit.sealed.json"
-          exit $LASTEXITCODE
+          $publicTemp=$env:RUNNER_TEMP
+          $env:RUNNER_TEMP = & ./scripts/adminit-containment/hosted-private-root.ps1
+          $privateLog=Join-Path $env:RUNNER_TEMP "private-step-4.log"
+          try {
+            & {
+              $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
+              node scripts/adminit-containment/seal-audit.mjs "$env:RUNNER_TEMP/adminit-build" "$env:RUNNER_TEMP/adminit-native" "$env:RUNNER_TEMP/native-audit.sealed.json"
+              if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+              Copy-Item -LiteralPath "$env:RUNNER_TEMP/native-audit.sealed.json" -Destination "$publicTemp/native-audit.sealed.json"
+            } *> $privateLog
+          } catch {
+            try { $_ | Out-File -LiteralPath $privateLog -Append } catch {}
+            throw 'Private native step BLOCKED; raw payload suppressed'
+          }
       - name: Retain encrypted originals only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

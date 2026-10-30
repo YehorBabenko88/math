@@ -1,7 +1,7 @@
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 $text=[IO.File]::ReadAllText((Join-Path $root '.github/workflows/adminit-synthetic-containment.yml'))
-$match=[regex]::Match($text,'if \(-not \$owner\.WaitForExit\(150000\)\) \{\r?\n(?<body>[\s\S]*?)\r?\n {12}\}')
+$match=[regex]::Match($text,'(?m)^(?<indent>[ \t]*)if \(-not \$owner\.WaitForExit\(150000\)\) \{\r?\n(?<body>[\s\S]*?)\r?\n\k<indent>\}')
 if(-not $match.Success){throw 'Watchdog timeout branch missing'}
 $body=[scriptblock]::Create($match.Groups['body'].Value)
 $cases=@(
