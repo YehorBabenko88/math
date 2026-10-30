@@ -48,7 +48,7 @@ class Parity(unittest.TestCase):
                 self.assertEqual(getattr(analog,name)(x,**kwargs),getattr(nr,name)(x,**kwargs))
 
     def test_prefix_prediction_and_finite_control(self):
-        q={'schema':'math.history.request.v1','prices':[100+i*.1 for i in range(40)],'dataset_fingerprint':'a'*64}
+        q={'schema':'math.history.request.v1','prices':[100+i*.1 for i in range(40)],'dataset_fingerprint':'a'*64,'train_count':30}
         a=evaluate(q)
         self.assertEqual(a,evaluate(q))
         self.assertTrue(math.isfinite(a['forecast']))
@@ -56,5 +56,14 @@ class Parity(unittest.TestCase):
         for prices in ([],[0.]*40,[float('nan')]*40,[True]*40):
             with self.assertRaises(ValueError):evaluate({**q,'prices':prices})
         with self.assertRaises(ValueError):evaluate({**q,'schema':'future'})
+
+    def test_frozen_neighbor_pool(self):
+        from history_worker import frozen_analog_forecast
+        x=[100+math.sin(i*.3) for i in range(100)]
+        self.assertEqual(frozen_analog_forecast(x,len(x)),analog.local_analog_forecast(x)['forecast'])
+        # Alter test observations outside the current four-value feature query;
+        # they must never become fitted neighbors or targets.
+        y=x.copy();y[60:80]=[999.]*20
+        self.assertEqual(frozen_analog_forecast(x,50),frozen_analog_forecast(y,50))
 
 if __name__=='__main__':unittest.main()
