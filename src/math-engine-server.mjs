@@ -1,3 +1,4 @@
+import {evaluateUnitRequest} from './scientific-unit-api.mjs';
 import {createServer} from 'node:http';
 import {pathToFileURL} from 'node:url';
 import {evaluateReturnResearch} from './returns-research.mjs';
@@ -39,7 +40,7 @@ export function startMathEngine({host='127.0.0.1',port=8788,catalog}={}){
   if(req.url==='/healthz'&&req.method==='GET')return reply(200,{service:'math-engine',
    schema:'math.engine.v1',state:'READY_OFFLINE',market_source:'NOT_CONNECTED',trading_authorized:false});
   if(req.url==='/v2/catalog'&&req.method==='GET')return reply(200,capabilities);
-  if(!['/v1/evaluate','/v1/graph/execute','/v1/graph/ports','/v1/formula','/v2/graph/execute'].includes(req.url)||req.method!=='POST')return reply(404,{error:'NOT_FOUND'});
+  if(!['/v1/evaluate','/v1/graph/execute','/v1/graph/ports','/v1/formula','/v2/graph/execute','/v2/units/describe'].includes(req.url)||req.method!=='POST')return reply(404,{error:'NOT_FOUND'});
   if(req.headers['content-type']!=='application/json')return reply(415,{error:'CONTENT_TYPE'});
   const len=Number(req.headers['content-length']);
   if(!Number.isSafeInteger(len)||len<2||len>MAX_BYTES)return reply(413,{error:'BODY_LIMIT'});
@@ -48,8 +49,8 @@ export function startMathEngine({host='127.0.0.1',port=8788,catalog}={}){
   req.on('error',()=>{});
   req.on('data',chunk=>{count+=chunk.length;if(count>MAX_BYTES){if(!res.headersSent)reply(413,{error:'BODY_LIMIT'});req.destroy();return}chunks.push(chunk)});
   req.on('end',()=>{if(res.writableEnded)return;try{if(count!==len)throw Error('LENGTH_MISMATCH');
-   const payload=decodeMathBody(chunks,len);const out=req.url==='/v2/graph/execute'?executeScientificGraph(payload,catalog===undefined?{}:{catalog}):req.url==='/v1/formula'?evaluateFormulaDocument(payload):req.url==='/v1/graph/ports'?evaluateResearchGraph(compilePortGraph(payload)):req.url==='/v1/graph/execute'?evaluateResearchGraph(payload):evaluateMathRequest(payload);reply(200,out)}
-   catch{reply(422,req.url==='/v2/graph/execute'?{schema:'math.error.v2',error:'INVALID_SCIENTIFIC_REQUEST',execution_authority:false,trading_authorized:false}:{error:'INVALID_RESEARCH_REQUEST',trading_authorized:false})}});
+   const payload=decodeMathBody(chunks,len);const out=req.url==='/v2/units/describe'?evaluateUnitRequest(payload):req.url==='/v2/graph/execute'?executeScientificGraph(payload,catalog===undefined?{}:{catalog}):req.url==='/v1/formula'?evaluateFormulaDocument(payload):req.url==='/v1/graph/ports'?evaluateResearchGraph(compilePortGraph(payload)):req.url==='/v1/graph/execute'?evaluateResearchGraph(payload):evaluateMathRequest(payload);reply(200,out)}
+   catch{reply(422,req.url.startsWith('/v2/')?{schema:'math.error.v2',error:'INVALID_SCIENTIFIC_REQUEST',execution_authority:false,trading_authorized:false}:{error:'INVALID_RESEARCH_REQUEST',trading_authorized:false})}});
  });
  server.maxConnections=8;server.requestTimeout=10000;server.headersTimeout=5000;server.maxRequestsPerSocket=32;
  return server.listen(port,host);

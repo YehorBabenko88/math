@@ -10,10 +10,10 @@ try{
  const tree=git('rev-parse','HEAD^{tree}');
  const inventory=JSON.parse(readFileSync(new URL('./test-inventory.json',import.meta.url)));
  if(!Array.isArray(inventory)||inventory.some(f=>!/^tests\/[a-z0-9-]+\.test\.mjs$/.test(f)))throw Error('INVENTORY');
- const treeEntries=git('ls-tree','-r',expected,'--','src','scripts/scientific','tests','package.json','package-lock.json').split('\n').map(line=>{const [metadata,path]=line.split('\t');const [mode,type,oid]=metadata.split(' ');return {path,mode,type,oid};}).filter(e=>e.path&&(e.path.startsWith('src/')||e.path.startsWith('scripts/scientific/')||e.path.startsWith('tests/')&&/\.(?:mjs|json)$/.test(e.path)||['package.json','package-lock.json'].includes(e.path)));
+ const treeEntries=git('ls-tree','-r',expected,'--','src','scripts/scientific','tests','package.json','package-lock.json','examples','docs/audits/scientific-composition-v21').split('\n').map(line=>{const [metadata,path]=line.split('\t');const [mode,type,oid]=metadata.split(' ');return {path,mode,type,oid};}).filter(e=>e.path&&(e.path.startsWith('src/')||e.path.startsWith('scripts/scientific/')||(e.path.startsWith('tests/')||e.path.startsWith('examples/')||e.path.startsWith('docs/audits/scientific-composition-v21/'))&&/\.(?:mjs|json)$/.test(e.path)||['package.json','package-lock.json'].includes(e.path)));
  const sourceFiles=treeEntries.map(e=>e.path);
  if(inventory.some(f=>!sourceFiles.includes(f)))throw Error('UNCOMMITTED_TEST');
- if(git('ls-files','--others','--exclude-standard','--','src','tests','scripts/scientific'))throw Error('UNTRACKED_SOURCE');
+ if(git('ls-files','--others','--exclude-standard','--','src','tests','scripts/scientific','examples','docs/audits/scientific-composition-v21'))throw Error('UNTRACKED_SOURCE');
  const batch=execFileSync('git',['--no-replace-objects','cat-file','--batch'],{input:treeEntries.map(e=>e.oid+'\n').join(''),windowsHide:true,maxBuffer:32000000});let offset=0;
  const lf=b=>new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(b).replace(/\r\n/g,'\n');
  for(const e of treeEntries){
