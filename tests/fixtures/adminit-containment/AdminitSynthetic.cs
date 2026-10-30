@@ -33,7 +33,7 @@ namespace MathUniverse.Adminit {
   public static void AssertMedium(){
    IntPtr token;Check(OpenProcessToken(GetCurrentProcess(),8,out token),"token query BLOCKED");
    IntPtr data=Marshal.AllocHGlobal(256);
-   try{uint n;Check(GetTokenInformation(token,20,data,256,out n),"elevation query BLOCKED");int elevation=Marshal.ReadInt32(data);Check(elevation==0,"elevated token BLOCKED");
+   try{uint n;Check(GetTokenInformation(token,20,data,4,out n),"elevation query BLOCKED");int elevation=Marshal.ReadInt32(data);Check(elevation==0,"elevated token BLOCKED");
     Check(GetTokenInformation(token,25,data,256,out n),"integrity query BLOCKED");IntPtr sid=Marshal.ReadIntPtr(data);byte count=Marshal.ReadByte(GetSidSubAuthorityCount(sid));
     Check(count>0,"invalid integrity SID");int rid=Marshal.ReadInt32(GetSidSubAuthority(sid,(uint)(count-1)));Check(rid==8192,"Medium integrity required: BLOCKED");
     using(var identity=WindowsIdentity.GetCurrent()){UserSid=identity.User.Value;TokenEvidence=new{elevation,integrityRid=rid,userSid=UserSid,pid=GetProcessId(GetCurrentProcess())};}
