@@ -10,13 +10,14 @@ $prefix=$prefix.Replace(' using MathUniverse.Q01;','')
 $prefix=$prefix.Replace(' using System.Web.Script.Serialization;','')
 $body=@'
   [DllImport("advapi32.dll",SetLastError=true)] static extern bool GetTokenInformation(IntPtr token,int kind,IntPtr data,uint size,out uint required);
-  [DllImport("advapi32.dll")] static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
-  [DllImport("advapi32.dll")] static extern IntPtr GetSidSubAuthority(IntPtr sid,uint index);
   public static int Main(string[] args){
    IntPtr token=IntPtr.Zero,limited=IntPtr.Zero,sid=IntPtr.Zero,label=IntPtr.Zero;
    try{
 '@
 $suffix=@'
+    VerifyMediumToken(limited);
+    ObserveDesktopAccess(limited);
+    foreach(int[] bad in new[]{new[]{12288,0},new[]{8192,1},new[]{4096,0}}){bool rejected=false;try{AssertMeasuredToken(bad[0],bad[1]);}catch(InvalidOperationException){rejected=true;}Check(rejected,"unsafe token accepted");}
     IntPtr data=Marshal.AllocHGlobal(256);
     try{uint size;Check(GetTokenInformation(limited,25,data,256,out size),"integrity query");
      IntPtr integritySid=Marshal.ReadIntPtr(data);byte count=Marshal.ReadByte(GetSidSubAuthorityCount(integritySid));
