@@ -24,7 +24,7 @@ export function evaluateMathRequest(body) {
 }
 export function startMathEngine({host='127.0.0.1',port=8788}={}){
  if(host!=='127.0.0.1'||!Number.isSafeInteger(port)||port<1||port>65535)throw Error('LOOPBACK_ONLY');
- const server=createServer((req,res)=>{
+ const server=createServer({headersTimeout:5000,requestTimeout:5000,connectionsCheckingInterval:1000},(req,res)=>{
   const reply=(code,obj)=>{res.writeHead(code,{'content-type':'application/json; charset=utf-8',
    'cache-control':'no-store','x-content-type-options':'nosniff','access-control-allow-origin':'none'});
    res.end(JSON.stringify(obj))};
@@ -37,9 +37,12 @@ export function startMathEngine({host='127.0.0.1',port=8788}={}){
   const len=Number(req.headers['content-length']);
   if(!Number.isSafeInteger(len)||len<2||len>MAX_BYTES)return reply(413,{error:'BODY_LIMIT'});
   let count=0,text='';
+  const bodyDeadline=req.url==='/v1/experiments'?setTimeout(()=>{if(!res.headersSent)reply(408,{error:'BODY_DEADLINE_EXCEEDED'});req.destroy()},1000):null;
+  res.once('close',()=>clearTimeout(bodyDeadline));
+  req.on('error',()=>clearTimeout(bodyDeadline));
   req.setTimeout(5000,()=>{if(!res.headersSent)reply(408,{error:'REQUEST_TIMEOUT'});req.destroy()});
   req.on('data',chunk=>{count+=chunk.length;if(count>MAX_BYTES){if(!res.headersSent)reply(413,{error:'BODY_LIMIT'});req.destroy();return}text+=chunk.toString('utf8')});
-  req.on('end',()=>{if(res.writableEnded)return;try{if(count!==len)throw Error('LENGTH_MISMATCH');
+  req.on('end',()=>{clearTimeout(bodyDeadline);if(res.writableEnded)return;try{if(count!==len)throw Error('LENGTH_MISMATCH');
    const payload=JSON.parse(text);if(req.url==='/v1/experiments'){const controller=new AbortController();res.once('close',()=>controller.abort());runBoundedExperiment(payload,{signal:controller.signal}).then(out=>{if(!res.destroyed)reply(200,out)},err=>{if(!res.destroyed)reply(422,{error:err.message,execution_authority:false,trading_authorized:false})});return;}const out=req.url==='/v1/formula'?evaluateFormulaDocument(payload):req.url==='/v1/graph/ports'?evaluateResearchGraph(compilePortGraph(payload)):req.url==='/v1/graph/execute'?evaluateResearchGraph(payload):evaluateMathRequest(payload);reply(200,out)}
    catch{reply(422,{error:'INVALID_RESEARCH_REQUEST',trading_authorized:false})}});
  });

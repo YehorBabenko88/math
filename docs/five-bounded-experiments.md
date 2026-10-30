@@ -1,6 +1,6 @@
 # D: Independent bounded Math experiments
 
-Base: Math PR97 b92cd96ab5a8cab048524b311f565f4fe1937b1f. Existing numerical engine and research semantics remain source owned. `/v1/experiments` accepts the same `math.evaluate.v1` contract and returns the same `math.result.v1` response. It launches only an isolated JavaScript computation worker, never a module, native process, exchange connection or trading command. Input <=262144 bytes and 500–2000 observations. Deadline <=5000ms and disconnect cancellation terminate the worker. Existing engine APIs remain compatible.
+Base: Math PR97 b92cd96ab5a8cab048524b311f565f4fe1937b1f. Existing numerical engine and research semantics remain source owned. `/v1/experiments` accepts the same `math.evaluate.v1` contract and returns the same `math.result.v1` response. It launches only an isolated JavaScript computation worker, never a module, native process, exchange connection or trading command. Input <=262144 bytes and 500–2000 observations. Deadline <=5000ms and disconnect cancellation terminate the worker. The four-worker admission slot remains occupied until worker termination acknowledges completion. Experiment bodies have an absolute 1000ms receive deadline; HTTP headers/requests are bounded to 5000ms. Existing engine APIs remain compatible.
 
 | Migration | Result | Remaining |
 |---|---|---|

@@ -11,7 +11,7 @@ export function runBoundedExperiment(payload,{signal,timeoutMs=3000}={}) {
   active++;
   let worker;try {worker=new Worker(new URL('./bounded-experiment-worker.mjs',import.meta.url),{workerData:payload,resourceLimits:{maxOldGenerationSizeMb:64,stackSizeMb:4}});}catch(err){active--;reject(err);return;}
   let done=false;
-  const finish=(err,result)=>{if(done)return;done=true;active--;clearTimeout(timer);signal?.removeEventListener('abort',cancel);worker.terminate();err?reject(err):resolve(result)};
+  const finish=(err,result)=>{if(done)return;done=true;clearTimeout(timer);signal?.removeEventListener('abort',cancel);Promise.resolve(worker.terminate()).then(()=>{active--;err?reject(err):resolve(result)},()=>{active--;reject(Error('WORKER_TERMINATION_FAILED'))})};
   const cancel=()=>finish(Error('CANCELLED'));
   const timer=setTimeout(()=>finish(Error('DEADLINE_EXCEEDED')),timeoutMs);
   signal?.addEventListener('abort',cancel,{once:true});
