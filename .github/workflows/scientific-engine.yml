@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/**'
       - 'tests/scientific-*.test.mjs'
+      - 'python/history*.py'
+      - 'scripts/history/**'
       - 'scripts/scientific/**'
       - '.github/workflows/scientific-engine.yml'
 permissions:

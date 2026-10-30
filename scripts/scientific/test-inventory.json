@@ -1,4 +1,5 @@
 [
+  "tests/scientific-history-clocks.test.mjs",
   "tests/scientific-engine.test.mjs",
   "tests/scientific-http.test.mjs",
   "tests/scientific-boundary-regressions.test.mjs",

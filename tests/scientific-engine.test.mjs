@@ -16,7 +16,7 @@ test('units, physical dimensions, temporal alignment and nonfinite operations re
  for(const expression of ['x+1','sin(x)','x+x^2'])assert.throws(()=>executeScientificGraph(graph([source('s'),{id:'f',kind:'formula',expression,outputUnit:'m'}],[edge('s','f')])));
  for(const unit of ['s','USD'])assert.throws(()=>executeScientificGraph(graph([source('s'),{id:'c',kind:'convert',unit}],[edge('s','c')])));
  assert.throws(()=>executeScientificGraph(graph([source('s','dimensionless',[1,2,3]),{id:'f',kind:'formula',expression:'1/(x-2)',outputUnit:'dimensionless'}],[edge('s','f')])));
- const bad=source('s');bad.availableAt[1]=3;assert.throws(()=>executeScientificGraph(graph([bad],[])));
+ const bad=source('s');bad.availableAt[1]=4;assert.throws(()=>executeScientificGraph(graph([bad],[])));
  const unordered=source('s');unordered.timestamps=[1,1,3];assert.throws(()=>executeScientificGraph(graph([unordered],[])));
  const future=graph([source('s')],[]);future.asOf=2;assert.throws(()=>executeScientificGraph(future));
 });
