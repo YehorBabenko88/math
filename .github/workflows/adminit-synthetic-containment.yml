@@ -13,6 +13,80 @@ on:
 permissions:
   contents: read
 jobs:
+  loader-diagnostic:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/math-native-loader-trace-20261030' && github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21'
+    name: Diagnostic native loader events (never qualification)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: kit
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: f3e05a870d5fd0c6a82f62b2d81328842ad70871
+          path: app-source
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Build immutable original application source
+        working-directory: app-source
+        shell: pwsh
+        run: |
+          & powershell -NoProfile -File scripts/adminit-containment/build-hosted.ps1 -OutputRoot "$env:RUNNER_TEMP/adminit-build" -ExpectedHead f3e05a870d5fd0c6a82f62b2d81328842ad70871
+          exit $LASTEXITCODE
+      - name: Compile diagnostic controller only
+        working-directory: kit
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -TypeDefinition ([IO.File]::ReadAllText((Join-Path $PWD 'scripts/adminit-containment/LoaderTrace.cs'))) -OutputAssembly "$env:RUNNER_TEMP/LoaderTrace.exe" -OutputType ConsoleApplication -ReferencedAssemblies System.Web.Extensions,System.Core
+      - name: Observe native DLL/debug events without memory or security writes
+        working-directory: kit
+        shell: pwsh
+        run: |
+          $env:SOURCE_HEAD='f3e05a870d5fd0c6a82f62b2d81328842ad70871'
+          $env:SOURCE_TREE='3c3f782cb1718a67274095fa1bc764fb5965544b'
+          $owner=Start-Process -FilePath "$env:RUNNER_TEMP/LoaderTrace.exe" -PassThru -WindowStyle Hidden -RedirectStandardOutput "$env:RUNNER_TEMP/controller-stdout.txt" -RedirectStandardError "$env:RUNNER_TEMP/controller-stderr.txt"
+          try {
+            $handle=$owner.Handle
+            if (-not $owner.WaitForExit(180000)) {
+              $owner.Kill()
+              if (-not $owner.WaitForExit(5000)) { throw 'Diagnostic controller cleanup unconfirmed: BLOCKED' }
+              throw 'Diagnostic deadline expired: BLOCKED'
+            }
+            if ($owner.ExitCode -ne 0) { throw 'Diagnostic collection incomplete: BLOCKED' }
+          } finally { $owner.Dispose() }
+          Write-Output 'DIAGNOSTIC_COLLECTION_ONLY; NATIVE_ACCEPTANCE_BLOCKED'
+      - name: Collect read-only Application log and encrypt diagnostic originals
+        if: always()
+        working-directory: kit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:RUNNER_TEMP 'loader-diagnostic'
+          if (-not (Test-Path -LiteralPath $root)) { throw 'No diagnostic directory: BLOCKED' }
+          foreach($name in @('controller-stdout.txt','controller-stderr.txt')) {
+            $file=Join-Path $env:RUNNER_TEMP $name
+            if(Test-Path -LiteralPath $file) { Copy-Item -LiteralPath $file -Destination (Join-Path $root $name) }
+          }
+          $eventError=$null
+          $events=@(Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=(Get-Date).AddMinutes(-10);Level=@(1,2,3)} -MaxEvents 100 -ErrorAction SilentlyContinue -ErrorVariable eventError | Select-Object TimeCreated,Id,ProviderName,Message)
+          @{events=$events;available=($null -eq $eventError);scope='read-only Application log, private encrypted evidence'} | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $root 'application-events.json')
+          $env:SOURCE_HEAD='f3e05a870d5fd0c6a82f62b2d81328842ad70871'
+          $env:SOURCE_TREE='3c3f782cb1718a67274095fa1bc764fb5965544b'
+          node scripts/adminit-containment/seal-loader-trace.mjs
+          exit $LASTEXITCODE
+      - name: Retain encrypted diagnostic evidence only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: loader-trace-sealed-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/loader-trace.sealed.json
+          if-no-files-found: error
+          retention-days: 30
   contracts:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
     if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
