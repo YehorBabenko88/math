@@ -27,7 +27,7 @@ jobs:
           path: reference-grid
           persist-credentials: false
       - name: Exact-head synthetic checks
-        run: python scripts/history_ci.py tests test_history_kernels.py
+        run: python scripts/history_ci.py tests 'test_history*.py'
         env:
           GRID_REFERENCE: ${{ github.workspace }}/reference-grid
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -44,3 +44,4 @@ jobs:
           path: .history-evidence/tests.log
           include-hidden-files: true
           if-no-files-found: error
+
