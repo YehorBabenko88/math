@@ -151,24 +151,35 @@ namespace MathUniverse.Adminit {
    }
    return outcome;
   }
-  public static int Main(string[] args){
+  static void SaveHostedFailure(string[] args,string phase,Exception error){
    try{
-    Check(!String.Equals(Environment.MachineName,"ADMINIT",StringComparison.OrdinalIgnoreCase),"ADMINIT isolation criteria not integrated: BLOCKED");AssertMedium();
+    if(args.Length!=2||args[0]!="--hosted-suite"||Environment.GetEnvironmentVariable("GITHUB_ACTIONS")!="true"||Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")!="github-hosted"||String.Equals(Environment.MachineName,"ADMINIT",StringComparison.OrdinalIgnoreCase))return;
+    string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"));NoReparse(temp);
+    Check(String.Equals(Path.GetDirectoryName(ExpectedHostedSuite()),temp,StringComparison.OrdinalIgnoreCase),"failure evidence location BLOCKED");
+    string message=error.Message;if(message.Length>2048)message=message.Substring(0,2048);
+    byte[] bytes=System.Text.Encoding.UTF8.GetBytes(Json.Serialize(new{phase,errorType=error.GetType().FullName,message,sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),scope="PRIVATE_DIAGNOSTIC_ONLY"}));
+    using(var file=new FileStream(Path.Combine(temp,"supervisor-failure.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None)){file.Write(bytes,0,bytes.Length);}
+   }catch{}
+  }
+  public static int Main(string[] args){
+   string phase="entry";
+   try{
+    Check(!String.Equals(Environment.MachineName,"ADMINIT",StringComparison.OrdinalIgnoreCase),"ADMINIT isolation criteria not integrated: BLOCKED");phase="assert-medium";AssertMedium();phase="arguments";
     Check(args.Length>=2,"fixed role and directory required");
     if(args[0]=="--leaf"&&args.Length==2)return Leaf(args[1]);
     if(args[0]=="--root"&&args.Length==3)return Root(args[1],args[2]);
     if(args[0]=="--owner"&&args.Length==3)return Owner(args[1],args[2]);
-    Check(args[0]=="--hosted-suite"&&args.Length==2,"local execution policy BLOCKED");
+    phase="hosted-guard";Check(args[0]=="--hosted-suite"&&args.Length==2,"local execution policy BLOCKED");
     Check(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true"&&Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")=="github-hosted","disposable hosted gate BLOCKED");
-    Suite=args[1];Literal(Suite);string parent=Path.GetDirectoryName(Suite);NoReparse(parent);string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+"\\";
-    Check(Suite.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase)&&!Directory.Exists(Suite),"fresh fixed hosted lab required");Directory.CreateDirectory(Suite);LabEvidence=ValidateLabAcl(Suite);File.WriteAllText(Path.Combine(Suite,"synthetic-session.txt"),"fixed-fixtures-only;not-operator-authorization");
+    phase="lab-path";Suite=args[1];Literal(Suite);string parent=Path.GetDirectoryName(Suite);NoReparse(parent);string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+"\\";
+    Check(Suite.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&String.Equals(Suite,ExpectedHostedSuite(),StringComparison.OrdinalIgnoreCase)&&!Directory.Exists(Suite),"fresh fixed hosted lab required");phase="lab-create";Directory.CreateDirectory(Suite);phase="lab-acl";LabEvidence=ValidateLabAcl(Suite);phase="session-file";File.WriteAllText(Path.Combine(Suite,"synthetic-session.txt"),"fixed-fixtures-only;not-operator-authorization");phase="scenarios";
     var results=new List<object>();bool ok=true;
     foreach(string kind in new[]{"normal","timeout","crash","assignment","cleanup"}){
      try{results.Add(Supervise(kind));}catch(Exception e){ok=false;results.Add(new{scenario=kind,status="FAIL",error=e.GetType().FullName+":"+e.Message});}
     }
     object watchdogProbe=null;try{watchdogProbe=Supervise("watchdog");}catch(Exception e){ok=false;watchdogProbe=new{status="FAIL",error=e.GetType().FullName+":"+e.Message};}
     Write(Path.Combine(Suite,"results.json"),new{watchdogProbe,sourceHead=Environment.GetEnvironmentVariable("SOURCE_HEAD"),sourceTree=Environment.GetEnvironmentVariable("SOURCE_TREE"),token="non-elevated Medium",tokenEvidence=TokenEvidence,labEvidence=LabEvidence,results,evidence=Evidence,localExecution="BLOCKED_PENDING_ISOLATION_REVIEW"});Console.WriteLine(ok?"ADMINIT_HOSTED_NATIVE_REPORT_WRITTEN":"ADMINIT_HOSTED_NATIVE_REPORT_FAILED");return ok?0:1;
-   }catch(Exception e){Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
+   }catch(Exception e){SaveHostedFailure(args,phase,e);Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
   }
  }
 }
