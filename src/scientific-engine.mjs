@@ -43,7 +43,7 @@ function source(n,asOf){
  if(!Array.isArray(values)||values.length<1||values.length>SCIENTIFIC_LIMITS.points||!Array.isArray(times)||!Array.isArray(availability)||times.length!==values.length||availability.length!==values.length)throw Error('INVALID_SERIES');
  for(let i=0;i<values.length;i++){
   if(typeof values[i]!=='number'||!Number.isFinite(values[i]))throw Error('NONFINITE_SOURCE');timestamp(times[i]);timestamp(availability[i]);
-  if(times[i]>asOf||availability[i]>times[i]||i&&times[i]<=times[i-1])throw Error('NONCAUSAL_SOURCE');
+  if(times[i]>asOf||availability[i]>asOf||i&&times[i]<=times[i-1])throw Error('NONCAUSAL_SOURCE');
  }
  return {type:n.type,unit:n.unit,values:[...values],timestamps:[...times],availableAt:[...availability]};
 }

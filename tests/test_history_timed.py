@@ -21,6 +21,11 @@ def request():
 
 
 class TimedMath(unittest.TestCase):
+    def test_published_after_target_is_not_a_future_forecast(self):
+        q=request();q['decision_ms']=2460000
+        with self.assertRaisesRegex(ValueError,'HORIZON_ALREADY_KNOWN'):
+            evaluate_timed_request(q)
+
     def test_target_event_time_cannot_overflow_wire_clock(self):
         q=request();shift=((2**53-1)//60000-40)*60000
         for row in q['rows']:
