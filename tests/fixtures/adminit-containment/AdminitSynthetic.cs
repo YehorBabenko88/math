@@ -69,7 +69,7 @@ namespace MathUniverse.Adminit {
   static void TerminateOwnedProcess(IJobKernel kernel,IntPtr process){
    uint state=kernel.Wait(process,0);Check(state==0||state==258,"owned cleanup wait failed: BLOCKED");if(state==0)return;
    try{kernel.TerminateProcess(process);}
-   catch(System.ComponentModel.Win32Exception error){if(error.NativeErrorCode!=5||kernel.Wait(process,0)!=0)throw;}
+   catch(System.ComponentModel.Win32Exception error){if(error.NativeErrorCode!=5||kernel.Wait(process,Containment.CleanupMilliseconds)!=0)throw;}
   }
   // The fixed file-protocol fixture needs no console. Do not change the pinned
   // shared Q01 kernel: only synthetic ADMINIT descendants use this adapter.

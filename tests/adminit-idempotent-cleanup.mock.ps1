@@ -6,7 +6,7 @@ $model=@'
 public sealed class CleanupModel : MathUniverse.Q01.IJobKernel {
  public System.Collections.Generic.Queue<uint> Waits=new System.Collections.Generic.Queue<uint>();
  public int Kills,WaitCalls,Error;
- public uint Wait(System.IntPtr p,uint ms){if(ms!=0)throw new System.Exception("unexpected model wait bound");WaitCalls++;return Waits.Dequeue();}
+ public uint Wait(System.IntPtr p,uint ms){uint expected=WaitCalls==0?0u:5000u;if(ms!=expected)throw new System.Exception("unexpected model wait bound");WaitCalls++;return Waits.Dequeue();}
  public void TerminateProcess(System.IntPtr p){Kills++;if(Error>0)throw new System.ComponentModel.Win32Exception(Error);if(Error<0)throw new System.InvalidOperationException("unexpected kernel failure");}
  public System.IntPtr CreateJob(){throw new System.Exception();}public void ConfigureKillOnClose(System.IntPtr j){throw new System.Exception();}
  public void CreateSuspended(string e,string[] a,string d,out System.IntPtr p,out System.IntPtr t){throw new System.Exception();}
