@@ -1,0 +1,2693 @@
+{
+  "repository": "https://github.com/YehorBabenko88/math",
+  "originRun": "https://github.com/YehorBabenko88/math/actions/runs/41078696699",
+  "baselineCommit": "0b75c0a3583f9823d2b554806468fa541f20b35c",
+  "baselineTree": "6c18bbf9dfb62c66d7efbab30eb7af1cdbc2eb25",
+  "testFiles": [
+    {
+      "path": "tests/adapter-registry.test.mjs",
+      "blob": "a1987c009f8606ea65f6235e62328a2dea233e6a",
+      "sha256": "dd9e445aae9a2a43e8da25a3668152fb25cdb5d3618bb62d4c7f40826f2976cc",
+      "bytes": 790
+    },
+    {
+      "path": "tests/adminit-bootstrap-watchdog.test.mjs",
+      "blob": "bb8a131cf89e49390a51db1f425c1362b7b5a87d",
+      "sha256": "37622e778b44d8e2ec027be104c5ad0f24778b26a7247868532f2e0c32ac0095",
+      "bytes": 2277
+    },
+    {
+      "path": "tests/adminit-build-inputs.test.mjs",
+      "blob": "08758774d3a5343294ef74e83dbe1eebd11c84d7",
+      "sha256": "a963f38862d742a21428e65d44845e428c431a111f2ed0e5a22a47e5609af80f",
+      "bytes": 2434
+    },
+    {
+      "path": "tests/adminit-containment.test.mjs",
+      "blob": "199594c6ccf8ce47d20f5e23184255a09aaf72cb",
+      "sha256": "b850c6615ee1f56258e68a4be17ae51953b560f57bff3b5ae5b448132477f642",
+      "bytes": 5580
+    },
+    {
+      "path": "tests/adminit-contract-syntax.test.mjs",
+      "blob": "bf0085f0113863fda490d5b3fc4eb588ec316061",
+      "sha256": "aa5a695ffea81dd4c171f221b0e0a9e15e7cdd473a2e79c82f94983dac0b047b",
+      "bytes": 549
+    },
+    {
+      "path": "tests/adminit-g0-contracts.test.mjs",
+      "blob": "7de85c81c8b96560cf20f453e2cb896f78073751",
+      "sha256": "9ae1e6722e2d9d2e954a87be05e892bc2d893843132be9a55db1bb94874d5e1f",
+      "bytes": 1851
+    },
+    {
+      "path": "tests/adminit-g0-csv-negative.test.mjs",
+      "blob": "c49517290b414fc086dc6e193dec66b946198676",
+      "sha256": "64f6d222a6bd47c7a46dfccff7789c92ab6cf1e20949ba56eb6f6363a44bd9dd",
+      "bytes": 2135
+    },
+    {
+      "path": "tests/adminit-g0-csv-shape.test.mjs",
+      "blob": "b0890dec5cd5ec2f49d6eb6d9fe4432f4cf79cd7",
+      "sha256": "899ce587a17d650c643f02a39499c657d92c1c8c3e6dd0e6e06279663c25ba90",
+      "bytes": 1572
+    },
+    {
+      "path": "tests/adminit-g0-csv.test.mjs",
+      "blob": "94cf3f0e95d2147f216d4f16b26ebbc75981c87f",
+      "sha256": "3750dd68c4dbe488124cfb5aad101a2dec676cb86eed8faf9fe43998aee3cd40",
+      "bytes": 1240
+    },
+    {
+      "path": "tests/adminit-g0-pure-fixtures.test.mjs",
+      "blob": "5d22920d6a94fe35408f9b4087e6e11ee33f5059",
+      "sha256": "1ef096be064e911c234517794ee328f91b7bc47f19d9ca382be14fc56eb6a017",
+      "bytes": 2306
+    },
+    {
+      "path": "tests/adminit-g0.test.mjs",
+      "blob": "441847a427dd5881a19fe4809b81214f09584995",
+      "sha256": "8a57f959aff655e427c3ed00875d38dcfe1212b539b8bb2ce607aeb4909b97bc",
+      "bytes": 4229
+    },
+    {
+      "path": "tests/adminit-isolation.test.mjs",
+      "blob": "8ce50c02fe7f0b7d34634a846b3c4b1dd0c1b349",
+      "sha256": "33f4b7ef1326b72ecd151385721708586539c5071c11522cd14e36639f6d9935",
+      "bytes": 3661
+    },
+    {
+      "path": "tests/adminit-native-evidence.test.mjs",
+      "blob": "1fa0533ce3c096f6e719c45f077a228f4aadf9c9",
+      "sha256": "879bc76751f272ca21a486ab631f47c09cc3e9d86e8e6a80704f0d71d2e2bb39",
+      "bytes": 3316
+    },
+    {
+      "path": "tests/adminit-offline-preflight.test.mjs",
+      "blob": "3bdafc6ad1625a16df1147d87858f648a504f320",
+      "sha256": "52bc477a850218c5de60c8d6e4aaf509ced35cb5f88d119dd2131d4ef84bbdf4",
+      "bytes": 14985
+    },
+    {
+      "path": "tests/adminit-package-caller-contract.test.mjs",
+      "blob": "b4476a51b3bfd080a50f2a8d0dabee3c9289cf08",
+      "sha256": "fa649f6ad81372f17928fb5c22f345bab7df9f196d2e782c70f288a23f96ac84",
+      "bytes": 1494
+    },
+    {
+      "path": "tests/adminit-package-syntax.test.mjs",
+      "blob": "02744a27805325c9b91cb5105c5f0a06c0b1e4f7",
+      "sha256": "ae39700d43f4ef887c9ba0061c846b3bda09be0b706e1e761dd70886b2a3a351",
+      "bytes": 488
+    },
+    {
+      "path": "tests/adminit-package.test.mjs",
+      "blob": "fb6052c3c2346a225e53a71dad97d748505681da",
+      "sha256": "4069eb8c1b7b3cecf8c7f6540ee7594033ce2683b411e91a6970067f18525ca1",
+      "bytes": 5017
+    },
+    {
+      "path": "tests/adminit-stdout-privacy.test.mjs",
+      "blob": "cbc31fd67ea00d6402b78ebc9a2ce9edca8557a0",
+      "sha256": "3c7d4a6ea2b26995b7020e29625b41e42d7f489efe7c8aba7a45a14106f790ca",
+      "bytes": 722
+    },
+    {
+      "path": "tests/adminit-token-admin-flags-regression.test.mjs",
+      "blob": "78dfef4b02ad0fa96e6adb32d5245a0f11a282c1",
+      "sha256": "89093b388bf9fc2fdfa938a2018e6dbd3a549c9d26809fba4a8b573dc7db9ef7",
+      "bytes": 1311
+    },
+    {
+      "path": "tests/adminit-token-cli.test.mjs",
+      "blob": "4a8ed8179226c5e113e752762bc9e56c2ef0ddde",
+      "sha256": "bef5056fbe33693c9ae1d76cbb00abd360f3152edd1b671862df0a9bb7832023",
+      "bytes": 1156
+    },
+    {
+      "path": "tests/adminit-token-compile.test.mjs",
+      "blob": "36c49a93ef72dff81fc3e4bf201c03ead0eecaea",
+      "sha256": "f6caad8ad0b6a1224aab75a7e3f8804047a0ba609014a6dd829b167041296a0c",
+      "bytes": 4569
+    },
+    {
+      "path": "tests/adminit-token-contract.test.mjs",
+      "blob": "4f93193a9bbd7f1fa57bfbb09c2f11d6116c1c12",
+      "sha256": "418733e2c2b7bbd27b4b2f84bdc2a4426fa18f759d8bcbb1d73191a0345ed39f",
+      "bytes": 10200
+    },
+    {
+      "path": "tests/adminit-token-faults.test.mjs",
+      "blob": "079e4f98dd8db26104bf158f3eae43c12b7ba4a6",
+      "sha256": "406ff6b328e3aa1310e6e2f6ab47ba016c174db18ff3b1a0a1bc1ededeabf796",
+      "bytes": 4135
+    },
+    {
+      "path": "tests/adminit-token-flags-integration.test.mjs",
+      "blob": "17fcfb3c9ee486b17e9bde4538bdb9c84459980e",
+      "sha256": "7241fca7c60ca3dc67995529fabddc20f77359706359a72641b835ef0ed6a2bb",
+      "bytes": 2108
+    },
+    {
+      "path": "tests/adminit-token-wiring.test.mjs",
+      "blob": "bbb8ad9a2dcaae4cb1c612550f9e437550f4e776",
+      "sha256": "f32cbac7615569ff6b88ca4127d674e67caf2f8831bf2924ecdb34989d4d474d",
+      "bytes": 1181
+    },
+    {
+      "path": "tests/adminit-watchdog.test.mjs",
+      "blob": "4b7f5253a728cb22cecfe9a7bf418fad3871c4db",
+      "sha256": "ea83059fa8e8aa66a15a13b8b3ce290c9fa948375a2b6600367b7b355cd58f9b",
+      "bytes": 5374
+    },
+    {
+      "path": "tests/adminit-workflow-privacy.test.mjs",
+      "blob": "e81626f2a7596cbc9701aaaf6380845aec8b4466",
+      "sha256": "6398b4e66133278d86be85a4dfaa3ae9e81fc8e1ee296a0d0e93eea8516efe66",
+      "bytes": 1279
+    },
+    {
+      "path": "tests/adminit-zip-admission.test.mjs",
+      "blob": "6a5d3245c4c4e450b96a768bb6f130814191237d",
+      "sha256": "62b6cf0046a427b297c38466b8759b6017c4bdd2eb28feed7886641302ad25e6",
+      "bytes": 1252
+    },
+    {
+      "path": "tests/adminit-zip-members.test.mjs",
+      "blob": "db7b93f0d5838aa7cfe0c68d25c77138a38efec6",
+      "sha256": "1390b8ae91a32f5d74abf81333d0d86ca7f669bc7c135cb2a33a347f0f75acb1",
+      "bytes": 866
+    },
+    {
+      "path": "tests/ai-orchestrator-artifacts.test.mjs",
+      "blob": "d4271d0a664172adfd1a38b9b43a442107be8244",
+      "sha256": "a677b6142cc2e84ab4b80edc54204f9c53c1bd56b191f0e0af6a313bd6cbe06d",
+      "bytes": 973
+    },
+    {
+      "path": "tests/ai-orchestrator-claims.test.mjs",
+      "blob": "1d2e0c59814fd07fd4905f69c96a4c1d552d7a45",
+      "sha256": "4953a6f8d04ea9e329a47461bf5248c27f7534bdbe7c8b33b1e86d99835b1f6a",
+      "bytes": 2554
+    },
+    {
+      "path": "tests/ai-orchestrator-inspect.test.mjs",
+      "blob": "f865cc02667f93e15e0f9458dcfb56c0ba00e1b9",
+      "sha256": "7d559e075d6c8e2b5eeb0ed0d7774bc619a6db183f18eeac84a7e3c40e9d6128",
+      "bytes": 2208
+    },
+    {
+      "path": "tests/ai-orchestrator-pinned-source.test.mjs",
+      "blob": "37f1e4c0345a6d86bcb028d56fbbfbf54c739fbe",
+      "sha256": "2651d0410759c6be5955ccc0c031e13d7820139af4c1e9d702868943097c3b2b",
+      "bytes": 2609
+    },
+    {
+      "path": "tests/ai-orchestrator-plan.test.mjs",
+      "blob": "ebb20dae04f22b1ca65f537497d5d2404c64796a",
+      "sha256": "6bae7ffdb3ba5d9fb2e0a2cefd29fdc401ee607aadf5d850e0b48731aa0b2a54",
+      "bytes": 2197
+    },
+    {
+      "path": "tests/ai-orchestrator-policy.test.mjs",
+      "blob": "e7f2d08d679c7b82efbf5bdb61442d2266228fd6",
+      "sha256": "752f824d163b2168172669db4f00d31874bbfc4fdfa7bd6afbfa708448d6d3f2",
+      "bytes": 2070
+    },
+    {
+      "path": "tests/ai-orchestrator-receipts.test.mjs",
+      "blob": "62645603902bfad47df88c0de6915ee8332af6c7",
+      "sha256": "61ff6f55dfd6123dedc19da7cad636a8c862acf27ccca6d7dde76ae435a2312f",
+      "bytes": 2836
+    },
+    {
+      "path": "tests/ai-orchestrator-registry-process.test.mjs",
+      "blob": "c4b2148161fadfafb193ccc81857894fe0ed9214",
+      "sha256": "4705080ed3a7e1c0adf43bd388226c14f16d4c209787ed9ea487d8cbcc5e67dc",
+      "bytes": 1650
+    },
+    {
+      "path": "tests/ai-orchestrator-registry.test.mjs",
+      "blob": "6a0d17601164c35e4dedb10d839dd3c8ea8d96ff",
+      "sha256": "6a39f1402c91e8b14bc23a02798ac66c979588a9039aa889ce7b26015928798c",
+      "bytes": 3781
+    },
+    {
+      "path": "tests/ai-orchestrator-replay.test.mjs",
+      "blob": "5111da3fb2375c3238b0a86913e7ea2a05d08ee2",
+      "sha256": "0a5aa74da7f5acc6a42e24f581843fc9b0a3b86e20e645bf42533d41408870f4",
+      "bytes": 995
+    },
+    {
+      "path": "tests/ai-orchestrator-source-correlation.test.mjs",
+      "blob": "f691235ab472af11ee6d00e603ba9f2eb538da42",
+      "sha256": "55fbd5dad5aecb75dc52522d3804e961e03c072ec4e9526d305845a6a9034802",
+      "bytes": 3164
+    },
+    {
+      "path": "tests/ai-orchestrator-source-identity.test.mjs",
+      "blob": "c284bf2bdc575249f48d2c9ddffe31729376ec4e",
+      "sha256": "b378208d3bfe634bec715d79fca9bac9af31f3fb6c28f87948aaa1dbb96ea13d",
+      "bytes": 2426
+    },
+    {
+      "path": "tests/ai-orchestrator-stream.test.mjs",
+      "blob": "0d6c9ca8c682800f945ac301cc2a6a6e8592aebd",
+      "sha256": "640c2f607c8e4a9eb475c64c953b5cc2997ab514df32370ab0513bf63bce4bef",
+      "bytes": 1504
+    },
+    {
+      "path": "tests/ai-orchestrator-trust-gate.test.mjs",
+      "blob": "f2eb4e41cc8fe3bd6326a4e114283f122d2825d6",
+      "sha256": "02ad4846ce12ea1036729efe6514885eb17822e1b9910264ed605299a0c84feb",
+      "bytes": 1207
+    },
+    {
+      "path": "tests/book-cutover-auth.test.mjs",
+      "blob": "f675aaf344dd27044f69bc956846617a38f9d1cd",
+      "sha256": "17e6e4529e809b15a55490da883b49233d01aae202a7eb8db110950e3a0e8651",
+      "bytes": 5320
+    },
+    {
+      "path": "tests/book-cutover-backup.test.mjs",
+      "blob": "405efe8cceb80efd67426436c24452718a14fcad",
+      "sha256": "6e6070109275bd5eeb6afa218f1619b39b22a71c6331e9791d750b1e4ca17f2c",
+      "bytes": 4603
+    },
+    {
+      "path": "tests/book-cutover-controller.test.mjs",
+      "blob": "9e859a235c0781cc8bd2c20ab578671901479065",
+      "sha256": "d4b600e4c10c8f9106796e0d29524254f24e33e7e5a485c4a9268a886f483a4a",
+      "bytes": 10758
+    },
+    {
+      "path": "tests/book-cutover-hardening-postgres.test.mjs",
+      "blob": "124b4592c9809f368ec7dcdccfabb2b6cd25f341",
+      "sha256": "ba2eb48d78355dc4bef579b10c2683bc43ef8150ef393271cbffb9ef558f9b7e",
+      "bytes": 6073
+    },
+    {
+      "path": "tests/book-cutover-hardening-sqlite.test.mjs",
+      "blob": "c8cc3de9c43517922423f1e2ef16686b9320e1ac",
+      "sha256": "bdb58f2272e71ee53b5cb4a3614807b101a50b0ece94ce700462d95ea0a913a3",
+      "bytes": 4378
+    },
+    {
+      "path": "tests/book-cutover-journal.test.mjs",
+      "blob": "32ca12a53f99f58f6744eeda086fda78686dc3ba",
+      "sha256": "b4bc7a5934684a23a5561fe87b7e484dbafe2a6eb16b6d433f9df8a223be4c0a",
+      "bytes": 5369
+    },
+    {
+      "path": "tests/book-cutover-postgres-live.test.mjs",
+      "blob": "df8139e2a6a2811b920e63cb76ee79f0bc024126",
+      "sha256": "3c6451c213c18c3af102fed9d1923ce33e4b8b0946a1cfec7ce1ed10159eb71c",
+      "bytes": 5312
+    },
+    {
+      "path": "tests/book-cutover-source.test.mjs",
+      "blob": "4a62d5cbcf8b19fd4eb44df7dc6fc9f1fa5654fe",
+      "sha256": "1ccb39da455ff4be91591f8bc40aa5569e3d8a83a51937495a17c0872bda483d",
+      "bytes": 3745
+    },
+    {
+      "path": "tests/book-ingestion-candidate.test.mjs",
+      "blob": "ed94d4a09808d82db0aa8722c941e3fad7de38ca",
+      "sha256": "b2b1648d1cb2b786a943e2ad3f09cdcc43ac97a0d03260edd1cd0ffbfd784724",
+      "bytes": 9328
+    },
+    {
+      "path": "tests/book-ingestion-cli.test.mjs",
+      "blob": "dc61c3c8a24dd7108786f8bbf06cd21e4768e8f4",
+      "sha256": "04dbd9963c56c6a49643f983498329167b0de4a074e2288c72aeac96346e6bfa",
+      "bytes": 3278
+    },
+    {
+      "path": "tests/book-ingestion-knowledge-boundary.test.mjs",
+      "blob": "8339bf03f1901c93ce3074daab94f652cdf5fc18",
+      "sha256": "1988114bd8e0c1d44f269e6e3ff7ad46a40b30d01b6082ee3d16a010c1b62964",
+      "bytes": 5342
+    },
+    {
+      "path": "tests/book-ingestion-native.test.mjs",
+      "blob": "c18d1012d3999b5f46c84bc857750a4b42768b4a",
+      "sha256": "5579f978a446a989ddd41d502b5cf80eb9f9c3cf7dbb717ca3966af028102ea6",
+      "bytes": 4022
+    },
+    {
+      "path": "tests/book-ingestion-pdf.test.mjs",
+      "blob": "bd5970e0264abfe277af936e9546da2b5142aa76",
+      "sha256": "15d1dbb5e594eccb09e09555f6368c5daec92f5be4a9df391a084cf5eee4935f",
+      "bytes": 6396
+    },
+    {
+      "path": "tests/book-ingestion-queue.test.mjs",
+      "blob": "766ee87a0be6ae79a10e186cbd052109169619c6",
+      "sha256": "e37a4d935661585cd715a384a3c99f7ed08e1dcd161e2575e0e39defa4a30557",
+      "bytes": 14053
+    },
+    {
+      "path": "tests/book-ingestion-review.test.mjs",
+      "blob": "f98964ca0ad18056e2bd3f6f484c664ccd9163d3",
+      "sha256": "2ecffccb5337054f318acc78bc88743b4868d8e4c823f6f139591ef262bf2142",
+      "bytes": 14751
+    },
+    {
+      "path": "tests/book-ingestion-worker.test.mjs",
+      "blob": "0080351d325017154ad8c48d259bb73495462fca",
+      "sha256": "ee3c1b8c3885c6d906ae28ffb85471c0825e6d3f350641271d9ed639d170a371",
+      "bytes": 11651
+    },
+    {
+      "path": "tests/book-knowledge-intake.test.mjs",
+      "blob": "5fdcef5f71ef1a08245420f45a83bab0ca27d10b",
+      "sha256": "57c17ef7df374d937935c496d146ca92662132974788201d83753d472aa0b689",
+      "bytes": 1302
+    },
+    {
+      "path": "tests/book-migration-integrity-live.test.mjs",
+      "blob": "a7dba85b724036bfe2bc5b904cdb0dc64ee5a4d7",
+      "sha256": "ab9600f244a876aba7dadd0c562db0c8ddb545ed415b110f52ac7f2974eb869a",
+      "bytes": 16061
+    },
+    {
+      "path": "tests/book-postgres-codec.test.mjs",
+      "blob": "f010c0ac6c039d4bc3301a9472cd00af20edb5d5",
+      "sha256": "8475cd548c03f79b594e4e7580c6b442773d4131ce161079550d6f8a123b56c7",
+      "bytes": 5129
+    },
+    {
+      "path": "tests/book-postgres-json.test.mjs",
+      "blob": "784d0118a625783096a0b2cef711c18d14e81371",
+      "sha256": "a5dfec0d2b9baa2f0abd7fcfd9dfd6dd82e4efd439858f1ec6c5d2b9b029cfcf",
+      "bytes": 650
+    },
+    {
+      "path": "tests/book-postgres-lossless-live.test.mjs",
+      "blob": "525f6934d83dc5b4700d5d0833cc56ca2524ab33",
+      "sha256": "21e503169c3cdab64a94717c029c9f067abbf61c985d641d292efdd6eab78828",
+      "bytes": 12282
+    },
+    {
+      "path": "tests/book-postgres-parity-live.test.mjs",
+      "blob": "d3f82c5a156b9b3b78d20c43aab21727f0c43725",
+      "sha256": "1b837706b48e7f0494b43784e8bb43da96a4cf8df33286c38877dbc16483f251",
+      "bytes": 5775
+    },
+    {
+      "path": "tests/book-postgres-policy-integration.test.mjs",
+      "blob": "251488e2516b06a948826274b9f4dff5018fc9b9",
+      "sha256": "776026d603e463b2763e9bf7dd524a17578a786ed2ae59fe7be8f29a893af34d",
+      "bytes": 7234
+    },
+    {
+      "path": "tests/book-postgres-queue-live.test.mjs",
+      "blob": "70b89088f891966e26ad685d682c54d0e59012f9",
+      "sha256": "5664ae408a55e7f9bdfe814df36386680349ee532e23169b1db308c1022f1993",
+      "bytes": 4373
+    },
+    {
+      "path": "tests/book-postgres-queue.test.mjs",
+      "blob": "abb97bdf8b580abf2e40ca75d8e5047d5ed5df14",
+      "sha256": "278f45145dd5d330ed8b8ae9b8aea67b70bd54256f2f16ce379f0e46be1bded4",
+      "bytes": 1700
+    },
+    {
+      "path": "tests/book-postgres-schema-live.test.mjs",
+      "blob": "33e5a0c52097ab2e32e469eb60094ee55c2cb06d",
+      "sha256": "f967368ffade87f2dd9ac886f5a37bee52573f601761dc173382730840bee06c",
+      "bytes": 7166
+    },
+    {
+      "path": "tests/book-postgres-schema.test.mjs",
+      "blob": "0d54a2cebb8f536d34d369aa69b5edf2151e695f",
+      "sha256": "af0cd8bb4c762777202b7aa7ee210f975f10a1f18a0cfb6907d779adeebefca3",
+      "bytes": 1560
+    },
+    {
+      "path": "tests/book-postgres-scientific-live.test.mjs",
+      "blob": "e82fe57741096a70d499ff1a9046e9aedcebd846",
+      "sha256": "db09103b942a86bd9eb1dcf701a48d620b88be3570d1b24c2bd0bbcf6842b3bb",
+      "bytes": 3418
+    },
+    {
+      "path": "tests/book-postgres-transfer-live.test.mjs",
+      "blob": "9ced80c01d20cd6caa4d635f4b9a7a8b7a7122ae",
+      "sha256": "d4e49926d81f12a85adb978b0c4923bacb40c8e67e7baf9903266c88907727bd",
+      "bytes": 6049
+    },
+    {
+      "path": "tests/book-postgres-transfer.test.mjs",
+      "blob": "9bf96523f315242a3dcd5f6b088304cc47d6be06",
+      "sha256": "e55cafa5ab62099fed41cebb6124f6aa66af393bacef35df320529e39762f2bf",
+      "bytes": 3041
+    },
+    {
+      "path": "tests/book-queue-compatibility.test.mjs",
+      "blob": "57639a469220391d33065b0cb8dfeb70a932cfaa",
+      "sha256": "8385df8377194be066afd1913ee99fef3440a5b27f8964037f71d48336b7c8ca",
+      "bytes": 1640
+    },
+    {
+      "path": "tests/book-queue-detached-journal.test.mjs",
+      "blob": "f72139a511aeb348fa7b8317b3388a1dfdc0bc3d",
+      "sha256": "1e9fc912c063701fdec0d3f665cc084aedd7c9edcc0b32e4c78e07872c8c1b69",
+      "bytes": 6499
+    },
+    {
+      "path": "tests/book-scenes.test.mjs",
+      "blob": "0c155825e3d90e4a9e2bb634eca5a65ea8a31e13",
+      "sha256": "3766f7cc8723f5e1392c2a0357e6be561a98ca4d657f301f5e581b0d0a0704f2",
+      "bytes": 595
+    },
+    {
+      "path": "tests/book-shared-contract.test.mjs",
+      "blob": "c3b0f12388e1d74e4be87728e212578db385d2bf",
+      "sha256": "f3937f9d7652cef49bb8ba92a7f3cf257babe2f0e85fcceb81d72d1239145024",
+      "bytes": 1378
+    },
+    {
+      "path": "tests/book-sqlite-text.test.mjs",
+      "blob": "3c8a0ea87c596d133b530bdb36f81660a477c854",
+      "sha256": "1477147ac480d658dc80e7e81f1f085b3df9d15fbb5a0a2f6743b67592ee414a",
+      "bytes": 4730
+    },
+    {
+      "path": "tests/bounded-experiment.test.mjs",
+      "blob": "6f2c8597c6e595591cc4b0fb8a1f071f10102307",
+      "sha256": "fdabbf929e7053503796a4049e3081a65b6c7e209912aeeb579bdb7f36ba6fb5",
+      "bytes": 3183
+    },
+    {
+      "path": "tests/causal-feature-screen.test.mjs",
+      "blob": "3784da92ff377052463f2bc56ddc4537c6961471",
+      "sha256": "9d46755b5a6ef157e5f14c1208acf40fe07cd3fba9c63cc05fc01011b42004e3",
+      "bytes": 1732
+    },
+    {
+      "path": "tests/ci-coverage.test.mjs",
+      "blob": "7853a853460dfcf22d8819f3c1654ef65b840cca",
+      "sha256": "e6e9bb786c941f92258d35cb77be7524ddc3385f3c2f16ecee4550038f31681f",
+      "bytes": 3302
+    },
+    {
+      "path": "tests/ci-postgres-isolation.test.mjs",
+      "blob": "f386e1e572d72f387783a7f7804f5dd102b45722",
+      "sha256": "2cc288f136ad8ab87e19d999ea4caebb5499e66080a83d3418dda6516aab42d2",
+      "bytes": 1236
+    },
+    {
+      "path": "tests/ci-provenance.test.mjs",
+      "blob": "077b3cb88e308c84518cf6a4bbf59401281dd42a",
+      "sha256": "890fb95b3b157b61dd155839347642bbc53670f71e8ab25d028ea657e372b32c",
+      "bytes": 5360
+    },
+    {
+      "path": "tests/confidential-caller.test.mjs",
+      "blob": "64adb44a76fe33365744f498f949c25524c2e21f",
+      "sha256": "a856918bed134fe9e8d2cbb5525cf2934b961f6f3044703b6ca5df9c6c90b596",
+      "bytes": 980
+    },
+    {
+      "path": "tests/confidential-collector-context.test.mjs",
+      "blob": "4aa734ebed6a5145d58f724ee513e8011bb518b2",
+      "sha256": "713b02a7c32f8d80a7434f0da285a41c376296070ac5a8314b414c66cd9fc451",
+      "bytes": 1183
+    },
+    {
+      "path": "tests/confidential-collector-oidc.test.mjs",
+      "blob": "33812b88e02ce126419894411de172a831c5517d",
+      "sha256": "68619221da4917dccbb3a72009dae3ed27fa8257ed7ef39bece2ab5d31b244b5",
+      "bytes": 2120
+    },
+    {
+      "path": "tests/confidential-pinned-loader.test.mjs",
+      "blob": "88729964b026a21e9caf37eee948adc68515e6b6",
+      "sha256": "8cd3159bca31f4f770258ff1c2ed3f98713e8442396be59d193bdbc918d2606a",
+      "bytes": 2036
+    },
+    {
+      "path": "tests/confidential-pr64-blocked-projection.test.mjs",
+      "blob": "388ad4af7209487f5009cd464fe2a96ecf153847",
+      "sha256": "4a9a1d1dd6d50004e1c136bca39a4cfa569f61e618a089addc9436196f56895d",
+      "bytes": 1733
+    },
+    {
+      "path": "tests/confidential-public-privacy.test.mjs",
+      "blob": "11fd8f13fc772f3ca67552cb26d0845ba45b3a3c",
+      "sha256": "63cd50215cd22565d12e183169538df841a4784992ba6faf025897bdbfaf65d9",
+      "bytes": 1847
+    },
+    {
+      "path": "tests/confidential-receipt-schema.test.mjs",
+      "blob": "db213a7ca4d0a11658263eb541b05c81d67d1eb5",
+      "sha256": "11418c840d1add1af7fd7ca8997264e21435c00d409dd60a50aa559cb3c90478",
+      "bytes": 1213
+    },
+    {
+      "path": "tests/confidential-stage-codes.test.mjs",
+      "blob": "43fde760fa49c94869b45c03020f2f7ce84a3b9f",
+      "sha256": "e3f6a3e171402c0ae50b6285aa3e70a540dcddb6e83c83a2df4237d34ff6f690",
+      "bytes": 1641
+    },
+    {
+      "path": "tests/confidential-synthetic-bundle.test.mjs",
+      "blob": "b233c3db9467e88943ad90d3b6c1e3dc9308f83e",
+      "sha256": "02225cd2fa6eaac5c2fb6130ac438bf2248ef35563e560d84f2dd21f6f379c1c",
+      "bytes": 4944
+    },
+    {
+      "path": "tests/confidential-synthetic-session.test.mjs",
+      "blob": "2c3cd8ea68ce4b9f1a163e265f98d664258c6253",
+      "sha256": "51c04b559a8ea95479bec3f596206fee6126b89cbb5243b2440bf0f75b0a5076",
+      "bytes": 6033
+    },
+    {
+      "path": "tests/confidential-workflow-scope.test.mjs",
+      "blob": "9215139ea2a3bd9d88c88f3685567c873207e505",
+      "sha256": "f1076a540cb132fd61ebd2eb898133fd353530f48af37c327e16009b34061127",
+      "bytes": 885
+    },
+    {
+      "path": "tests/cross-domain.test.mjs",
+      "blob": "592feeb53625c9ce73495a1f63fee1a484cab00d",
+      "sha256": "211ac9c1c0fe6332416ade17d368981ab8cecab107718c854df809ed228d817e",
+      "bytes": 1195
+    },
+    {
+      "path": "tests/dependency-locks.test.mjs",
+      "blob": "b63a2177c7e95bb60a590772039e7a4d9486af9a",
+      "sha256": "624ea65bd7711fb767574a2abe82c51ddf441efbaf7d982a4c8627aeb502dd59",
+      "bytes": 6306
+    },
+    {
+      "path": "tests/disposable-vm-smoke.test.mjs",
+      "blob": "84a64f89ba0efaf4ddd7c92369752751d92a5bfd",
+      "sha256": "07e0da16d0b391964ad3763a68d1895293d812b818465147db1080c950b07c8f",
+      "bytes": 4509
+    },
+    {
+      "path": "tests/evidence-publication-surface.test.mjs",
+      "blob": "8d0e8edc802cfae2a85bb80d1867015f4ab4b248",
+      "sha256": "9c4f646d1d2239fbced889cdaef5f3957e111d68af6d846b8fb91f7f1d8dea7d",
+      "bytes": 2817
+    },
+    {
+      "path": "tests/evidence-publication.test.mjs",
+      "blob": "8852049459166c86cad2da8d83dcd3fdbed4a4fc",
+      "sha256": "e5673d0d4270f129c463e965f9298b3dfba7f99298fad0bb4f86d24f54446492",
+      "bytes": 648
+    },
+    {
+      "path": "tests/evidence-receiver-bundle.test.mjs",
+      "blob": "1f8ffca1f6954d05d249e4ea6c15ab408a75b72f",
+      "sha256": "93637fb3f02781e9c19030c4df747c3385e5ea051777e060939201760cfa1e28",
+      "bytes": 2092
+    },
+    {
+      "path": "tests/evidence-receiver-journal.test.mjs",
+      "blob": "5a0a9baac1e91b2a7bcffda8697b83c4a8e3adc6",
+      "sha256": "41d90be6361549e53c1c4b3b194713607e0419ca0cee21e5f7a97391827cff3f",
+      "bytes": 3777
+    },
+    {
+      "path": "tests/evidence-receiver-oidc.test.mjs",
+      "blob": "c34f3a981c6739c1654dd8567f56bd65c9244fb3",
+      "sha256": "d5d06b762ce7fe811311e5d2cd4190df4223cbf51407d1cd8efab02a07e90c76",
+      "bytes": 9325
+    },
+    {
+      "path": "tests/evidence-receiver-seal.test.mjs",
+      "blob": "b2b8dfeac5d78bea9bc923ff1b7f8b805de4cd28",
+      "sha256": "812c2244a1c127dbea1eff2654632ac89c05a14479e7b2d71499ad8d32ef398c",
+      "bytes": 1359
+    },
+    {
+      "path": "tests/evidence-receiver-source-shape.test.mjs",
+      "blob": "492f221207c45218e4541c2eb490f800019e1ae7",
+      "sha256": "0276694852325be6ccb93b4accab6811ea03490c8df53a01ad1a2b789f1de2b2",
+      "bytes": 2774
+    },
+    {
+      "path": "tests/evidence-receiver-strict.test.mjs",
+      "blob": "de38e63c7515819de00903411fc68765ee7d34c3",
+      "sha256": "094234956c83783fbc212779e60e0d23f789453c5fe1c7eae798447ab0abc49a",
+      "bytes": 845
+    },
+    {
+      "path": "tests/evidence-receiver-zip.test.mjs",
+      "blob": "7d7303bdb3adc36cfe73ef2959966ca78e05b677",
+      "sha256": "64912f8254b150b3e528d74e74c50e8b44bb4e89a0de1d473f6200e10c82d8cd",
+      "bytes": 4530
+    },
+    {
+      "path": "tests/evidence-receiver.test.mjs",
+      "blob": "faf58c63471ae382668c0dcf889d797193b13744",
+      "sha256": "781260b59bd911f61179cd67ee509a15a35bfbaf0802fffe896b5c96ed65afb8",
+      "bytes": 6261
+    },
+    {
+      "path": "tests/experiment-evidence.test.mjs",
+      "blob": "e48d0a8a615abeba0d321de050794fb1d0ab929a",
+      "sha256": "4f90571a4fa93be0777c0e4aa290e8c0d1fc2914296bb9a719bd9fab0115d709",
+      "bytes": 1092
+    },
+    {
+      "path": "tests/experiment-graph.test.mjs",
+      "blob": "2bec2a811f2241b18567c038373f207cec26032c",
+      "sha256": "8267151128d8a524bdd5cad8abcbae638fee6803b5281fd5ea56b5fd621b643c",
+      "bytes": 2878
+    },
+    {
+      "path": "tests/expression.test.mjs",
+      "blob": "d4d1cf3508ca8e70c817bb5ef92c4f97c1d67c97",
+      "sha256": "4acbdf5a0af9dc0af0ebad47250b98f814924fe72e47eaf533c6651695f4f89d",
+      "bytes": 1343
+    },
+    {
+      "path": "tests/geometry-pde-adapter.test.mjs",
+      "blob": "0ba5c3ae399b22ec1cc4e80486fb8f21d8f42149",
+      "sha256": "98f174f321a126e1fe8bbc73b2964e76fa6f9aefdf01b923b3d77c8fc5ac3f4d",
+      "bytes": 1134
+    },
+    {
+      "path": "tests/geometry3d.test.mjs",
+      "blob": "4e66b267f8f68b81f1d6b7ba04fd93b8f569fea6",
+      "sha256": "978a73dc3029356ef11edd2f7900f432d4ca6fdd3af8d87de1a4e5983451a01b",
+      "bytes": 824
+    },
+    {
+      "path": "tests/graph-evidence-validation.test.mjs",
+      "blob": "74c9d39d40a944621e4e59dc6dd146d1a128b071",
+      "sha256": "00006e3cc5b8226ae8d172d746fb411aeb940ba69ee253bb104da4cffa72a49e",
+      "bytes": 2605
+    },
+    {
+      "path": "tests/grid-feature-contract.test.mjs",
+      "blob": "60ea5280a87cd5231eff291b703194ec29b4d23a",
+      "sha256": "03ffb58f7f94a39980414c2375a28ae759cca5c0e1bb02eb8542cfc24f53a056",
+      "bytes": 1869
+    },
+    {
+      "path": "tests/guarded-selection.test.mjs",
+      "blob": "887f0fe2878f4b546696303d0e54aa2c43387fd0",
+      "sha256": "df6d659ddc330f56f2086980daf841b47d64df9cbe6a59e8b0fb6f5e72a06f58",
+      "bytes": 1925
+    },
+    {
+      "path": "tests/implicit-security.test.mjs",
+      "blob": "8ad5e3e1ca07e9fcffa08146b53f1a4e076cc9b2",
+      "sha256": "be1ce9ec234203b8bd12ad839515b9314b96eafda67383392a5eb80e9a222f94",
+      "bytes": 615
+    },
+    {
+      "path": "tests/implicit3d.test.mjs",
+      "blob": "addec5590896f2096ba2b40dc3665b0405987ab9",
+      "sha256": "2ec30422361e51d579910dcaf7fde07aa35a605d8d240e4b648deea9bb12fafd",
+      "bytes": 682
+    },
+    {
+      "path": "tests/ingestion-job-postgres-fenced.test.mjs",
+      "blob": "ea1868e5bb7d654246e07c03f9f6d875705c8a37",
+      "sha256": "76128bd83deb82c3496b7fec55015764342625b4765ff2926a4ac1c45360f647",
+      "bytes": 11084
+    },
+    {
+      "path": "tests/ingestion-job-postgres.test.mjs",
+      "blob": "4b83c69b96254dd23960709a660876cdd288c9c0",
+      "sha256": "89154b58cc4af88f8d9ff216b03f028d8d3c63a803e9de51d3fd8f0b85f54a90",
+      "bytes": 1770
+    },
+    {
+      "path": "tests/ingestion-job-renew.test.mjs",
+      "blob": "50074c40b3690f190382f7154d62462a920fe004",
+      "sha256": "8f779a2cb7d3cd9b02d15b3d0464bfd11f83584b3f823e13a7e62322625a1e27",
+      "bytes": 952
+    },
+    {
+      "path": "tests/ingestion-lease-contract.test.mjs",
+      "blob": "8180dfcd76d9f201ef68de7982071bbc769bc4ad",
+      "sha256": "a1a6321fc9197423d818a010c12799d874574e4009878f491fd0101e05d8260e",
+      "bytes": 4024
+    },
+    {
+      "path": "tests/ingestion-service-fenced-live.test.mjs",
+      "blob": "97012b606f09faac622cd864fee5ed0c296ba055",
+      "sha256": "0741e2a963269c3fac33039085471a86880865e2efe2696091a7f0fc880d57cd",
+      "bytes": 9835
+    },
+    {
+      "path": "tests/ingestion-service.test.mjs",
+      "blob": "9a5400323350a7d40f28984dd59520dd148a5556",
+      "sha256": "a0e39418b42d41fc3fe243264bc9c319abd1f038d130ba32ad05b3e97ca9944b",
+      "bytes": 810
+    },
+    {
+      "path": "tests/ingestion-supervisor.test.mjs",
+      "blob": "9e526a41d7dd8b8c566ca30d9bf640a8f99be4c2",
+      "sha256": "39ac6b590d3890171354bdaea3190d82fa30d59abbdb7ac2412824d32210f5d3",
+      "bytes": 1360
+    },
+    {
+      "path": "tests/ingestion-worker-fencing.test.mjs",
+      "blob": "126299904355007f7fae781433cb589673cef0f6",
+      "sha256": "ffa0dd4f74535c9ca20ac92211b00e010fa4e100215024373cff2a166cd7a0a1",
+      "bytes": 12711
+    },
+    {
+      "path": "tests/ingestion-worker-heartbeat.test.mjs",
+      "blob": "af6a7f5200e6b90dea3c7f709f3fa1e41af77f37",
+      "sha256": "a3da107ef38859d6d2b2098f56236376abb2d72ddf94b886f7d20da16563bfe9",
+      "bytes": 1476
+    },
+    {
+      "path": "tests/ingestion-worker.test.mjs",
+      "blob": "318e04175edc1eaaafbea44837d456d3af4f38d3",
+      "sha256": "136e093b03c2b7d8ec5ac4738f811aa429db95d2332dc26d22e7ffc631a09f44",
+      "bytes": 1581
+    },
+    {
+      "path": "tests/intersections3d.test.mjs",
+      "blob": "d18a9b4d42634d4894de47279a30209d5bd4ab47",
+      "sha256": "c7bd7ba372b038613e9cfa3539d975585eae112b83783ed24fa895b88dc110ad",
+      "bytes": 563
+    },
+    {
+      "path": "tests/isosurface.test.mjs",
+      "blob": "a2902d48a42d8e834e8b84cb149698352b1edc7b",
+      "sha256": "aa505e91c53f13d001e4ccb62a652da7f9ecc0f54343b4710b8a453b4cadb698",
+      "bytes": 744
+    },
+    {
+      "path": "tests/knowledge-adapter-persistence.test.mjs",
+      "blob": "b82f44b4b4deb8a5875be888c0145f2b32748106",
+      "sha256": "d0c28cdd47461383b33124744833cc89a4c88def0eed6e467be5da9ae342cd2a",
+      "bytes": 2005
+    },
+    {
+      "path": "tests/knowledge-adapter-planner.test.mjs",
+      "blob": "9342e483befe57e12635567a07ecbff0ba1e89a2",
+      "sha256": "3109cd0db0a3b867f5955155b978322129609a3def7f4b0919339c33fea2ddd7",
+      "bytes": 1314
+    },
+    {
+      "path": "tests/knowledge-adapter-postgres.test.mjs",
+      "blob": "fa0d7d1607648188610a347107d68e7bf691aeba",
+      "sha256": "f53180e028f160bf058dde1cc53bb1292243f11f7ed74f069acf5d3d41357189",
+      "bytes": 1319
+    },
+    {
+      "path": "tests/knowledge-adapter-registry.test.mjs",
+      "blob": "6ef1cffe820b583c8c0744b9879d6e07f2abf3d7",
+      "sha256": "23486316d57f487e667af06d80c72323b36f894fba084d70c536c4afa24863d1",
+      "bytes": 2313
+    },
+    {
+      "path": "tests/knowledge-candidate.test.mjs",
+      "blob": "a4a3226fc29eba8320ee79fbb52690d90c13f84e",
+      "sha256": "9941741b7b9f420871892c8a119f816634bcbde8263e207a5e8aaa992b3824d2",
+      "bytes": 4501
+    },
+    {
+      "path": "tests/knowledge-file-replay-ledger.test.mjs",
+      "blob": "28bf04c09527f16492e3e43946dd5c967046a5e3",
+      "sha256": "f2d8114aef37d34b73196255c668b1804fc1b5fdfe9a01337bdc5b5f057efa0d",
+      "bytes": 908
+    },
+    {
+      "path": "tests/knowledge-kernel-authenticator.test.mjs",
+      "blob": "7b9a39fee2b4889a2e4bfba0d9f0323b6daa5aeb",
+      "sha256": "fc4c74692e4bf613ed6a132b0aaa45852967253c4270c6979dbdc74ae42d104d",
+      "bytes": 3045
+    },
+    {
+      "path": "tests/knowledge-kernel-result.test.mjs",
+      "blob": "6870c396418d4451ceea9d539cc8e1821a1db927",
+      "sha256": "d435c3f26043b8943610847ea05afc57d48dffaddcf44b0feacdc1e0a166fca6",
+      "bytes": 1687
+    },
+    {
+      "path": "tests/knowledge-ledger-directory.test.mjs",
+      "blob": "73faaece15640c84fa852f0abc37a041b7012e8f",
+      "sha256": "309f6df9cd956f41247ef21b91ab46a1f8c0fb0286483e8deb9cb9fecd014e77",
+      "bytes": 2239
+    },
+    {
+      "path": "tests/knowledge-one-shot-verifier.test.mjs",
+      "blob": "58c43666f6c015461992e2edc363b6f3f650cd69",
+      "sha256": "f8649009032c647d5605d28f07e29c14259efa6f4cf5b6b67c7056f08b519fe7",
+      "bytes": 3877
+    },
+    {
+      "path": "tests/knowledge-persisted-verifier.test.mjs",
+      "blob": "c3a72f91b6434c60584977f00d085a44482d12ee",
+      "sha256": "77e696c228c1a9c18366719999e62ba392b8fc1bb1e46a71bc4a7bb9e39e9304",
+      "bytes": 3352
+    },
+    {
+      "path": "tests/knowledge-store.test.mjs",
+      "blob": "db13e793388f34940ab6bb2751f488fe0fb65155",
+      "sha256": "1cc8b6bca52e5420aefe03943a892b24aff78e77b556ed6cbd0b2eab7be409e3",
+      "bytes": 9141
+    },
+    {
+      "path": "tests/knowledge-verification-request.test.mjs",
+      "blob": "7a1882e1aebc30e52ff54ba4bcc2805ac16cae99",
+      "sha256": "b1848d28cf139c30247ba677c71c88e4c4509427e730b0da81f170716c66b76c",
+      "bytes": 1364
+    },
+    {
+      "path": "tests/math-abc-integration.test.mjs",
+      "blob": "43f5557867a01fbb1753be5e1de356dfb9bd757b",
+      "sha256": "91daa0a67876ca5a1b1fe20f1cb778d880196d7797ea0ed2bb3841fa01266d97",
+      "bytes": 5534
+    },
+    {
+      "path": "tests/math-engine-server.test.mjs",
+      "blob": "13d88c6205b2f8e8fdbc3658b93fafd2700ef1ed",
+      "sha256": "1daec6fa872e53f67ab79efe4b66cae771dc5e7951f280f59740e9cfed6976e6",
+      "bytes": 991
+    },
+    {
+      "path": "tests/math-formula-api.test.mjs",
+      "blob": "aab5cd045edcf8e4cbd659865c61bd707f742a90",
+      "sha256": "91cc0181beddf18061ce62b627029e1aabfef21dad43fcae8aa7f44d061b9866",
+      "bytes": 911
+    },
+    {
+      "path": "tests/math-graph-api.test.mjs",
+      "blob": "f62c29f28dbb146881efede6212b2672c461f05b",
+      "sha256": "f8b92d4a4621ee2cf5e57c2ab2893936f4277632068c7351c462b147eeb7a3b2",
+      "bytes": 1290
+    },
+    {
+      "path": "tests/math.test.mjs",
+      "blob": "3966c03362267697bd235d4d50d5c85b3d9ad6ab",
+      "sha256": "6046470f244490a1337eb84bc2936c81dabd08ac7728b9dd5bda7efbdc2a9c70",
+      "bytes": 1208
+    },
+    {
+      "path": "tests/model-fitting.test.mjs",
+      "blob": "a37219fc23cc752cc39efd838d6147f160f112cf",
+      "sha256": "041985c7e393f991205a4260919b36e65bcce02bcb59401838cf44a3fc24a4d0",
+      "bytes": 952
+    },
+    {
+      "path": "tests/port-graph.test.mjs",
+      "blob": "2601ae4130229ab723bf4e3d67534ebb8b47d2d6",
+      "sha256": "1cbc14d0ffd5a14f96b5824d9cdc1048b3a3b404f8076b4429bd124111e06674",
+      "bytes": 1370
+    },
+    {
+      "path": "tests/postgres-checkpoint-live.test.mjs",
+      "blob": "a8a1a0136d42d6a6abb71971645704b8a3ab0933",
+      "sha256": "698ed56d9658d9dbed98405a86b0c954a60e125d238221143df13cc11e88d86c",
+      "bytes": 9307
+    },
+    {
+      "path": "tests/postgres-ci-evidence.test.mjs",
+      "blob": "0ff7e9275199d8e6cf5d9b475f77a9bfb79c6e70",
+      "sha256": "c548aa3f1a848933d8f6f74d8a5e7f085fbd205fc1b8a30c03d1a8832076c2e1",
+      "bytes": 1862
+    },
+    {
+      "path": "tests/postgres-fencing-live.test.mjs",
+      "blob": "9b03e02181d2ed6c002384c081b9c311e549f244",
+      "sha256": "520b0a3ae9214076a1ff07db5ddb2e2e411a77e74061d9df69c847bef367d3ff",
+      "bytes": 2471
+    },
+    {
+      "path": "tests/postgres-lease-clock-live.test.mjs",
+      "blob": "fa789d18aaeb0f0b2d1d586aa6f6efdd88f4b5b2",
+      "sha256": "b17c424a548f4692db74277ae3005f4ce54299785ff6a4a8a8336fa6920f3e9d",
+      "bytes": 15928
+    },
+    {
+      "path": "tests/postgres-live.test.mjs",
+      "blob": "da540bb690a21768c39de3f4e89ad81c0ab2a720",
+      "sha256": "8545f36b07f2798a84158c63f5518b8ca85b97cdbe233140119109698d9d8288",
+      "bytes": 3441
+    },
+    {
+      "path": "tests/postgres-migration-integrity-live.test.mjs",
+      "blob": "bf389c7e8da8ad38b35a413280161bbdd701e9eb",
+      "sha256": "ffc291792e7af7b8fa728a8c9576e825e74c48a8d840328905502b6cc0970b20",
+      "bytes": 11791
+    },
+    {
+      "path": "tests/postgres-migrations.test.mjs",
+      "blob": "75492b6583db6673cb60bdc4d57fd2d399263f47",
+      "sha256": "5d903983009d28c62dcb45739dff6aa97028f4f55587705074134055c4aa6737",
+      "bytes": 8945
+    },
+    {
+      "path": "tests/postgres-pr3-audit-live.test.mjs",
+      "blob": "4fdb01481fffa9efc949489124bf446c173345b2",
+      "sha256": "0b1b494cfa9bddcbc2bfb8ee6796d593fe0aeb67736f04698ed1ffd383d7b128",
+      "bytes": 3713
+    },
+    {
+      "path": "tests/postgres-registry-integrity-live.test.mjs",
+      "blob": "e32fea0aa5202b6cc1a96ba1fc411562981f2d7f",
+      "sha256": "1438c967b2d45d2945476117f26a6c9671243d6db1061aaf3eecb6740d537f7c",
+      "bytes": 3606
+    },
+    {
+      "path": "tests/private-evidence-receipt.test.mjs",
+      "blob": "a4163e85ad07a98a5ca4841fa5cf7011fdf79fea",
+      "sha256": "d84e6f80ca873b1716c24f5208da90efc88b84954e4bf18fb7acac4fb2e4b0ae",
+      "bytes": 2041
+    },
+    {
+      "path": "tests/proof-kernel-independent-property.test.mjs",
+      "blob": "8109952613bb57fb8fbc916ad5014f1cd07fd49b",
+      "sha256": "7139287bbaf669a56d46e87e1cd016e5f0066fd0717d1d070fadf9daaaee20df",
+      "bytes": 12937
+    },
+    {
+      "path": "tests/proof-kernel.test.mjs",
+      "blob": "338b5385d4838d7db53e9da073babb6bed528edb",
+      "sha256": "2f49bf8db41ed46a6da3b37bfd53ac2e36c653f07265ba07a64e70121829e23d",
+      "bytes": 9946
+    },
+    {
+      "path": "tests/provenance-source-identity.test.mjs",
+      "blob": "76684b761c69eca9fe4d266497e15e84e5ebda6a",
+      "sha256": "6875e860ea05228aac66c04514548955d17a1db95853ac907557c22b114e56a9",
+      "bytes": 5348
+    },
+    {
+      "path": "tests/q01-evidence.test.mjs",
+      "blob": "3d02e2477268216956c7a1461cc61e588b053088",
+      "sha256": "4a9ab2265f955357f1c5c0bcaf0f89893f70c9bc47d489686ff7bf242eb30f40",
+      "bytes": 8572
+    },
+    {
+      "path": "tests/q01-runner.test.mjs",
+      "blob": "1871c3eb796bdc54ad3715cd245bd2086246ba6a",
+      "sha256": "1a8e8ab7d927c437afb6ab58ca73c0b3e737138755d55e631ee3226438a6626f",
+      "bytes": 716
+    },
+    {
+      "path": "tests/qa-current-ci-snapshot.test.mjs",
+      "blob": "8d5a4f84248a1210c22819dc6a3dd5904b102905",
+      "sha256": "f338dd8ee89213c4b5b968e7f2347df249350d078d64920e266ad11287120f14",
+      "bytes": 2056
+    },
+    {
+      "path": "tests/qa-evidence-manifest.test.mjs",
+      "blob": "bb5e2205a38fa30f4c049c042c2c651907267022",
+      "sha256": "3d3b1ac60781cb88ffdd72919f2db2d9578fef9e4d0d2b61385497ceebabc124",
+      "bytes": 4336
+    },
+    {
+      "path": "tests/qa-obsolete-queued-inventory.test.mjs",
+      "blob": "e827d64c917a691e62008f22af1548766b8344f5",
+      "sha256": "bc9641a4fc850a337c43a3f8dc2214a29ca25c377859dfe3807cd947a01cb5de",
+      "bytes": 3061
+    },
+    {
+      "path": "tests/qa-q01-first-open.test.mjs",
+      "blob": "438a6830178b0f5bd95d35c3ecf6ea4062592207",
+      "sha256": "e5f836a62962beaf50f1eccd6cd840a78e23d935f614f86d0f6311abb7b4e21c",
+      "bytes": 3801
+    },
+    {
+      "path": "tests/qa-symlink-fixture.test.mjs",
+      "blob": "5049b78b7e0e8c21648187255851e43692f653ff",
+      "sha256": "383e3b76ee9081876ae33407d785a9e16bceff9dec4a6a02e263043004427d4d",
+      "bytes": 1682
+    },
+    {
+      "path": "tests/research-library.test.mjs",
+      "blob": "7a16aae6bb568c2f1bc6bb9b0f95f66219805b43",
+      "sha256": "ba4162673812d7b196dc3821e5d0960ac06074e2d17d1369896a6c882fb5dd7e",
+      "bytes": 1216
+    },
+    {
+      "path": "tests/research-providers.test.mjs",
+      "blob": "86698b321104785035bd36f3f652e479d66b20f9",
+      "sha256": "a405fa5392416bb6679d71096cbdf952913807829ecf6043f82cc2331c54edb3",
+      "bytes": 1417
+    },
+    {
+      "path": "tests/returns-research.test.mjs",
+      "blob": "3e6c96777495f5ce50c7cac0858fa5ae73eda46e",
+      "sha256": "ed3fd9a722af2801b3cf1eb887b10e7f945d9931ecbb54a659da40b159812111",
+      "bytes": 1578
+    },
+    {
+      "path": "tests/roots-diagnostics.test.mjs",
+      "blob": "99c6725a4b6a12c499683cda858b110838a7c69c",
+      "sha256": "940ca7ad48eac7f5ce7bb4b43050657e18663bf343157b93377907bda2a05768",
+      "bytes": 5010
+    },
+    {
+      "path": "tests/runtime-identity-publication.test.mjs",
+      "blob": "e088dbdd95ccb13421735ea3aaddcca832a233a3",
+      "sha256": "e1fc7c92f7223bb2ae6efcd0bdf98963464c2862abe910c93a811d41518667d0",
+      "bytes": 1069
+    },
+    {
+      "path": "tests/scientific-adapters.test.mjs",
+      "blob": "4058e2d18e1941b81acfee5c1cd96f31a5e397a2",
+      "sha256": "b10b3f8a8420d9aa023b57dad4f8ba26fc108b0943f3e9afc3f7e08df6c6428f",
+      "bytes": 1352
+    },
+    {
+      "path": "tests/scientific-claim-checks.test.mjs",
+      "blob": "cae88cd258ae102d505dd761b94c5d37ac336cd4",
+      "sha256": "7214011820fe9ffc9c1bf6e1b685003ea96c18e3f410e00be30df3aecb3339e5",
+      "bytes": 1009
+    },
+    {
+      "path": "tests/scientific-experiment-validation.test.mjs",
+      "blob": "601cea9d13a37e7350fc4643b358e92c01f0622d",
+      "sha256": "b9826de8e9ce2e0662a778f98ee4ad187396bd16a7fe7ea8015f92a19854f750",
+      "bytes": 1385
+    },
+    {
+      "path": "tests/si-dimensions.test.mjs",
+      "blob": "2c525b09142fd4ef689e899280b7a9aa7a8220c1",
+      "sha256": "85a0cae76abdbc54f57bc6eb25e04d89b30db8d12ff7a528c28865131e67e670",
+      "bytes": 1213
+    },
+    {
+      "path": "tests/sql-byte-integrity.test.mjs",
+      "blob": "15e7b5b7378b7199d94cb78144c0971a470343da",
+      "sha256": "8761e727e8513cbaf6c2ad1b3b77e658b32046971134c2d4d05a3ac651bba142",
+      "bytes": 3840
+    },
+    {
+      "path": "tests/sql-byte-ledger-live.test.mjs",
+      "blob": "bddd248acc14f21959da222f06c09a45237d0bc3",
+      "sha256": "596428e8d8dccd428e0f9785c57355e0fbf2150df119f54bc25dee982de0d612",
+      "bytes": 1433
+    },
+    {
+      "path": "tests/sql-byte-reproducibility.test.mjs",
+      "blob": "71f9e21081954b7fcdf1256a2081ed1fd9620d86",
+      "sha256": "d1607117a0ffd6b148f4e62fd68d48590cc160b89877ef398d7edc58fdbaa603",
+      "bytes": 2535
+    },
+    {
+      "path": "tests/torus-field-adapter.test.mjs",
+      "blob": "5875af955b3b89e11b11cefe0740951d68b2b35e",
+      "sha256": "21781e2298331eeef5a08a34af1d325191057737d51b88e1c1cc15030d9d7c5a",
+      "bytes": 1016
+    },
+    {
+      "path": "tests/torus-series.test.mjs",
+      "blob": "4c240c3f57a646b81803f55cbbc678a6527fabc4",
+      "sha256": "4e9d50daa34b5b9534ed07fa35efb376e1150735c111800e4ed7fe41e8a7b244",
+      "bytes": 1330
+    },
+    {
+      "path": "tests/torus-surface-pde.test.mjs",
+      "blob": "00c2d4c1e11a83ce74422d2bb0df89a304588666",
+      "sha256": "d5cfa8e62050ec3e570f87905bd668bfb92763e86a42e7a1e475d1a8c3678c6a",
+      "bytes": 846
+    },
+    {
+      "path": "tests/transform-benchmark.test.mjs",
+      "blob": "41c5146a1ba738ce6877604dc510e04c518d3edb",
+      "sha256": "968c098d706532e32c615ba2596e903de11f9ac634e625e46abc4598f7cfc6c6",
+      "bytes": 1029
+    },
+    {
+      "path": "tests/walk-forward-guard.test.mjs",
+      "blob": "9352564ed55630ab81966ee0206779f4265605bd",
+      "sha256": "523d764f7cb3f9c75221ceb85935f8a39ded6b96bc58172180e51e5f58ff9912",
+      "bytes": 2763
+    },
+    {
+      "path": "tests/walk-forward.test.mjs",
+      "blob": "6832e3c28fa8a671caada9add1668357152af636",
+      "sha256": "89b0a86533e2bfa45226290275eecc18f5929adeff1e0478c0e2a9e902ed3ca7",
+      "bytes": 1782
+    },
+    {
+      "path": "tests/windows-job-containment.test.mjs",
+      "blob": "b4ec0b17d0630437fdf43325f20aa356dbc69755",
+      "sha256": "b911c13be5a410c1bd79cff60b579b3e43ca5398922d7b04f365adf1f6dac4f5",
+      "bytes": 1573
+    }
+  ],
+  "mechanicalExtractionRule": "All original file bytes must remain identical or reconstruct exactly from portable prefix plus Windows suffix. Whole-file renames remain byte-identical; Windows headers duplicate original import/helper prefix. No callback, assertion, registration options, names or loops may change. Every original body is therefore covered by full-file SHA256 plus exact reconstruction. New harness tests are separate files. Runtime identity keys use original file/full parent/name/occurrence, mapping destination file explicitly.",
+  "destinations": {
+    "tests/adapter-registry.test.mjs": "dd9e445aae9a2a43e8da25a3668152fb25cdb5d3618bb62d4c7f40826f2976cc",
+    "tests/adminit-bootstrap-watchdog.windows.mjs": "d830e6d604dd0c017e019db88aa2deb5b39e8e897f397c3c304ce22abc65c651",
+    "tests/adminit-bootstrap-watchdog.test.mjs": "562216c359e781cd3a7c569d88a1097ebb4894548bb7d5751736c36575abfbdd",
+    "tests/adminit-build-inputs.test.mjs": "a963f38862d742a21428e65d44845e428c431a111f2ed0e5a22a47e5609af80f",
+    "tests/adminit-containment.test.mjs": "b850c6615ee1f56258e68a4be17ae51953b560f57bff3b5ae5b448132477f642",
+    "tests/adminit-contract-syntax.test.mjs": "aa5a695ffea81dd4c171f221b0e0a9e15e7cdd473a2e79c82f94983dac0b047b",
+    "tests/adminit-g0-contracts.windows.mjs": "2a19843463d608af8cf796bd13671386015986afa91891ad118286b2dfc67874",
+    "tests/adminit-g0-contracts.test.mjs": "97e9129714626b5dd968bb7be5039aaa1c5244799de4a253c725824e44954707",
+    "tests/adminit-g0-csv-negative.windows.mjs": "64f6d222a6bd47c7a46dfccff7789c92ab6cf1e20949ba56eb6f6363a44bd9dd",
+    "tests/adminit-g0-csv-shape.windows.mjs": "899ce587a17d650c643f02a39499c657d92c1c8c3e6dd0e6e06279663c25ba90",
+    "tests/adminit-g0-csv.windows.mjs": "3750dd68c4dbe488124cfb5aad101a2dec676cb86eed8faf9fe43998aee3cd40",
+    "tests/adminit-g0-pure-fixtures.windows.mjs": "1ef096be064e911c234517794ee328f91b7bc47f19d9ca382be14fc56eb6a017",
+    "tests/adminit-g0.test.mjs": "8a57f959aff655e427c3ed00875d38dcfe1212b539b8bb2ce607aeb4909b97bc",
+    "tests/adminit-isolation.test.mjs": "33f4b7ef1326b72ecd151385721708586539c5071c11522cd14e36639f6d9935",
+    "tests/adminit-native-evidence.test.mjs": "879bc76751f272ca21a486ab631f47c09cc3e9d86e8e6a80704f0d71d2e2bb39",
+    "tests/adminit-offline-preflight.windows.mjs": "22860d7480350d1459350b4fd4d5269c5a0807223c23c4978197e481da520cce",
+    "tests/adminit-offline-preflight.cross.mjs": "f58381f2b223c075018dd5f057e9453b52f380495830bfdce1c1849afdf3ac30",
+    "tests/adminit-offline-preflight.test.mjs": "069e7945ed8a1e3f5f25675c0a1378896f888cca703faffb7cd732d1b14b2b39",
+    "tests/adminit-package-caller-contract.test.mjs": "fa649f6ad81372f17928fb5c22f345bab7df9f196d2e782c70f288a23f96ac84",
+    "tests/adminit-package-syntax.test.mjs": "ae39700d43f4ef887c9ba0061c846b3bda09be0b706e1e761dd70886b2a3a351",
+    "tests/adminit-package.test.mjs": "4069eb8c1b7b3cecf8c7f6540ee7594033ce2683b411e91a6970067f18525ca1",
+    "tests/adminit-stdout-privacy.test.mjs": "3c7d4a6ea2b26995b7020e29625b41e42d7f489efe7c8aba7a45a14106f790ca",
+    "tests/adminit-token-admin-flags-regression.test.mjs": "89093b388bf9fc2fdfa938a2018e6dbd3a549c9d26809fba4a8b573dc7db9ef7",
+    "tests/adminit-token-cli.test.mjs": "bef5056fbe33693c9ae1d76cbb00abd360f3152edd1b671862df0a9bb7832023",
+    "tests/adminit-token-compile.windows.mjs": "f6caad8ad0b6a1224aab75a7e3f8804047a0ba609014a6dd829b167041296a0c",
+    "tests/adminit-token-contract.test.mjs": "418733e2c2b7bbd27b4b2f84bdc2a4426fa18f759d8bcbb1d73191a0345ed39f",
+    "tests/adminit-token-faults.windows.mjs": "406ff6b328e3aa1310e6e2f6ab47ba016c174db18ff3b1a0a1bc1ededeabf796",
+    "tests/adminit-token-flags-integration.windows.mjs": "7241fca7c60ca3dc67995529fabddc20f77359706359a72641b835ef0ed6a2bb",
+    "tests/adminit-token-wiring.test.mjs": "f32cbac7615569ff6b88ca4127d674e67caf2f8831bf2924ecdb34989d4d474d",
+    "tests/adminit-watchdog.test.mjs": "ea83059fa8e8aa66a15a13b8b3ce290c9fa948375a2b6600367b7b355cd58f9b",
+    "tests/adminit-workflow-privacy.test.mjs": "6398b4e66133278d86be85a4dfaa3ae9e81fc8e1ee296a0d0e93eea8516efe66",
+    "tests/adminit-zip-admission.test.mjs": "62b6cf0046a427b297c38466b8759b6017c4bdd2eb28feed7886641302ad25e6",
+    "tests/adminit-zip-members.test.mjs": "1390b8ae91a32f5d74abf81333d0d86ca7f669bc7c135cb2a33a347f0f75acb1",
+    "tests/ai-orchestrator-artifacts.test.mjs": "a677b6142cc2e84ab4b80edc54204f9c53c1bd56b191f0e0af6a313bd6cbe06d",
+    "tests/ai-orchestrator-claims.test.mjs": "4953a6f8d04ea9e329a47461bf5248c27f7534bdbe7c8b33b1e86d99835b1f6a",
+    "tests/ai-orchestrator-inspect.test.mjs": "7d559e075d6c8e2b5eeb0ed0d7774bc619a6db183f18eeac84a7e3c40e9d6128",
+    "tests/ai-orchestrator-pinned-source.test.mjs": "2651d0410759c6be5955ccc0c031e13d7820139af4c1e9d702868943097c3b2b",
+    "tests/ai-orchestrator-plan.test.mjs": "6bae7ffdb3ba5d9fb2e0a2cefd29fdc401ee607aadf5d850e0b48731aa0b2a54",
+    "tests/ai-orchestrator-policy.test.mjs": "752f824d163b2168172669db4f00d31874bbfc4fdfa7bd6afbfa708448d6d3f2",
+    "tests/ai-orchestrator-receipts.test.mjs": "61ff6f55dfd6123dedc19da7cad636a8c862acf27ccca6d7dde76ae435a2312f",
+    "tests/ai-orchestrator-registry-process.test.mjs": "4705080ed3a7e1c0adf43bd388226c14f16d4c209787ed9ea487d8cbcc5e67dc",
+    "tests/ai-orchestrator-registry.test.mjs": "6a39f1402c91e8b14bc23a02798ac66c979588a9039aa889ce7b26015928798c",
+    "tests/ai-orchestrator-replay.test.mjs": "0a5aa74da7f5acc6a42e24f581843fc9b0a3b86e20e645bf42533d41408870f4",
+    "tests/ai-orchestrator-source-correlation.test.mjs": "55fbd5dad5aecb75dc52522d3804e961e03c072ec4e9526d305845a6a9034802",
+    "tests/ai-orchestrator-source-identity.test.mjs": "b378208d3bfe634bec715d79fca9bac9af31f3fb6c28f87948aaa1dbb96ea13d",
+    "tests/ai-orchestrator-stream.test.mjs": "640c2f607c8e4a9eb475c64c953b5cc2997ab514df32370ab0513bf63bce4bef",
+    "tests/ai-orchestrator-trust-gate.test.mjs": "02ad4846ce12ea1036729efe6514885eb17822e1b9910264ed605299a0c84feb",
+    "tests/book-cutover-auth.test.mjs": "17e6e4529e809b15a55490da883b49233d01aae202a7eb8db110950e3a0e8651",
+    "tests/book-cutover-backup.test.mjs": "6e6070109275bd5eeb6afa218f1619b39b22a71c6331e9791d750b1e4ca17f2c",
+    "tests/book-cutover-controller.test.mjs": "d4b600e4c10c8f9106796e0d29524254f24e33e7e5a485c4a9268a886f483a4a",
+    "tests/book-cutover-hardening-postgres.test.mjs": "ba2eb48d78355dc4bef579b10c2683bc43ef8150ef393271cbffb9ef558f9b7e",
+    "tests/book-cutover-hardening-sqlite.test.mjs": "bdb58f2272e71ee53b5cb4a3614807b101a50b0ece94ce700462d95ea0a913a3",
+    "tests/book-cutover-journal.test.mjs": "b4bc7a5934684a23a5561fe87b7e484dbafe2a6eb16b6d433f9df8a223be4c0a",
+    "tests/book-cutover-postgres-live.test.mjs": "3c6451c213c18c3af102fed9d1923ce33e4b8b0946a1cfec7ce1ed10159eb71c",
+    "tests/book-cutover-source.test.mjs": "1ccb39da455ff4be91591f8bc40aa5569e3d8a83a51937495a17c0872bda483d",
+    "tests/book-ingestion-candidate.test.mjs": "b2b1648d1cb2b786a943e2ad3f09cdcc43ac97a0d03260edd1cd0ffbfd784724",
+    "tests/book-ingestion-cli.test.mjs": "04dbd9963c56c6a49643f983498329167b0de4a074e2288c72aeac96346e6bfa",
+    "tests/book-ingestion-knowledge-boundary.test.mjs": "1988114bd8e0c1d44f269e6e3ff7ad46a40b30d01b6082ee3d16a010c1b62964",
+    "tests/book-ingestion-native.test.mjs": "5579f978a446a989ddd41d502b5cf80eb9f9c3cf7dbb717ca3966af028102ea6",
+    "tests/book-ingestion-pdf.test.mjs": "15d1dbb5e594eccb09e09555f6368c5daec92f5be4a9df391a084cf5eee4935f",
+    "tests/book-ingestion-queue.test.mjs": "e37a4d935661585cd715a384a3c99f7ed08e1dcd161e2575e0e39defa4a30557",
+    "tests/book-ingestion-review.test.mjs": "2ecffccb5337054f318acc78bc88743b4868d8e4c823f6f139591ef262bf2142",
+    "tests/book-ingestion-worker.test.mjs": "ee3c1b8c3885c6d906ae28ffb85471c0825e6d3f350641271d9ed639d170a371",
+    "tests/book-knowledge-intake.test.mjs": "57c17ef7df374d937935c496d146ca92662132974788201d83753d472aa0b689",
+    "tests/book-migration-integrity-live.test.mjs": "ab9600f244a876aba7dadd0c562db0c8ddb545ed415b110f52ac7f2974eb869a",
+    "tests/book-postgres-codec.test.mjs": "8475cd548c03f79b594e4e7580c6b442773d4131ce161079550d6f8a123b56c7",
+    "tests/book-postgres-json.test.mjs": "a5dfec0d2b9baa2f0abd7fcfd9dfd6dd82e4efd439858f1ec6c5d2b9b029cfcf",
+    "tests/book-postgres-lossless-live.test.mjs": "21e503169c3cdab64a94717c029c9f067abbf61c985d641d292efdd6eab78828",
+    "tests/book-postgres-parity-live.test.mjs": "1b837706b48e7f0494b43784e8bb43da96a4cf8df33286c38877dbc16483f251",
+    "tests/book-postgres-policy-integration.test.mjs": "776026d603e463b2763e9bf7dd524a17578a786ed2ae59fe7be8f29a893af34d",
+    "tests/book-postgres-queue-live.test.mjs": "5664ae408a55e7f9bdfe814df36386680349ee532e23169b1db308c1022f1993",
+    "tests/book-postgres-queue.test.mjs": "278f45145dd5d330ed8b8ae9b8aea67b70bd54256f2f16ce379f0e46be1bded4",
+    "tests/book-postgres-schema-live.test.mjs": "f967368ffade87f2dd9ac886f5a37bee52573f601761dc173382730840bee06c",
+    "tests/book-postgres-schema.test.mjs": "af0cd8bb4c762777202b7aa7ee210f975f10a1f18a0cfb6907d779adeebefca3",
+    "tests/book-postgres-scientific-live.test.mjs": "db09103b942a86bd9eb1dcf701a48d620b88be3570d1b24c2bd0bbcf6842b3bb",
+    "tests/book-postgres-transfer-live.test.mjs": "d4e49926d81f12a85adb978b0c4923bacb40c8e67e7baf9903266c88907727bd",
+    "tests/book-postgres-transfer.test.mjs": "e55cafa5ab62099fed41cebb6124f6aa66af393bacef35df320529e39762f2bf",
+    "tests/book-queue-compatibility.test.mjs": "8385df8377194be066afd1913ee99fef3440a5b27f8964037f71d48336b7c8ca",
+    "tests/book-queue-detached-journal.cross.mjs": "fbc78d7cacf4c09accc2252d5dea4ab1e283b6966dd2394f50bbeb21544a14f7",
+    "tests/book-queue-detached-journal.test.mjs": "7c4266d1b382aab7c145f50228ae8ec612c74656762b3b57886a99ea941dfd3d",
+    "tests/book-scenes.test.mjs": "3766f7cc8723f5e1392c2a0357e6be561a98ca4d657f301f5e581b0d0a0704f2",
+    "tests/book-shared-contract.test.mjs": "f3937f9d7652cef49bb8ba92a7f3cf257babe2f0e85fcceb81d72d1239145024",
+    "tests/book-sqlite-text.test.mjs": "1477147ac480d658dc80e7e81f1f085b3df9d15fbb5a0a2f6743b67592ee414a",
+    "tests/bounded-experiment.test.mjs": "fdabbf929e7053503796a4049e3081a65b6c7e209912aeeb579bdb7f36ba6fb5",
+    "tests/causal-feature-screen.test.mjs": "9d46755b5a6ef157e5f14c1208acf40fe07cd3fba9c63cc05fc01011b42004e3",
+    "tests/ci-coverage.test.mjs": "e6e9bb786c941f92258d35cb77be7524ddc3385f3c2f16ecee4550038f31681f",
+    "tests/ci-postgres-isolation.test.mjs": "2cc288f136ad8ab87e19d999ea4caebb5499e66080a83d3418dda6516aab42d2",
+    "tests/ci-provenance.test.mjs": "890fb95b3b157b61dd155839347642bbc53670f71e8ab25d028ea657e372b32c",
+    "tests/confidential-caller.test.mjs": "a856918bed134fe9e8d2cbb5525cf2934b961f6f3044703b6ca5df9c6c90b596",
+    "tests/confidential-collector-context.test.mjs": "713b02a7c32f8d80a7434f0da285a41c376296070ac5a8314b414c66cd9fc451",
+    "tests/confidential-collector-oidc.test.mjs": "68619221da4917dccbb3a72009dae3ed27fa8257ed7ef39bece2ab5d31b244b5",
+    "tests/confidential-pinned-loader.test.mjs": "8cd3159bca31f4f770258ff1c2ed3f98713e8442396be59d193bdbc918d2606a",
+    "tests/confidential-pr64-blocked-projection.test.mjs": "4a9a1d1dd6d50004e1c136bca39a4cfa569f61e618a089addc9436196f56895d",
+    "tests/confidential-public-privacy.test.mjs": "63cd50215cd22565d12e183169538df841a4784992ba6faf025897bdbfaf65d9",
+    "tests/confidential-receipt-schema.test.mjs": "11418c840d1add1af7fd7ca8997264e21435c00d409dd60a50aa559cb3c90478",
+    "tests/confidential-stage-codes.test.mjs": "e3f6a3e171402c0ae50b6285aa3e70a540dcddb6e83c83a2df4237d34ff6f690",
+    "tests/confidential-synthetic-bundle.test.mjs": "02225cd2fa6eaac5c2fb6130ac438bf2248ef35563e560d84f2dd21f6f379c1c",
+    "tests/confidential-synthetic-session.test.mjs": "51c04b559a8ea95479bec3f596206fee6126b89cbb5243b2440bf0f75b0a5076",
+    "tests/confidential-workflow-scope.test.mjs": "f1076a540cb132fd61ebd2eb898133fd353530f48af37c327e16009b34061127",
+    "tests/cross-domain.test.mjs": "211ac9c1c0fe6332416ade17d368981ab8cecab107718c854df809ed228d817e",
+    "tests/dependency-locks.test.mjs": "624ea65bd7711fb767574a2abe82c51ddf441efbaf7d982a4c8627aeb502dd59",
+    "tests/disposable-vm-smoke.test.mjs": "07e0da16d0b391964ad3763a68d1895293d812b818465147db1080c950b07c8f",
+    "tests/evidence-publication-surface.test.mjs": "9c4f646d1d2239fbced889cdaef5f3957e111d68af6d846b8fb91f7f1d8dea7d",
+    "tests/evidence-publication.test.mjs": "e5673d0d4270f129c463e965f9298b3dfba7f99298fad0bb4f86d24f54446492",
+    "tests/evidence-receiver-bundle.test.mjs": "93637fb3f02781e9c19030c4df747c3385e5ea051777e060939201760cfa1e28",
+    "tests/evidence-receiver-journal.test.mjs": "41d90be6361549e53c1c4b3b194713607e0419ca0cee21e5f7a97391827cff3f",
+    "tests/evidence-receiver-oidc.test.mjs": "d5d06b762ce7fe811311e5d2cd4190df4223cbf51407d1cd8efab02a07e90c76",
+    "tests/evidence-receiver-seal.test.mjs": "812c2244a1c127dbea1eff2654632ac89c05a14479e7b2d71499ad8d32ef398c",
+    "tests/evidence-receiver-source-shape.test.mjs": "0276694852325be6ccb93b4accab6811ea03490c8df53a01ad1a2b789f1de2b2",
+    "tests/evidence-receiver-strict.test.mjs": "094234956c83783fbc212779e60e0d23f789453c5fe1c7eae798447ab0abc49a",
+    "tests/evidence-receiver-zip.test.mjs": "64912f8254b150b3e528d74e74c50e8b44bb4e89a0de1d473f6200e10c82d8cd",
+    "tests/evidence-receiver.test.mjs": "781260b59bd911f61179cd67ee509a15a35bfbaf0802fffe896b5c96ed65afb8",
+    "tests/experiment-evidence.test.mjs": "4f90571a4fa93be0777c0e4aa290e8c0d1fc2914296bb9a719bd9fab0115d709",
+    "tests/experiment-graph.test.mjs": "8267151128d8a524bdd5cad8abcbae638fee6803b5281fd5ea56b5fd621b643c",
+    "tests/expression.test.mjs": "4acbdf5a0af9dc0af0ebad47250b98f814924fe72e47eaf533c6651695f4f89d",
+    "tests/geometry-pde-adapter.test.mjs": "98f174f321a126e1fe8bbc73b2964e76fa6f9aefdf01b923b3d77c8fc5ac3f4d",
+    "tests/geometry3d.test.mjs": "978a73dc3029356ef11edd2f7900f432d4ca6fdd3af8d87de1a4e5983451a01b",
+    "tests/graph-evidence-validation.test.mjs": "00006e3cc5b8226ae8d172d746fb411aeb940ba69ee253bb104da4cffa72a49e",
+    "tests/grid-feature-contract.test.mjs": "03ffb58f7f94a39980414c2375a28ae759cca5c0e1bb02eb8542cfc24f53a056",
+    "tests/guarded-selection.test.mjs": "df6d659ddc330f56f2086980daf841b47d64df9cbe6a59e8b0fb6f5e72a06f58",
+    "tests/implicit-security.test.mjs": "be1ce9ec234203b8bd12ad839515b9314b96eafda67383392a5eb80e9a222f94",
+    "tests/implicit3d.test.mjs": "2ec30422361e51d579910dcaf7fde07aa35a605d8d240e4b648deea9bb12fafd",
+    "tests/ingestion-job-postgres-fenced.test.mjs": "76128bd83deb82c3496b7fec55015764342625b4765ff2926a4ac1c45360f647",
+    "tests/ingestion-job-postgres.test.mjs": "89154b58cc4af88f8d9ff216b03f028d8d3c63a803e9de51d3fd8f0b85f54a90",
+    "tests/ingestion-job-renew.test.mjs": "8f779a2cb7d3cd9b02d15b3d0464bfd11f83584b3f823e13a7e62322625a1e27",
+    "tests/ingestion-lease-contract.test.mjs": "a1a6321fc9197423d818a010c12799d874574e4009878f491fd0101e05d8260e",
+    "tests/ingestion-service-fenced-live.test.mjs": "0741e2a963269c3fac33039085471a86880865e2efe2696091a7f0fc880d57cd",
+    "tests/ingestion-service.test.mjs": "a0e39418b42d41fc3fe243264bc9c319abd1f038d130ba32ad05b3e97ca9944b",
+    "tests/ingestion-supervisor.test.mjs": "39ac6b590d3890171354bdaea3190d82fa30d59abbdb7ac2412824d32210f5d3",
+    "tests/ingestion-worker-fencing.test.mjs": "ffa0dd4f74535c9ca20ac92211b00e010fa4e100215024373cff2a166cd7a0a1",
+    "tests/ingestion-worker-heartbeat.test.mjs": "a3da107ef38859d6d2b2098f56236376abb2d72ddf94b886f7d20da16563bfe9",
+    "tests/ingestion-worker.test.mjs": "136e093b03c2b7d8ec5ac4738f811aa429db95d2332dc26d22e7ffc631a09f44",
+    "tests/intersections3d.test.mjs": "c7bd7ba372b038613e9cfa3539d975585eae112b83783ed24fa895b88dc110ad",
+    "tests/isosurface.test.mjs": "aa505e91c53f13d001e4ccb62a652da7f9ecc0f54343b4710b8a453b4cadb698",
+    "tests/knowledge-adapter-persistence.test.mjs": "d0c28cdd47461383b33124744833cc89a4c88def0eed6e467be5da9ae342cd2a",
+    "tests/knowledge-adapter-planner.test.mjs": "3109cd0db0a3b867f5955155b978322129609a3def7f4b0919339c33fea2ddd7",
+    "tests/knowledge-adapter-postgres.test.mjs": "f53180e028f160bf058dde1cc53bb1292243f11f7ed74f069acf5d3d41357189",
+    "tests/knowledge-adapter-registry.test.mjs": "23486316d57f487e667af06d80c72323b36f894fba084d70c536c4afa24863d1",
+    "tests/knowledge-candidate.test.mjs": "9941741b7b9f420871892c8a119f816634bcbde8263e207a5e8aaa992b3824d2",
+    "tests/knowledge-file-replay-ledger.test.mjs": "f2d8114aef37d34b73196255c668b1804fc1b5fdfe9a01337bdc5b5f057efa0d",
+    "tests/knowledge-kernel-authenticator.test.mjs": "fc4c74692e4bf613ed6a132b0aaa45852967253c4270c6979dbdc74ae42d104d",
+    "tests/knowledge-kernel-result.test.mjs": "d435c3f26043b8943610847ea05afc57d48dffaddcf44b0feacdc1e0a166fca6",
+    "tests/knowledge-ledger-directory.test.mjs": "309f6df9cd956f41247ef21b91ab46a1f8c0fb0286483e8deb9cb9fecd014e77",
+    "tests/knowledge-one-shot-verifier.test.mjs": "f8649009032c647d5605d28f07e29c14259efa6f4cf5b6b67c7056f08b519fe7",
+    "tests/knowledge-persisted-verifier.test.mjs": "77e696c228c1a9c18366719999e62ba392b8fc1bb1e46a71bc4a7bb9e39e9304",
+    "tests/knowledge-store.test.mjs": "1cc8b6bca52e5420aefe03943a892b24aff78e77b556ed6cbd0b2eab7be409e3",
+    "tests/knowledge-verification-request.test.mjs": "b1848d28cf139c30247ba677c71c88e4c4509427e730b0da81f170716c66b76c",
+    "tests/math-abc-integration.test.mjs": "91daa0a67876ca5a1b1fe20f1cb778d880196d7797ea0ed2bb3841fa01266d97",
+    "tests/math-engine-server.test.mjs": "1daec6fa872e53f67ab79efe4b66cae771dc5e7951f280f59740e9cfed6976e6",
+    "tests/math-formula-api.test.mjs": "91cc0181beddf18061ce62b627029e1aabfef21dad43fcae8aa7f44d061b9866",
+    "tests/math-graph-api.test.mjs": "f8b92d4a4621ee2cf5e57c2ab2893936f4277632068c7351c462b147eeb7a3b2",
+    "tests/math.test.mjs": "6046470f244490a1337eb84bc2936c81dabd08ac7728b9dd5bda7efbdc2a9c70",
+    "tests/model-fitting.test.mjs": "041985c7e393f991205a4260919b36e65bcce02bcb59401838cf44a3fc24a4d0",
+    "tests/port-graph.test.mjs": "1cbc14d0ffd5a14f96b5824d9cdc1048b3a3b404f8076b4429bd124111e06674",
+    "tests/postgres-checkpoint-live.test.mjs": "698ed56d9658d9dbed98405a86b0c954a60e125d238221143df13cc11e88d86c",
+    "tests/postgres-ci-evidence.test.mjs": "c548aa3f1a848933d8f6f74d8a5e7f085fbd205fc1b8a30c03d1a8832076c2e1",
+    "tests/postgres-fencing-live.test.mjs": "520b0a3ae9214076a1ff07db5ddb2e2e411a77e74061d9df69c847bef367d3ff",
+    "tests/postgres-lease-clock-live.test.mjs": "b17c424a548f4692db74277ae3005f4ce54299785ff6a4a8a8336fa6920f3e9d",
+    "tests/postgres-live.test.mjs": "8545f36b07f2798a84158c63f5518b8ca85b97cdbe233140119109698d9d8288",
+    "tests/postgres-migration-integrity-live.test.mjs": "ffc291792e7af7b8fa728a8c9576e825e74c48a8d840328905502b6cc0970b20",
+    "tests/postgres-migrations.test.mjs": "5d903983009d28c62dcb45739dff6aa97028f4f55587705074134055c4aa6737",
+    "tests/postgres-pr3-audit-live.test.mjs": "0b1b494cfa9bddcbc2bfb8ee6796d593fe0aeb67736f04698ed1ffd383d7b128",
+    "tests/postgres-registry-integrity-live.test.mjs": "1438c967b2d45d2945476117f26a6c9671243d6db1061aaf3eecb6740d537f7c",
+    "tests/private-evidence-receipt.test.mjs": "d84e6f80ca873b1716c24f5208da90efc88b84954e4bf18fb7acac4fb2e4b0ae",
+    "tests/proof-kernel-independent-property.test.mjs": "7139287bbaf669a56d46e87e1cd016e5f0066fd0717d1d070fadf9daaaee20df",
+    "tests/proof-kernel.test.mjs": "2f49bf8db41ed46a6da3b37bfd53ac2e36c653f07265ba07a64e70121829e23d",
+    "tests/provenance-source-identity.test.mjs": "6875e860ea05228aac66c04514548955d17a1db95853ac907557c22b114e56a9",
+    "tests/q01-evidence.test.mjs": "4a9ab2265f955357f1c5c0bcaf0f89893f70c9bc47d489686ff7bf242eb30f40",
+    "tests/q01-runner.test.mjs": "1a8e8ab7d927c437afb6ab58ca73c0b3e737138755d55e631ee3226438a6626f",
+    "tests/qa-current-ci-snapshot.test.mjs": "f338dd8ee89213c4b5b968e7f2347df249350d078d64920e266ad11287120f14",
+    "tests/qa-evidence-manifest.test.mjs": "3d3b1ac60781cb88ffdd72919f2db2d9578fef9e4d0d2b61385497ceebabc124",
+    "tests/qa-obsolete-queued-inventory.test.mjs": "bc9641a4fc850a337c43a3f8dc2214a29ca25c377859dfe3807cd947a01cb5de",
+    "tests/qa-q01-first-open.test.mjs": "e5f836a62962beaf50f1eccd6cd840a78e23d935f614f86d0f6311abb7b4e21c",
+    "tests/qa-symlink-fixture.test.mjs": "383e3b76ee9081876ae33407d785a9e16bceff9dec4a6a02e263043004427d4d",
+    "tests/research-library.test.mjs": "ba4162673812d7b196dc3821e5d0960ac06074e2d17d1369896a6c882fb5dd7e",
+    "tests/research-providers.test.mjs": "a405fa5392416bb6679d71096cbdf952913807829ecf6043f82cc2331c54edb3",
+    "tests/returns-research.test.mjs": "ed3fd9a722af2801b3cf1eb887b10e7f945d9931ecbb54a659da40b159812111",
+    "tests/roots-diagnostics.test.mjs": "940ca7ad48eac7f5ce7bb4b43050657e18663bf343157b93377907bda2a05768",
+    "tests/runtime-identity-publication.test.mjs": "e1fc7c92f7223bb2ae6efcd0bdf98963464c2862abe910c93a811d41518667d0",
+    "tests/scientific-adapters.test.mjs": "b10b3f8a8420d9aa023b57dad4f8ba26fc108b0943f3e9afc3f7e08df6c6428f",
+    "tests/scientific-claim-checks.test.mjs": "7214011820fe9ffc9c1bf6e1b685003ea96c18e3f410e00be30df3aecb3339e5",
+    "tests/scientific-experiment-validation.test.mjs": "b9826de8e9ce2e0662a778f98ee4ad187396bd16a7fe7ea8015f92a19854f750",
+    "tests/si-dimensions.test.mjs": "85a0cae76abdbc54f57bc6eb25e04d89b30db8d12ff7a528c28865131e67e670",
+    "tests/sql-byte-integrity.test.mjs": "8761e727e8513cbaf6c2ad1b3b77e658b32046971134c2d4d05a3ac651bba142",
+    "tests/sql-byte-ledger-live.test.mjs": "596428e8d8dccd428e0f9785c57355e0fbf2150df119f54bc25dee982de0d612",
+    "tests/sql-byte-reproducibility.test.mjs": "d1607117a0ffd6b148f4e62fd68d48590cc160b89877ef398d7edc58fdbaa603",
+    "tests/torus-field-adapter.test.mjs": "21781e2298331eeef5a08a34af1d325191057737d51b88e1c1cc15030d9d7c5a",
+    "tests/torus-series.test.mjs": "4e9d50daa34b5b9534ed07fa35efb376e1150735c111800e4ed7fe41e8a7b244",
+    "tests/torus-surface-pde.test.mjs": "d5cfa8e62050ec3e570f87905bd668bfb92763e86a42e7a1e475d1a8c3678c6a",
+    "tests/transform-benchmark.test.mjs": "968c098d706532e32c615ba2596e903de11f9ac634e625e46abc4598f7cfc6c6",
+    "tests/walk-forward-guard.test.mjs": "523d764f7cb3f9c75221ceb85935f8a39ded6b96bc58172180e51e5f58ff9912",
+    "tests/walk-forward.test.mjs": "89b0a86533e2bfa45226290275eecc18f5929adeff1e0478c0e2a9e902ed3ca7",
+    "tests/windows-job-containment.test.mjs": "b911c13be5a410c1bd79cff60b579b3e43ca5398922d7b04f365adf1f6dac4f5"
+  },
+  "recipes": {
+    "tests/adapter-registry.test.mjs": [
+      {
+        "path": "tests/adapter-registry.test.mjs",
+        "start": 0,
+        "end": 790
+      }
+    ],
+    "tests/adminit-bootstrap-watchdog.test.mjs": [
+      {
+        "path": "tests/adminit-bootstrap-watchdog.test.mjs",
+        "start": 0,
+        "end": 919
+      },
+      {
+        "path": "tests/adminit-bootstrap-watchdog.windows.mjs",
+        "start": 336,
+        "end": 1694
+      }
+    ],
+    "tests/adminit-build-inputs.test.mjs": [
+      {
+        "path": "tests/adminit-build-inputs.test.mjs",
+        "start": 0,
+        "end": 2434
+      }
+    ],
+    "tests/adminit-containment.test.mjs": [
+      {
+        "path": "tests/adminit-containment.test.mjs",
+        "start": 0,
+        "end": 5580
+      }
+    ],
+    "tests/adminit-contract-syntax.test.mjs": [
+      {
+        "path": "tests/adminit-contract-syntax.test.mjs",
+        "start": 0,
+        "end": 549
+      }
+    ],
+    "tests/adminit-g0-contracts.test.mjs": [
+      {
+        "path": "tests/adminit-g0-contracts.test.mjs",
+        "start": 0,
+        "end": 1202
+      },
+      {
+        "path": "tests/adminit-g0-contracts.windows.mjs",
+        "start": 234,
+        "end": 883
+      }
+    ],
+    "tests/adminit-g0-csv-negative.test.mjs": [
+      {
+        "path": "tests/adminit-g0-csv-negative.windows.mjs",
+        "start": 0,
+        "end": 2135
+      }
+    ],
+    "tests/adminit-g0-csv-shape.test.mjs": [
+      {
+        "path": "tests/adminit-g0-csv-shape.windows.mjs",
+        "start": 0,
+        "end": 1572
+      }
+    ],
+    "tests/adminit-g0-csv.test.mjs": [
+      {
+        "path": "tests/adminit-g0-csv.windows.mjs",
+        "start": 0,
+        "end": 1240
+      }
+    ],
+    "tests/adminit-g0-pure-fixtures.test.mjs": [
+      {
+        "path": "tests/adminit-g0-pure-fixtures.windows.mjs",
+        "start": 0,
+        "end": 2306
+      }
+    ],
+    "tests/adminit-g0.test.mjs": [
+      {
+        "path": "tests/adminit-g0.test.mjs",
+        "start": 0,
+        "end": 4229
+      }
+    ],
+    "tests/adminit-isolation.test.mjs": [
+      {
+        "path": "tests/adminit-isolation.test.mjs",
+        "start": 0,
+        "end": 3661
+      }
+    ],
+    "tests/adminit-native-evidence.test.mjs": [
+      {
+        "path": "tests/adminit-native-evidence.test.mjs",
+        "start": 0,
+        "end": 3316
+      }
+    ],
+    "tests/adminit-offline-preflight.test.mjs": [
+      {
+        "path": "tests/adminit-offline-preflight.test.mjs",
+        "start": 0,
+        "end": 1996
+      },
+      {
+        "path": "tests/adminit-offline-preflight.cross.mjs",
+        "start": 1816,
+        "end": 2715
+      },
+      {
+        "path": "tests/adminit-offline-preflight.test.mjs",
+        "start": 1996,
+        "end": 8211
+      },
+      {
+        "path": "tests/adminit-offline-preflight.windows.mjs",
+        "start": 29,
+        "end": 30
+      },
+      {
+        "path": "tests/adminit-offline-preflight.windows.mjs",
+        "start": 1816,
+        "end": 7690
+      }
+    ],
+    "tests/adminit-package-caller-contract.test.mjs": [
+      {
+        "path": "tests/adminit-package-caller-contract.test.mjs",
+        "start": 0,
+        "end": 1494
+      }
+    ],
+    "tests/adminit-package-syntax.test.mjs": [
+      {
+        "path": "tests/adminit-package-syntax.test.mjs",
+        "start": 0,
+        "end": 488
+      }
+    ],
+    "tests/adminit-package.test.mjs": [
+      {
+        "path": "tests/adminit-package.test.mjs",
+        "start": 0,
+        "end": 5017
+      }
+    ],
+    "tests/adminit-stdout-privacy.test.mjs": [
+      {
+        "path": "tests/adminit-stdout-privacy.test.mjs",
+        "start": 0,
+        "end": 722
+      }
+    ],
+    "tests/adminit-token-admin-flags-regression.test.mjs": [
+      {
+        "path": "tests/adminit-token-admin-flags-regression.test.mjs",
+        "start": 0,
+        "end": 1311
+      }
+    ],
+    "tests/adminit-token-cli.test.mjs": [
+      {
+        "path": "tests/adminit-token-cli.test.mjs",
+        "start": 0,
+        "end": 1156
+      }
+    ],
+    "tests/adminit-token-compile.test.mjs": [
+      {
+        "path": "tests/adminit-token-compile.windows.mjs",
+        "start": 0,
+        "end": 4569
+      }
+    ],
+    "tests/adminit-token-contract.test.mjs": [
+      {
+        "path": "tests/adminit-token-contract.test.mjs",
+        "start": 0,
+        "end": 10200
+      }
+    ],
+    "tests/adminit-token-faults.test.mjs": [
+      {
+        "path": "tests/adminit-token-faults.windows.mjs",
+        "start": 0,
+        "end": 4135
+      }
+    ],
+    "tests/adminit-token-flags-integration.test.mjs": [
+      {
+        "path": "tests/adminit-token-flags-integration.windows.mjs",
+        "start": 0,
+        "end": 2108
+      }
+    ],
+    "tests/adminit-token-wiring.test.mjs": [
+      {
+        "path": "tests/adminit-token-wiring.test.mjs",
+        "start": 0,
+        "end": 1181
+      }
+    ],
+    "tests/adminit-watchdog.test.mjs": [
+      {
+        "path": "tests/adminit-watchdog.test.mjs",
+        "start": 0,
+        "end": 5374
+      }
+    ],
+    "tests/adminit-workflow-privacy.test.mjs": [
+      {
+        "path": "tests/adminit-workflow-privacy.test.mjs",
+        "start": 0,
+        "end": 1279
+      }
+    ],
+    "tests/adminit-zip-admission.test.mjs": [
+      {
+        "path": "tests/adminit-zip-admission.test.mjs",
+        "start": 0,
+        "end": 1252
+      }
+    ],
+    "tests/adminit-zip-members.test.mjs": [
+      {
+        "path": "tests/adminit-zip-members.test.mjs",
+        "start": 0,
+        "end": 866
+      }
+    ],
+    "tests/ai-orchestrator-artifacts.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-artifacts.test.mjs",
+        "start": 0,
+        "end": 973
+      }
+    ],
+    "tests/ai-orchestrator-claims.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-claims.test.mjs",
+        "start": 0,
+        "end": 2554
+      }
+    ],
+    "tests/ai-orchestrator-inspect.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-inspect.test.mjs",
+        "start": 0,
+        "end": 2208
+      }
+    ],
+    "tests/ai-orchestrator-pinned-source.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-pinned-source.test.mjs",
+        "start": 0,
+        "end": 2609
+      }
+    ],
+    "tests/ai-orchestrator-plan.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-plan.test.mjs",
+        "start": 0,
+        "end": 2197
+      }
+    ],
+    "tests/ai-orchestrator-policy.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-policy.test.mjs",
+        "start": 0,
+        "end": 2070
+      }
+    ],
+    "tests/ai-orchestrator-receipts.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-receipts.test.mjs",
+        "start": 0,
+        "end": 2836
+      }
+    ],
+    "tests/ai-orchestrator-registry-process.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-registry-process.test.mjs",
+        "start": 0,
+        "end": 1650
+      }
+    ],
+    "tests/ai-orchestrator-registry.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-registry.test.mjs",
+        "start": 0,
+        "end": 3781
+      }
+    ],
+    "tests/ai-orchestrator-replay.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-replay.test.mjs",
+        "start": 0,
+        "end": 995
+      }
+    ],
+    "tests/ai-orchestrator-source-correlation.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-source-correlation.test.mjs",
+        "start": 0,
+        "end": 3164
+      }
+    ],
+    "tests/ai-orchestrator-source-identity.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-source-identity.test.mjs",
+        "start": 0,
+        "end": 2426
+      }
+    ],
+    "tests/ai-orchestrator-stream.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-stream.test.mjs",
+        "start": 0,
+        "end": 1504
+      }
+    ],
+    "tests/ai-orchestrator-trust-gate.test.mjs": [
+      {
+        "path": "tests/ai-orchestrator-trust-gate.test.mjs",
+        "start": 0,
+        "end": 1207
+      }
+    ],
+    "tests/book-cutover-auth.test.mjs": [
+      {
+        "path": "tests/book-cutover-auth.test.mjs",
+        "start": 0,
+        "end": 5320
+      }
+    ],
+    "tests/book-cutover-backup.test.mjs": [
+      {
+        "path": "tests/book-cutover-backup.test.mjs",
+        "start": 0,
+        "end": 4603
+      }
+    ],
+    "tests/book-cutover-controller.test.mjs": [
+      {
+        "path": "tests/book-cutover-controller.test.mjs",
+        "start": 0,
+        "end": 10758
+      }
+    ],
+    "tests/book-cutover-hardening-postgres.test.mjs": [
+      {
+        "path": "tests/book-cutover-hardening-postgres.test.mjs",
+        "start": 0,
+        "end": 6073
+      }
+    ],
+    "tests/book-cutover-hardening-sqlite.test.mjs": [
+      {
+        "path": "tests/book-cutover-hardening-sqlite.test.mjs",
+        "start": 0,
+        "end": 4378
+      }
+    ],
+    "tests/book-cutover-journal.test.mjs": [
+      {
+        "path": "tests/book-cutover-journal.test.mjs",
+        "start": 0,
+        "end": 5369
+      }
+    ],
+    "tests/book-cutover-postgres-live.test.mjs": [
+      {
+        "path": "tests/book-cutover-postgres-live.test.mjs",
+        "start": 0,
+        "end": 5312
+      }
+    ],
+    "tests/book-cutover-source.test.mjs": [
+      {
+        "path": "tests/book-cutover-source.test.mjs",
+        "start": 0,
+        "end": 3745
+      }
+    ],
+    "tests/book-ingestion-candidate.test.mjs": [
+      {
+        "path": "tests/book-ingestion-candidate.test.mjs",
+        "start": 0,
+        "end": 9328
+      }
+    ],
+    "tests/book-ingestion-cli.test.mjs": [
+      {
+        "path": "tests/book-ingestion-cli.test.mjs",
+        "start": 0,
+        "end": 3278
+      }
+    ],
+    "tests/book-ingestion-knowledge-boundary.test.mjs": [
+      {
+        "path": "tests/book-ingestion-knowledge-boundary.test.mjs",
+        "start": 0,
+        "end": 5342
+      }
+    ],
+    "tests/book-ingestion-native.test.mjs": [
+      {
+        "path": "tests/book-ingestion-native.test.mjs",
+        "start": 0,
+        "end": 4022
+      }
+    ],
+    "tests/book-ingestion-pdf.test.mjs": [
+      {
+        "path": "tests/book-ingestion-pdf.test.mjs",
+        "start": 0,
+        "end": 6396
+      }
+    ],
+    "tests/book-ingestion-queue.test.mjs": [
+      {
+        "path": "tests/book-ingestion-queue.test.mjs",
+        "start": 0,
+        "end": 14053
+      }
+    ],
+    "tests/book-ingestion-review.test.mjs": [
+      {
+        "path": "tests/book-ingestion-review.test.mjs",
+        "start": 0,
+        "end": 14751
+      }
+    ],
+    "tests/book-ingestion-worker.test.mjs": [
+      {
+        "path": "tests/book-ingestion-worker.test.mjs",
+        "start": 0,
+        "end": 11651
+      }
+    ],
+    "tests/book-knowledge-intake.test.mjs": [
+      {
+        "path": "tests/book-knowledge-intake.test.mjs",
+        "start": 0,
+        "end": 1302
+      }
+    ],
+    "tests/book-migration-integrity-live.test.mjs": [
+      {
+        "path": "tests/book-migration-integrity-live.test.mjs",
+        "start": 0,
+        "end": 16061
+      }
+    ],
+    "tests/book-postgres-codec.test.mjs": [
+      {
+        "path": "tests/book-postgres-codec.test.mjs",
+        "start": 0,
+        "end": 5129
+      }
+    ],
+    "tests/book-postgres-json.test.mjs": [
+      {
+        "path": "tests/book-postgres-json.test.mjs",
+        "start": 0,
+        "end": 650
+      }
+    ],
+    "tests/book-postgres-lossless-live.test.mjs": [
+      {
+        "path": "tests/book-postgres-lossless-live.test.mjs",
+        "start": 0,
+        "end": 12282
+      }
+    ],
+    "tests/book-postgres-parity-live.test.mjs": [
+      {
+        "path": "tests/book-postgres-parity-live.test.mjs",
+        "start": 0,
+        "end": 5775
+      }
+    ],
+    "tests/book-postgres-policy-integration.test.mjs": [
+      {
+        "path": "tests/book-postgres-policy-integration.test.mjs",
+        "start": 0,
+        "end": 7234
+      }
+    ],
+    "tests/book-postgres-queue-live.test.mjs": [
+      {
+        "path": "tests/book-postgres-queue-live.test.mjs",
+        "start": 0,
+        "end": 4373
+      }
+    ],
+    "tests/book-postgres-queue.test.mjs": [
+      {
+        "path": "tests/book-postgres-queue.test.mjs",
+        "start": 0,
+        "end": 1700
+      }
+    ],
+    "tests/book-postgres-schema-live.test.mjs": [
+      {
+        "path": "tests/book-postgres-schema-live.test.mjs",
+        "start": 0,
+        "end": 7166
+      }
+    ],
+    "tests/book-postgres-schema.test.mjs": [
+      {
+        "path": "tests/book-postgres-schema.test.mjs",
+        "start": 0,
+        "end": 1560
+      }
+    ],
+    "tests/book-postgres-scientific-live.test.mjs": [
+      {
+        "path": "tests/book-postgres-scientific-live.test.mjs",
+        "start": 0,
+        "end": 3418
+      }
+    ],
+    "tests/book-postgres-transfer-live.test.mjs": [
+      {
+        "path": "tests/book-postgres-transfer-live.test.mjs",
+        "start": 0,
+        "end": 6049
+      }
+    ],
+    "tests/book-postgres-transfer.test.mjs": [
+      {
+        "path": "tests/book-postgres-transfer.test.mjs",
+        "start": 0,
+        "end": 3041
+      }
+    ],
+    "tests/book-queue-compatibility.test.mjs": [
+      {
+        "path": "tests/book-queue-compatibility.test.mjs",
+        "start": 0,
+        "end": 1640
+      }
+    ],
+    "tests/book-queue-detached-journal.test.mjs": [
+      {
+        "path": "tests/book-queue-detached-journal.test.mjs",
+        "start": 0,
+        "end": 3442
+      },
+      {
+        "path": "tests/book-queue-detached-journal.cross.mjs",
+        "start": 2132,
+        "end": 2629
+      },
+      {
+        "path": "tests/book-queue-detached-journal.test.mjs",
+        "start": 3442,
+        "end": 6002
+      }
+    ],
+    "tests/book-scenes.test.mjs": [
+      {
+        "path": "tests/book-scenes.test.mjs",
+        "start": 0,
+        "end": 595
+      }
+    ],
+    "tests/book-shared-contract.test.mjs": [
+      {
+        "path": "tests/book-shared-contract.test.mjs",
+        "start": 0,
+        "end": 1378
+      }
+    ],
+    "tests/book-sqlite-text.test.mjs": [
+      {
+        "path": "tests/book-sqlite-text.test.mjs",
+        "start": 0,
+        "end": 4730
+      }
+    ],
+    "tests/bounded-experiment.test.mjs": [
+      {
+        "path": "tests/bounded-experiment.test.mjs",
+        "start": 0,
+        "end": 3183
+      }
+    ],
+    "tests/causal-feature-screen.test.mjs": [
+      {
+        "path": "tests/causal-feature-screen.test.mjs",
+        "start": 0,
+        "end": 1732
+      }
+    ],
+    "tests/ci-coverage.test.mjs": [
+      {
+        "path": "tests/ci-coverage.test.mjs",
+        "start": 0,
+        "end": 3302
+      }
+    ],
+    "tests/ci-postgres-isolation.test.mjs": [
+      {
+        "path": "tests/ci-postgres-isolation.test.mjs",
+        "start": 0,
+        "end": 1236
+      }
+    ],
+    "tests/ci-provenance.test.mjs": [
+      {
+        "path": "tests/ci-provenance.test.mjs",
+        "start": 0,
+        "end": 5360
+      }
+    ],
+    "tests/confidential-caller.test.mjs": [
+      {
+        "path": "tests/confidential-caller.test.mjs",
+        "start": 0,
+        "end": 980
+      }
+    ],
+    "tests/confidential-collector-context.test.mjs": [
+      {
+        "path": "tests/confidential-collector-context.test.mjs",
+        "start": 0,
+        "end": 1183
+      }
+    ],
+    "tests/confidential-collector-oidc.test.mjs": [
+      {
+        "path": "tests/confidential-collector-oidc.test.mjs",
+        "start": 0,
+        "end": 2120
+      }
+    ],
+    "tests/confidential-pinned-loader.test.mjs": [
+      {
+        "path": "tests/confidential-pinned-loader.test.mjs",
+        "start": 0,
+        "end": 2036
+      }
+    ],
+    "tests/confidential-pr64-blocked-projection.test.mjs": [
+      {
+        "path": "tests/confidential-pr64-blocked-projection.test.mjs",
+        "start": 0,
+        "end": 1733
+      }
+    ],
+    "tests/confidential-public-privacy.test.mjs": [
+      {
+        "path": "tests/confidential-public-privacy.test.mjs",
+        "start": 0,
+        "end": 1847
+      }
+    ],
+    "tests/confidential-receipt-schema.test.mjs": [
+      {
+        "path": "tests/confidential-receipt-schema.test.mjs",
+        "start": 0,
+        "end": 1213
+      }
+    ],
+    "tests/confidential-stage-codes.test.mjs": [
+      {
+        "path": "tests/confidential-stage-codes.test.mjs",
+        "start": 0,
+        "end": 1641
+      }
+    ],
+    "tests/confidential-synthetic-bundle.test.mjs": [
+      {
+        "path": "tests/confidential-synthetic-bundle.test.mjs",
+        "start": 0,
+        "end": 4944
+      }
+    ],
+    "tests/confidential-synthetic-session.test.mjs": [
+      {
+        "path": "tests/confidential-synthetic-session.test.mjs",
+        "start": 0,
+        "end": 6033
+      }
+    ],
+    "tests/confidential-workflow-scope.test.mjs": [
+      {
+        "path": "tests/confidential-workflow-scope.test.mjs",
+        "start": 0,
+        "end": 885
+      }
+    ],
+    "tests/cross-domain.test.mjs": [
+      {
+        "path": "tests/cross-domain.test.mjs",
+        "start": 0,
+        "end": 1195
+      }
+    ],
+    "tests/dependency-locks.test.mjs": [
+      {
+        "path": "tests/dependency-locks.test.mjs",
+        "start": 0,
+        "end": 6306
+      }
+    ],
+    "tests/disposable-vm-smoke.test.mjs": [
+      {
+        "path": "tests/disposable-vm-smoke.test.mjs",
+        "start": 0,
+        "end": 4509
+      }
+    ],
+    "tests/evidence-publication-surface.test.mjs": [
+      {
+        "path": "tests/evidence-publication-surface.test.mjs",
+        "start": 0,
+        "end": 2817
+      }
+    ],
+    "tests/evidence-publication.test.mjs": [
+      {
+        "path": "tests/evidence-publication.test.mjs",
+        "start": 0,
+        "end": 648
+      }
+    ],
+    "tests/evidence-receiver-bundle.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-bundle.test.mjs",
+        "start": 0,
+        "end": 2092
+      }
+    ],
+    "tests/evidence-receiver-journal.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-journal.test.mjs",
+        "start": 0,
+        "end": 3777
+      }
+    ],
+    "tests/evidence-receiver-oidc.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-oidc.test.mjs",
+        "start": 0,
+        "end": 9325
+      }
+    ],
+    "tests/evidence-receiver-seal.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-seal.test.mjs",
+        "start": 0,
+        "end": 1359
+      }
+    ],
+    "tests/evidence-receiver-source-shape.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-source-shape.test.mjs",
+        "start": 0,
+        "end": 2774
+      }
+    ],
+    "tests/evidence-receiver-strict.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-strict.test.mjs",
+        "start": 0,
+        "end": 845
+      }
+    ],
+    "tests/evidence-receiver-zip.test.mjs": [
+      {
+        "path": "tests/evidence-receiver-zip.test.mjs",
+        "start": 0,
+        "end": 4530
+      }
+    ],
+    "tests/evidence-receiver.test.mjs": [
+      {
+        "path": "tests/evidence-receiver.test.mjs",
+        "start": 0,
+        "end": 6261
+      }
+    ],
+    "tests/experiment-evidence.test.mjs": [
+      {
+        "path": "tests/experiment-evidence.test.mjs",
+        "start": 0,
+        "end": 1092
+      }
+    ],
+    "tests/experiment-graph.test.mjs": [
+      {
+        "path": "tests/experiment-graph.test.mjs",
+        "start": 0,
+        "end": 2878
+      }
+    ],
+    "tests/expression.test.mjs": [
+      {
+        "path": "tests/expression.test.mjs",
+        "start": 0,
+        "end": 1343
+      }
+    ],
+    "tests/geometry-pde-adapter.test.mjs": [
+      {
+        "path": "tests/geometry-pde-adapter.test.mjs",
+        "start": 0,
+        "end": 1134
+      }
+    ],
+    "tests/geometry3d.test.mjs": [
+      {
+        "path": "tests/geometry3d.test.mjs",
+        "start": 0,
+        "end": 824
+      }
+    ],
+    "tests/graph-evidence-validation.test.mjs": [
+      {
+        "path": "tests/graph-evidence-validation.test.mjs",
+        "start": 0,
+        "end": 2605
+      }
+    ],
+    "tests/grid-feature-contract.test.mjs": [
+      {
+        "path": "tests/grid-feature-contract.test.mjs",
+        "start": 0,
+        "end": 1869
+      }
+    ],
+    "tests/guarded-selection.test.mjs": [
+      {
+        "path": "tests/guarded-selection.test.mjs",
+        "start": 0,
+        "end": 1925
+      }
+    ],
+    "tests/implicit-security.test.mjs": [
+      {
+        "path": "tests/implicit-security.test.mjs",
+        "start": 0,
+        "end": 615
+      }
+    ],
+    "tests/implicit3d.test.mjs": [
+      {
+        "path": "tests/implicit3d.test.mjs",
+        "start": 0,
+        "end": 682
+      }
+    ],
+    "tests/ingestion-job-postgres-fenced.test.mjs": [
+      {
+        "path": "tests/ingestion-job-postgres-fenced.test.mjs",
+        "start": 0,
+        "end": 11084
+      }
+    ],
+    "tests/ingestion-job-postgres.test.mjs": [
+      {
+        "path": "tests/ingestion-job-postgres.test.mjs",
+        "start": 0,
+        "end": 1770
+      }
+    ],
+    "tests/ingestion-job-renew.test.mjs": [
+      {
+        "path": "tests/ingestion-job-renew.test.mjs",
+        "start": 0,
+        "end": 952
+      }
+    ],
+    "tests/ingestion-lease-contract.test.mjs": [
+      {
+        "path": "tests/ingestion-lease-contract.test.mjs",
+        "start": 0,
+        "end": 4024
+      }
+    ],
+    "tests/ingestion-service-fenced-live.test.mjs": [
+      {
+        "path": "tests/ingestion-service-fenced-live.test.mjs",
+        "start": 0,
+        "end": 9835
+      }
+    ],
+    "tests/ingestion-service.test.mjs": [
+      {
+        "path": "tests/ingestion-service.test.mjs",
+        "start": 0,
+        "end": 810
+      }
+    ],
+    "tests/ingestion-supervisor.test.mjs": [
+      {
+        "path": "tests/ingestion-supervisor.test.mjs",
+        "start": 0,
+        "end": 1360
+      }
+    ],
+    "tests/ingestion-worker-fencing.test.mjs": [
+      {
+        "path": "tests/ingestion-worker-fencing.test.mjs",
+        "start": 0,
+        "end": 12711
+      }
+    ],
+    "tests/ingestion-worker-heartbeat.test.mjs": [
+      {
+        "path": "tests/ingestion-worker-heartbeat.test.mjs",
+        "start": 0,
+        "end": 1476
+      }
+    ],
+    "tests/ingestion-worker.test.mjs": [
+      {
+        "path": "tests/ingestion-worker.test.mjs",
+        "start": 0,
+        "end": 1581
+      }
+    ],
+    "tests/intersections3d.test.mjs": [
+      {
+        "path": "tests/intersections3d.test.mjs",
+        "start": 0,
+        "end": 563
+      }
+    ],
+    "tests/isosurface.test.mjs": [
+      {
+        "path": "tests/isosurface.test.mjs",
+        "start": 0,
+        "end": 744
+      }
+    ],
+    "tests/knowledge-adapter-persistence.test.mjs": [
+      {
+        "path": "tests/knowledge-adapter-persistence.test.mjs",
+        "start": 0,
+        "end": 2005
+      }
+    ],
+    "tests/knowledge-adapter-planner.test.mjs": [
+      {
+        "path": "tests/knowledge-adapter-planner.test.mjs",
+        "start": 0,
+        "end": 1314
+      }
+    ],
+    "tests/knowledge-adapter-postgres.test.mjs": [
+      {
+        "path": "tests/knowledge-adapter-postgres.test.mjs",
+        "start": 0,
+        "end": 1319
+      }
+    ],
+    "tests/knowledge-adapter-registry.test.mjs": [
+      {
+        "path": "tests/knowledge-adapter-registry.test.mjs",
+        "start": 0,
+        "end": 2313
+      }
+    ],
+    "tests/knowledge-candidate.test.mjs": [
+      {
+        "path": "tests/knowledge-candidate.test.mjs",
+        "start": 0,
+        "end": 4501
+      }
+    ],
+    "tests/knowledge-file-replay-ledger.test.mjs": [
+      {
+        "path": "tests/knowledge-file-replay-ledger.test.mjs",
+        "start": 0,
+        "end": 908
+      }
+    ],
+    "tests/knowledge-kernel-authenticator.test.mjs": [
+      {
+        "path": "tests/knowledge-kernel-authenticator.test.mjs",
+        "start": 0,
+        "end": 3045
+      }
+    ],
+    "tests/knowledge-kernel-result.test.mjs": [
+      {
+        "path": "tests/knowledge-kernel-result.test.mjs",
+        "start": 0,
+        "end": 1687
+      }
+    ],
+    "tests/knowledge-ledger-directory.test.mjs": [
+      {
+        "path": "tests/knowledge-ledger-directory.test.mjs",
+        "start": 0,
+        "end": 2239
+      }
+    ],
+    "tests/knowledge-one-shot-verifier.test.mjs": [
+      {
+        "path": "tests/knowledge-one-shot-verifier.test.mjs",
+        "start": 0,
+        "end": 3877
+      }
+    ],
+    "tests/knowledge-persisted-verifier.test.mjs": [
+      {
+        "path": "tests/knowledge-persisted-verifier.test.mjs",
+        "start": 0,
+        "end": 3352
+      }
+    ],
+    "tests/knowledge-store.test.mjs": [
+      {
+        "path": "tests/knowledge-store.test.mjs",
+        "start": 0,
+        "end": 9141
+      }
+    ],
+    "tests/knowledge-verification-request.test.mjs": [
+      {
+        "path": "tests/knowledge-verification-request.test.mjs",
+        "start": 0,
+        "end": 1364
+      }
+    ],
+    "tests/math-abc-integration.test.mjs": [
+      {
+        "path": "tests/math-abc-integration.test.mjs",
+        "start": 0,
+        "end": 5534
+      }
+    ],
+    "tests/math-engine-server.test.mjs": [
+      {
+        "path": "tests/math-engine-server.test.mjs",
+        "start": 0,
+        "end": 991
+      }
+    ],
+    "tests/math-formula-api.test.mjs": [
+      {
+        "path": "tests/math-formula-api.test.mjs",
+        "start": 0,
+        "end": 911
+      }
+    ],
+    "tests/math-graph-api.test.mjs": [
+      {
+        "path": "tests/math-graph-api.test.mjs",
+        "start": 0,
+        "end": 1290
+      }
+    ],
+    "tests/math.test.mjs": [
+      {
+        "path": "tests/math.test.mjs",
+        "start": 0,
+        "end": 1208
+      }
+    ],
+    "tests/model-fitting.test.mjs": [
+      {
+        "path": "tests/model-fitting.test.mjs",
+        "start": 0,
+        "end": 952
+      }
+    ],
+    "tests/port-graph.test.mjs": [
+      {
+        "path": "tests/port-graph.test.mjs",
+        "start": 0,
+        "end": 1370
+      }
+    ],
+    "tests/postgres-checkpoint-live.test.mjs": [
+      {
+        "path": "tests/postgres-checkpoint-live.test.mjs",
+        "start": 0,
+        "end": 9307
+      }
+    ],
+    "tests/postgres-ci-evidence.test.mjs": [
+      {
+        "path": "tests/postgres-ci-evidence.test.mjs",
+        "start": 0,
+        "end": 1862
+      }
+    ],
+    "tests/postgres-fencing-live.test.mjs": [
+      {
+        "path": "tests/postgres-fencing-live.test.mjs",
+        "start": 0,
+        "end": 2471
+      }
+    ],
+    "tests/postgres-lease-clock-live.test.mjs": [
+      {
+        "path": "tests/postgres-lease-clock-live.test.mjs",
+        "start": 0,
+        "end": 15928
+      }
+    ],
+    "tests/postgres-live.test.mjs": [
+      {
+        "path": "tests/postgres-live.test.mjs",
+        "start": 0,
+        "end": 3441
+      }
+    ],
+    "tests/postgres-migration-integrity-live.test.mjs": [
+      {
+        "path": "tests/postgres-migration-integrity-live.test.mjs",
+        "start": 0,
+        "end": 11791
+      }
+    ],
+    "tests/postgres-migrations.test.mjs": [
+      {
+        "path": "tests/postgres-migrations.test.mjs",
+        "start": 0,
+        "end": 8945
+      }
+    ],
+    "tests/postgres-pr3-audit-live.test.mjs": [
+      {
+        "path": "tests/postgres-pr3-audit-live.test.mjs",
+        "start": 0,
+        "end": 3713
+      }
+    ],
+    "tests/postgres-registry-integrity-live.test.mjs": [
+      {
+        "path": "tests/postgres-registry-integrity-live.test.mjs",
+        "start": 0,
+        "end": 3606
+      }
+    ],
+    "tests/private-evidence-receipt.test.mjs": [
+      {
+        "path": "tests/private-evidence-receipt.test.mjs",
+        "start": 0,
+        "end": 2041
+      }
+    ],
+    "tests/proof-kernel-independent-property.test.mjs": [
+      {
+        "path": "tests/proof-kernel-independent-property.test.mjs",
+        "start": 0,
+        "end": 12937
+      }
+    ],
+    "tests/proof-kernel.test.mjs": [
+      {
+        "path": "tests/proof-kernel.test.mjs",
+        "start": 0,
+        "end": 9946
+      }
+    ],
+    "tests/provenance-source-identity.test.mjs": [
+      {
+        "path": "tests/provenance-source-identity.test.mjs",
+        "start": 0,
+        "end": 5348
+      }
+    ],
+    "tests/q01-evidence.test.mjs": [
+      {
+        "path": "tests/q01-evidence.test.mjs",
+        "start": 0,
+        "end": 8572
+      }
+    ],
+    "tests/q01-runner.test.mjs": [
+      {
+        "path": "tests/q01-runner.test.mjs",
+        "start": 0,
+        "end": 716
+      }
+    ],
+    "tests/qa-current-ci-snapshot.test.mjs": [
+      {
+        "path": "tests/qa-current-ci-snapshot.test.mjs",
+        "start": 0,
+        "end": 2056
+      }
+    ],
+    "tests/qa-evidence-manifest.test.mjs": [
+      {
+        "path": "tests/qa-evidence-manifest.test.mjs",
+        "start": 0,
+        "end": 4336
+      }
+    ],
+    "tests/qa-obsolete-queued-inventory.test.mjs": [
+      {
+        "path": "tests/qa-obsolete-queued-inventory.test.mjs",
+        "start": 0,
+        "end": 3061
+      }
+    ],
+    "tests/qa-q01-first-open.test.mjs": [
+      {
+        "path": "tests/qa-q01-first-open.test.mjs",
+        "start": 0,
+        "end": 3801
+      }
+    ],
+    "tests/qa-symlink-fixture.test.mjs": [
+      {
+        "path": "tests/qa-symlink-fixture.test.mjs",
+        "start": 0,
+        "end": 1682
+      }
+    ],
+    "tests/research-library.test.mjs": [
+      {
+        "path": "tests/research-library.test.mjs",
+        "start": 0,
+        "end": 1216
+      }
+    ],
+    "tests/research-providers.test.mjs": [
+      {
+        "path": "tests/research-providers.test.mjs",
+        "start": 0,
+        "end": 1417
+      }
+    ],
+    "tests/returns-research.test.mjs": [
+      {
+        "path": "tests/returns-research.test.mjs",
+        "start": 0,
+        "end": 1578
+      }
+    ],
+    "tests/roots-diagnostics.test.mjs": [
+      {
+        "path": "tests/roots-diagnostics.test.mjs",
+        "start": 0,
+        "end": 5010
+      }
+    ],
+    "tests/runtime-identity-publication.test.mjs": [
+      {
+        "path": "tests/runtime-identity-publication.test.mjs",
+        "start": 0,
+        "end": 1069
+      }
+    ],
+    "tests/scientific-adapters.test.mjs": [
+      {
+        "path": "tests/scientific-adapters.test.mjs",
+        "start": 0,
+        "end": 1352
+      }
+    ],
+    "tests/scientific-claim-checks.test.mjs": [
+      {
+        "path": "tests/scientific-claim-checks.test.mjs",
+        "start": 0,
+        "end": 1009
+      }
+    ],
+    "tests/scientific-experiment-validation.test.mjs": [
+      {
+        "path": "tests/scientific-experiment-validation.test.mjs",
+        "start": 0,
+        "end": 1385
+      }
+    ],
+    "tests/si-dimensions.test.mjs": [
+      {
+        "path": "tests/si-dimensions.test.mjs",
+        "start": 0,
+        "end": 1213
+      }
+    ],
+    "tests/sql-byte-integrity.test.mjs": [
+      {
+        "path": "tests/sql-byte-integrity.test.mjs",
+        "start": 0,
+        "end": 3840
+      }
+    ],
+    "tests/sql-byte-ledger-live.test.mjs": [
+      {
+        "path": "tests/sql-byte-ledger-live.test.mjs",
+        "start": 0,
+        "end": 1433
+      }
+    ],
+    "tests/sql-byte-reproducibility.test.mjs": [
+      {
+        "path": "tests/sql-byte-reproducibility.test.mjs",
+        "start": 0,
+        "end": 2535
+      }
+    ],
+    "tests/torus-field-adapter.test.mjs": [
+      {
+        "path": "tests/torus-field-adapter.test.mjs",
+        "start": 0,
+        "end": 1016
+      }
+    ],
+    "tests/torus-series.test.mjs": [
+      {
+        "path": "tests/torus-series.test.mjs",
+        "start": 0,
+        "end": 1330
+      }
+    ],
+    "tests/torus-surface-pde.test.mjs": [
+      {
+        "path": "tests/torus-surface-pde.test.mjs",
+        "start": 0,
+        "end": 846
+      }
+    ],
+    "tests/transform-benchmark.test.mjs": [
+      {
+        "path": "tests/transform-benchmark.test.mjs",
+        "start": 0,
+        "end": 1029
+      }
+    ],
+    "tests/walk-forward-guard.test.mjs": [
+      {
+        "path": "tests/walk-forward-guard.test.mjs",
+        "start": 0,
+        "end": 2763
+      }
+    ],
+    "tests/walk-forward.test.mjs": [
+      {
+        "path": "tests/walk-forward.test.mjs",
+        "start": 0,
+        "end": 1782
+      }
+    ],
+    "tests/windows-job-containment.test.mjs": [
+      {
+        "path": "tests/windows-job-containment.test.mjs",
+        "start": 0,
+        "end": 1573
+      }
+    ]
+  },
+  "addedFiles": [
+    "tests/platform-coverage.test.mjs"
+  ]
+}

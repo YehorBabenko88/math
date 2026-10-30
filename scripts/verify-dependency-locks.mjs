@@ -18,7 +18,7 @@ function canonical(value){return Array.isArray(value)?value.map(canonical):value
 // Manifest is an installation input too. New keys (including future npm
 // directives) and lifecycle scripts require review before this contract allows them.
 const approvedManifestKeys=['name','version','private','type','scripts','devDependencies'];
-const approvedScripts={test:'node --test tests/*.test.mjs','test:e2e':'playwright test'};
+const approvedScripts={test:'node --test tests/*.test.mjs tests/*.windows.mjs tests/*.cross.mjs','test:e2e':'playwright test'};
 const approvedNpmGraphSha256='f7b50c61fc2982c88e38b79e6510a7980d09f5bdf55044a95dcdb1cdcf711389';
 export function validateDependencyLocks(manifest,lock){
  if(!manifest||Array.isArray(manifest)||typeof manifest!=='object'||Object.keys(manifest).some(key=>!approvedManifestKeys.includes(key))||manifest.private!==true||manifest.type!=='module'||JSON.stringify(canonical(manifest.scripts))!==JSON.stringify(canonical(approvedScripts)))throw Error('Unapproved installation manifest directives');

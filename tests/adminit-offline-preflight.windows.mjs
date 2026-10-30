@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,writeFileSync,readFileSync,mkdirSync,rmSync,lstatSync,realpathSync,linkSync,symlinkSync,unlinkSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join,resolve,dirname} from 'node:path';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {inspectSource,validatePolicy,parseWorkerReport,WINDOWS_WORKER,childEnv,isWithin,runtimePin} from '../scripts/adminit-containment/offline-preflight.mjs';
+const sha=b=>createHash('sha256').update(b).digest('hex');
+const git=process.env.PREFLIGHT_TEST_GIT??(process.platform==='win32'?'C:/Program Files/Git/cmd/git.exe':'/usr/bin/git');
+function fixture(base=tmpdir()){const root=realpathSync.native(mkdtempSync(join(base,'g0-source-')));const g=(...args)=>execFileSync(git,['--no-replace-objects',...args],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();g('init','-q');g('config','core.autocrlf','false');g('config','user.email','synthetic@example.invalid');g('config','user.name','Synthetic');g('remote','add','origin','https://github.com/YehorBabenko88/math.git');mkdirSync(join(root,'src'));writeFileSync(join(root,'src/a.txt'),'synthetic\n');g('add','.');g('commit','-qm','synthetic');const head=g('rev-parse','HEAD'),tree=g('rev-parse','HEAD^{tree}');g('checkout','--detach',head);const oid=g('rev-parse','HEAD:src/a.txt');const pins={head,tree,blobs:[{path:'src/a.txt',mode:'100644',oid,sha256:sha(readFileSync(join(root,'src/a.txt')))}]};return{root,g,pins,dispose:()=>{assert.equal(dirname(resolve(root)).toLowerCase(),realpathSync.native(base).toLowerCase());assert.ok(root.includes('g0-source-'));assert.equal(lstatSync(root).isSymbolicLink(),false);rmSync(root,{recursive:true,force:true});}};}
+const ps=process.platform==='win32'?'C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe':null;
+function worker(payload,setup=''){
+ const f=fixture();try{const scratch=join(f.root,'compile');mkdirSync(scratch);const compiler=join(process.env.WINDIR,'Microsoft.NET/Framework64/v4.0.30319/csc.exe');const value={sourceRoot:f.root,scratch,powershellSha:sha(readFileSync(ps)),compilerSha:sha(readFileSync(compiler)),scripts:["param()\n'x'"],csharp:readFileSync('scripts/adminit-containment/WindowsTokenObservation.cs','utf8'),...payload};const input=join(scratch,'input.json');writeFileSync(input,JSON.stringify(value));const r=spawnSync(ps,['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(setup+"$expectedPayloadSha='"+sha(readFileSync(input))+"';\n"+WINDOWS_WORKER,'utf16le').toString('base64')],{env:{...process.env,PSModulePath:join(dirname(ps),'Modules'),MATH_PREFLIGHT_PAYLOAD:input},encoding:'utf8',timeout:45000,windowsHide:true,maxBuffer:16384});assert.equal(r.error,undefined,'worker bounded');assert.equal(r.stderr,'','closed worker stderr');return{exit:r.status,result:parseWorkerReport(r.stdout)};}finally{f.dispose();}}
+test('Windows Framework compile-only produces a file without loading adapter types',{skip:process.platform!=='win32'?'Windows Framework unavailable; NOT_RUN':false},()=>{const r=worker({});assert.equal(r.exit,0);assert.equal(r.result.status,'PASS');});
+test('Windows parser/compiler/runtime and preloaded-type failures stay BLOCKED',{skip:process.platform!=='win32'?'Windows Framework unavailable; NOT_RUN':false},()=>{
+ for(const [input,code] of [[{scripts:['param(']},'PARSER'],[{csharp:'this is not C sharp'},'COMPILE'],[{compilerSha:'0'.repeat(64)},'RUNTIME'],[{powershellSha:'0'.repeat(64)},'RUNTIME']]){const r=worker(input);assert.equal(r.exit,2);assert.equal(r.result.status,'BLOCKED');assert.equal(r.result.code,code);}
+ // Benign synthetic namesake only; never load the candidate adapter.
+ const stub="$ProgressPreference='SilentlyContinue';Add-Type -TypeDefinition 'namespace MathUniverse.G0 { public class WindowsTokenAdapter { public void Synthetic() {} } }' -WarningAction SilentlyContinue;\n";
+ const r=worker({},stub);assert.equal(r.exit,2);assert.equal(r.result.code,'TYPES');
+});
+for(const shell of ['powershell.exe','pwsh.exe'])test('preflight worker parser-only '+shell,{skip:process.platform!=='win32'?'Windows PowerShell parser unavailable; NOT_RUN':false},()=>{const script="$ErrorActionPreference='Stop';$t=$null;$e=$null;[void][Management.Automation.Language.Parser]::ParseInput([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:WORKER_SOURCE)),[ref]$t,[ref]$e);if($e.Count){exit 2};'PARSER_ONLY_PASS'";const r=spawnSync(shell,['-NoLogo','-NoProfile','-NonInteractive','-Command',script],{env:{...process.env,WORKER_SOURCE:Buffer.from(WINDOWS_WORKER).toString('base64')},encoding:'utf8',timeout:15000,windowsHide:true});assert.equal(r.status,0);assert.equal(r.stderr,'');assert.equal(r.stdout.trim(),'PARSER_ONLY_PASS');});
+
+test('disposable hosted Windows full offline CLI and fail-closed pins/source checks',{skip:process.platform!=='win32'||process.env.GITHUB_ACTIONS!=='true'?'Hosted Windows fixture only; local/physical NOT_RUN':false},()=>{
+ const lab=join(process.env.LOCALAPPDATA,'MathUniverseAdminitAcceptance');mkdirSync(lab,{recursive:true});const f=fixture(lab);const policyPath=join(lab,'policy-'+f.pins.head+'.json');
+ try{
+  const folder='scripts/adminit-containment';mkdirSync(join(f.root,folder),{recursive:true});
+  for(const name of ['offline-preflight.mjs','WindowsTokenObservation.cs','g0-token-api.ps1','observe-token-api.ps1','collect-g0.ps1'])writeFileSync(join(f.root,folder,name),readFileSync(folder+'/'+name));
+  f.g('add','.');f.g('commit','-qm','offline fixture');const head=f.g('rev-parse','HEAD'),tree=f.g('rev-parse','HEAD^{tree}');
+  const blobs=f.g('ls-tree','-r','HEAD').split('\n').map(line=>{const m=/^(100644|100755) blob ([a-f0-9]{40})\t(.+)$/.exec(line);assert.ok(m);return{path:m[3],mode:m[1],oid:m[2],sha256:sha(readFileSync(join(f.root,m[3])))};});
+  const pin=p=>({path:p,sha256:sha(readFileSync(p))});const compiler=join(process.env.WINDIR,'Microsoft.NET/Framework64/v4.0.30319/csc.exe');
+  const policy={schema:'math.g0.offline-policy.v1',repository:'YehorBabenko88/math',head,tree,blobs,tools:{node:{...pin(process.execPath),version:process.version},git:pin(git),powershell:pin(ps),compiler:{sha256:sha(readFileSync(compiler))}}};
+  const run=p=>{const raw=JSON.stringify(p)+'\n';writeFileSync(policyPath,raw);const r=spawnSync(process.execPath,[resolve('scripts/adminit-containment/offline-preflight.mjs'),'--source',f.root,'--policy',policyPath,'--policy-sha256',sha(raw)],{env:childEnv(),encoding:'utf8',windowsHide:true,timeout:90000,maxBuffer:16384});assert.equal(r.error,undefined);assert.equal(r.stderr,'');const out=JSON.parse(r.stdout);assert.equal(out.admission,'BLOCKED');assert.equal(out.authority,'NONE');assert.equal(out.localExecute,false);assert.equal(out.isolationConfirmed,false);assert.equal(out.physicalCall,'NOT_AUTHORIZED');return{exit:r.status,out};};
+  const good=run(policy);assert.equal(good.exit,0);assert.equal(good.out.status,'PASS');assert.equal(good.out.sourceHead,head);assert.equal(good.out.sourceTree,tree);assert.equal(good.out.sourceBlobs,blobs.length);assert.equal(good.out.policySha256,sha(JSON.stringify(policy)+'\n'));
+  for(const changed of [{...policy,tree:'0'.repeat(40)},{...policy,tools:{...policy.tools,node:{...policy.tools.node,sha256:'0'.repeat(64)}}}]){const r=run(changed);assert.equal(r.exit,2);assert.equal(r.out.status,'BLOCKED');}
+  writeFileSync(join(f.root,'unexpected'),'synthetic');assert.equal(run(policy).out.status,'BLOCKED');unlinkSync(join(f.root,'unexpected'));
+ } finally {if(lstatSync(policyPath,{throwIfNoEntry:false}))unlinkSync(policyPath);f.dispose();}
+});
