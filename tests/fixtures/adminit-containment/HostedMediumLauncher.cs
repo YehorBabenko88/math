@@ -28,7 +28,9 @@ namespace MathUniverse.AdminitHosted {
     Check(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true"&&Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")=="github-hosted"&&!String.Equals(Environment.MachineName,"ADMINIT",StringComparison.OrdinalIgnoreCase),"hosted-only bootstrap BLOCKED");
     Check(args.Length==2,"fixed package/run roots required");string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+"\\";string package=Path.GetFullPath(args[0]),run=Path.GetFullPath(args[1]);
     Check(package.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&run.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&!Directory.Exists(run),"hosted temporary roots required");string exe=Path.Combine(package,"AdminitSyntheticHarness.exe");Check(File.Exists(exe),"fixed executable missing");
-    Check(OpenProcessToken(GetCurrentProcess(),11,out token),"caller token query");Check(CreateRestrictedToken(token,5,0,IntPtr.Zero,0,IntPtr.Zero,0,IntPtr.Zero,out limited),"restricted token creation BLOCKED");
+    // CreateRestrictedToken preserves handle access rights. Integrity assignment
+    // needs TOKEN_ADJUST_DEFAULT in addition to ASSIGN_PRIMARY|DUPLICATE|QUERY.
+    Check(OpenProcessToken(GetCurrentProcess(),0x8b,out token),"caller token query");Check(CreateRestrictedToken(token,5,0,IntPtr.Zero,0,IntPtr.Zero,0,IntPtr.Zero,out limited),"restricted token creation BLOCKED");
     Check(ConvertStringSidToSid("S-1-16-8192",out sid),"Medium SID creation");label=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SidAttributes)));Marshal.StructureToPtr(new SidAttributes{Sid=sid,Attributes=0x20},label,false);
     Check(SetTokenInformation(limited,25,label,(uint)Marshal.SizeOf(typeof(SidAttributes))+GetLengthSid(sid)),"Medium token assignment BLOCKED");
     var values=new SortedDictionary<string,string>(StringComparer.OrdinalIgnoreCase);string windows=Environment.GetFolderPath(Environment.SpecialFolder.Windows);
@@ -43,6 +45,7 @@ namespace MathUniverse.AdminitHosted {
    finally{
     try{if(assigned){k.TerminateJob(job);Check(k.WaitJobEmpty(job,5000),"bootstrap descendant drain unconfirmed");}else if(p!=IntPtr.Zero){k.TerminateProcess(p);Check(k.Wait(p,5000)==0,"unassigned supervisor cleanup unconfirmed");}}
     finally{bool closed=true;foreach(IntPtr h in new[]{p,t,job,token,limited})if(h!=IntPtr.Zero)closed=CloseHandle(h)&&closed;if(sid!=IntPtr.Zero)LocalFree(sid);if(label!=IntPtr.Zero)Marshal.FreeHGlobal(label);if(env!=IntPtr.Zero)Marshal.FreeHGlobal(env);Check(closed,"bootstrap owned handle close failed");}
+    Console.WriteLine("BOOTSTRAP_CLEANUP_CONFIRMED");
    }
   }
  }

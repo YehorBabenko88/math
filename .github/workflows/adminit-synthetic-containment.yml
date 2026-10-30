@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/adminit-containment/**'
       - 'tests/adminit-*.test.mjs'
+      - 'tests/adminit-*.native.ps1'
       - 'tests/fixtures/adminit-containment/**'
       - '.github/workflows/adminit-synthetic-containment.yml'
   workflow_dispatch:
@@ -30,7 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Static and model regressions only
-        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs tests/adminit-stdout-privacy.test.mjs tests/adminit-workflow-privacy.test.mjs tests/adminit-package-caller-contract.test.mjs tests/adminit-package-syntax.test.mjs tests/adminit-zip-admission.test.mjs tests/adminit-zip-members.test.mjs tests/runtime-identity-publication.test.mjs tests/private-evidence-receipt.test.mjs
+        run: node --test tests/adminit-containment.test.mjs tests/adminit-package.test.mjs tests/adminit-native-evidence.test.mjs tests/adminit-build-inputs.test.mjs tests/adminit-isolation.test.mjs tests/adminit-watchdog.test.mjs tests/adminit-stdout-privacy.test.mjs tests/adminit-workflow-privacy.test.mjs tests/adminit-package-caller-contract.test.mjs tests/adminit-package-syntax.test.mjs tests/adminit-zip-admission.test.mjs tests/adminit-zip-members.test.mjs tests/runtime-identity-publication.test.mjs tests/private-evidence-receipt.test.mjs tests/adminit-bootstrap-diagnostic.test.mjs tests/adminit-audit-envelope.test.mjs
       - name: Fail-closed local policy and parser contracts (no native fixture)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -60,6 +61,11 @@ jobs:
         shell: pwsh
         run: |
           & powershell -NoProfile -File scripts/adminit-containment/build-hosted.ps1 -OutputRoot "$env:RUNNER_TEMP/adminit-build" -ExpectedHead '${{ github.sha }}'
+          exit $LASTEXITCODE
+      - name: Actual token handle access regression (no subprocess fixture)
+        shell: pwsh
+        run: |
+          & powershell -NoProfile -NonInteractive -File tests/adminit-token-access.native.ps1
           exit $LASTEXITCODE
       - name: Verify compiled package before any native fixture launch
         shell: pwsh
@@ -94,6 +100,8 @@ jobs:
             @{pid=$owner.Id;handle=([long]$handle).ToString('x');exitCode=$owner.ExitCode;exited=$owner.HasExited;scope='process handle only; no named inner job handle held by observer'} | ConvertTo-Json | Set-Content "$build/bootstrap-process.json"
             # Do not echo raw bootstrap streams into public Actions logs.
             Write-Output "HOSTED_BOOTSTRAP_EXIT_RECORDED"
+            node scripts/adminit-containment/bootstrap-diagnostic.mjs $build
+            if ($LASTEXITCODE -ne 0) { throw 'bootstrap diagnostic unavailable: BLOCKED' }
             if ($owner.ExitCode -ne 0) { throw "native fixture FAIL/BLOCKED exit $($owner.ExitCode)" }
           } finally {
             $owner.Dispose()
@@ -123,6 +131,21 @@ jobs:
           path: ${{ runner.temp }}/adminit-build/package/
           if-no-files-found: error
           retention-days: 30
+      - name: Seal original native audit evidence for independent recipient
+        if: always()
+        shell: pwsh
+        run: |
+          $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
+          node scripts/adminit-containment/seal-audit.mjs "$env:RUNNER_TEMP/adminit-build" "$env:RUNNER_TEMP/adminit-native" "$env:RUNNER_TEMP/native-audit.sealed.json"
+          exit $LASTEXITCODE
+      - name: Retain encrypted originals only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adminit-sealed-audit-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-audit.sealed.json
+          if-no-files-found: error
+          retention-days: 30
       # Raw runtime results, process identity, SID and bootstrap stdout/stderr are not
       # public-safe. Preserve only digest/identity metadata; this is NOT native acceptance.
       - name: Retain redacted metadata only (native evidence still BLOCKED)
@@ -134,5 +157,6 @@ jobs:
             ${{ runner.temp }}/adminit-build/build-identity.json
             ${{ runner.temp }}/adminit-build/source-identity.json
             ${{ runner.temp }}/adminit-build/evidence-sha256.json
+            ${{ runner.temp }}/adminit-build/bootstrap-diagnostic.json
           if-no-files-found: error
           retention-days: 30
