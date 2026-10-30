@@ -9,10 +9,22 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   if(process.env.GITHUB_ACTIONS!=='true'||process.env.RUNNER_ENVIRONMENT!=='github-hosted'||process.platform!=='win32')throw Error();
   const [build,run,output]=process.argv.slice(2);if(!build||!run||!output)throw Error();
   const payload={sourceHead:process.env.GITHUB_SHA,sourceTree:process.env.SOURCE_TREE,runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,files:{}};
-  for(const [name,path] of [['bootstrap-stdout.txt',resolve(build,'bootstrap-stdout.txt')],['bootstrap-stderr.txt',resolve(build,'bootstrap-stderr.txt')],['bootstrap-process.json',resolve(build,'bootstrap-process.json')],['results.json',resolve(run,'results.json')]]){
+  for(const [name,path] of [['bootstrap-stdout.txt',resolve(build,'bootstrap-stdout.txt')],['bootstrap-stderr.txt',resolve(build,'bootstrap-stderr.txt')],['bootstrap-process.json',resolve(build,'bootstrap-process.json')],['results.json',resolve(run,'results.json')],['supervisor-failure.json',resolve(run,'../supervisor-failure.json')]]){
    for(let p=dirname(path);;p=dirname(p)){const s=lstatSync(p,{throwIfNoEntry:false});if(s&&(!s.isDirectory()||s.isSymbolicLink()))throw Error();if(dirname(p)===p)break;}
    const s=lstatSync(path,{throwIfNoEntry:false});if(!s){payload.files[name]=null;continue;}
    if(!s.isFile()||s.isSymbolicLink()||s.nlink!==1||s.size>1048576)throw Error();
+   payload.files[name]=readFileSync(path).toString('base64');
+  }
+  for(const name of ['private-step-0.log','private-step-1.log','private-step-2.log','private-step-3.log']){
+   const path=resolve(run,'..',name),s=lstatSync(path,{throwIfNoEntry:false});
+   if(!s){payload.files[name]=null;continue;}
+   if(!s.isFile()||s.isSymbolicLink()||s.nlink!==1||s.size>1048576)throw Error();
+   payload.files[name]=readFileSync(path).toString('base64');
+  }
+  for(const scenario of ['normal','timeout','crash','assignment','cleanup','watchdog']){
+   const name=scenario+'/owner-result.json',path=resolve(run,scenario,'owner-result.json'),dir=lstatSync(resolve(run,scenario),{throwIfNoEntry:false}),s=lstatSync(path,{throwIfNoEntry:false});
+   if(!s){payload.files[name]=null;continue;}
+   if(!dir?.isDirectory()||dir.isSymbolicLink()||!s.isFile()||s.isSymbolicLink()||s.nlink!==1||s.size>1048576)throw Error();
    payload.files[name]=readFileSync(path).toString('base64');
   }
   const bytes=sealAuditEvidence(payload,createPublicKey(readFileSync(new URL('./audit-recipient.pem',import.meta.url))));

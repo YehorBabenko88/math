@@ -67,6 +67,7 @@ foreach($case in $cases){
  $evidence+=@{name=$case.name;calls=$calls;exitCode=$code;expectedFailure=$case.reason}
 }
 & (Join-Path $PSScriptRoot 'adminit-powershell-watchdog.mock.ps1')
+& (Join-Path $PSScriptRoot 'adminit-idempotent-cleanup.mock.ps1')
 $result=@{qualification='MODEL/source-fragment mocks only; setup and kernel are fake';nativeExpiryHosted='BLOCKED';nativeCalls=0;bootstrapDeadlineMs=120000;powershellDeadlineMs=150000;launcherSha256=([BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($launcher))).Replace('-',''));bootstrapCases=$evidence;powerShellCases=4;limitations='Does not qualify native timing, process creation, token setup, job semantics or hosted execution. Existing owner watchdog and cleanup guards unchanged.'}|ConvertTo-Json -Depth 8
 if($EvidencePath){
  $bytes=[Text.Encoding]::UTF8.GetBytes($result)
