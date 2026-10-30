@@ -1,4 +1,4 @@
-import test from'node:test';import assert from'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);import assert from'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 for(const shell of ['powershell.exe','pwsh.exe'])test('compiled AdminState flag semantics: '+shell,{skip:process.platform!=='win32'?'Windows compiler unavailable':false},()=>{const script=String.raw`$ErrorActionPreference='Stop';[void](Add-Type -TypeDefinition ([IO.File]::ReadAllText($env:FLAGS_SOURCE)) -ErrorAction Stop)
 if([MathUniverse.G0.TokenPolicy]::AdminState(1,128) -ne -1){throw 'reserved 0x80 accepted'}
 foreach($v in @(0,1,2,3,8,9,10,11,16,17,18,19,24,25,26,27)){if([MathUniverse.G0.TokenPolicy]::AdminState(1,[uint32]$v) -ne 0){throw 'disabled or deny-only rejected'}}

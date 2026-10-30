@@ -7,7 +7,7 @@ const contexts={
  '.github/workflows/ci.yml':['test'],
  '.github/workflows/book-ingestion.yml':['native-pdf'],
  '.github/workflows/browser.yml':['chromium'],
- '.github/workflows/postgres-integration.yml':['Full suite Node 22 / PostgreSQL 16','Full suite Node 22 / PostgreSQL 18','Full suite Node 24 / PostgreSQL 16','Full suite Node 24 / PostgreSQL 18'],
+ '.github/workflows/postgres-integration.yml':['Full suite Node 22 / PostgreSQL 16','Full suite Node 22 / PostgreSQL 18','Full suite Node 24 / PostgreSQL 16','Full suite Node 24 / PostgreSQL 18','Windows native Node 22','Windows native Node 24'],
  '.github/workflows/windows-deployment.yml':['Windows contracts / powershell','Windows contracts / pwsh']
 };
 export function validateProvenanceMetadata(env){

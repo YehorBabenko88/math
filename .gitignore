@@ -3,3 +3,7 @@ test-results/
 __pycache__/
 
 .history-evidence/
+.ci-qualification/
+.ci-downloaded/
+full-ci-coverage.json
+full-ci-coverage.SHA256SUMS

@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 for(const shell of ['powershell.exe','pwsh.exe'])test('CSV complete-row SID and boundary negatives: '+shell,{skip:process.platform!=='win32'?'Windows PowerShell unavailable':false},()=>{const script=String.raw`$ErrorActionPreference='Stop';. $env:G0_CSV_HELPERS
 $medium='"Label","Type","S-1-16-8192","Attributes"'
 $high='"Label","Type","S-1-16-12288","Attributes"'

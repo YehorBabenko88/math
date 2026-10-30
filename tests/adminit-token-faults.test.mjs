@@ -1,5 +1,5 @@
 import{validateTokenObservation}from'../scripts/adminit-containment/token-contract.mjs';
-import test from'node:test';import assert from'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import nodeTest from 'node:test';import {platformTests} from '../scripts/ci-platform-cases.mjs';const test=platformTests(import.meta.url,nodeTest);import assert from'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 for(const shell of ['powershell.exe','pwsh.exe'])test('instrumented production orchestration: '+shell,{skip:process.platform!=='win32'?'Windows compiler unavailable':false},()=>{const script=String.raw`$ErrorActionPreference='Stop'
 $s=[IO.File]::ReadAllText($env:TOKEN_PRODUCTION)
 $pattern='(?m)^  \[DllImport[^\r\n]+\r?$'

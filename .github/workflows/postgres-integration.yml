@@ -59,7 +59,19 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: 'python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r scripts/book-ingestion-requirements.txt'
       - name: Full unfiltered suite (zero skips or todo)
-        run: node scripts/test-full-ci.mjs
+        run: node scripts/run-platform-qualification.mjs postgres
+      - name: Publish strict platform coverage receipt and raw TAP
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: strict-linux-node${{ matrix.node }}-pg${{ matrix.postgres }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .ci-qualification/result.json
+            .ci-qualification/tests.tap
+            .ci-qualification/stderr.txt
+            .ci-qualification/SHA256SUMS
+          include-hidden-files: true
+          if-no-files-found: error
       - name: Record exact source and dependency provenance
         env:
           SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
@@ -72,14 +84,81 @@ jobs:
           path: release-provenance.json
           if-no-files-found: error
           retention-days: 30
+  windows-platform:
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
+    name: Windows native Node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      PROVENANCE_CONTEXT: 'Windows native Node ${{ matrix.node }}'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Verify tracked source before tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+        run: node scripts/verify-source-identity.mjs --before
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Execute mandatory native Windows cases without skips
+        run: node scripts/run-platform-qualification.mjs windows
+      - name: Publish native coverage receipt and raw TAP
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: strict-win32-node${{ matrix.node }}-native-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .ci-qualification/result.json
+            .ci-qualification/tests.tap
+            .ci-qualification/stderr.txt
+            .ci-qualification/SHA256SUMS
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Verify tracked source after tests
+        env:
+          SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
+        run: node scripts/ci-provenance.mjs
+      - name: Publish native exact-source provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-source-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-provenance.json
+          if-no-files-found: error
   full-ci-coverage:
     name: Full CI coverage
-    if: ${{ (always()) && github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
-    needs: [postgres-integration]
+    if: always() && github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard'
+    needs: [postgres-integration, windows-platform]
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
       - name: Require every matrix cell to succeed
         env:
           MATRIX_RESULT: ${{ needs.postgres-integration.result }}
-        run: test "$MATRIX_RESULT" = success
+          WINDOWS_RESULT: ${{ needs.windows-platform.result }}
+        run: test "$MATRIX_RESULT" = success && test "$WINDOWS_RESULT" = success
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: strict-*-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ci-downloaded
+      - name: Independently verify six exact-source coverage receipts and raw TAP
+        run: node scripts/ci-platform-coverage.mjs .ci-downloaded
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: full-ci-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            full-ci-coverage.json
+            full-ci-coverage.SHA256SUMS
+          if-no-files-found: error
