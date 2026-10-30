@@ -42,6 +42,7 @@ def evaluate_timed_request(q):
             if any(not number(r[k]) for k in ('open','high','low','close','volume')):raise ValueError('NONFINITE')
             if not 0<r['low']<=min(r['open'],r['close'])<=max(r['open'],r['close'])<=r['high'] or r['volume']<0:raise ValueError('OHLCV')
         if q['decision_ms']-rows[-1]['event_end_ms']>q['max_age_ms']:raise ValueError('STALE_FEATURE')
+        if not clock(rows[-1]['event_end_ms']+60000):raise ValueError('TARGET_CLOCK')
         legacy=evaluate({'schema':'math.history.request.v1','prices':[r['close'] for r in rows],
                          'dataset_fingerprint':q['dataset_fingerprint'],'train_count':train})
         return {**legacy,'schema':'math.history.result.v1.1','request_digest':digest(q),

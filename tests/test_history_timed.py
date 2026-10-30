@@ -21,6 +21,14 @@ def request():
 
 
 class TimedMath(unittest.TestCase):
+    def test_target_event_time_cannot_overflow_wire_clock(self):
+        q=request();shift=((2**53-1)//60000-40)*60000
+        for row in q['rows']:
+            for k in ('event_start_ms','event_end_ms','source_event_start_ms','source_event_end_ms','available_at_ms','watermark_ms'):
+                row[k]+=shift
+        q['decision_ms']+=shift;q['train_end_ms']+=shift
+        with self.assertRaises(ValueError):evaluate_timed_request(q)
+
     def test_exact_numerical_parity_and_identity_binding(self):
         q=request();r=evaluate_timed_request(q)
         old=evaluate({'schema':'math.history.request.v1','prices':[x['close'] for x in q['rows']],
