@@ -10,6 +10,6 @@ export function compileExpression(source){
  function mult(){let a=unary();while(peek()==="*"||peek()==="/"){const op=t[i++];a=node("binary",{op,left:a,right:unary()})}return a}
  function add(){let a=mult();while(peek()==="+"||peek()==="-"){const op=t[i++];a=node("binary",{op,left:a,right:mult()})}return a}
  const ast=add();if(i!==t.length)throw Error("Unexpected token: "+peek());
- function calc(a,x){switch(a.type){case "number":return a.value;case "symbol":return a.name==="x"?x:a.name==="pi"?Math.PI:Math.E;case "neg":return -calc(a.arg,x);case "call":return ({sin:Math.sin,cos:Math.cos,exp:Math.exp,log:Math.log,sqrt:Math.sqrt,abs:Math.abs})[a.name](calc(a.arg,x));case "binary":{const l=calc(a.left,x),r=calc(a.right,x);return ({"+":()=>l+r,"-":()=>l-r,"*":()=>l*r,"/":()=>l/r,"^":()=>l**r})[a.op]()}}}
- return {ast,evaluate:x=>{if(!Number.isFinite(x))throw Error("x must be finite");return calc(ast,x)}};
+ function calc(a,x,checked=false){const value=(()=>{switch(a.type){case "number":return a.value;case "symbol":return a.name==="x"?x:a.name==="pi"?Math.PI:Math.E;case "neg":return -calc(a.arg,x,checked);case "call":return ({sin:Math.sin,cos:Math.cos,exp:Math.exp,log:Math.log,sqrt:Math.sqrt,abs:Math.abs})[a.name](calc(a.arg,x,checked));case "binary":{const l=calc(a.left,x,checked),r=calc(a.right,x,checked);return ({"+":()=>l+r,"-":()=>l-r,"*":()=>l*r,"/":()=>l/r,"^":()=>l**r})[a.op]()}}})();if(checked&&!Number.isFinite(value))throw Error('NONFINITE_EXPRESSION');return value;}
+ return {ast,evaluateFinite:x=>{if(!Number.isFinite(x))throw Error('x must be finite');return calc(ast,x,true)},evaluate:x=>{if(!Number.isFinite(x))throw Error("x must be finite");return calc(ast,x)}};
 }

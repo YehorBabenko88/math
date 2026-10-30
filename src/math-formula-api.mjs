@@ -1,7 +1,9 @@
 import {compileExpression} from './expression.mjs';
+import {snapshotJSON} from './scientific-data.mjs';
 // Controlled single-variable formula transform. No eval or external code.
 const UNITS=new Set(['dimensionless','USD','USDT','BTC','seconds']);
 export function evaluateFormulaDocument(d){
+ d=snapshotJSON(d);
  if(!d||d.schema!=='math.formula.v1'||d.execution_authority!==false||
  !Array.isArray(d.values)||d.values.length<2||d.values.length>2000||
  d.values.some(x=>typeof x!=='number'||!Number.isFinite(x))||
@@ -12,6 +14,7 @@ export function evaluateFormulaDocument(d){
  if(d.inputUnit!=='dimensionless'||d.outputUnit!=='dimensionless')throw Error('UNIT_CONVERSION_NOT_AUTHORIZED');
  if(d.knowledge!==undefined){
   const k=d.knowledge;
+  if(!k||Object.keys(k).sort().join(',')!=='attested,page,sourceId,title')throw Error('UNKNOWN_KNOWLEDGE_FIELDS');
   if(!k||typeof k.title!=='string'||!k.title.trim()||k.title.length>160||
     typeof k.sourceId!=='string'||!k.sourceId.trim()||k.sourceId.length>128||
     typeof k.page!=='number'||!Number.isSafeInteger(k.page)||k.page<1||

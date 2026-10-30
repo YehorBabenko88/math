@@ -1,0 +1,42 @@
+name: Central Scientific Engine Contracts
+on:
+  push:
+    branches: [feat/central-scientific-engine-v2]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/scientific-*.test.mjs'
+      - 'scripts/scientific/**'
+      - '.github/workflows/scientific-engine.yml'
+permissions:
+  contents: read
+jobs:
+  scientific-contracts:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    env:
+      NODE_NO_WARNINGS: '1'
+      EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Bounded scientific and compatibility contracts
+        run: node scripts/scientific/run-contracts.mjs
+      - name: Publish synthetic qualification receipt only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: scientific-contracts-${{ matrix.os }}-node${{ matrix.node }}
+          path: outputs/scientific-engine/
+          if-no-files-found: error
+          retention-days: 7

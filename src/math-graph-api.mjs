@@ -20,6 +20,7 @@ export function evaluateResearchGraph(body){
   descriptions.push(n.id);
  }
  const last=graph.execute(descriptions.at(-1));
+ if((Array.isArray(last.value)?last.value:[last.value]).some(v=>typeof v!=='number'||!Number.isFinite(v)))throw Error('NONFINITE_RESULT');
  if(!['time-series','comparison-series','scalar'].includes(last.type))throw Error('INVALID_RESULT');
  if(Array.isArray(last.value)&&last.value.length>2000)throw Error('OVERSIZE_RESULT');
  return {schema:'math.graph.result.v1',status:'RESEARCH_ONLY',source:'CALLER_SUPPLIED_UNATTESTED',
