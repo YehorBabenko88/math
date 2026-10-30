@@ -11,7 +11,7 @@ on:
 jobs:
   q01-diagnostic:
     # User-scoped synthetic branch: unrelated suites are NOT_RUN, never qualification PASS.
-    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     name: Q01 synthetic diagnostic (not acceptance)
     runs-on: ubuntu-latest
     timeout-minutes: 15

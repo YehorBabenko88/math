@@ -1,0 +1,29 @@
+{
+  "schema": "math.scientific.local-evidence.v1",
+  "base": "b92cd96ab5a8cab048524b311f565f4fe1937b1f",
+  "kind": "LOCAL_SYNTHETIC_AND_LOOPBACK_ONLY",
+  "matrix": [
+    {
+      "node": "22.23.3",
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "node": "24.20.0",
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "files": {
+    "node22.tap": "056d60783b85ccc13ae0f263f3ac0e882ab4b41c3a06fd67f8f518a89d6cf795",
+    "node24.tap": "636eac75b1b02b7094e01f7e8a552bc1764ec5b8f7f50db245c551f99778e5fb",
+    "red-capabilities.tap": "24e8ecdf4774b41e349e92e184c8c290d918ac093ee11061cff7047442bd6c92",
+    "red-http-ast.tap": "b9c3d5ed14ceb3364eaa0151d18d858bf2426bc3d693e36dc92040fa57b9fe57",
+    "red-metrics.tap": "5bfddd183bb8b640cb4b8e2a9afb10a592fc095840ffcc918bbe5272d2f11081",
+    "red-receipt.tap": "af0314a8752df8986b294f3956320cfa5358ae8ed18efa89d52d88ac097d3785",
+    "red-source-proof.tap": "903b352825eb17317663a4a1fe44834ea9d8f406d23ff45acfb215d6a8396f4c",
+    "red.tap": "2a4ee0d5939210f959ed87f3d95a87e221c065414eda2b8dffb1185cd824a04a"
+  }
+}
