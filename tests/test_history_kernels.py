@@ -9,6 +9,9 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'python'))
 import history_timeseries as port
 import history_nonlinear as analog
+import history_stochastic as stochastic
+import history_statistics as bootstrap
+import history_sizing as sizing
 from history_worker import evaluate
 
 
@@ -18,6 +21,22 @@ def load(path):
 
 
 class Parity(unittest.TestCase):
+    def test_stochastic_bootstrap_and_sizing_parity(self):
+        grid=Path(os.environ.get('GRID_REFERENCE',ROOT.parent/'grid'))
+        ref=load(grid/'grid/stochastic_research.py')
+        x=[100+math.sin(i*.3) for i in range(50)]
+        for name,args in [('lag1_autocorrelation',(x,)),('poisson_event_diagnostics',([1,30,50,100,140],)),
+                          ('markov_transition_matrix',(['A','B','A','A','C'],)),('spectral_band_power',(x,)),('quadratic_variation',(x,))]:
+            self.assertEqual(getattr(stochastic,name)(*args),getattr(ref,name)(*args))
+        stats=load(grid/'grid/strategy_statistics.py')
+        a=[{'signal_id':i,'pnl':i*.1,'fees':.01,'slippage':.02} for i in range(30)]
+        b=[{**r,'pnl':r['pnl']+.05} for r in a]
+        self.assertEqual(bootstrap.paired_expectancy_bootstrap(a,b,runs=50),stats.paired_expectancy_bootstrap(a,b,runs=50))
+        self.assertEqual(bootstrap.block_bootstrap_expectancy(a,block_size=5,runs=50),stats.block_bootstrap_expectancy(a,block_size=5,runs=50))
+        sr=load(grid/'grid/position_sizing_research.py')
+        self.assertEqual(sizing.apply_sizing(a),sr.apply_sizing(a))
+        self.assertEqual(sizing.ruin_stats(a),sr.ruin_stats(a))
+
     def test_original_grid_semantics(self):
         grid=Path(os.environ.get('GRID_REFERENCE',ROOT.parent/'grid'))
         ref=load(grid/'grid/timeseries_research.py');nr=load(grid/'grid/nonlinear_research.py')
