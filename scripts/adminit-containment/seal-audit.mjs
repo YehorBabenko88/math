@@ -21,6 +21,12 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
    if(!s.isFile()||s.isSymbolicLink()||s.nlink!==1||s.size>1048576)throw Error();
    payload.files[name]=readFileSync(path).toString('base64');
   }
+  for(const scenario of ['normal','timeout','crash','assignment','cleanup','watchdog']){
+   const name=scenario+'/owner-result.json',path=resolve(run,scenario,'owner-result.json'),dir=lstatSync(resolve(run,scenario),{throwIfNoEntry:false}),s=lstatSync(path,{throwIfNoEntry:false});
+   if(!s){payload.files[name]=null;continue;}
+   if(!dir?.isDirectory()||dir.isSymbolicLink()||!s.isFile()||s.isSymbolicLink()||s.nlink!==1||s.size>1048576)throw Error();
+   payload.files[name]=readFileSync(path).toString('base64');
+  }
   const bytes=sealAuditEvidence(payload,createPublicKey(readFileSync(new URL('./audit-recipient.pem',import.meta.url))));
   writeFileSync(output,bytes,{flag:'wx'});
  }catch{console.error('Private native audit sealing BLOCKED; payload suppressed');process.exitCode=2;}
