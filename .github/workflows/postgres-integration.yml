@@ -61,11 +61,13 @@ jobs:
       - name: Full unfiltered suite (zero skips or todo)
         run: node scripts/test-full-ci.mjs
       - name: Record exact source and dependency provenance
+        if: always()
         env:
           SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json
           PROVENANCE_CONTEXT: 'Full suite Node ${{ matrix.node }} / PostgreSQL ${{ matrix.postgres }}'
         run: node scripts/ci-provenance.mjs
       - name: Upload source provenance
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: release-provenance-${{ github.run_id }}-${{ github.run_attempt }}-postgres-${{ matrix.node }}-${{ matrix.postgres }}
