@@ -31,7 +31,8 @@ def evaluate_timed_request(q):
         if not isinstance(rows,list) or not 20<=len(rows)<=2000 or type(train) is not int or not 20<=train<=len(rows):raise ValueError('ROWS_OR_TRAIN')
         previous=None
         for i,r in enumerate(rows):
-            if not all(clock(r[k]) for k in ('event_start_ms','event_end_ms','watermark_ms','available_at_ms')):raise ValueError('ROW_CLOCK')
+            if not all(clock(r[k]) for k in ('event_start_ms','event_end_ms','source_event_start_ms','source_event_end_ms','watermark_ms','available_at_ms')):raise ValueError('ROW_CLOCK')
+            if not r['event_start_ms']<=r['source_event_start_ms']<=r['source_event_end_ms']<r['event_end_ms']:raise ValueError('SOURCE_EVENT_CLOCK')
             if (r['event_start_ms']%60000 or r['event_end_ms']!=r['event_start_ms']+60000
                 or previous is not None and r['event_start_ms']!=previous):raise ValueError('GAP_OR_DUPLICATE')
             previous=r['event_end_ms']
