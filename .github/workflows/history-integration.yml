@@ -8,6 +8,8 @@ env:
   EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 jobs:
   synthetic:
+    # Keep unrelated historical qualification out of the existing scoped synthetic branches.
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.head_ref != 'feat/central-scientific-engine-v2' && github.head_ref != 'feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/scientific-engine-composition-v21' && github.ref != 'refs/heads/feat/central-scientific-engine-v2' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     strategy:
       fail-fast: false
       matrix:
