@@ -23,7 +23,40 @@ export function validateProvenanceMetadata(env){
  return {repository:env.GITHUB_REPOSITORY,workflowPath:match[1],runId:env.GITHUB_RUN_ID,runAttempt:env.GITHUB_RUN_ATTEMPT,context:env.PROVENANCE_CONTEXT};
 }
 const digest=b=>createHash('sha256').update(b).digest('hex');
-const git=(...args)=>execFileSync('git',['--no-replace-objects','-c','core.fsmonitor=false',...args],{stdio:['ignore','pipe','pipe']});
+const diagnosticStages=new Set(['CLI_ARGUMENTS','METADATA','SOURCE_CHECK','RECEIPT_WRITE','GIT_REV_PARSE','GIT_DIFF_INDEX','GIT_LS_TREE','GIT_CONFIG','GIT_CHECK_ATTR','UNCLASSIFIED']);
+function atStage(stage,run){
+ try{return run();}catch(error){
+  if(error&&typeof error==='object'&&!error.sourceIdentityStage)error.sourceIdentityStage=stage;
+  throw error;
+ }
+}
+const git=(...args)=>atStage(({'rev-parse':'GIT_REV_PARSE','diff-index':'GIT_DIFF_INDEX','ls-tree':'GIT_LS_TREE','config':'GIT_CONFIG','check-attr':'GIT_CHECK_ATTR'})[args[0]]??'UNCLASSIFIED',()=>execFileSync('git',['--no-replace-objects','-c','core.fsmonitor=false',...args],{stdio:['ignore','pipe','pipe']}));
+function failureAnnotation(error){
+ // Never emit exception text, stderr, argv, environment or machine/file paths.
+ // Fixed categories retain useful native failure evidence without trusting text.
+ const message=typeof error?.message==='string'?error.message:'';
+ const stage=diagnosticStages.has(error?.sourceIdentityStage)?error.sourceIdentityStage:'UNCLASSIFIED';
+ let reason='UNEXPECTED_FAILURE';
+ if(stage.startsWith('GIT_'))reason='GIT_FAILURE';
+ else if(message.startsWith('Invalid provenance '))reason='METADATA_REJECTED';
+ else if(message==='Invalid source SHA')reason='SOURCE_SHA_INVALID';
+ else if(message.startsWith('Tracked source bytes differ:'))reason='SOURCE_BYTES_MISMATCH';
+ else if(message.startsWith('Noncanonical tracked source EOL:'))reason='SOURCE_EOL_NONCANONICAL';
+ else if(message.startsWith('Source identity requires repository root:'))reason='SOURCE_ROOT_MISMATCH';
+ else if(message==='Checkout differs from workflow source SHA')reason='SOURCE_HEAD_MISMATCH';
+ else if(message==='Source index differs from committed source')reason='SOURCE_INDEX_MISMATCH';
+ else if(message==='Source path symlink is not allowed')reason='SOURCE_SYMLINK_REJECTED';
+ else if(message==='Unsupported tracked source mode (symlink or gitlink)')reason='SOURCE_MODE_REJECTED';
+ else if(message==='Invalid tracked source path')reason='SOURCE_PATH_REJECTED';
+ else if(message==='Tracked source is not a regular file')reason='SOURCE_FILE_REJECTED';
+ else if(message==='Absolute source identity receipt path required'||message==='Source identity receipt must be outside checkout')reason='RECEIPT_PATH_REJECTED';
+ else if(message==='Expected --before')reason='CLI_ARGUMENTS_REJECTED';
+ const fields=[`stage=${stage}`,`reason=${reason}`];
+ if(['ENOENT','EACCES','EPERM','ENOBUFS','ETIMEDOUT','EEXIST','EINVAL','EIO','ENOSPC','EMFILE','ENFILE','ENOTDIR','EISDIR','ELOOP'].includes(error?.code))fields.push(`os=${error.code}`);
+ if(Number.isInteger(error?.status)&&error.status>=-65535&&error.status<=4294967295)fields.push(`exit=${error.status}`);
+ if(['SIGABRT','SIGKILL','SIGTERM','SIGSEGV','SIGILL','SIGBUS'].includes(error?.signal))fields.push(`signal=${error.signal}`);
+ return '::error title=Tracked source verification failed::SOURCE_IDENTITY_FAILURE '+fields.join(' ');
+}
 function noSymlink(path){
  let item=resolve(path);
  while(true){if(lstatSync(item).isSymbolicLink())throw Error('Source path symlink is not allowed');const parent=dirname(item);if(parent===item)break;item=parent;}
@@ -66,9 +99,9 @@ function receiptPath(env){
  noSymlink(dirname(path));return path;
 }
 export function captureSourceIdentity(env=process.env){
- const metadata=validateProvenanceMetadata(env),identity=verifySourceIdentity(env.GITHUB_SHA);
+ const metadata=atStage('METADATA',()=>validateProvenanceMetadata(env)),identity=atStage('SOURCE_CHECK',()=>verifySourceIdentity(env.GITHUB_SHA));
  const receipt={schema:1,...metadata,...identity};
- writeFileSync(receiptPath(env),JSON.stringify(receipt)+'\n',{flag:'wx',mode:0o600});return receipt;
+ atStage('RECEIPT_WRITE',()=>writeFileSync(receiptPath(env),JSON.stringify(receipt)+'\n',{flag:'wx',mode:0o600}));return receipt;
 }
 export function verifyTestedSourceIdentity(env=process.env){
  const metadata=validateProvenanceMetadata(env),identity=verifySourceIdentity(env.GITHUB_SHA),path=receiptPath(env);noSymlink(path);
@@ -77,5 +110,5 @@ export function verifyTestedSourceIdentity(env=process.env){
  return {...identity,testedWorktreeVerified:true,sourceEvidence:'self-reported-pre-post-tracked-tree/v1'};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
- try{if(process.argv[2]!=='--before')throw Error('Expected --before');console.log(JSON.stringify(captureSourceIdentity()));}catch(error){console.error(error.message);process.exitCode=1;}
+ try{atStage('CLI_ARGUMENTS',()=>{if(process.argv[2]!=='--before')throw Error('Expected --before');});console.log(JSON.stringify(captureSourceIdentity()));}catch(error){console.error(failureAnnotation(error));process.exitCode=1;}
 }
