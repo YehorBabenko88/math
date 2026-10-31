@@ -31,6 +31,11 @@ function atStage(stage,run){
  }
 }
 const git=(...args)=>atStage(({'rev-parse':'GIT_REV_PARSE','diff-index':'GIT_DIFF_INDEX','ls-tree':'GIT_LS_TREE','config':'GIT_CONFIG','check-attr':'GIT_CHECK_ATTR'})[args[0]]??'UNCLASSIFIED',()=>execFileSync('git',['--no-replace-objects','-c','core.fsmonitor=false',...args],{stdio:['ignore','pipe','pipe']}));
+function sourceMismatch(message,expectedBlob,observedRawBlob,rawBytes,mismatch){
+ const error=Error(message);
+ error.sourceMismatch={expectedBlob,observedRawBlob,rawBytes,mismatch};
+ return error;
+}
 function failureAnnotation(error){
  // Never emit exception text, stderr, argv, environment or machine/file paths.
  // Fixed categories retain useful native failure evidence without trusting text.
@@ -55,6 +60,11 @@ function failureAnnotation(error){
  if(['ENOENT','EACCES','EPERM','ENOBUFS','ETIMEDOUT','EEXIST','EINVAL','EIO','ENOSPC','EMFILE','ENFILE','ENOTDIR','EISDIR','ELOOP'].includes(error?.code))fields.push(`os=${error.code}`);
  if(Number.isInteger(error?.status)&&error.status>=-65535&&error.status<=4294967295)fields.push(`exit=${error.status}`);
  if(['SIGABRT','SIGKILL','SIGTERM','SIGSEGV','SIGILL','SIGBUS'].includes(error?.signal))fields.push(`signal=${error.signal}`);
+ const mismatch=error?.sourceMismatch;
+ if(mismatch&&/^[a-f0-9]{40}$/.test(mismatch.expectedBlob??'')&&/^[a-f0-9]{40}$/.test(mismatch.observedRawBlob??'')
+    &&Number.isSafeInteger(mismatch.rawBytes)&&mismatch.rawBytes>=0&&['RAW','EOL','DECODED'].includes(mismatch.mismatch)){
+  fields.push(`expected_blob=${mismatch.expectedBlob}`,`observed_raw_blob=${mismatch.observedRawBlob}`,`bytes=${mismatch.rawBytes}`,`mismatch=${mismatch.mismatch}`);
+ }
  return '::error title=Tracked source verification failed::SOURCE_IDENTITY_FAILURE '+fields.join(' ');
 }
 function noSymlink(path){
@@ -78,14 +88,15 @@ export function verifySourceIdentity(sourceSha){
   const full=resolve(root,path);noSymlink(full);if(!lstatSync(full).isFile())throw Error('Tracked source is not a regular file');
   let bytes=readFileSync(full);
   const blobHash=b=>createHash('sha1').update(Buffer.from(`blob ${b.length}\0`)).update(b).digest('hex');
-  if(blobHash(bytes)!==blob){
+  const observedRawBlob=blobHash(bytes),rawBytes=bytes.length;
+  if(observedRawBlob!==blob){
    const attr=git('check-attr',`--source=${sourceSha}`,'-z','text','eol','--',path).toString().split('\0');
    const text=attr[2],eol=attr[5];
-   if(text==='unset'||eol==='lf'||!(eol==='crlf'||autocrlf==='true')||bytes.includes(0))throw Error('Tracked source bytes differ: '+path);
-   let decoded;try{decoded=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);}catch{throw Error('Tracked source bytes differ: '+path);}
-   if(/(?<!\r)\n|\r(?!\n)/.test(decoded))throw Error('Noncanonical tracked source EOL: '+path);
+   if(text==='unset'||eol==='lf'||!(eol==='crlf'||autocrlf==='true')||bytes.includes(0))throw sourceMismatch('Tracked source bytes differ: '+path,blob,observedRawBlob,rawBytes,'RAW');
+   let decoded;try{decoded=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);}catch{throw sourceMismatch('Tracked source bytes differ: '+path,blob,observedRawBlob,rawBytes,'DECODED');}
+   if(/(?<!\r)\n|\r(?!\n)/.test(decoded))throw sourceMismatch('Noncanonical tracked source EOL: '+path,blob,observedRawBlob,rawBytes,'EOL');
    bytes=Buffer.from(decoded.replaceAll('\r\n','\n'));
-   if(blobHash(bytes)!==blob)throw Error('Tracked source bytes differ: '+path);
+   if(blobHash(bytes)!==blob)throw sourceMismatch('Tracked source bytes differ: '+path,blob,observedRawBlob,rawBytes,'EOL');
   }
   files.push({path,mode,blob});
  }
