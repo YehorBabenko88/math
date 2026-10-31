@@ -6,6 +6,7 @@ import {join,resolve} from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {request} from 'node:http';
+import {pathToFileURL} from 'node:url';
 import {phaseCode} from '../scripts/math-module-diagnostics.mjs';
 const ROOT=resolve('.');
 const gitExe=realpathSync(execFileSync(process.platform==='win32'?'where':'which',['git'],{encoding:'utf8'}).trim().split(/\r?\n/)[0]);
@@ -34,7 +35,7 @@ function fixture(t,{numericFailure=false,backendMarker=false}={}){
  return {root,env,git,children};
 }
 async function launch(t,f){
- const child=spawn(process.execPath,[...(f.observer?['--import',f.observer]:[]),join(f.root,'src/math-engine-server.mjs')],{cwd:f.root,env:f.env,stdio:['ignore','pipe','pipe','ipc']});
+ const child=spawn(process.execPath,[...(f.observer?['--import',pathToFileURL(f.observer).href]:[]),join(f.root,'src/math-engine-server.mjs')],{cwd:f.root,env:f.env,stdio:['ignore','pipe','pipe','ipc']});
  const closed=new Promise(resolve=>child.once('close',resolve));f.children.push({child,closed});
  let phase=null;child.on('message',message=>{const code=phaseCode(message);if(code)phase=code;});
  let stdout='',stderr='';child.stdout.on('data',x=>{stdout+=x});child.stderr.on('data',x=>{stderr+=x});

@@ -78,7 +78,7 @@ function sourceBound(env){
  startupPhase='GIT_IDENTITY';
  const root=resolve(fileURLToPath(new URL('../',import.meta.url))),gitPath=env.UNIFIED_GIT_EXECUTABLE,expected=env.UNIFIED_SOURCE_COMMIT;
  if(process.platform==='win32'&&(!/^[A-Za-z]:\\/.test(root)||!/^[A-Za-z]:\\/.test(gitPath)))throw Error('SOURCE');
- if(!isAbsolute(gitPath)||!/[\/]/.test(gitPath)||createHash('sha256').update(regular(gitPath,134217728,true)).digest('hex')!==env.UNIFIED_GIT_SHA256)throw Error('SOURCE');
+ if(!isAbsolute(gitPath)||!/[\\/]/.test(gitPath)||createHash('sha256').update(regular(gitPath,134217728,true)).digest('hex')!==env.UNIFIED_GIT_SHA256)throw Error('SOURCE');
  startupPhase='LOCAL_METADATA';checkLocalGitConfig(root);
  const childEnv=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));
  Object.assign(childEnv,{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_SYSTEM:GIT_NULL,GIT_CONFIG_GLOBAL:GIT_NULL,GIT_NO_REPLACE_OBJECTS:'1',GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0'});

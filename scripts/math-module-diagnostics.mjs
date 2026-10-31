@@ -4,7 +4,7 @@ const failureTypes=new Map([['hookFailed','HOOK_FAILED'],['testCodeFailure','TES
 const startupCodes=new Set(['CHILD_READY','CHILD_EXIT_ZERO_WITHOUT_READY','CHILD_ENGINE_REJECTED','CHILD_IMPORT_SCHEME_REJECTED','CHILD_MODULE_NOT_FOUND','CHILD_ADDRESS_IN_USE','CHILD_EXIT_ONE_OTHER','CHILD_EXIT_OTHER','CHILD_NO_EXIT_CODE','STARTUP_DEADLINE','LAUNCH_NOT_FOUND','LAUNCH_ACCESS_DENIED','LAUNCH_ERROR_OTHER']);
 for(const code of ['FIXTURE_SETUP_COMPLETE','FIXTURE_SETUP_FAILED','FIXTURE_GIT_FAILURE'])startupCodes.add(code);
 const sourcePhases=new Set(['SOURCE_IDENTITY','LOCAL_METADATA','GIT_IDENTITY','RAW_BYTES','UNTRACKED','NUMERICAL','IMPORT']);
-const comparisonPhases=new Set(['DIAG_CHILD_STATUS','DIAG_EVIDENCE_PARSE','DIAG_TERMINAL_FIELDS','DIAG_FILE_IDENTITY','DIAG_NOTICE_FORWARDING','DIAG_PRIVACY','DIAG_PRIVATE_IPC']);
+const comparisonPhases=new Set(['DIAG_CHILD_STATUS','DIAG_CHILD_EXIT_ZERO','DIAG_CHILD_EXIT_OTHER','DIAG_CHILD_TIMEOUT','DIAG_CHILD_SIGNAL','DIAG_CHILD_LAUNCH_ERROR','DIAG_CHILD_IMPORT_SCHEME','DIAG_EVIDENCE_PARSE','DIAG_TERMINAL_FIELDS','DIAG_FILE_IDENTITY','DIAG_NOTICE_FORWARDING','DIAG_PRIVACY','DIAG_PRIVATE_IPC']);
 for(const phase of sourcePhases)startupCodes.add('PHASE_'+phase);
 function ownValue(object,key){try{const descriptor=Object.getOwnPropertyDescriptor(object,key);return descriptor&&Object.hasOwn(descriptor,'value')?descriptor.value:undefined;}catch{return undefined;}}
 export function publicErrorCode(error){
@@ -53,4 +53,14 @@ export function publicDiagnosticPhase(error){
   error=ownValue(error,'cause');
  }
  return 'UNCLASSIFIED';
+}
+
+export function childDiagnosticPhase(result){
+ const error=ownValue(result,'error');
+ if(error)return publicErrorCode(error)==='ETIMEDOUT'?'DIAG_CHILD_TIMEOUT':'DIAG_CHILD_LAUNCH_ERROR';
+ if(ownValue(result,'signal'))return 'DIAG_CHILD_SIGNAL';
+ const status=ownValue(result,'status');
+ if(status===0)return 'DIAG_CHILD_EXIT_ZERO';
+ if(startupCode({code:status,stderr:ownValue(result,'stderr')})==='CHILD_IMPORT_SCHEME_REJECTED')return 'DIAG_CHILD_IMPORT_SCHEME';
+ return status===1?'DIAG_CHILD_STATUS':'DIAG_CHILD_EXIT_OTHER';
 }

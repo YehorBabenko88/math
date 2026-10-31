@@ -1328,8 +1328,8 @@
     "tests/walk-forward-guard.test.mjs": "523d764f7cb3f9c75221ceb85935f8a39ded6b96bc58172180e51e5f58ff9912",
     "tests/walk-forward.test.mjs": "89b0a86533e2bfa45226290275eecc18f5929adeff1e0478c0e2a9e902ed3ca7",
     "tests/windows-job-containment.test.mjs": "b911c13be5a410c1bd79cff60b579b3e43ca5398922d7b04f365adf1f6dac4f5",
-    "tests/math-engine-module-health.test.mjs": "b0bcbd17c91d3d22b4dac3c080de8edcd803d1efa1f54ffc3841bd736b8df90d",
-    "tests/math-module-diagnostics.cross.mjs": "fc2e61fb6fa1b8367f8240fdd455ea41b6929298668106d85f93700e337d94ed"
+    "tests/math-engine-module-health.test.mjs": "d10153df6678e769eddffa0bf110f14faf69559b290feb33e54ec5d334fc9c4b",
+    "tests/math-module-diagnostics.cross.mjs": "46fb5d698054ef28578965086f9ed59c262bcb5b02c184d88dba0d2f1208887a"
   },
   "recipes": {
     "tests/adapter-registry.test.mjs": [
