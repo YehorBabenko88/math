@@ -4,6 +4,7 @@ import {readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
+import {admittedErrorCode,admittedFailureType} from './math-module-diagnostics.mjs';
 
 export async function runStrictTests({files,quiet=false,env=process.env}){
  if(!Array.isArray(files)||!files.length)throw Error('Nonempty test inventory required');
@@ -47,7 +48,7 @@ export function terminalFailureAnnotations(events,expected){
   matched++;
   if(lines.length<32){
    const id=createHash('sha256').update(identity).digest('hex');
-   lines.push('::error title=Mandatory test failed::FULL_CI_TERMINAL case_id='+id+' status='+event.status);
+   lines.push('::error title=Mandatory test failed::FULL_CI_TERMINAL case_id='+id+' status='+event.status+' code='+admittedErrorCode(event.diagnostic_code)+' type='+admittedFailureType(event.diagnostic_type));
   }
  }
  if(nonpass)lines.push('::error title=Mandatory terminal evidence failed::FULL_CI_TERMINAL_SUMMARY matched='+matched+' unmatched='+String(nonpass-matched)+' emitted='+lines.length+' truncated='+(matched>lines.length?'yes':'no'));

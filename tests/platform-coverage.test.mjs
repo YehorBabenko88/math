@@ -22,15 +22,16 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  assert.equal(inv.tests.filter(x=>!x.added&&x.parent).length,12);
  assert.equal(inv.tests.filter(x=>x.platform==='windows').length,22);
  assert.equal(inv.tests.filter(x=>!x.added&&x.platform==='cross').length,3);
- const healthFile='tests/math-engine-module-health.test.mjs';
- const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile);
+ const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs';
+ const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile&&x.file!==diagnosticFile);
  assert.equal(scientificCross.length,44);
  assert.equal(sha256(JSON.stringify(scientificCross.map(x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).sort())),'dc2b3096a5a960fe4ed11b22456ebf744e48b995ad0e67f113049dc875c7561e','Original 44 scientific cross-platform identities unchanged');
  const healthCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===healthFile);
  assert.equal(healthCross.length,8);
  assert.deepEqual(healthCross.map(x=>x.name).sort(),["clean but numerically broken engine fails its actual baseline before listening","dirty backend top-level side effects cannot run before owned source rejection","dirty source including assume-unchanged and unsafe local config fail before listening","owned actual clean Git source and real numerical baseline expose exact authenticated health","owned malformed identity and wrong external source commit fail before listening","owned source capsule null hooks and attributes profile remains valid","private health requires one exact bearer and exact read-only path","unowned standalone keeps public APIs but module health is unavailable"]);
  for(const entry of healthCross){assert.equal(entry.destination,healthFile);assert.equal(entry.parent,null);assert.equal(entry.occurrence,1);}
- assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,52);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===diagnosticFile).length,4);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,56);
  const scientificFiles=JSON.parse(readFileSync('scripts/scientific/test-inventory.json')).filter(file=>/scientific-(?:history-clocks|engine|http|boundary-regressions|runner|composition)\.test\.mjs$/.test(file));
  assert.equal(scientificFiles.length,6);
  for(const file of scientificFiles)assert.ok(inv.tests.some(x=>x.added&&x.platform==='cross'&&x.file===file&&x.destination===file));

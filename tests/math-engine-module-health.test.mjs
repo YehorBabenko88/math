@@ -36,6 +36,13 @@ async function launch(t,f){
 function get(port,{path='/internal/v2/module/health',authorization='Bearer '+token,method='GET'}={}){
  return new Promise((resolve,reject)=>{const req=request({hostname:'127.0.0.1',port,path,method,headers:authorization===null?{}:{authorization}},res=>{let data='';res.on('data',x=>data+=x);res.on('end',()=>resolve({status:res.statusCode,body:JSON.parse(data)}))});req.on('error',reject);req.end()});
 }
+// Diagnostics wrap the existing helper without changing assertions or outcomes.
+const originalLaunch=launch;
+launch=async function(t,f){
+ const {startupCode}=await import('../scripts/math-module-diagnostics.mjs');
+ try{const result=await originalLaunch(t,f);t.diagnostic('MATH_MODULE_FIXTURE code='+startupCode(result));return result;}
+ catch(error){t.diagnostic('MATH_MODULE_FIXTURE code='+startupCode(null,error));throw error;}
+};
 test('owned actual clean Git source and real numerical baseline expose exact authenticated health',async t=>{
  const f=fixture(t),r=await launch(t,f);assert.ok(r.port>0,JSON.stringify(r));
  const health=await get(r.port);assert.equal(health.status,200);assert.deepEqual(health.body,{module_id:'math',version:'1.0.0',release_id:'release-1',instance_token:token,ready:true});
