@@ -2688,6 +2688,12 @@
     ]
   },
   "addedFiles": [
-    "tests/platform-coverage.test.mjs"
+    "tests/platform-coverage.test.mjs",
+    "tests/scientific-boundary-regressions.test.mjs",
+    "tests/scientific-composition.test.mjs",
+    "tests/scientific-engine.test.mjs",
+    "tests/scientific-history-clocks.test.mjs",
+    "tests/scientific-http.test.mjs",
+    "tests/scientific-runner.test.mjs"
   ]
 }

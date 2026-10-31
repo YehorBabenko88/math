@@ -13,8 +13,10 @@ function unit(name){if(!Object.hasOwn(UNITS,name))throw Error('Unknown SI unit: 
 function compatible(a,b){return a.every((v,i)=>v===b[i])}
 function quantity(value,dimensions){if(!Number.isFinite(value))throw Error('Non-finite quantity');return Object.freeze({siValue:value,dimensions:Object.freeze([...dimensions])})}
 export function fromUnit(value,name){if(!Number.isFinite(value))throw Error('Non-finite quantity');const u=unit(name);return quantity(value*u.factor,u.d)}
-export function convertUnit(value,from,to){const a=unit(from),b=unit(to);if(!compatible(a.d,b.d))throw Error('Incompatible dimensions');if(!Number.isFinite(value))throw Error('Non-finite quantity');return value*a.factor/b.factor}
+export function convertUnit(value,from,to){const a=unit(from),b=unit(to);if(!compatible(a.d,b.d))throw Error('Incompatible dimensions');if(!Number.isFinite(value))throw Error('Non-finite quantity');const result=value*a.factor/b.factor;if(!Number.isFinite(result))throw Error('Non-finite conversion');return result}
 export function addQuantities(a,b){if(!compatible(a.dimensions,b.dimensions))throw Error('Cannot add incompatible dimensions');return quantity(a.siValue+b.siValue,a.dimensions)}
 export function multiplyQuantities(a,b){return quantity(a.siValue*b.siValue,a.dimensions.map((v,i)=>v+b.dimensions[i]))}
 export function divideQuantities(a,b){if(b.siValue===0)throw Error('Division by zero');return quantity(a.siValue/b.siValue,a.dimensions.map((v,i)=>v-b.dimensions[i]))}
 export function describeDimensions(dimensions){if(!Array.isArray(dimensions)||dimensions.length!==7||dimensions.some(v=>!Number.isInteger(v)))throw Error('Invalid dimensions');return BASE.map((symbol,i)=>dimensions[i]===0?'':symbol+'^'+dimensions[i]).filter(Boolean).join(' ')||'dimensionless'}
+
+export const listSIUnits=()=>Object.keys(UNITS);

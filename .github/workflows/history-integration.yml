@@ -1,0 +1,60 @@
+name: history-integration
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+jobs:
+  synthetic:
+    # Preserve the existing explicitly scoped no-native/no-Q01 branch policy.
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/bybit-cluster-grid
+          ref: bf9f108b6777085d6725675eac778d61ec55f42b
+          path: reference-grid
+          persist-credentials: false
+      - name: Exact-head synthetic checks
+        run: python scripts/history_ci.py tests 'test_history*.py'
+        env:
+          GRID_REFERENCE: ${{ github.workspace }}/reference-grid
+      - name: Pinned original-source parity for both APIs
+        run: python scripts/history/parity.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: history-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            .history-evidence/*.json
+            .history-evidence/SHA256SUMS
+          include-hidden-files: true
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: history-log-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .history-evidence/tests.log
+          include-hidden-files: true
+          if-no-files-found: error
+

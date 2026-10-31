@@ -21,7 +21,11 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  const inv=loadInventory();assert.equal(inv.tests.filter(x=>!x.added).length,1147);
  assert.equal(inv.tests.filter(x=>!x.added&&x.parent).length,12);
  assert.equal(inv.tests.filter(x=>x.platform==='windows').length,22);
- assert.equal(inv.tests.filter(x=>x.platform==='cross').length,3);
+ assert.equal(inv.tests.filter(x=>!x.added&&x.platform==='cross').length,3);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,44);
+ const scientificFiles=JSON.parse(readFileSync('scripts/scientific/test-inventory.json')).filter(file=>/scientific-(?:history-clocks|engine|http|boundary-regressions|runner|composition)\.test\.mjs$/.test(file));
+ assert.equal(scientificFiles.length,6);
+ for(const file of scientificFiles)assert.ok(inv.tests.some(x=>x.added&&x.platform==='cross'&&x.file===file&&x.destination===file));
  assert.equal(inv.tests.filter(x=>x.name==='strict parser rejects malformed or over-limit structured input').length,9);
  assert.doesNotThrow(()=>verifySourceProof());
  const proof=JSON.parse(readFileSync('scripts/platform-source-proof.json'));

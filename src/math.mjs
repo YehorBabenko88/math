@@ -8,6 +8,15 @@ export const evaluateFunction=(kind,x,p)=>({
  sine:()=>Math.sin(p*x),
  gaussian:()=>Math.exp(-p*x*x)
 }[kind]?.()??NaN);
+// Opt-in checked wrapper: legacy evaluateFunction() remains unchanged.
+export function evaluateFunctionFinite(kind,x,p){
+ const finite=v=>{if(!Number.isFinite(v))throw Error('NONFINITE_METHOD');return v;};finite(x);finite(p);
+ if(kind==='polynomial'){const square=finite(x*x);finite(square*x);finite(p*x);}
+ else if(kind==='sine')finite(p*x);
+ else if(kind==='gaussian')finite(finite(-p*x)*x);
+ else throw Error('UNKNOWN_METHOD');
+ return finite(evaluateFunction(kind,x,p));
+}
 export const examples=Object.freeze({
  polynomial:{formula:"f(x) = x³ − a·x",details:"Точки пересечения с осью x — решения f(x)=0. Меняй a, чтобы увидеть перестройку корней."},
  sine:{formula:"f(x) = sin(a·x)",details:"Параметр a меняет частоту колебаний. Период при a ≠ 0 равен 2π/|a|."},
