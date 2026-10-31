@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve,win32} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {runInNewContext} from 'node:vm';
 import {createHash} from 'node:crypto';
 import {spawn,spawnSync,execFileSync} from 'node:child_process';
@@ -93,7 +94,7 @@ test('actual reporter forwards only fixed failed-fixture codes while terminal ev
   const title='owned actual clean Git source and real numerical baseline expose exact authenticated health';
   writeFileSync(fixture,"import test from'node:test';for(const name of "+JSON.stringify([title,'synthetic unknown fixture'])+"){test(name,t=>{t.diagnostic('MATH_MODULE_FIXTURE code=CHILD_READY');t.diagnostic('MATH_MODULE_FIXTURE code=CHILD_READY');t.diagnostic('private-token\\n::warning::forged');t.after(()=>{throw Object.assign(Error('private-path-token'),{code:'EBUSY',publicDiagnosticPhase:'DIAG_NOTICE_FORWARDING'})})});}");
   const env={...process.env};delete env.NODE_TEST_CONTEXT;
-  const result=spawnSync(process.execPath,['--test','--test-reporter='+resolve('scripts/platform-test-reporter.mjs'),fixture],{cwd:root,env,encoding:'utf8',timeout:10000});
+  const result=spawnSync(process.execPath,['--test','--test-reporter='+pathToFileURL(resolve('scripts/platform-test-reporter.mjs')).href,fixture],{cwd:root,env,encoding:'utf8',timeout:10000});
   comparisonPhase=diagnostics.childDiagnosticPhase(result);assert.equal(result.status,1);comparisonPhase='DIAG_EVIDENCE_PARSE';const records=result.stdout.trim().split('\n').map(JSON.parse);
   comparisonPhase='DIAG_TERMINAL_FIELDS';
   const terminal=records.find(x=>x.type==='terminal'&&x.name===title);
