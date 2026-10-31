@@ -1327,7 +1327,8 @@
     "tests/transform-benchmark.test.mjs": "968c098d706532e32c615ba2596e903de11f9ac634e625e46abc4598f7cfc6c6",
     "tests/walk-forward-guard.test.mjs": "523d764f7cb3f9c75221ceb85935f8a39ded6b96bc58172180e51e5f58ff9912",
     "tests/walk-forward.test.mjs": "89b0a86533e2bfa45226290275eecc18f5929adeff1e0478c0e2a9e902ed3ca7",
-    "tests/windows-job-containment.test.mjs": "b911c13be5a410c1bd79cff60b579b3e43ca5398922d7b04f365adf1f6dac4f5"
+    "tests/windows-job-containment.test.mjs": "b911c13be5a410c1bd79cff60b579b3e43ca5398922d7b04f365adf1f6dac4f5",
+    "tests/math-engine-module-health.test.mjs": "8374a8113a9ced1944e0c99d41967ffc14b50cc8fc44631cdd83618e10654147"
   },
   "recipes": {
     "tests/adapter-registry.test.mjs": [
