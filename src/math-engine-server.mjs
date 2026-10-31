@@ -7,6 +7,13 @@ import {devNull} from 'node:os';
 import {execFileSync} from 'node:child_process';
 const MAX_BYTES=262144;
 let moduleStartupRejected=false;
+let startupPhase='SOURCE_IDENTITY';
+function privateFixturePhase(){
+ // Optional private Node IPC metadata only. No public response/log changes,
+ // bypass, readiness assertion or authority can follow from this diagnostic.
+ try{const send=Object.getOwnPropertyDescriptor(process,'send')?.value;if(typeof send==='function')send.call(process,{schema:'math.fixture.phase.v1',phase:startupPhase,authority:false},()=>{});}catch{}
+}
+
 let evaluateUnitRequest,executeScientificGraph,scientificCapabilities,runBoundedExperiment,evaluateReturnResearch,evaluateResearchGraph,compilePortGraph,evaluateFormulaDocument;
 export function decodeMathBody(chunks,expectedLength){
  const bytes=Buffer.concat(chunks);
@@ -68,10 +75,11 @@ function checkLocalGitConfig(root){
  }
 }
 function sourceBound(env){
+ startupPhase='GIT_IDENTITY';
  const root=resolve(fileURLToPath(new URL('../',import.meta.url))),gitPath=env.UNIFIED_GIT_EXECUTABLE,expected=env.UNIFIED_SOURCE_COMMIT;
  if(process.platform==='win32'&&(!/^[A-Za-z]:\\/.test(root)||!/^[A-Za-z]:\\/.test(gitPath)))throw Error('SOURCE');
  if(!isAbsolute(gitPath)||!/[\/]/.test(gitPath)||createHash('sha256').update(regular(gitPath,134217728,true)).digest('hex')!==env.UNIFIED_GIT_SHA256)throw Error('SOURCE');
- checkLocalGitConfig(root);
+ startupPhase='LOCAL_METADATA';checkLocalGitConfig(root);
  const childEnv=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));
  Object.assign(childEnv,{GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_SYSTEM:GIT_NULL,GIT_CONFIG_GLOBAL:GIT_NULL,GIT_NO_REPLACE_OBJECTS:'1',GIT_NO_LAZY_FETCH:'1',GIT_TERMINAL_PROMPT:'0'});
  const deadline=Date.now()+5000;
@@ -79,8 +87,10 @@ function sourceBound(env){
   const remaining=deadline-Date.now();if(remaining<=0)throw Error('SOURCE');
   return execFileSync(gitPath,['--no-replace-objects','--no-optional-locks','-c','core.fsmonitor=false','-c','core.untrackedCache=false','-c','core.hooksPath='+GIT_NULL,'-c','core.attributesFile='+GIT_NULL,'-C',root,...args],{env:childEnv,timeout:Math.min(1500,remaining),maxBuffer:4194304,windowsHide:true,stdio:['ignore','pipe','pipe']});
  };
+ startupPhase='GIT_IDENTITY';
  if(realpathSync.native(git('rev-parse','--show-toplevel').toString().trim())!==realpathSync.native(root)||git('rev-parse','HEAD').toString().trim()!==expected)throw Error('SOURCE');
  if(git('diff-index','--cached','--name-only',expected,'--').length)throw Error('SOURCE');
+ startupPhase='RAW_BYTES';
  const entries=new TextDecoder('utf-8',{fatal:true}).decode(git('ls-tree','-rz','--full-tree',expected)).split('\0').filter(Boolean);
  if(!entries.length||entries.length>20000)throw Error('SOURCE');let total=0;const paths=new Set();
  for(const entry of entries){
@@ -89,6 +99,7 @@ function sourceBound(env){
   const bytes=regular(join(root,path),16777216);total+=bytes.length;if(total>67108864)throw Error('SOURCE');
   const observed=createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');if(observed!==blob)throw Error('SOURCE');paths.add(path);
  }
+ startupPhase='UNTRACKED';
  if(!paths.has('src/math-engine-server.mjs')||git('status','--porcelain=v1','-z','--untracked-files=all').length)throw Error('SOURCE');
 }
 function numericalBaseline(){
@@ -116,13 +127,14 @@ function healthAuthorized(req,owned){
 // Authenticate owned code before importing any numerical/backend module: a
 // dirty module must not gain a top-level side effect before its source check.
 let owned=null;
-try{owned=ownedReadiness();}catch{moduleStartupRejected=true;}
+try{owned=ownedReadiness();}catch{moduleStartupRejected=true;privateFixturePhase();}
 if(!moduleStartupRejected){
  try{
+  startupPhase='IMPORT';
   const modules=await Promise.all([import('./scientific-unit-api.mjs'),import('./scientific-engine.mjs'),import('./bounded-experiment.mjs'),import('./returns-research.mjs'),import('./math-graph-api.mjs'),import('./port-graph.mjs'),import('./math-formula-api.mjs')]);
   ({evaluateUnitRequest}=modules[0]);({executeScientificGraph,scientificCapabilities}=modules[1]);({runBoundedExperiment}=modules[2]);({evaluateReturnResearch}=modules[3]);({evaluateResearchGraph}=modules[4]);({compilePortGraph}=modules[5]);({evaluateFormulaDocument}=modules[6]);
-  if(owned)numericalBaseline();
- }catch(error){if(!owned)throw error;moduleStartupRejected=true;}
+  if(owned){startupPhase='NUMERICAL';numericalBaseline();}
+ }catch(error){privateFixturePhase();if(!owned)throw error;moduleStartupRejected=true;}
 }
 export function startMathEngine({host='127.0.0.1',port=8788,catalog}={}){
  if(moduleStartupRejected)throw Error('MODULE_STARTUP_REJECTED');

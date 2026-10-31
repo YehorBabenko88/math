@@ -6,12 +6,23 @@ import {join,resolve} from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {request} from 'node:http';
+import {phaseCode} from '../scripts/math-module-diagnostics.mjs';
 const ROOT=resolve('.');
 const gitExe=realpathSync(execFileSync(process.platform==='win32'?'where':'which',['git'],{encoding:'utf8'}).trim().split(/\r?\n/)[0]);
 const gitPin=createHash('sha256').update(readFileSync(gitExe)).digest('hex');
 const token='d'.repeat(64);
 function fixture(t,{numericFailure=false,backendMarker=false}={}){
- const root=mkdtempSync(join(tmpdir(),'math-module-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const root=mkdtempSync(join(tmpdir(),'math-module-')),children=[];
+ t.after(async()=>{
+  const failures=[];
+  for(const {child}of children){try{if(child.exitCode===null&&child.signalCode===null)child.kill();}catch(error){failures.push(error)}}
+  const closures=await Promise.allSettled(children.map(async({closed})=>{
+   let timer;try{await Promise.race([closed,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Object.assign(Error('fixture child close deadline'),{code:'ETIMEDOUT'})),5000)})]);}finally{clearTimeout(timer)}
+  }));
+  for(const result of closures)if(result.status==='rejected')failures.push(result.reason);
+  if(failures.length)throw failures[0];
+  rmSync(root,{recursive:true,force:true});
+ });
  cpSync(join(ROOT,'src'),join(root,'src'),{recursive:true});
  writeFileSync(join(root,'book-catalog.json'),'{"synthetic":"offline resource"}\n');
  if(backendMarker){const path=join(root,'src/returns-research.mjs');writeFileSync(path,"import{writeFileSync as witness}from'node:fs';witness("+JSON.stringify(join(root,'.git/RESOURCE_IMPORT_EXECUTED'))+",'imported');\n"+readFileSync(path,'utf8'));}
@@ -20,27 +31,36 @@ function fixture(t,{numericFailure=false,backendMarker=false}={}){
  git('init');git('add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-m','source fixture');
  const env={...process.env};for(const key of Object.keys(env))if(key.startsWith('UNIFIED_')||key.startsWith('GIT_'))delete env[key];
  Object.assign(env,{MATH_ENGINE_PORT:'0',UNIFIED_MODULE_ID:'math',UNIFIED_MODULE_VERSION:'1.0.0',UNIFIED_RELEASE_ID:'release-1',UNIFIED_INSTANCE_TOKEN:token,UNIFIED_SOURCE_COMMIT:git('rev-parse','HEAD'),UNIFIED_GIT_EXECUTABLE:gitExe,UNIFIED_GIT_SHA256:gitPin});
- return {root,env,git};
+ return {root,env,git,children};
 }
 async function launch(t,f){
- const child=spawn(process.execPath,[...(f.observer?['--import',f.observer]:[]),join(f.root,'src/math-engine-server.mjs')],{cwd:f.root,env:f.env,stdio:['ignore','pipe','pipe']});
+ const child=spawn(process.execPath,[...(f.observer?['--import',f.observer]:[]),join(f.root,'src/math-engine-server.mjs')],{cwd:f.root,env:f.env,stdio:['ignore','pipe','pipe','ipc']});
+ const closed=new Promise(resolve=>child.once('close',resolve));f.children.push({child,closed});
+ let phase=null;child.on('message',message=>{const code=phaseCode(message);if(code)phase=code;});
  let stdout='',stderr='';child.stdout.on('data',x=>{stdout+=x});child.stderr.on('data',x=>{stderr+=x});
- t.after(async()=>{if(child.exitCode===null){child.kill();await new Promise(resolve=>child.once('exit',resolve));}});
  const result=await new Promise((resolve,reject)=>{
   const timer=setTimeout(()=>reject(Error('bounded startup deadline')),10000);
   const finish=value=>{clearTimeout(timer);resolve(value)};
   child.on('error',reject);child.stdout.on('data',()=>{const m=stdout.match(/MATH_ENGINE_OFFLINE_READY 127\.0\.0\.1:(\d+)/);if(m)finish({port:Number(m[1]),child})});
-  child.on('close',code=>finish({code,stdout,stderr}));
+  child.on('close',code=>finish({code,stdout,stderr,...(phase?{phase}:{})}));
  });return result;
 }
 function get(port,{path='/internal/v2/module/health',authorization='Bearer '+token,method='GET'}={}){
  return new Promise((resolve,reject)=>{const req=request({hostname:'127.0.0.1',port,path,method,headers:authorization===null?{}:{authorization}},res=>{let data='';res.on('data',x=>data+=x);res.on('end',()=>resolve({status:res.statusCode,body:JSON.parse(data)}))});req.on('error',reject);req.end()});
 }
 // Diagnostics wrap the existing helper without changing assertions or outcomes.
+const originalFixture=fixture;
+fixture=function(t,options){
+ try{
+  const result=originalFixture(t,options),git=result.git;
+  result.git=(...args)=>{try{return git(...args)}catch(error){t.diagnostic('MATH_MODULE_FIXTURE code=FIXTURE_GIT_FAILURE');throw error;}};
+  t.diagnostic('MATH_MODULE_FIXTURE code=FIXTURE_SETUP_COMPLETE');return result;
+ }catch(error){t.diagnostic('MATH_MODULE_FIXTURE code=FIXTURE_SETUP_FAILED');throw error;}
+};
 const originalLaunch=launch;
 launch=async function(t,f){
  const {startupCode}=await import('../scripts/math-module-diagnostics.mjs');
- try{const result=await originalLaunch(t,f);t.diagnostic('MATH_MODULE_FIXTURE code='+startupCode(result));return result;}
+ try{const result=await originalLaunch(t,f);t.diagnostic('MATH_MODULE_FIXTURE code='+startupCode(result));if(result.phase)t.diagnostic('MATH_MODULE_FIXTURE code='+result.phase);return result;}
  catch(error){t.diagnostic('MATH_MODULE_FIXTURE code='+startupCode(null,error));throw error;}
 };
 test('owned actual clean Git source and real numerical baseline expose exact authenticated health',async t=>{

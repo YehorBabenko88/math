@@ -2,6 +2,10 @@
 const errorCodes=new Set(['ERR_TEST_FAILURE','ERR_ASSERTION','EPERM','EBUSY','EACCES','ENOENT','ETIMEDOUT','ECONNREFUSED','ECONNRESET','EADDRINUSE','ERR_UNSUPPORTED_ESM_URL_SCHEME','ERR_MODULE_NOT_FOUND','ERR_UNKNOWN_FILE_EXTENSION']);
 const failureTypes=new Map([['hookFailed','HOOK_FAILED'],['testCodeFailure','TEST_CODE_FAILURE'],['cancelledByParent','CANCELLED_BY_PARENT'],['subtestsFailed','SUBTESTS_FAILED'],['testTimeoutFailure','TIMEOUT']]);
 const startupCodes=new Set(['CHILD_READY','CHILD_EXIT_ZERO_WITHOUT_READY','CHILD_ENGINE_REJECTED','CHILD_IMPORT_SCHEME_REJECTED','CHILD_MODULE_NOT_FOUND','CHILD_ADDRESS_IN_USE','CHILD_EXIT_ONE_OTHER','CHILD_EXIT_OTHER','CHILD_NO_EXIT_CODE','STARTUP_DEADLINE','LAUNCH_NOT_FOUND','LAUNCH_ACCESS_DENIED','LAUNCH_ERROR_OTHER']);
+for(const code of ['FIXTURE_SETUP_COMPLETE','FIXTURE_SETUP_FAILED','FIXTURE_GIT_FAILURE'])startupCodes.add(code);
+const sourcePhases=new Set(['SOURCE_IDENTITY','LOCAL_METADATA','GIT_IDENTITY','RAW_BYTES','UNTRACKED','NUMERICAL','IMPORT']);
+const comparisonPhases=new Set(['DIAG_CHILD_STATUS','DIAG_EVIDENCE_PARSE','DIAG_TERMINAL_FIELDS','DIAG_FILE_IDENTITY','DIAG_NOTICE_FORWARDING','DIAG_PRIVACY','DIAG_PRIVATE_IPC']);
+for(const phase of sourcePhases)startupCodes.add('PHASE_'+phase);
 function ownValue(object,key){try{const descriptor=Object.getOwnPropertyDescriptor(object,key);return descriptor&&Object.hasOwn(descriptor,'value')?descriptor.value:undefined;}catch{return undefined;}}
 export function publicErrorCode(error){
  let result='UNCLASSIFIED';
@@ -33,4 +37,20 @@ export function fixtureCode(message){
  if(typeof message!=='string'||message.length>96)return null;
  const match=message.match(/^MATH_MODULE_FIXTURE code=([A-Z0-9_]+)$/);
  return match&&startupCodes.has(match[1])?match[1]:null;
+}
+
+export function phaseCode(message){
+ try{
+  if(!message||typeof message!=='object'||Object.keys(message).sort().join(',')!=='authority,phase,schema')return null;
+  const phase=ownValue(message,'phase');
+  return ownValue(message,'schema')==='math.fixture.phase.v1'&&ownValue(message,'authority')===false&&sourcePhases.has(phase)?'PHASE_'+phase:null;
+ }catch{return null;}
+}
+export const admittedDiagnosticPhase=value=>comparisonPhases.has(value)?value:'UNCLASSIFIED';
+export function publicDiagnosticPhase(error){
+ for(let depth=0;depth<4&&error&&typeof error==='object';depth++){
+  const phase=ownValue(error,'publicDiagnosticPhase');if(comparisonPhases.has(phase))return phase;
+  error=ownValue(error,'cause');
+ }
+ return 'UNCLASSIFIED';
 }

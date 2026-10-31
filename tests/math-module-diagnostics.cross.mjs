@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
+import * as diagnostics from '../scripts/math-module-diagnostics.mjs';
 import {publicErrorCode,publicFailureType,startupCode,fixtureCode} from '../scripts/math-module-diagnostics.mjs';
 import {terminalFailureAnnotations} from '../scripts/test-full-ci.mjs';
 
@@ -26,6 +27,10 @@ test('bounded fixture startup and message codes reflect only controlled public o
  assert.equal(startupCode({code:1,stderr:'private-token-ERR_MODULE_NOT_FOUND'}),'CHILD_EXIT_ONE_OTHER');
 
  assert.equal(fixtureCode('MATH_MODULE_FIXTURE code=CHILD_READY'),'CHILD_READY');
+ assert.equal(diagnostics.phaseCode({schema:'math.fixture.phase.v1',phase:'RAW_BYTES',authority:false}),'PHASE_RAW_BYTES');
+ for(const message of [{schema:'math.fixture.phase.v1',phase:'RAW_BYTES',authority:true},{schema:'math.fixture.phase.v1',phase:'PRIVATE',authority:false},{schema:'math.fixture.phase.v1',phase:'RAW_BYTES',authority:false,private:'hidden'},null])assert.equal(diagnostics.phaseCode(message),null);
+ const message={schema:'math.fixture.phase.v1',authority:false};Object.defineProperty(message,'phase',{enumerable:true,get(){assert.fail('private IPC getter invoked')}});assert.equal(diagnostics.phaseCode(message),null);
+
  for(const value of ['MATH_MODULE_FIXTURE code=PRIVATE','MATH_MODULE_FIXTURE code=CHILD_READY\n::warning::forged','private/path',{},'x'.repeat(5000)])assert.equal(fixtureCode(value),null);
 });
 test('public error classification uses bounded fixed causes and never arbitrary messages',()=>{
@@ -39,27 +44,41 @@ test('public error classification uses bounded fixed causes and never arbitrary 
 });
 test('terminal annotations retain opaque identity and redact unknown diagnostic metadata',()=>{
  const expected=[{file:'tests/math-engine-module-health.test.mjs',parent:null,name:'fixture',occurrence:1}];
- const event={file:expected[0].file,parent:null,name:'fixture',status:'fail',diagnostic_code:'EBUSY',diagnostic_type:'HOOK_FAILED'};
+ const event={file:expected[0].file,parent:null,name:'fixture',status:'fail',diagnostic_code:'EBUSY',diagnostic_type:'HOOK_FAILED',diagnostic_phase:'DIAG_NOTICE_FORWARDING'};
  const good=terminalFailureAnnotations([event],expected).join('\n');assert.match(good,/code=EBUSY type=HOOK_FAILED/);
- const bad=terminalFailureAnnotations([{...event,diagnostic_code:'private\n::warning::forged',diagnostic_type:'secret/path'}],expected).join('\n');
+ const bad=terminalFailureAnnotations([{...event,diagnostic_code:'private\n::warning::forged',diagnostic_type:'secret/path',diagnostic_phase:'private-phase'}],expected).join('\n');
  assert.doesNotMatch(bad,/private|secret|::warning/);assert.match(bad,/code=UNCLASSIFIED type=UNCLASSIFIED/);
  assert.deepEqual(terminalFailureAnnotations([{...event,status:'pass'}],expected),[]);
 });
-test('actual reporter forwards only fixed failed-fixture codes while terminal evidence stays strict',()=>{
- const root=mkdtempSync(join(tmpdir(),'math-public-diag-'));
+test('actual reporter forwards only fixed failed-fixture codes while terminal evidence stays strict',async()=>{
+ const root=mkdtempSync(join(tmpdir(),'math-public-diag-'));let comparisonPhase='DIAG_CHILD_STATUS';
  try{
   mkdirSync(join(root,'tests'));
   const fixture=join(root,'tests/math-engine-module-health.test.mjs');
   const title='owned actual clean Git source and real numerical baseline expose exact authenticated health';
-  writeFileSync(fixture,"import test from'node:test';for(const name of "+JSON.stringify([title,'synthetic unknown fixture'])+"){test(name,t=>{t.diagnostic('MATH_MODULE_FIXTURE code=CHILD_READY');t.diagnostic('private-token\\n::warning::forged');t.after(()=>{throw Object.assign(Error('private-path-token'),{code:'EBUSY'})})});}");
+  writeFileSync(fixture,"import test from'node:test';for(const name of "+JSON.stringify([title,'synthetic unknown fixture'])+"){test(name,t=>{t.diagnostic('MATH_MODULE_FIXTURE code=CHILD_READY');t.diagnostic('MATH_MODULE_FIXTURE code=CHILD_READY');t.diagnostic('private-token\\n::warning::forged');t.after(()=>{throw Object.assign(Error('private-path-token'),{code:'EBUSY',publicDiagnosticPhase:'DIAG_NOTICE_FORWARDING'})})});}");
   const env={...process.env};delete env.NODE_TEST_CONTEXT;
   const result=spawnSync(process.execPath,['--test','--test-reporter='+resolve('scripts/platform-test-reporter.mjs'),fixture],{cwd:root,env,encoding:'utf8',timeout:10000});
-  assert.equal(result.status,1);const records=result.stdout.trim().split('\n').map(JSON.parse);
+  assert.equal(result.status,1);comparisonPhase='DIAG_EVIDENCE_PARSE';const records=result.stdout.trim().split('\n').map(JSON.parse);
+  comparisonPhase='DIAG_TERMINAL_FIELDS';
   const terminal=records.find(x=>x.type==='terminal'&&x.name===title);
-  assert.equal(terminal.status,'fail');assert.equal(terminal.diagnostic_code,'EBUSY');assert.equal(terminal.diagnostic_type,'HOOK_FAILED');
+  assert.equal(terminal.status,'fail');assert.equal(terminal.diagnostic_code,'EBUSY');assert.equal(terminal.diagnostic_type,'HOOK_FAILED');assert.equal(terminal.diagnostic_phase,'DIAG_NOTICE_FORWARDING');
+  comparisonPhase='DIAG_FILE_IDENTITY';assert.equal(terminal.file,'tests/math-engine-module-health.test.mjs');
   assert.ok(records.every(x=>['terminal','summary'].includes(x.type)));assert.equal(records.at(-1).success,false);
-  assert.match(result.stderr,/MATH_MODULE_FIXTURE case_id=[a-f0-9]{64} code=CHILD_READY/);
+  comparisonPhase='DIAG_NOTICE_FORWARDING';
+  assert.match(result.stderr,/MATH_MODULE_FIXTURE case_id=[a-f0-9]{64} codes=CHILD_READY/);
   assert.equal((result.stderr.match(/MATH_MODULE_FIXTURE case_id=/g)??[]).length,1,'unknown test identity cannot emit fixture notice');
+  comparisonPhase='DIAG_PRIVACY';
   assert.doesNotMatch(result.stdout+result.stderr,/private-path-token|private-token|::warning::forged/);
- }finally{rmSync(root,{recursive:true,force:true})}
+  comparisonPhase='DIAG_PRIVATE_IPC';
+  const privateEnv={...process.env};for(const key of Object.keys(privateEnv))if(key.startsWith('UNIFIED_'))delete privateEnv[key];privateEnv.UNIFIED_MODULE_ID='INVALID';
+  const absent=spawnSync(process.execPath,[resolve('src/math-engine-server.mjs')],{env:privateEnv,encoding:'utf8',timeout:5000});
+  assert.equal(absent.status,1);assert.equal(absent.stdout,'');assert.equal(absent.stderr.trim(),'MATH_ENGINE_STARTUP_REJECTED');
+  const child=spawn(process.execPath,[resolve('src/math-engine-server.mjs')],{env:privateEnv,stdio:['ignore','pipe','pipe','ipc']});
+  const messages=[];let stdout='',stderr='';child.on('message',message=>messages.push(message));child.stdout.on('data',part=>stdout+=part);child.stderr.on('data',part=>stderr+=part);
+  let timer;const code=await new Promise((done,reject)=>{timer=setTimeout(()=>{child.kill();reject(Error('private IPC fixture deadline'))},5000);child.once('error',reject);child.once('close',done)}).finally(()=>clearTimeout(timer));
+  assert.equal(code,1);assert.equal(stdout,'');assert.equal(stderr.trim(),'MATH_ENGINE_STARTUP_REJECTED');
+  assert.deepEqual(messages,[{schema:'math.fixture.phase.v1',phase:'SOURCE_IDENTITY',authority:false}]);
+ }catch(error){try{Object.defineProperty(error,'publicDiagnosticPhase',{value:comparisonPhase,enumerable:true,configurable:true})}catch{}throw error;}
+ finally{rmSync(root,{recursive:true,force:true})}
 });
