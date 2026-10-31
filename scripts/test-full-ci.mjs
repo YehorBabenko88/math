@@ -3,6 +3,8 @@ import {spawn,spawnSync} from 'node:child_process';
 import {readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+import {admittedErrorCode,admittedFailureType,admittedDiagnosticPhase} from './math-module-diagnostics.mjs';
 
 export async function runStrictTests({files,quiet=false,env=process.env}){
  if(!Array.isArray(files)||!files.length)throw Error('Nonempty test inventory required');
@@ -31,23 +33,53 @@ export function validateFullCiEnvironment(env){
  if(!['postgres:','postgresql:'].includes(url.protocol)||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||url.username!=='math_test'||!['/math_universe_test','/math_universe_integration'].includes(url.pathname))throw Error('Full CI permits only local synthetic math_test databases');
 }
 
+// Diagnostic-only identities come exclusively from the existing expected
+// inventory. These functions neither validate evidence nor grant success.
+export function terminalFailureAnnotations(events,expected){
+ const key=x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence]);
+ const trusted=new Set(expected.map(key)),occurrences=new Map(),lines=[];
+ let nonpass=0,matched=0;
+ for(const event of events){
+  const base=JSON.stringify([event.file,event.parent??null,event.name]);
+  const occurrence=(occurrences.get(base)??0)+1;occurrences.set(base,occurrence);
+  if(!['fail','cancelled','skip','todo'].includes(event.status))continue;
+  nonpass++;const identity=key({...event,occurrence});
+  if(!trusted.has(identity))continue;
+  matched++;
+  if(lines.length<32){
+   const id=createHash('sha256').update(identity).digest('hex');
+   lines.push('::error title=Mandatory test failed::FULL_CI_TERMINAL case_id='+id+' status='+event.status+' code='+admittedErrorCode(event.diagnostic_code)+' type='+admittedFailureType(event.diagnostic_type)+' phase='+admittedDiagnosticPhase(event.diagnostic_phase));
+  }
+ }
+ if(nonpass)lines.push('::error title=Mandatory terminal evidence failed::FULL_CI_TERMINAL_SUMMARY matched='+matched+' unmatched='+String(nonpass-matched)+' emitted='+lines.length+' truncated='+(matched>lines.length?'yes':'no'));
+ return lines;
+}
+const failureReasons={ARGUMENTS:'FILTER_POLICY_REJECTED',LOAD_INVENTORY:'INVENTORY_UNAVAILABLE',SOURCE_PROOF:'SOURCE_PROOF_REJECTED',PLATFORM_PREREQUISITES:'RUNTIME_UNSUPPORTED',LINUX_ENVIRONMENT:'REQUIRED_ENVIRONMENT_REJECTED',PDF_PREREQUISITES:'PDF_DEPENDENCIES_UNAVAILABLE',POSTGRES_PREREQUISITES:'POSTGRES_PREREQUISITES_UNAVAILABLE',WINDOWS_PREREQUISITES:'WINDOWS_SHELL_OR_COMPILER_UNAVAILABLE',TEST_RUN:'TEST_PROCESS_UNAVAILABLE',EVENT_PARSE:'MACHINE_EVIDENCE_REJECTED',EVENT_VALIDATION:'TERMINAL_SUITE_REJECTED',SOURCE_RECEIPT:'SOURCE_RECEIPT_REJECTED',EVIDENCE_WRITE:'EVIDENCE_IO_REJECTED'};
+function failureAnnotation(stage){
+ const known=Object.hasOwn(failureReasons,stage)?stage:'UNCLASSIFIED';
+ return '::error title=Mandatory full CI failed::FULL_CI_FAILURE stage='+known+' reason='+(failureReasons[known]??'UNEXPECTED_FAILURE');
+}
+let mainStage='ARGUMENTS';
+
 async function main(){
  if(process.argv.length!==2)throw Error('Full CI accepts no test selectors or filters');
  if(/--test(?:\b|[-=])/.test(process.env.NODE_OPTIONS??''))throw Error('Test filters are forbidden');
- const {readFileSync,writeFileSync,mkdirSync}=await import('node:fs');
+ mainStage='LOAD_INVENTORY';const {readFileSync,writeFileSync,mkdirSync}=await import('node:fs');
  const {execFileSync}=await import('node:child_process');
  const {loadInventory,verifySourceProof,expectedFor,validateEvents,parseEventEvidence,inventoryDigest,sha256}=await import('./platform-coverage.mjs');
- const inventory=loadInventory();const proof=verifySourceProof();const platform=process.platform==='win32'?'windows':process.platform;
+ mainStage='LOAD_INVENTORY';const inventory=loadInventory();mainStage='SOURCE_PROOF';const proof=verifySourceProof();mainStage='PLATFORM_PREREQUISITES';const platform=process.platform==='win32'?'windows':process.platform;
  if(!['linux','windows'].includes(platform)||!['22','24'].includes(process.versions.node.split('.')[0]))throw Error('Mandatory platform/Node runtime required');
  let postgres=null,postgresVersion=null;
  if(platform==='linux'){
-  validateFullCiEnvironment(process.env);
+  mainStage='LINUX_ENVIRONMENT';validateFullCiEnvironment(process.env);
+  mainStage='PDF_PREREQUISITES';
   const python=spawnSync(process.env.BOOK_INGESTION_PYTHON,['-c','import pypdf, pypdfium2, PIL'],{windowsHide:true,timeout:15000,stdio:'ignore'});
   if(python.error||python.status!==0)throw Error('Native PDF dependencies unavailable');
-  const {default:pg}=await import('pg');
+  mainStage='POSTGRES_PREREQUISITES';const {default:pg}=await import('pg');
   const pool=new pg.Pool({connectionString:process.env.MATH_UNIVERSE_TEST_DATABASE_URL,max:1,connectionTimeoutMillis:5000,query_timeout:10000});
   try{postgresVersion=(await pool.query("SELECT current_setting('server_version') AS version")).rows[0].version;if(!/^(16|18)\./.test(postgresVersion))throw Error('Full CI requires PostgreSQL16/18');postgres=postgresVersion.split('.')[0];}finally{await pool.end();}
  }else{
+  mainStage='WINDOWS_PREREQUISITES';
   // The offline fixture is explicitly disposable-hosted-only; never spoof this locally.
   if(process.env.GITHUB_ACTIONS!=='true'||!process.env.RUNNER_TEMP)throw Error('Windows mandatory lane requires disposable GitHub hosted runtime');
   for(const shell of ['powershell.exe','pwsh.exe']){
@@ -55,18 +87,18 @@ async function main(){
    if(run.error||run.status!==0||run.stdout.trim()!=='WINDOWS_DEPENDENCIES_PASS')throw Error('Required Windows shell/Framework compiler unavailable');
   }
  }
- const expected=expectedFor(inventory,platform);const files=[...new Set(expected.map(x=>x.destination))].sort();
+ mainStage='LOAD_INVENTORY';const expected=expectedFor(inventory,platform);const files=[...new Set(expected.map(x=>x.destination))].sort();
  const env={...process.env};delete env.NODE_TEST_CONTEXT;
- const output=[];let code,signal;
+ mainStage='TEST_RUN';const output=[];let code,signal;
  await new Promise((done,reject)=>{const child=spawn(process.execPath,['--test','--test-concurrency=4','--test-timeout=120000','--test-reporter=./scripts/platform-test-reporter.mjs',...files],{env,windowsHide:true,stdio:['ignore','pipe','inherit']});child.stdout.on('data',chunk=>output.push(chunk));child.once('error',reject);child.once('close',(c,s)=>{code=c;signal=s;done();});});
- const eventsRaw=Buffer.concat(output).toString('utf8');mkdirSync('platform-evidence',{recursive:true});writeFileSync('platform-evidence/events.ndjson',eventsRaw);
- const {events,summary,success}=parseEventEvidence(eventsRaw,inventory);let ok=false;let error;
- try{validateEvents(events,expected);if(code!==0||signal||!success||summary.tests!==expected.length||summary.pass!==expected.length||['fail','cancelled','skipped','todo'].some(x=>summary[x]!==0))throw Error('Strict terminal suite failed');ok=true;}catch(e){error=e.message;}
- const git=(...args)=>execFileSync('git',['--no-replace-objects',...args],{encoding:'utf8'}).trim();const head=git('rev-parse','HEAD'),tree=git('rev-parse','HEAD^{tree}');
+ mainStage='EVIDENCE_WRITE';const eventsRaw=Buffer.concat(output).toString('utf8');mkdirSync('platform-evidence',{recursive:true});writeFileSync('platform-evidence/events.ndjson',eventsRaw);
+ mainStage='EVENT_PARSE';const {events,summary,success}=parseEventEvidence(eventsRaw,inventory);let ok=false;
+ mainStage='EVENT_VALIDATION';try{validateEvents(events,expected);if(code!==0||signal||!success||summary.tests!==expected.length||summary.pass!==expected.length||['fail','cancelled','skipped','todo'].some(x=>summary[x]!==0))throw Error('Strict terminal suite failed');ok=true;}catch{for(const line of terminalFailureAnnotations(events,expected))console.error(line);console.error(failureAnnotation(mainStage));}
+ mainStage='SOURCE_RECEIPT';const git=(...args)=>execFileSync('git',['--no-replace-objects',...args],{encoding:'utf8'}).trim();const head=git('rev-parse','HEAD'),tree=git('rev-parse','HEAD^{tree}');
  if(head!==process.env.GITHUB_SHA)throw Error('Tested HEAD differs from workflow SHA');
  const cell=[platform,process.versions.node.split('.')[0],...(postgres?[postgres]:[])].join('-');
  const receipt={schema:1,cell,head,tree,runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,jobId:process.env.GITHUB_JOB,platform:process.platform,node:process.versions.node.split('.')[0],nodeVersion:process.version,postgres,postgresVersion,inventorySha:inventoryDigest(inventory),sourceProofSha:proof.sha,eventsSha:sha256(eventsRaw),events,summary,ok,code,signal};
- writeFileSync('platform-evidence/receipt.json',JSON.stringify(receipt,null,2)+'\n');
- console.log('Mandatory platform result: '+JSON.stringify({cell,tests:expected.length,summary,ok}));if(error)console.error(error);if(!ok)process.exitCode=1;
+ mainStage='EVIDENCE_WRITE';writeFileSync('platform-evidence/receipt.json',JSON.stringify(receipt,null,2)+'\n');
+ console.log('Mandatory platform result: '+JSON.stringify({cell,tests:expected.length,summary,ok}));if(!ok)process.exitCode=1;
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){main().catch(error=>{console.error('Full CI failed: '+error.message);process.exitCode=1;});}
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){main().catch(()=>{console.error(failureAnnotation(mainStage));process.exitCode=1;});}
