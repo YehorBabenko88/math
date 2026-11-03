@@ -55,6 +55,137 @@ namespace MathUniverse.AdminitHosted {
   }
  }
 // END_READ_ONLY_ACCESS_PROBE
+// BEGIN_READ_ONLY_USER_OBJECT_PROBE
+ // Microsoft primary references: security mappings, borrowed handles, label-only reads.
+ // https://learn.microsoft.com/en-us/windows/win32/winstation/window-station-security-and-access-rights
+ // https://learn.microsoft.com/en-us/windows/win32/winstation/desktop-security-and-access-rights
+ // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getprocesswindowstation
+ // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getthreaddesktop
+ // https://learn.microsoft.com/en-us/windows/win32/secauthz/security-information
+ public static class RestrictedUserObjectProbe {
+  const int Limit=65536,MaxAces=1024;
+  [StructLayout(LayoutKind.Sequential)] struct Mapping {public uint Read,Write,Execute,All;}
+  [StructLayout(LayoutKind.Sequential)] struct Flags {public uint Inherit,Reserved,Value;}
+  [DllImport("user32.dll",SetLastError=true)] static extern IntPtr GetProcessWindowStation();
+  [DllImport("user32.dll",SetLastError=true)] static extern IntPtr GetThreadDesktop(uint thread);
+  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+  [DllImport("user32.dll",SetLastError=true)] static extern bool GetUserObjectSecurity(IntPtr handle,ref uint information,IntPtr descriptor,uint length,out uint needed);
+  [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool GetUserObjectInformation(IntPtr handle,int index,ref Flags flags,uint length,out uint needed);
+  [DllImport("advapi32.dll",SetLastError=true)] static extern bool DuplicateToken(IntPtr token,int level,out IntPtr duplicate);
+  [DllImport("advapi32.dll")] static extern void MapGenericMask(ref uint access,ref Mapping mapping);
+  [DllImport("advapi32.dll",SetLastError=true)] static extern bool AccessCheck(IntPtr descriptor,IntPtr token,uint access,ref Mapping mapping,IntPtr privileges,ref uint length,out uint granted,[MarshalAs(UnmanagedType.Bool)] out bool allowed);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool CloseHandle(IntPtr handle);
+  public sealed class Result {
+   public string name,failureClass="PROBE_UNAVAILABLE";public bool available,allowed;
+   public Result Block(string value){available=false;allowed=false;failureClass=value;return this;}
+  }
+  public sealed class Label {
+   public bool available,noWriteUp,noReadUp,noExecuteUp;public string label="UNAVAILABLE",failureClass="LABEL_UNAVAILABLE";
+   public Label Block(string value){available=false;label="UNAVAILABLE";failureClass=value;noWriteUp=false;noReadUp=false;noExecuteUp=false;return this;}
+  }
+  public sealed class Snapshot {
+   public string station="UNAVAILABLE";
+   public System.Collections.Generic.List<Result> rights=new System.Collections.Generic.List<Result>();
+   public Label stationLabel=new Label(),desktopLabel=new Label();
+  }
+  // kind: 0 interactive station, 1 noninteractive station, 2 desktop.
+  public static uint[] MappingValues(int kind){
+   if(kind==0)return new uint[]{0x20303,0x2001C,0x20060,0xF037F};
+   if(kind==1)return new uint[]{0x20103,0x2000C,0x20060,0xF016F};
+   if(kind==2)return new uint[]{0x20041,0x200BE,0x20100,0xF01FF};
+   throw new ArgumentOutOfRangeException("kind");
+  }
+  static uint[] Bits(int kind){return kind==2?new uint[]{1,2,4,8,0x10,0x20,0x40,0x80,0x100}:new uint[]{1,2,4,8,0x10,0x20,0x40,0x100,0x200};}
+  static string[] Names(int kind){return kind==2?new[]{"DESKTOP_READ_OBJECTS","DESKTOP_CREATE_WINDOW","DESKTOP_CREATE_MENU","DESKTOP_HOOK_CONTROL","DESKTOP_JOURNAL_RECORD","DESKTOP_JOURNAL_PLAYBACK","DESKTOP_ENUMERATE","DESKTOP_WRITE_OBJECTS","DESKTOP_SWITCH"}:new[]{"WINSTA_ENUM_DESKTOPS","WINSTA_READ_ATTRIBUTES","WINSTA_ACCESS_CLIPBOARD","WINSTA_CREATE_DESKTOP","WINSTA_WRITE_ATTRIBUTES","WINSTA_ACCESS_GLOBAL_ATOMS","WINSTA_EXIT_WINDOWS","WINSTA_ENUMERATE","WINSTA_READ_SCREEN"};}
+  public static Result CheckDescriptor(IntPtr restricted,byte[] raw,int kind,uint desired){
+   var result=new Result();IntPtr descriptor=IntPtr.Zero,token=IntPtr.Zero,privileges=IntPtr.Zero;
+   try{
+    if(kind<0||kind>2)return result.Block("STATION_KIND_UNAVAILABLE");
+    if(desired!=0x10000000&&Array.IndexOf(Bits(kind),desired)<0)return result.Block("UNSUPPORTED_RIGHT");
+    if(raw==null||raw.Length<20||raw.Length>Limit)return result.Block("SECURITY_DESCRIPTOR_BOUNDS");
+    var parsed=new System.Security.AccessControl.RawSecurityDescriptor(raw,0);
+    if(parsed.Owner==null||parsed.Group==null||(parsed.DiscretionaryAcl!=null&&parsed.DiscretionaryAcl.Count>MaxAces)||(parsed.SystemAcl!=null&&parsed.SystemAcl.Count>MaxAces))return result.Block("SECURITY_DESCRIPTOR_BOUNDS");
+    if(!DuplicateToken(restricted,2,out token))return result.Block("TOKEN_DUPLICATE_FAILED");
+    descriptor=Marshal.AllocHGlobal(raw.Length);Marshal.Copy(raw,0,descriptor,raw.Length);
+    uint[] values=MappingValues(kind);var mapping=new Mapping{Read=values[0],Write=values[1],Execute=values[2],All=values[3]};MapGenericMask(ref desired,ref mapping);
+    privileges=Marshal.AllocHGlobal(Limit);uint length=Limit,granted;bool allowed;
+    if(!AccessCheck(descriptor,token,desired,ref mapping,privileges,ref length,out granted,out allowed)||length>Limit)return result.Block("ACCESS_CHECK_UNAVAILABLE");
+    result.available=true;result.allowed=allowed;result.failureClass="NONE";return result;
+   }catch{return result.Block("PROBE_UNAVAILABLE");}
+   finally{
+    if(privileges!=IntPtr.Zero)Marshal.FreeHGlobal(privileges);if(descriptor!=IntPtr.Zero)Marshal.FreeHGlobal(descriptor);
+    if(token!=IntPtr.Zero&&!CloseHandle(token))result.Block("RESOURCE_RELEASE_FAILED");
+   }
+  }
+  static byte[] ReadDescriptor(IntPtr handle,uint information,out string failure){
+   failure="HANDLE_UNAVAILABLE";IntPtr memory=IntPtr.Zero;
+   try{
+    if(handle==IntPtr.Zero)return null;
+    uint needed;bool initial=GetUserObjectSecurity(handle,ref information,IntPtr.Zero,0,out needed);
+    failure="SECURITY_DESCRIPTOR_UNAVAILABLE";if(initial||Marshal.GetLastWin32Error()!=122)return null;
+    failure="SECURITY_DESCRIPTOR_BOUNDS";if(needed<20||needed>Limit)return null;
+    memory=Marshal.AllocHGlobal((int)needed);uint actual;
+    failure="SECURITY_DESCRIPTOR_UNAVAILABLE";if(!GetUserObjectSecurity(handle,ref information,memory,needed,out actual))return null;
+    failure="SECURITY_DESCRIPTOR_BOUNDS";if(actual<20||actual>needed)return null;
+    byte[] raw=new byte[actual];Marshal.Copy(memory,raw,0,(int)actual);failure="NONE";return raw;
+   }catch{failure="PROBE_UNAVAILABLE";return null;}finally{if(memory!=IntPtr.Zero)Marshal.FreeHGlobal(memory);}
+  }
+  public static Label ParseLabel(byte[] raw){
+   var result=new Label();
+   try{
+    if(raw==null||raw.Length<20||raw.Length>Limit||raw[0]!=1||(BitConverter.ToUInt16(raw,2)&0x8000)==0)return result.Block("LABEL_BOUNDS");
+    result.available=true;result.label="UNLABELLED";result.failureClass="NONE";
+    uint offset=BitConverter.ToUInt32(raw,12);
+    if((BitConverter.ToUInt16(raw,2)&0x10)==0||offset==0)return result;
+    if(offset<20||(ulong)offset+8>(ulong)raw.Length)return result.Block("LABEL_BOUNDS");
+    int start=(int)offset,size=BitConverter.ToUInt16(raw,start+2),count=BitConverter.ToUInt16(raw,start+4);
+    if((raw[start]!=2&&raw[start]!=4)||size<8||start+size>raw.Length||count>MaxAces)return result.Block("LABEL_BOUNDS");
+    int cursor=start+8,end=start+size,labels=0;
+    for(int index=0;index<count;index++){
+     if(cursor+4>end)return result.Block("LABEL_BOUNDS");int aceSize=BitConverter.ToUInt16(raw,cursor+2);
+     if(aceSize<4||cursor+aceSize>end)return result.Block("LABEL_BOUNDS");
+     if(raw[cursor]==17){
+      if(++labels>1||aceSize!=20||raw[cursor+8]!=1||raw[cursor+9]!=1)return result.Block("LABEL_BOUNDS");
+      for(int i=10;i<15;i++)if(raw[cursor+i]!=0)return result.Block("LABEL_BOUNDS");
+      if(raw[cursor+15]!=16)return result.Block("LABEL_BOUNDS");
+      uint mask=BitConverter.ToUInt32(raw,cursor+4),rid=BitConverter.ToUInt32(raw,cursor+16);if((mask&~7u)!=0)return result.Block("LABEL_BOUNDS");
+      result.label=rid==4096?"LOW":rid==8192?"MEDIUM":rid==12288?"HIGH":rid==16384?"SYSTEM":"OTHER";
+      result.noWriteUp=(mask&1)!=0;result.noReadUp=(mask&2)!=0;result.noExecuteUp=(mask&4)!=0;
+     }
+     cursor+=aceSize;
+    }
+    return result;
+   }catch{return result.Block("LABEL_BOUNDS");}
+  }
+  static Label ReadLabel(IntPtr handle){string failure;byte[] raw=ReadDescriptor(handle,16,out failure);return raw==null?new Label().Block(failure):ParseLabel(raw);}
+  static void AddRights(Snapshot snapshot,IntPtr token,IntPtr handle,int kind){
+   string failure;byte[] raw=ReadDescriptor(handle,7,out failure);uint[] bits=Bits(kind);string[] names=Names(kind);
+   for(int index=0;index<10;index++){
+    uint desired=index==9?0x10000000:bits[index];
+    Result result=raw==null?new Result().Block(failure):CheckDescriptor(token,raw,kind,desired);
+    result.name=index==9?(kind==2?"DESKTOP_GENERIC_ALL":"WINSTA_GENERIC_ALL"):names[index];snapshot.rights.Add(result);
+   }
+  }
+  public static Snapshot InspectCurrent(IntPtr restricted){
+   var snapshot=new Snapshot();
+   // These handles belong to the process/thread. Never close or reassign them.
+   IntPtr station=GetProcessWindowStation(),desktop=GetThreadDesktop(GetCurrentThreadId());
+   var flags=new Flags();uint needed;int kind=-1;
+   if(station!=IntPtr.Zero&&GetUserObjectInformation(station,1,ref flags,12,out needed)&&needed==12&&flags.Reserved==0){kind=(flags.Value&1)!=0?0:1;snapshot.station=kind==0?"INTERACTIVE":"NONINTERACTIVE";}
+   AddRights(snapshot,restricted,station,kind);AddRights(snapshot,restricted,desktop,2);
+   snapshot.stationLabel=ReadLabel(station);snapshot.desktopLabel=ReadLabel(desktop);return snapshot;
+  }
+  static void EmitLabel(string name,Label value){Console.Out.WriteLine("HOSTED_UI_LABEL name="+name+" available="+(value.available?"true":"false")+" label="+value.label+" no_write_up="+(value.noWriteUp?"true":"false")+" no_read_up="+(value.noReadUp?"true":"false")+" no_execute_up="+(value.noExecuteUp?"true":"false")+" class="+value.failureClass);}
+  public static void EmitFixed(IntPtr restricted){
+   try{
+    Snapshot snapshot=InspectCurrent(restricted);Console.Out.WriteLine("HOSTED_UI_CONTEXT station="+snapshot.station);
+    foreach(Result result in snapshot.rights)Console.Out.WriteLine("HOSTED_UI_ACCESS_PROBE name="+result.name+" available="+(result.available?"true":"false")+" allowed="+(result.allowed?"true":"false")+" class="+result.failureClass);
+    EmitLabel("WINDOW_STATION",snapshot.stationLabel);EmitLabel("DESKTOP",snapshot.desktopLabel);
+   }catch{try{Console.Out.WriteLine("HOSTED_UI_CONTEXT station=UNAVAILABLE");}catch{}}
+  }
+ }
+// END_READ_ONLY_USER_OBJECT_PROBE
+
  public static class MediumLauncher {
   [StructLayout(LayoutKind.Sequential)] struct Startup {public uint Size;public string Reserved,Desktop,Title;public uint X,Y,XS,YS,XC,YC,Fill,Flags;public ushort Show,RS;public IntPtr R2,Input,Output,Error;}
   [StructLayout(LayoutKind.Sequential)] struct ProcessInfo {public IntPtr Process,Thread;public uint Pid,Tid;}
@@ -96,6 +227,7 @@ namespace MathUniverse.AdminitHosted {
     phase="INTEGRITY_ASSIGN";
     Check(SetTokenInformation(limited,25,label,(uint)Marshal.SizeOf(typeof(SidAttributes))+GetLengthSid(sid)),"Medium token assignment BLOCKED");
     RestrictedFileAccessProbe.EmitFixed(limited,exe,package,Path.GetDirectoryName(run));
+    RestrictedUserObjectProbe.EmitFixed(limited);
     phase="ENVIRONMENT";
     var values=new SortedDictionary<string,string>(StringComparer.OrdinalIgnoreCase);string windows=Environment.GetFolderPath(Environment.SpecialFolder.Windows);
     values.Add("GITHUB_ACTIONS","true");values.Add("RUNNER_ENVIRONMENT","github-hosted");values.Add("RUNNER_TEMP",Environment.GetEnvironmentVariable("RUNNER_TEMP"));values.Add("SOURCE_HEAD",Environment.GetEnvironmentVariable("SOURCE_HEAD"));values.Add("SOURCE_TREE",Environment.GetEnvironmentVariable("SOURCE_TREE"));values.Add("SystemRoot",windows);values.Add("TEMP",Path.GetDirectoryName(run));values.Add("TMP",Path.GetDirectoryName(run));values.Add("WINDIR",windows);

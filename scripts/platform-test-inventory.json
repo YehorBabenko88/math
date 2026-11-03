@@ -12229,6 +12229,17 @@
       "occurrence": 1,
       "destination": "tests/adminit-restricted-file-access.windows.mjs",
       "added": true
+    },
+    {
+      "file": "tests/adminit-user-object-access.windows.mjs",
+      "name": "read-only user-object probes use correct mappings and preserve borrowed desktop handles",
+      "parent": null,
+      "line": 7,
+      "column": 1,
+      "platform": "windows",
+      "occurrence": 1,
+      "destination": "tests/adminit-user-object-access.windows.mjs",
+      "added": true
     }
   ]
 }
