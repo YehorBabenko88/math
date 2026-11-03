@@ -12141,6 +12141,17 @@
       "occurrence": 1,
       "destination": "tests/math-module-diagnostics.cross.mjs",
       "added": true
+    },
+    {
+      "file": "tests/math-module-diagnostics.cross.mjs",
+      "name": "offline preflight diagnostics admit only fixed public stage labels",
+      "parent": null,
+      "line": 15,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/math-module-diagnostics.cross.mjs",
+      "added": true
     }
   ]
 }

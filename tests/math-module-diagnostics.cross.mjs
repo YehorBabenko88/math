@@ -12,6 +12,17 @@ import * as diagnostics from '../scripts/math-module-diagnostics.mjs';
 import {publicErrorCode,publicFailureType,startupCode,fixtureCode} from '../scripts/math-module-diagnostics.mjs';
 import {terminalFailureAnnotations} from '../scripts/test-full-ci.mjs';
 
+test('offline preflight diagnostics admit only fixed public stage labels',()=>{
+ assert.equal(diagnostics.preflightDiagnosticPhase({code:'SOURCE'}),'DIAG_PREFLIGHT_VALID_SOURCE');
+ assert.equal(diagnostics.preflightDiagnosticPhase({code:'COMPILE'}),'DIAG_PREFLIGHT_VALID_COMPILE');
+ assert.equal(diagnostics.preflightDiagnosticPhase({code:'PRIVATE_PATH_TOKEN'}),'DIAG_PREFLIGHT_VALID_OTHER');
+ const trap={};Object.defineProperty(trap,'code',{get(){assert.fail('must not invoke diagnostic getters')}});
+ assert.equal(diagnostics.preflightDiagnosticPhase(trap),'DIAG_PREFLIGHT_VALID_OTHER');
+ for(const phase of ['DIAG_PREFLIGHT_SETUP','DIAG_PREFLIGHT_JSON','DIAG_PREFLIGHT_VALID_SOURCE','DIAG_PREFLIGHT_CLEANUP_SOURCE'])
+  assert.equal(diagnostics.publicDiagnosticPhase({publicDiagnosticPhase:phase}),phase);
+ assert.equal(diagnostics.publicDiagnosticPhase({publicDiagnosticPhase:'PRIVATE_PATH_TOKEN'}),'UNCLASSIFIED');
+});
+
 test('bounded fixture startup and message codes reflect only controlled public outcomes',()=>{
  const canonicalRoot=mkdtempSync(join(tmpdir(),'math-raw-attributes-')),previous=process.cwd();
  const git=(...args)=>execFileSync('git',['-C',canonicalRoot,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
