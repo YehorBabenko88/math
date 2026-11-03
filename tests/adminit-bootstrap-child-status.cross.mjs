@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {bootstrapChildClass,bootstrapAccessChecks,bootstrapUiDiagnostics} from '../scripts/adminit-containment/report-bootstrap-phase.mjs';
+import {bootstrapChildClass,bootstrapAccessChecks,bootstrapUiDiagnostics,bootstrapKernelDiagnostics} from '../scripts/adminit-containment/report-bootstrap-phase.mjs';
 
 test('hosted child exit classification distinguishes DLL initialization from managed gates without leaking streams',()=>{
  assert.equal(bootstrapChildClass('private exception\nHOSTED_CHILD_FAILURE class=DLL_INITIALIZATION_FAILED\r\n'),'DLL_INITIALIZATION_FAILED');
@@ -19,6 +19,10 @@ test('hosted child exit classification distinguishes DLL initialization from man
  const emptyUi={station:'UNKNOWN',rights:[],labels:[]};
  assert.deepEqual(bootstrapUiDiagnostics('private paths\n'+ui),{station:'NONINTERACTIVE',rights:[{name:'WINSTA_ACCESS_GLOBAL_ATOMS',available:true,allowed:false,failureClass:'NONE'}],labels:[{name:'WINDOW_STATION',available:true,label:'HIGH',noWriteUp:true,noReadUp:false,noExecuteUp:false,failureClass:'NONE'}]});
  for(const invalid of [ui.replace('WINSTA_ACCESS_GLOBAL_ATOMS','PRIVATE_TOKEN'),ui.replace('label=HIGH','label=PRIVATE_SID'),ui.replace('available=true','available=false'),ui+'\n'+ui,'x'.repeat(16385)])assert.deepEqual(bootstrapUiDiagnostics(invalid),emptyUi);
+ const kernel='HOSTED_POLICY_PROBE name=CHILD_WIN32K_DISABLED available=true enabled=false class=NONE\nHOSTED_KERNEL_ACCESS_PROBE name=CHILD_PROCESS_QUERY available=false allowed=false class=UNMAPPED_GENERIC_ACE\nHOSTED_KERNEL_LABEL name=CHILD_PROCESS available=true label=MEDIUM no_write_up=true no_read_up=false no_execute_up=false class=NONE';
+ const emptyKernel={policies:[],rights:[],labels:[]};
+ assert.deepEqual(bootstrapKernelDiagnostics(kernel),{policies:[{name:'CHILD_WIN32K_DISABLED',available:true,enabled:false,failureClass:'NONE'}],rights:[{name:'CHILD_PROCESS_QUERY',available:false,allowed:false,failureClass:'UNMAPPED_GENERIC_ACE'}],labels:[{name:'CHILD_PROCESS',available:true,label:'MEDIUM',noWriteUp:true,noReadUp:false,noExecuteUp:false,failureClass:'NONE'}]});
+ for(const invalid of [kernel.replace('CHILD_WIN32K_DISABLED','PRIVATE_TOKEN'),kernel.replace('available=false allowed=false','available=true allowed=false'),kernel.replace('label=MEDIUM','label=PRIVATE_SID'),kernel+'\n'+kernel,'x'.repeat(16385)])assert.deepEqual(bootstrapKernelDiagnostics(invalid),emptyKernel);
  const source=readFileSync(new URL('./fixtures/adminit-containment/HostedMediumLauncher.cs',import.meta.url),'utf8');
  const method=/  public static string ChildExitClass\(uint code\)\{[\s\S]*?\n  \}/.exec(source)?.[0];
  assert.ok(method);
@@ -31,9 +35,9 @@ test('hosted child exit classification distinguishes DLL initialization from man
  }
  const directory=mkdtempSync(join(tmpdir(),'math-child-status-'));
  try{
-  const path=join(directory,'private-stdout.txt');writeFileSync(path,'private paths and tokens\nHOSTED_BOOTSTRAP_PHASE=CHILD_RESULT\nHOSTED_CHILD_FAILURE class=DLL_INITIALIZATION_FAILED\n'+access+'\n'+ui+'\n');
+  const path=join(directory,'private-stdout.txt');writeFileSync(path,'private paths and tokens\nHOSTED_BOOTSTRAP_PHASE=CHILD_RESULT\nHOSTED_CHILD_FAILURE class=DLL_INITIALIZATION_FAILED\n'+access+'\n'+ui+'\n'+kernel+'\n');
   const child=spawnSync(process.execPath,[fileURLToPath(new URL('../scripts/adminit-containment/report-bootstrap-phase.mjs',import.meta.url)),path],{encoding:'utf8',timeout:10000,maxBuffer:4096,windowsHide:true});
   assert.equal(child.status,0);assert.equal(child.stderr,'');
-  assert.equal(child.stdout.trim(),'HOSTED_BOOTSTRAP_FAILURE phase=CHILD_RESULT\nHOSTED_CHILD_FAILURE class=DLL_INITIALIZATION_FAILED\n'+access+'\n'+ui);
+  assert.equal(child.stdout.trim(),'HOSTED_BOOTSTRAP_FAILURE phase=CHILD_RESULT\nHOSTED_CHILD_FAILURE class=DLL_INITIALIZATION_FAILED\n'+access+'\n'+ui+'\n'+kernel);
  }finally{rmSync(directory,{recursive:true,force:true});}
 });

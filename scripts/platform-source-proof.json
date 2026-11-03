@@ -2767,6 +2767,7 @@
     "tests/adminit-token-integrity-access.windows.mjs",
     "tests/adminit-bootstrap-child-status.cross.mjs",
     "tests/adminit-restricted-file-access.windows.mjs",
-    "tests/adminit-user-object-access.windows.mjs"
+    "tests/adminit-user-object-access.windows.mjs",
+    "tests/adminit-kernel-policy.windows.mjs"
   ]
 }

@@ -20,12 +20,13 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  const developer=JSON.parse(readFileSync('package.json','utf8'));assert.equal(developer.scripts.test,'node --test tests/*.test.mjs tests/*.windows.mjs tests/*.cross.mjs');
  const inv=loadInventory();assert.equal(inv.tests.filter(x=>!x.added).length,1147);
  assert.equal(inv.tests.filter(x=>!x.added&&x.parent).length,12);
- const integrityFile='tests/adminit-token-integrity-access.windows.mjs',fileAccessFile='tests/adminit-restricted-file-access.windows.mjs',userObjectFile='tests/adminit-user-object-access.windows.mjs';
- assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file!==integrityFile&&x.file!==fileAccessFile&&x.file!==userObjectFile).length,22);
+ const integrityFile='tests/adminit-token-integrity-access.windows.mjs',fileAccessFile='tests/adminit-restricted-file-access.windows.mjs',userObjectFile='tests/adminit-user-object-access.windows.mjs',kernelPolicyFile='tests/adminit-kernel-policy.windows.mjs';
+ assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file!==integrityFile&&x.file!==fileAccessFile&&x.file!==userObjectFile&&x.file!==kernelPolicyFile).length,22);
  assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file===integrityFile&&x.added&&x.name==='own unassigned restricted token requires adjust-default access to set Medium integrity').length,1);
  assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file===fileAccessFile&&x.added&&x.name==='unassigned own restricted token AccessCheck distinguishes Admin-only from explicit caller file rights').length,1);
  assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file===userObjectFile&&x.added&&x.name==='read-only user-object probes use correct mappings and preserve borrowed desktop handles').length,1);
- assert.equal(inv.tests.filter(x=>x.platform==='windows').length,25);
+ assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file===kernelPolicyFile&&x.added&&x.name==='read-only job mitigation and kernel DACL probes preserve existing handles and reject generic ACEs').length,1);
+ assert.equal(inv.tests.filter(x=>x.platform==='windows').length,26);
  assert.equal(inv.tests.filter(x=>!x.added&&x.platform==='cross').length,3);
  const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs',checkoutFile='tests/windows-checkout-bytes.cross.mjs',bootstrapFile='tests/adminit-bootstrap-diagnostics.cross.mjs',childStatusFile='tests/adminit-bootstrap-child-status.cross.mjs';
  const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile&&x.file!==diagnosticFile&&x.file!==checkoutFile&&x.file!==bootstrapFile&&x.file!==childStatusFile);
