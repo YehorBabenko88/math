@@ -11,8 +11,14 @@ import {verifySourceIdentity} from '../scripts/verify-source-identity.mjs';
 import * as diagnostics from '../scripts/math-module-diagnostics.mjs';
 import {publicErrorCode,publicFailureType,startupCode,fixtureCode} from '../scripts/math-module-diagnostics.mjs';
 import {terminalFailureAnnotations} from '../scripts/test-full-ci.mjs';
+import {workerTransportCode} from '../scripts/adminit-containment/offline-preflight.mjs';
 
 test('offline preflight diagnostics admit only fixed public stage labels',()=>{
+ assert.equal(workerTransportCode({error:{code:'ETIMEDOUT'},stderr:'private'}),'WORKER_TIMEOUT');
+ assert.equal(workerTransportCode({error:{code:'EACCES'}}),'WORKER_LAUNCH');
+ assert.equal(workerTransportCode({signal:'SIGTERM'}),'WORKER_SIGNAL');
+ assert.equal(workerTransportCode({stderr:'PRIVATE_PATH_TOKEN'}),'WORKER_STDERR');
+ assert.equal(workerTransportCode({stderr:''}),null);
  assert.equal(diagnostics.preflightDiagnosticPhase({code:'SOURCE'}),'DIAG_PREFLIGHT_VALID_SOURCE');
  assert.equal(diagnostics.preflightDiagnosticPhase({code:'COMPILE'}),'DIAG_PREFLIGHT_VALID_COMPILE');
  assert.equal(diagnostics.preflightDiagnosticPhase({code:'PRIVATE_PATH_TOKEN'}),'DIAG_PREFLIGHT_VALID_OTHER');

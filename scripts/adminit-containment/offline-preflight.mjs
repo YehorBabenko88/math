@@ -89,6 +89,15 @@ if($status -eq 'PASS'){exit 0}else{exit 2}`;
 export function parseWorkerReport(text){try{need(typeof text==='string'&&Buffer.byteLength(text)<=1024);const r=JSON.parse(text);exact(r,['schema','status','code']);need(text.trim()===JSON.stringify(r));need(r.schema==='math.g0.preflight-worker.v1'&&['PASS','BLOCKED'].includes(r.status)&&['NONE','RUNTIME','REPARSE','TYPES','PARSER','COMPILE'].includes(r.code)&&((r.status==='PASS')===(r.code==='NONE')));return r;}catch{fail();}}
 export function runtimePin(p){noLinks(p.path);need(hash(bytes(p.path,256*1024*1024,true))===p.sha256);}
 const report=(status,code,identity=null)=>({sourceHead:identity?.head??null,sourceTree:identity?.tree??null,sourceBlobs:identity?.count??null,policySha256:identity?.policyHash??null,schema:'math.g0.offline-preflight.v1',status,code,provenance:'PIN_MATCH_ONLY_NOT_ATTESTATION',authority:'NONE',admission:'BLOCKED',localExecute:false,isolationConfirmed:false,physicalCall:'NOT_AUTHORIZED'});
+export function workerTransportCode(child){
+ const own=(object,key)=>{try{const p=Object.getOwnPropertyDescriptor(object,key);return p&&Object.hasOwn(p,'value')?p.value:undefined;}catch{return undefined;}};
+ if(!child||typeof child!=='object')return 'WORKER_LAUNCH';
+ const error=own(child,'error');
+ if(error)return own(error,'code')==='ETIMEDOUT'?'WORKER_TIMEOUT':'WORKER_LAUNCH';
+ if(own(child,'signal'))return 'WORKER_SIGNAL';
+ if(own(child,'stderr')!=='')return 'WORKER_STDERR';
+ return null;
+}
 export function runPreflight({source,policy,policySha256}){let stage='POLICY',scratch,labRoot;try{
  need(process.platform==='win32'&&process.arch==='x64'&&process.execArgv.length===0&&!process.env.NODE_OPTIONS&&hex(policySha256,64));
  policy=fs.realpathSync.native(noLinks(ownPath(policy)));
@@ -105,7 +114,9 @@ export function runPreflight({source,policy,policySha256}){let stage='POLICY',sc
  const payload=join(scratch,'input.json');const payloadText=JSON.stringify({sourceRoot:source,scratch,powershellSha:p.tools.powershell.sha256,compilerSha:p.tools.compiler.sha256,scripts,csharp:cs.toString('utf8')});fs.writeFileSync(payload,payloadText,{flag:'wx'});
  const worker="$expectedPayloadSha='"+hash(Buffer.from(payloadText))+"';\n"+WINDOWS_WORKER;
  const child=spawnSync(p.tools.powershell.path,['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(worker,'utf16le').toString('base64')],{cwd:scratch,env:{...childEnv(),MATH_PREFLIGHT_PAYLOAD:payload,TEMP:scratch,TMP:scratch,PSModuleAnalysisCachePath:join(scratch,'module.cache'),PSDisableModuleAnalysisCacheCleanup:'1',PSModulePath:join(dirname(p.tools.powershell.path),'Modules')},encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:16384});
- need(!child.error&&!child.signal&&child.stderr==='');const result=parseWorkerReport(child.stdout);if(result.status!=='PASS')stage=result.code;need(child.status===0&&result.status==='PASS');
+ const transport=workerTransportCode(child);if(transport){stage=transport;need(false);}
+ stage='WORKER_OUTPUT';const result=parseWorkerReport(child.stdout);
+ stage=result.status!=='PASS'?result.code:'WORKER_EXIT';need(child.status===0&&result.status==='PASS');
  stage='SOURCE';inspectSource(source,p.tools.git.path,p);for(const name of ['node','git','powershell'])runtimePin(p.tools[name]);
  stage='CLEANUP';cleanScratch(scratch,root);scratch=undefined;
  return report('PASS','NONE',{head:p.head,tree:p.tree,count:p.blobs.length,policyHash:policySha256});
