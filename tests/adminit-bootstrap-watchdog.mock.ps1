@@ -27,6 +27,7 @@ public static class BootstrapDeadlineMock {
  public static int Run(){
   IntPtr p=new IntPtr(1),t=new IntPtr(2),job=new IntPtr(3),token=new IntPtr(4),limited=new IntPtr(5),sid=IntPtr.Zero,label=IntPtr.Zero,env=IntPtr.Zero;
   bool assigned=Assigned;var k=new FakeKernel();int result=2;
+  string phase="PROCESS_WAIT";
   try {
 '@
 $source+=$fragment+"`n }`n}"

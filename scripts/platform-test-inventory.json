@@ -12152,6 +12152,50 @@
       "occurrence": 1,
       "destination": "tests/math-module-diagnostics.cross.mjs",
       "added": true
+    },
+    {
+      "file": "tests/windows-checkout-bytes.cross.mjs",
+      "name": "exact checkout preparation restores real Git CRLF checkout and retains exact index",
+      "parent": null,
+      "line": 27,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/windows-checkout-bytes.cross.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/windows-checkout-bytes.cross.mjs",
+      "name": "exact checkout preparation rejects actual edits before rewriting any file",
+      "parent": null,
+      "line": 39,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/windows-checkout-bytes.cross.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/windows-checkout-bytes.cross.mjs",
+      "name": "exact checkout preparation rejects wrong HEAD staged changes and hardlinks",
+      "parent": null,
+      "line": 46,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/windows-checkout-bytes.cross.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/adminit-bootstrap-diagnostics.cross.mjs",
+      "name": "hosted bootstrap public phases are bounded fixed labels without raw stream disclosure",
+      "parent": null,
+      "line": 10,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/adminit-bootstrap-diagnostics.cross.mjs",
+      "added": true
     }
   ]
 }

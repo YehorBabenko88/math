@@ -22,8 +22,8 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  assert.equal(inv.tests.filter(x=>!x.added&&x.parent).length,12);
  assert.equal(inv.tests.filter(x=>x.platform==='windows').length,22);
  assert.equal(inv.tests.filter(x=>!x.added&&x.platform==='cross').length,3);
- const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs';
- const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile&&x.file!==diagnosticFile);
+ const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs',checkoutFile='tests/windows-checkout-bytes.cross.mjs',bootstrapFile='tests/adminit-bootstrap-diagnostics.cross.mjs';
+ const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile&&x.file!==diagnosticFile&&x.file!==checkoutFile&&x.file!==bootstrapFile);
  assert.equal(scientificCross.length,44);
  assert.equal(sha256(JSON.stringify(scientificCross.map(x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).sort())),'dc2b3096a5a960fe4ed11b22456ebf744e48b995ad0e67f113049dc875c7561e','Original 44 scientific cross-platform identities unchanged');
  const healthCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===healthFile);
@@ -32,7 +32,11 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  for(const entry of healthCross){assert.equal(entry.destination,healthFile);assert.equal(entry.parent,null);assert.equal(entry.occurrence,1);}
  assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===diagnosticFile).length,5);
  assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===diagnosticFile&&x.name==='offline preflight diagnostics admit only fixed public stage labels').length,1);
- assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,57);
+ const checkoutCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===checkoutFile);
+ assert.deepEqual(checkoutCross.map(x=>x.name).sort(),['exact checkout preparation rejects actual edits before rewriting any file','exact checkout preparation rejects wrong HEAD staged changes and hardlinks','exact checkout preparation restores real Git CRLF checkout and retains exact index']);
+ for(const entry of checkoutCross){assert.equal(entry.destination,checkoutFile);assert.equal(entry.parent,null);assert.equal(entry.occurrence,1);}
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===bootstrapFile).length,1);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,61);
  const scientificFiles=JSON.parse(readFileSync('scripts/scientific/test-inventory.json')).filter(file=>/scientific-(?:history-clocks|engine|http|boundary-regressions|runner|composition)\.test\.mjs$/.test(file));
  assert.equal(scientificFiles.length,6);
  for(const file of scientificFiles)assert.ok(inv.tests.some(x=>x.added&&x.platform==='cross'&&x.file===file&&x.destination===file));

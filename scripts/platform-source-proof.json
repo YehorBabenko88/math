@@ -2761,6 +2761,8 @@
     "tests/scientific-engine.test.mjs",
     "tests/scientific-history-clocks.test.mjs",
     "tests/scientific-http.test.mjs",
-    "tests/scientific-runner.test.mjs"
+    "tests/scientific-runner.test.mjs",
+    "tests/windows-checkout-bytes.cross.mjs",
+    "tests/adminit-bootstrap-diagnostics.cross.mjs"
   ]
 }
