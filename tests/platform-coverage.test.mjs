@@ -20,13 +20,14 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  const developer=JSON.parse(readFileSync('package.json','utf8'));assert.equal(developer.scripts.test,'node --test tests/*.test.mjs tests/*.windows.mjs tests/*.cross.mjs');
  const inv=loadInventory();assert.equal(inv.tests.filter(x=>!x.added).length,1147);
  assert.equal(inv.tests.filter(x=>!x.added&&x.parent).length,12);
- const integrityFile='tests/adminit-token-integrity-access.windows.mjs';
- assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file!==integrityFile).length,22);
+ const integrityFile='tests/adminit-token-integrity-access.windows.mjs',fileAccessFile='tests/adminit-restricted-file-access.windows.mjs';
+ assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file!==integrityFile&&x.file!==fileAccessFile).length,22);
  assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file===integrityFile&&x.added&&x.name==='own unassigned restricted token requires adjust-default access to set Medium integrity').length,1);
- assert.equal(inv.tests.filter(x=>x.platform==='windows').length,23);
+ assert.equal(inv.tests.filter(x=>x.platform==='windows'&&x.file===fileAccessFile&&x.added&&x.name==='unassigned own restricted token AccessCheck distinguishes Admin-only from explicit caller file rights').length,1);
+ assert.equal(inv.tests.filter(x=>x.platform==='windows').length,24);
  assert.equal(inv.tests.filter(x=>!x.added&&x.platform==='cross').length,3);
- const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs',checkoutFile='tests/windows-checkout-bytes.cross.mjs',bootstrapFile='tests/adminit-bootstrap-diagnostics.cross.mjs';
- const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile&&x.file!==diagnosticFile&&x.file!==checkoutFile&&x.file!==bootstrapFile);
+ const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs',checkoutFile='tests/windows-checkout-bytes.cross.mjs',bootstrapFile='tests/adminit-bootstrap-diagnostics.cross.mjs',childStatusFile='tests/adminit-bootstrap-child-status.cross.mjs';
+ const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==healthFile&&x.file!==diagnosticFile&&x.file!==checkoutFile&&x.file!==bootstrapFile&&x.file!==childStatusFile);
  assert.equal(scientificCross.length,44);
  assert.equal(sha256(JSON.stringify(scientificCross.map(x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).sort())),'dc2b3096a5a960fe4ed11b22456ebf744e48b995ad0e67f113049dc875c7561e','Original 44 scientific cross-platform identities unchanged');
  const healthCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===healthFile);
@@ -39,7 +40,8 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  assert.deepEqual(checkoutCross.map(x=>x.name).sort(),['exact checkout preparation rejects actual edits before rewriting any file','exact checkout preparation rejects wrong HEAD staged changes and hardlinks','exact checkout preparation restores real Git CRLF checkout and retains exact index']);
  for(const entry of checkoutCross){assert.equal(entry.destination,checkoutFile);assert.equal(entry.parent,null);assert.equal(entry.occurrence,1);}
  assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===bootstrapFile).length,1);
- assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,61);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===childStatusFile).length,1);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,62);
  const scientificFiles=JSON.parse(readFileSync('scripts/scientific/test-inventory.json')).filter(file=>/scientific-(?:history-clocks|engine|http|boundary-regressions|runner|composition)\.test\.mjs$/.test(file));
  assert.equal(scientificFiles.length,6);
  for(const file of scientificFiles)assert.ok(inv.tests.some(x=>x.added&&x.platform==='cross'&&x.file===file&&x.destination===file));

@@ -30,6 +30,9 @@ public static class BootstrapDeadlineMock {
   string phase="PROCESS_WAIT";
   try {
 '@
+$classifier=[regex]::Match($launcher,'  public static string ChildExitClass\(uint code\)\{[\s\S]*?\r?\n  \}').Value
+if(!$classifier){throw 'Production child classifier missing'}
+$source=$source.Replace(' public static int Run(){',$classifier+"`n public static int Run(){")
 $source+=$fragment+"`n }`n}"
 if($source -match 'DllImport|WindowsJobKernel|public static int Main'){throw 'Native boundary present in mock compilation'}
 Add-Type -TypeDefinition $source

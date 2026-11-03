@@ -12207,6 +12207,28 @@
       "occurrence": 1,
       "destination": "tests/adminit-token-integrity-access.windows.mjs",
       "added": true
+    },
+    {
+      "file": "tests/adminit-bootstrap-child-status.cross.mjs",
+      "name": "hosted child exit classification distinguishes DLL initialization from managed gates without leaking streams",
+      "parent": null,
+      "line": 10,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/adminit-bootstrap-child-status.cross.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/adminit-restricted-file-access.windows.mjs",
+      "name": "unassigned own restricted token AccessCheck distinguishes Admin-only from explicit caller file rights",
+      "parent": null,
+      "line": 9,
+      "column": 1,
+      "platform": "windows",
+      "occurrence": 1,
+      "destination": "tests/adminit-restricted-file-access.windows.mjs",
+      "added": true
     }
   ]
 }

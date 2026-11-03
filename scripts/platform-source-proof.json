@@ -2764,6 +2764,8 @@
     "tests/scientific-runner.test.mjs",
     "tests/windows-checkout-bytes.cross.mjs",
     "tests/adminit-bootstrap-diagnostics.cross.mjs",
-    "tests/adminit-token-integrity-access.windows.mjs"
+    "tests/adminit-token-integrity-access.windows.mjs",
+    "tests/adminit-bootstrap-child-status.cross.mjs",
+    "tests/adminit-restricted-file-access.windows.mjs"
   ]
 }
