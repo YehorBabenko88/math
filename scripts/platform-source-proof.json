@@ -2763,6 +2763,7 @@
     "tests/scientific-http.test.mjs",
     "tests/scientific-runner.test.mjs",
     "tests/windows-checkout-bytes.cross.mjs",
-    "tests/adminit-bootstrap-diagnostics.cross.mjs"
+    "tests/adminit-bootstrap-diagnostics.cross.mjs",
+    "tests/adminit-token-integrity-access.windows.mjs"
   ]
 }

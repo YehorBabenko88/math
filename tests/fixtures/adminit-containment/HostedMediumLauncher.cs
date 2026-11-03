@@ -31,7 +31,7 @@ namespace MathUniverse.AdminitHosted {
     Check(args.Length==2,"fixed package/run roots required");string temp=Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP"))+"\\";string package=Path.GetFullPath(args[0]),run=Path.GetFullPath(args[1]);
     Check(package.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&run.StartsWith(temp,StringComparison.OrdinalIgnoreCase)&&!Directory.Exists(run),"hosted temporary roots required");string exe=Path.Combine(package,"AdminitSyntheticHarness.exe");Check(File.Exists(exe),"fixed executable missing");
     phase="TOKEN_QUERY";
-    Check(OpenProcessToken(GetCurrentProcess(),11,out token),"caller token query");phase="TOKEN_CREATE";Check(CreateRestrictedToken(token,5,0,IntPtr.Zero,0,IntPtr.Zero,0,IntPtr.Zero,out limited),"restricted token creation BLOCKED");
+    Check(OpenProcessToken(GetCurrentProcess(),11|0x80,out token),"caller token query");phase="TOKEN_CREATE";Check(CreateRestrictedToken(token,5,0,IntPtr.Zero,0,IntPtr.Zero,0,IntPtr.Zero,out limited),"restricted token creation BLOCKED");
     phase="INTEGRITY_SID";
     Check(ConvertStringSidToSid("S-1-16-8192",out sid),"Medium SID creation");label=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SidAttributes)));Marshal.StructureToPtr(new SidAttributes{Sid=sid,Attributes=0x20},label,false);
     phase="INTEGRITY_ASSIGN";
