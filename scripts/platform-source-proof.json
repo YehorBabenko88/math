@@ -2896,6 +2896,7 @@
     "tests/adminit-kernel-policy.windows.mjs",
     "tests/adminit-loader-diagnostics.cross.mjs",
     "tests/adminit-loader-facts.windows.mjs",
-    "tests/adminit-worker-trace.cross.mjs"
+    "tests/adminit-worker-trace.cross.mjs",
+    "tests/adminit-loader-events.windows.mjs"
   ]
 }

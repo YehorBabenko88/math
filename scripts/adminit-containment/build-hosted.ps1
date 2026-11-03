@@ -34,11 +34,13 @@ $fixture=Read-CommittedText 'tests/fixtures/adminit-containment/AdminitSynthetic
 $bootstrap=Read-CommittedText 'tests/fixtures/adminit-containment/HostedMediumLauncher.cs'
 $facts=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderFacts.cs'
 $bootstrap+="`n"+$facts
+$events=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderEvents.cs'
+$bootstrap+="`n"+$events
 $diagnostic=Read-CommittedText 'tests/fixtures/adminit-containment/HostedClrEntryDiagnostics.cs'
 $entry=Read-CommittedText 'tests/fixtures/adminit-containment/ClrEntryProbe.cs'
 $framework=[Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()
 $web=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NET\assembly\GAC_MSIL\System.Web.Extensions\v4.0_4.0.0.0__31bf3856ad364e35\System.Web.Extensions.dll'
-$references=@((Join-Path $framework 'System.dll'),(Join-Path $framework 'System.Core.dll'),$web)
+$references=@((Join-Path $framework 'System.Xml.dll'),(Join-Path $framework 'System.dll'),(Join-Path $framework 'System.Core.dll'),$web)
 $frameworkRoot=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NET'
 foreach($reference in $references){if(-not [IO.File]::Exists($reference) -or -not $reference.StartsWith($frameworkRoot+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Trusted OS Framework reference unavailable: BLOCKED'}}
 Add-Type -TypeDefinition ($helper+"`n"+$fixture) -OutputAssembly (Join-Path $root 'package/AdminitSyntheticHarness.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references

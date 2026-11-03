@@ -119,6 +119,7 @@ TracePhase 'EXIT'
 if($status -eq 'PASS'){exit 0}else{exit 2}`;
 
 export function parseWorkerReport(text){try{need(typeof text==='string'&&Buffer.byteLength(text)<=1024);const r=JSON.parse(text);exact(r,['schema','status','code']);need(text.trim()===JSON.stringify(r));need(r.schema==='math.g0.preflight-worker.v1'&&['PASS','BLOCKED'].includes(r.status)&&['NONE','RUNTIME','REPARSE','TYPES','PARSER','COMPILE'].includes(r.code)&&((r.status==='PASS')===(r.code==='NONE')));return r;}catch{fail();}}
+export function workerDiagnosticReportCode(text){try{const report=parseWorkerReport(text);return report.status==='BLOCKED'&&['RUNTIME','REPARSE','TYPES','PARSER','COMPILE'].includes(report.code)?report.code:'UNAVAILABLE';}catch{return 'UNAVAILABLE';}}
 export function runtimePin(p){noLinks(p.path);need(hash(bytes(p.path,256*1024*1024,true))===p.sha256);}
 const report=(status,code,identity=null)=>({sourceHead:identity?.head??null,sourceTree:identity?.tree??null,sourceBlobs:identity?.count??null,policySha256:identity?.policyHash??null,schema:'math.g0.offline-preflight.v1',status,code,provenance:'PIN_MATCH_ONLY_NOT_ATTESTATION',authority:'NONE',admission:'BLOCKED',localExecute:false,isolationConfirmed:false,physicalCall:'NOT_AUTHORIZED'});
 export function workerTransportCode(child){

@@ -341,9 +341,9 @@ namespace MathUniverse.AdminitHosted {
     job=k.CreateJob();phase="JOB_CONFIGURE";k.ConfigureKillOnClose(job);
     phase="PROCESS_CREATE";
     Check(CreateProcessAsUser(limited,exe,new StringBuilder(Quote(exe)+" --hosted-suite "+Quote(run)),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,package,ref startup,out info),"restricted fixed process creation BLOCKED; no privilege enabling/fallback");
-    p=info.Process;t=info.Thread;phase="JOB_ASSIGN";k.Assign(job,p);assigned=true;RestrictedKernelPolicyProbe.EmitFixed(limited,job,p,t);HostedLoaderFacts.Emit(token,limited,p,Path.Combine(Path.GetDirectoryName(package),"runtime-pins.json"));phase="THREAD_RESUME";k.Resume(t);
+    p=info.Process;t=info.Thread;phase="JOB_ASSIGN";k.Assign(job,p);assigned=true;RestrictedKernelPolicyProbe.EmitFixed(limited,job,p,t);HostedLoaderFacts.Emit(token,limited,p,Path.Combine(Path.GetDirectoryName(package),"runtime-pins.json"));DateTime loaderResumeUtc=DateTime.UtcNow;phase="THREAD_RESUME";k.Resume(t);
     phase="PROCESS_WAIT";
-    Check(k.Wait(p,120000)==0,"independent whole-suite watchdog expired: BLOCKED");phase="CHILD_RESULT";result=(int)k.ExitCode(p);if(result!=0)Console.WriteLine("HOSTED_BOOTSTRAP_PHASE="+phase);if(result!=0)Console.WriteLine("HOSTED_CHILD_FAILURE class="+ChildExitClass(unchecked((uint)result)));Console.WriteLine("Fixed Medium supervisor exit="+result+"; inspect results.json; missing evidence is BLOCKED");return result;
+    Check(k.Wait(p,120000)==0,"independent whole-suite watchdog expired: BLOCKED");phase="CHILD_RESULT";result=(int)k.ExitCode(p);if(result!=0)Console.WriteLine("HOSTED_BOOTSTRAP_PHASE="+phase);if(result!=0)Console.WriteLine("HOSTED_CHILD_FAILURE class="+ChildExitClass(unchecked((uint)result)));Console.WriteLine("Fixed Medium supervisor exit="+result+"; inspect results.json; missing evidence is BLOCKED");if(result!=0)LoaderEventProbe.Emit(info.Pid,exe,loaderResumeUtc,DateTime.UtcNow);return result;
    }catch(Exception e){Console.Out.WriteLine("HOSTED_BOOTSTRAP_PHASE="+phase);Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}
    finally{
     phase="CLEANUP";

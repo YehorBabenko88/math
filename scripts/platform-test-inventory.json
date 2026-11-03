@@ -12278,7 +12278,7 @@
       "file": "tests/adminit-loader-diagnostics.cross.mjs",
       "name": "loader diagnostics use closed bounded token runtime and NON_QUALIFYING entry grammars",
       "parent": null,
-      "line": 6,
+      "line": 9,
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
@@ -12316,6 +12316,17 @@
       "platform": "cross",
       "occurrence": 1,
       "destination": "tests/adminit-worker-trace.cross.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/adminit-loader-events.windows.mjs",
+      "name": "bounded read-only loader event correlation never treats publisher PID or unrelated image as child evidence",
+      "parent": null,
+      "line": 3,
+      "column": 1,
+      "platform": "windows",
+      "occurrence": 1,
+      "destination": "tests/adminit-loader-events.windows.mjs",
       "added": true
     }
   ]

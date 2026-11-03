@@ -24,8 +24,11 @@ public static class BootstrapDeadlineMock {
   public bool WaitJobEmpty(IntPtr j,uint ms){Calls.Add("drain:"+ms);return Drain;}
   public void TerminateProcess(IntPtr p){Calls.Add("kill-process");if(KillFails)throw new Exception("mock kill failed");}
  }
+ class FakeInfo {public uint Pid=0;}
+ static class LoaderEventProbe {public static void Emit(uint pid,string image,DateTime start,DateTime end){throw new Exception("unexpected event query in pure watchdog model");}}
  public static int Run(){
   IntPtr p=new IntPtr(1),t=new IntPtr(2),job=new IntPtr(3),token=new IntPtr(4),limited=new IntPtr(5),sid=IntPtr.Zero,label=IntPtr.Zero,env=IntPtr.Zero;
+  var info=new FakeInfo();string exe="";DateTime loaderResumeUtc=DateTime.MinValue;
   bool assigned=Assigned;var k=new FakeKernel();int result=2;
   string phase="PROCESS_WAIT";
   try {

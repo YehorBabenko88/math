@@ -73,5 +73,13 @@ export function preflightDiagnosticPhase(report){
  return 'DIAG_PREFLIGHT_VALID_'+(preflightCodes.has(code)?code:'OTHER');
 }
 
-export function publicWorkerPhase(error){const allowed=['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'];const phase=ownValue(error,'publicWorkerPhase');return allowed.includes(phase)?phase:'UNAVAILABLE';}
+export function publicWorkerPhase(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const phase=ownValue(error,'publicWorkerPhase');if(['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(phase))return phase;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
 export const admittedWorkerPhase=value=>['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(value)?value:'UNAVAILABLE';
+
+const traceSteps=new Set(['SETUP','LAUNCH','WAIT_COMPILE','KILL','WAIT_EXIT','RETAINED_PHASE','STDOUT','STDERR','CLEANUP']);
+export const admittedTraceStep=value=>traceSteps.has(value)?value:'UNAVAILABLE';
+export function publicTraceStep(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const step=ownValue(error,'publicTraceStep');if(traceSteps.has(step))return step;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+
+const workerReportCodes=new Set(['RUNTIME','REPARSE','TYPES','PARSER','COMPILE']);
+export const admittedWorkerReportCode=value=>workerReportCodes.has(value)?value:'UNAVAILABLE';
+export function publicWorkerReportCode(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const code=ownValue(error,'publicWorkerReportCode');if(workerReportCodes.has(code))return code;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
