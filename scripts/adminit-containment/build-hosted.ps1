@@ -32,6 +32,10 @@ function Read-CommittedText([string]$InputPath){
 $helper=Read-CommittedText 'scripts/q01-lab/WindowsJobContainment.cs'
 $fixture=Read-CommittedText 'tests/fixtures/adminit-containment/AdminitSynthetic.cs'
 $bootstrap=Read-CommittedText 'tests/fixtures/adminit-containment/HostedMediumLauncher.cs'
+$facts=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderFacts.cs'
+$bootstrap+="`n"+$facts
+$diagnostic=Read-CommittedText 'tests/fixtures/adminit-containment/HostedClrEntryDiagnostics.cs'
+$entry=Read-CommittedText 'tests/fixtures/adminit-containment/ClrEntryProbe.cs'
 $framework=[Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()
 $web=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NET\assembly\GAC_MSIL\System.Web.Extensions\v4.0_4.0.0.0__31bf3856ad364e35\System.Web.Extensions.dll'
 $references=@((Join-Path $framework 'System.dll'),(Join-Path $framework 'System.Core.dll'),$web)
@@ -39,6 +43,13 @@ $frameworkRoot=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NE
 foreach($reference in $references){if(-not [IO.File]::Exists($reference) -or -not $reference.StartsWith($frameworkRoot+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Trusted OS Framework reference unavailable: BLOCKED'}}
 Add-Type -TypeDefinition ($helper+"`n"+$fixture) -OutputAssembly (Join-Path $root 'package/AdminitSyntheticHarness.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
 Add-Type -TypeDefinition ($helper+"`n"+$bootstrap) -OutputAssembly (Join-Path $root 'HostedMediumLauncher.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+Add-Type -TypeDefinition ($helper+"`n"+$diagnostic) -OutputAssembly (Join-Path $root 'HostedClrEntryDiagnostics.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+Add-Type -TypeDefinition $entry -OutputAssembly (Join-Path $root 'ClrEntryProbe.exe') -OutputType ConsoleApplication
+[IO.File]::WriteAllText((Join-Path $root 'clr-entry.sha256'),(Get-FileHash -LiteralPath (Join-Path $root 'ClrEntryProbe.exe') -Algorithm SHA256).Hash.ToLowerInvariant())
+$windows=[Environment]::GetFolderPath('Windows')
+$runtimeFiles=@((Join-Path $windows 'System32/mscoree.dll'),(Join-Path $framework 'clr.dll'),(Join-Path $framework 'clrjit.dll'),(Join-Path $framework 'mscorlib.dll'))
+$runtimePins=@($runtimeFiles|ForEach-Object {(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()})
+[IO.File]::WriteAllText((Join-Path $root 'runtime-pins.json'),(ConvertTo-Json -InputObject $runtimePins -Compress))
 $exe=Join-Path $root 'package/AdminitSyntheticHarness.exe'
 $manifest=@{schema=1;sourceHead=$head;sourceTree=$tree;localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';files=@(@{path='AdminitSyntheticHarness.exe';bytes=(Get-Item -LiteralPath $exe).Length;sha256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()})}
 # No bootstrap ships in the ADMINIT package. Exact two-file package inventory.

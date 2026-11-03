@@ -1,7 +1,7 @@
 import {relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {publicErrorCode,publicFailureType,fixtureCode,publicDiagnosticPhase} from './math-module-diagnostics.mjs';
+import {publicWorkerPhase,publicErrorCode,publicFailureType,fixtureCode,publicDiagnosticPhase} from './math-module-diagnostics.mjs';
 const inventory=JSON.parse(readFileSync(new URL('./platform-test-inventory.json',import.meta.url),'utf8'));
 const trustedHealthIds=new Set(inventory.tests.filter(x=>x.file==='tests/math-engine-module-health.test.mjs'&&x.destination===x.file).map(x=>createHash('sha256').update(JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).digest('hex')));
 // Machine evidence uses actual node:test events; summaries never replace terminal identities.
@@ -18,7 +18,7 @@ export default async function* (source) {
    const occurrence=(occurrences.get(base)??0)+1;occurrences.set(base,occurrence);
    const id=createHash('sha256').update(JSON.stringify([path,parent,data.name,occurrence])).digest('hex');
    locations.set(JSON.stringify([file,data.line,data.column,data.nesting]),{id,failed:type==='test:fail'});
-   yield JSON.stringify({type:'terminal',file:path,name:data.name,parent,nesting:data.nesting,line:data.line,column:data.column,status:data.skip?'skip':data.todo?'todo':type==='test:pass'?'pass':data.details?.error?.failureType==='cancelledByParent'?'cancelled':'fail',...(type==='test:fail'?{diagnostic_code:publicErrorCode(data.details?.error),diagnostic_type:publicFailureType(data.details?.error),diagnostic_phase:publicDiagnosticPhase(data.details?.error)}:{})})+'\n';
+   yield JSON.stringify({type:'terminal',file:path,name:data.name,parent,nesting:data.nesting,line:data.line,column:data.column,status:data.skip?'skip':data.todo?'todo':type==='test:pass'?'pass':data.details?.error?.failureType==='cancelledByParent'?'cancelled':'fail',...(type==='test:fail'?{diagnostic_code:publicErrorCode(data.details?.error),diagnostic_type:publicFailureType(data.details?.error),diagnostic_worker_phase:publicWorkerPhase(data.details?.error),diagnostic_phase:publicDiagnosticPhase(data.details?.error)}:{})})+'\n';
   }
   if(type==='test:diagnostic'&&data.file&&relative(process.cwd(),data.file).replaceAll('\\','/')==='tests/math-engine-module-health.test.mjs'){
    const code=fixtureCode(data.message),terminal=locations.get(JSON.stringify([data.file,data.line,data.column,data.nesting]));

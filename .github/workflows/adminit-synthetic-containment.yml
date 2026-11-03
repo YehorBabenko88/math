@@ -101,6 +101,25 @@ jobs:
           }
           node scripts/adminit-containment/verify-native.mjs $run $env:SOURCE_HEAD $env:SOURCE_TREE
           exit $LASTEXITCODE
+      - name: Separate NON_QUALIFYING fixed CLR-entry diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'adminit-build'
+          $exe = Join-Path $build 'HostedClrEntryDiagnostics.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { Write-Output 'HOSTED_CLR_DIAGNOSTIC variant=SETUP outcome=UNAVAILABLE qualification=NONE'; exit 0 }
+          $env:SOURCE_HEAD = '${{ github.sha }}'
+          $env:SOURCE_TREE = git --no-replace-objects rev-parse 'HEAD^{tree}'
+          if ($LASTEXITCODE -ne 0) { throw 'diagnostic source tree unavailable' }
+          $diagnosticRoot = Join-Path $env:RUNNER_TEMP 'adminit-clr-diagnostic'
+          $owner = Start-Process -FilePath $exe -ArgumentList ('"' + $build + '" "' + $diagnosticRoot + '"') -PassThru -WindowStyle Hidden -RedirectStandardOutput "$build/clr-diagnostic-stdout.txt" -RedirectStandardError "$build/clr-diagnostic-stderr.txt"
+          try {
+            if (-not $owner.WaitForExit(60000)) { $owner.Kill(); if (-not $owner.WaitForExit(5000)) { throw 'diagnostic cleanup unconfirmed' }; Write-Output 'HOSTED_CLR_DIAGNOSTIC variant=SETUP outcome=DEADLINE qualification=NONE' }
+            node scripts/adminit-containment/report-clr-diagnostic.mjs "$build/clr-diagnostic-stdout.txt"
+            if ($LASTEXITCODE -ne 0) { throw 'closed diagnostic reporter failed' }
+          } finally { $owner.Dispose() }
+          # This step never changes the earlier mandatory fixture outcome or supplies acceptance.
+          exit 0
       - name: Preserve checksums and explicit outcome
         if: always()
         shell: pwsh

@@ -2,6 +2,7 @@
 import {openSync,readSync,closeSync,fstatSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {loaderFactLines} from './report-loader-facts.mjs';
 export const BOOTSTRAP_PHASES=Object.freeze(['HOSTED_GUARD','ROOTS','TOKEN_QUERY','TOKEN_CREATE','INTEGRITY_SID','INTEGRITY_ASSIGN','ENVIRONMENT','JOB_CREATE','JOB_CONFIGURE','PROCESS_CREATE','JOB_ASSIGN','THREAD_RESUME','PROCESS_WAIT','CHILD_RESULT','CLEANUP']);
 export function bootstrapPhase(text){
  if(typeof text!=='string'||Buffer.byteLength(text)>16384)return 'UNKNOWN';
@@ -81,7 +82,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
  let childClass='UNKNOWN';
  let accessChecks=[];
  let ui=bootstrapUiDiagnostics('');
- let kernel=bootstrapKernelDiagnostics('');
+ let kernel=bootstrapKernelDiagnostics('');let loader=[];
  try{
   if(process.argv.length!==3)throw Error();fd=openSync(process.argv[2],'r');
   const facts=fstatSync(fd);if(!facts.isFile()||facts.size>16384)throw Error();
@@ -89,8 +90,9 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   childClass=bootstrapChildClass(raw.subarray(0,count).toString('utf8'));
   accessChecks=bootstrapAccessChecks(raw.subarray(0,count).toString('utf8'));
   ui=bootstrapUiDiagnostics(raw.subarray(0,count).toString('utf8'));
-  kernel=bootstrapKernelDiagnostics(raw.subarray(0,count).toString('utf8'));
+  kernel=bootstrapKernelDiagnostics(raw.subarray(0,count).toString('utf8'));loader=loaderFactLines(raw.subarray(0,count).toString('utf8'));
  }catch{}finally{if(fd!==undefined)try{closeSync(fd);}catch{phase='UNKNOWN';}}
+ for(const line of loader)console.log(line);
  console.log('HOSTED_BOOTSTRAP_FAILURE phase='+phase);
  if(childClass!=='UNKNOWN')console.log('HOSTED_CHILD_FAILURE class='+childClass);
  for(const check of accessChecks)console.log('HOSTED_ACCESS_PROBE name='+check.name+' available='+check.available+' allowed='+check.allowed+' class='+check.failureClass);

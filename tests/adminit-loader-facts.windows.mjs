@@ -1,0 +1,29 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {spawnSync,spawn} from 'node:child_process';import {resolve,join} from 'node:path';import {readFileSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';import {createHash} from 'node:crypto';
+import {WINDOWS_WORKER,childEnv} from '../scripts/adminit-containment/offline-preflight.mjs';
+import {readWorkerTrace} from '../scripts/adminit-containment/preflight-trace.mjs';
+test('loader facts inspect only unassigned own tokens and all diagnostic images compile without launching',{
+ skip:process.platform!=='win32'?'Windows Framework unavailable; NOT_RUN':false,
+},()=>{
+ const root=resolve('.');
+ const script="$ErrorActionPreference='Stop';$r=$env:LOADER_TEST_ROOT;$files=@('scripts/q01-lab/WindowsJobContainment.cs','tests/fixtures/adminit-containment/HostedMediumLauncher.cs','tests/fixtures/adminit-containment/HostedLoaderFacts.cs','tests/fixtures/adminit-containment/HostedClrEntryDiagnostics.cs','tests/fixtures/adminit-containment/ClrEntryProbe.cs','tests/fixtures/adminit-containment/LoaderFactsRegression.cs');$sources=@($files|ForEach-Object{[IO.File]::ReadAllText((Join-Path $r $_))});$runtime=[Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory();$web=Join-Path $env:WINDIR 'Microsoft.NET/assembly/GAC_MSIL/System.Web.Extensions/v4.0_4.0.0.0__31bf3856ad364e35/System.Web.Extensions.dll';Add-Type -TypeDefinition ($sources -join [Environment]::NewLine) -ReferencedAssemblies @((Join-Path $runtime 'System.dll'),(Join-Path $runtime 'System.Core.dll'),$web);$out=Join-Path ([IO.Path]::GetTempPath()) ('math-clr-compile-'+[Guid]::NewGuid().ToString('N'));[void][IO.Directory]::CreateDirectory($out);try{$refs=@((Join-Path $runtime 'System.dll'),(Join-Path $runtime 'System.Core.dll'),$web);Add-Type -TypeDefinition ($sources[0]+[Environment]::NewLine+$sources[1]+[Environment]::NewLine+$sources[2]) -ReferencedAssemblies $refs -OutputAssembly (Join-Path $out 'launcher.exe') -OutputType ConsoleApplication;Add-Type -TypeDefinition ($sources[0]+[Environment]::NewLine+$sources[3]) -ReferencedAssemblies $refs -OutputAssembly (Join-Path $out 'diagnostic.exe') -OutputType ConsoleApplication;Add-Type -TypeDefinition $sources[4] -OutputAssembly (Join-Path $out 'entry.exe') -OutputType ConsoleApplication}finally{foreach($name in @('launcher.exe','diagnostic.exe','entry.exe')){[IO.File]::Delete((Join-Path $out $name))};[IO.Directory]::Delete($out)};[MathUniverse.LoaderRegression.OwnLoaderFactsRegression]::Run()";
+ const child=spawnSync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',script],{env:{...process.env,LOADER_TEST_ROOT:root},encoding:'utf8',timeout:30000,maxBuffer:8192,windowsHide:true});
+ assert.equal(child.error,undefined);assert.equal(child.status,0,'native own-token/compile-only check failed; raw output withheld');assert.equal(child.stderr,'');assert.equal(child.stdout.trim(),'OWN_TOKEN_FACTS_READ_ONLY_PASSED');
+ const facts=readFileSync('tests/fixtures/adminit-containment/HostedLoaderFacts.cs','utf8');assert.doesNotMatch(facts,/SetTokenInformation|AdjustTokenPrivileges|SetThreadToken|CreateProcess|SetFileSecurity/);
+});
+test('interrupted own PowerShell worker retains COMPILE phase without changing strict stdout',{
+ skip:process.platform!=='win32'?'Windows Framework unavailable; NOT_RUN':false,
+},async()=>{
+ const root=mkdtempSync(join(tmpdir(),'math-worker-trace-')),trace=join(root,'worker-phase.txt'),payload=join(root,'input.json');
+ const hash=b=>createHash('sha256').update(b).digest('hex'),ps=join(process.env.WINDIR,'System32/WindowsPowerShell/v1.0/powershell.exe'),compiler=join(process.env.WINDIR,'Microsoft.NET/Framework64/v4.0.30319/csc.exe');
+ let child,exited=false,stdout='',stderr='';
+ try{writeFileSync(trace,'',{flag:'wx'});const text=JSON.stringify({sourceRoot:root,scratch:root,workerTrace:trace,powershellSha:hash(readFileSync(ps)),compilerSha:hash(readFileSync(compiler)),scripts:['param()'],csharp:'public class Synthetic {}'});writeFileSync(payload,text,{flag:'wx'});
+  const worker="$expectedPayloadSha='"+hash(text)+"';\n"+WINDOWS_WORKER.replace('$providerType=[Microsoft.CSharp.CSharpCodeProvider]','[Threading.Thread]::Sleep(60000);$providerType=[Microsoft.CSharp.CSharpCodeProvider]');
+  child=spawn(ps,['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(worker,'utf16le').toString('base64')],{env:{...childEnv(),MATH_PREFLIGHT_PAYLOAD:payload,TEMP:root,TMP:root,PSModulePath:join(process.env.WINDIR,'System32/WindowsPowerShell/v1.0/Modules')},windowsHide:true,stdio:['ignore','pipe','pipe']});
+  const done=new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',()=>{exited=true;resolve();});});child.stdout.on('data',x=>{stdout+=x;if(stdout.length>1024)child.kill();});child.stderr.on('data',x=>{stderr+=x;if(stderr.length>1024)child.kill();});
+  const deadline=performance.now()+10000;while(!exited&&performance.now()<deadline&&readWorkerTrace(trace)!=='COMPILE')await new Promise(r=>setTimeout(r,50));
+  assert.equal(readWorkerTrace(trace),'COMPILE','actual worker must reach diagnostic compile boundary');assert.equal(child.kill(),true);await Promise.race([done,new Promise((_,reject)=>setTimeout(()=>reject(Error('bounded worker termination')),5000).unref())]);
+  assert.equal(readWorkerTrace(trace),'COMPILE');assert.equal(stdout,'');assert.equal(stderr,'');
+ }finally{if(child&&!exited){child.kill();await new Promise(resolve=>child.once('close',resolve));}rmSync(root,{recursive:true,force:true});}
+});

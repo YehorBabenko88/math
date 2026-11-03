@@ -1,9 +1,38 @@
 // Offline matching/compilation only. This program cannot authorize a token query.
 import * as fs from 'node:fs';
-import {resolve,dirname,join,relative,isAbsolute,sep} from 'node:path';
+import {resolve,dirname,join,relative,isAbsolute,sep,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {execFileSync,spawnSync} from 'node:child_process';
+export const WORKER_PHASES=Object.freeze(['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE']);
+export function parseWorkerTrace(bytes){
+ if(!Buffer.isBuffer(bytes)||bytes.length>256)return 'UNAVAILABLE';
+ if(bytes.length===0)return 'NO_MARKER';
+ const text=bytes.toString('ascii');
+ if(!/^(?:RUNTIME|REPARSE|TYPES|PARSER|COMPILE|EXIT)\n$/.test(text))return 'UNAVAILABLE';
+ return text.trim();
+}
+function traceRegular(path,limit){
+ for(let p=resolve(path);;p=dirname(p)){if(fs.lstatSync(p).isSymbolicLink())throw Error('trace');if(p===dirname(p))break;}
+ const fd=fs.openSync(path,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW??0));
+ try{const a=fs.fstatSync(fd);if(!a.isFile()||a.nlink!==1||a.size>limit)throw Error('trace');const b=Buffer.alloc(limit+1),n=fs.readSync(fd,b,0,b.length,0),z=fs.fstatSync(fd),s=fs.lstatSync(path);if(n>limit||s.isSymbolicLink()||a.dev!==z.dev||a.ino!==z.ino||a.size!==z.size||a.mtimeMs!==z.mtimeMs||a.ctimeMs!==z.ctimeMs||s.dev!==a.dev||s.ino!==a.ino||s.nlink!==1)throw Error('trace');return b.subarray(0,n);}finally{fs.closeSync(fd);}
+}
+export function readWorkerTrace(path){try{return parseWorkerTrace(traceRegular(path,256));}catch{return 'UNAVAILABLE';}}
+export function publishWorkerTrace(sink,labRoot,phase){
+ // The caller creates a fresh diagnostic directory outside source and passes its file.
+ // An invalid/unavailable diagnostic sink must never change mandatory execution/results.
+ if(typeof sink!=='string'||!WORKER_PHASES.includes(phase))return false;
+ let fd;
+ try{
+  const root=resolve(labRoot),path=resolve(sink),parent=dirname(path);
+  if(dirname(parent)!==root||!/^worker-diagnostic-[A-Za-z0-9_-]{6,64}$/.test(basename(parent))||basename(path)!=='phase.txt'||!path.startsWith(root+sep))return false;
+  traceRegular(path,32);
+  fd=fs.openSync(path,fs.constants.O_WRONLY|(fs.constants.O_NOFOLLOW??0));
+  const a=fs.fstatSync(fd),s=fs.lstatSync(path);if(!a.isFile()||a.nlink!==1||a.size!==0||s.isSymbolicLink()||a.dev!==s.dev||a.ino!==s.ino) return false;
+  fs.writeSync(fd,phase+'\n',0,'ascii');fs.fsyncSync(fd);return true;
+ }catch{return false;}finally{if(fd!==undefined)try{fs.closeSync(fd);}catch{}}
+}
+
 const fail=()=>{throw Error('PREFLIGHT_BLOCKED');};
 const need=x=>{if(!x)fail();};
 const hash=(b,kind='sha256')=>createHash(kind).update(b).digest('hex');
@@ -46,6 +75,7 @@ export function inspectSource(root,git,pins){try{
 export const WINDOWS_WORKER=String.raw`$ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
 $code='RUNTIME';$status='BLOCKED'
+function TracePhase([string]$phase){if(-not $p -or -not $p.workerTrace){return};if($phase -cnotmatch '^(RUNTIME|REPARSE|TYPES|PARSER|COMPILE|EXIT)$'){return};try{$trace=[IO.Path]::Combine($p.scratch,'worker-phase.txt');if($p.workerTrace -cne $trace){return};NoReparse $trace;$f=[IO.File]::Open($trace,[IO.FileMode]::Open,[IO.FileAccess]::Write,[IO.FileShare]::Read);try{if($f.Length -gt 256){return};$raw=[Text.Encoding]::ASCII.GetBytes($phase+[char]10);$f.SetLength(0);$f.Write($raw,0,$raw.Length);$f.Flush()}finally{$f.Dispose()}}catch{}}
 function HashFile([string]$p){$s=[IO.File]::OpenRead($p);$h=[Security.Cryptography.SHA256]::Create();try{return [BitConverter]::ToString($h.ComputeHash($s)).Replace('-','').ToLowerInvariant()}finally{$h.Dispose();$s.Dispose()}}
 function NoReparse([string]$p){$p=[IO.Path]::GetFullPath($p);while($p){if(([IO.File]::GetAttributes($p) -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'blocked'};$parent=[IO.Path]::GetDirectoryName($p);if($parent -eq $p){break};$p=$parent}}
 function TreeNoReparse([string]$p){NoReparse $p;foreach($e in [IO.Directory]::GetFileSystemEntries($p)){NoReparse $e;if(([IO.File]::GetAttributes($e) -band [IO.FileAttributes]::Directory) -ne 0){TreeNoReparse $e}}}
@@ -57,15 +87,16 @@ try {
  $digest=[Security.Cryptography.SHA256]::Create();try{$actual=[BitConverter]::ToString($digest.ComputeHash($inputBytes)).Replace('-','').ToLowerInvariant()}finally{$digest.Dispose()}
  if($actual -cne $expectedPayloadSha){throw 'blocked'}
  $p=[Text.Encoding]::UTF8.GetString($inputBytes)|ConvertFrom-Json
+ TracePhase 'RUNTIME'
  if($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1 -or [IntPtr]::Size -ne 8){throw 'blocked'}
  $self=[Diagnostics.Process]::GetCurrentProcess();try{$exe=$self.MainModule.FileName}finally{$self.Dispose()}
  NoReparse $exe;if((HashFile $exe) -cne $p.powershellSha){throw 'blocked'}
  $compiler=[IO.Path]::Combine([Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory(),'csc.exe')
  NoReparse $compiler;if((HashFile $compiler) -cne $p.compilerSha){throw 'blocked'}
- $code='REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
- $code='TYPES';NoAdapterTypes
- $code='PARSER';foreach($text in $p.scripts){$tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseInput([string]$text,[ref]$tokens,[ref]$errors);if($errors.Count -ne 0){throw 'blocked'}}
- $code='COMPILE'
+ $code='REPARSE';TracePhase 'REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
+ $code='TYPES';TracePhase 'TYPES';NoAdapterTypes
+ $code='PARSER';TracePhase 'PARSER';foreach($text in $p.scripts){$tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseInput([string]$text,[ref]$tokens,[ref]$errors);if($errors.Count -ne 0){throw 'blocked'}}
+ $code='COMPILE';TracePhase 'COMPILE'
  $providerType=[Microsoft.CSharp.CSharpCodeProvider]
  if($providerType.Assembly.FullName -cne 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'){throw 'blocked'}
  $provider=[Microsoft.CSharp.CSharpCodeProvider]::new()
@@ -79,10 +110,11 @@ try {
   [void]$params.ReferencedAssemblies.Add($providerType.Assembly.Location);[void]$params.ReferencedAssemblies.Add([Linq.Enumerable].Assembly.Location)
   try {$result=$provider.CompileAssemblyFromSource($params,[string[]]@([string]$p.csharp));if($result.Errors.HasErrors -or -not [IO.File]::Exists($params.OutputAssembly)){throw 'blocked'}}finally{$params.TempFiles.Dispose()}
  } finally {$provider.Dispose()}
- $code='TYPES';NoAdapterTypes
- $code='REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
+ $code='TYPES';TracePhase 'TYPES';NoAdapterTypes
+ $code='REPARSE';TracePhase 'REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
  $status='PASS';$code='NONE'
 } catch {}
+TracePhase 'EXIT'
 [Console]::Out.WriteLine(('{{"schema":"math.g0.preflight-worker.v1","status":"{0}","code":"{1}"}}' -f $status,$code))
 if($status -eq 'PASS'){exit 0}else{exit 2}`;
 
@@ -111,9 +143,11 @@ export function runPreflight({source,policy,policySha256}){let stage='POLICY',sc
  const names=['g0-token-api.ps1','observe-token-api.ps1','collect-g0.ps1'];const scripts=names.map(n=>{const b=before.captured.get('scripts/adminit-containment/'+n);need(b);return b.toString('utf8');});
  const cs=before.captured.get('scripts/adminit-containment/WindowsTokenObservation.cs');need(cs);
  stage='WORKER';scratch=fs.mkdtempSync(join(root,'offline-compile-'));noLinks(scratch);
- const payload=join(scratch,'input.json');const payloadText=JSON.stringify({sourceRoot:source,scratch,powershellSha:p.tools.powershell.sha256,compilerSha:p.tools.compiler.sha256,scripts,csharp:cs.toString('utf8')});fs.writeFileSync(payload,payloadText,{flag:'wx'});
+ const workerTrace=join(scratch,'worker-phase.txt');fs.writeFileSync(workerTrace,'',{flag:'wx'});
+ const payload=join(scratch,'input.json');const payloadText=JSON.stringify({sourceRoot:source,scratch,workerTrace,powershellSha:p.tools.powershell.sha256,compilerSha:p.tools.compiler.sha256,scripts,csharp:cs.toString('utf8')});fs.writeFileSync(payload,payloadText,{flag:'wx'});
  const worker="$expectedPayloadSha='"+hash(Buffer.from(payloadText))+"';\n"+WINDOWS_WORKER;
  const child=spawnSync(p.tools.powershell.path,['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(worker,'utf16le').toString('base64')],{cwd:scratch,env:{...childEnv(),MATH_PREFLIGHT_PAYLOAD:payload,TEMP:scratch,TMP:scratch,PSModuleAnalysisCachePath:join(scratch,'module.cache'),PSDisableModuleAnalysisCacheCleanup:'1',PSModulePath:join(dirname(p.tools.powershell.path),'Modules')},encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:16384});
+ publishWorkerTrace(process.env.MATH_PREFLIGHT_DIAGNOSTIC_SINK,root,readWorkerTrace(workerTrace));
  const transport=workerTransportCode(child);if(transport){stage=transport;need(false);}
  stage='WORKER_OUTPUT';const result=parseWorkerReport(child.stdout);
  stage=result.status!=='PASS'?result.code:'WORKER_EXIT';need(child.status===0&&result.status==='PASS');

@@ -72,3 +72,6 @@ export function preflightDiagnosticPhase(report){
  const code=report&&typeof report==='object'?ownValue(report,'code'):undefined;
  return 'DIAG_PREFLIGHT_VALID_'+(preflightCodes.has(code)?code:'OTHER');
 }
+
+export function publicWorkerPhase(error){const allowed=['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'];const phase=ownValue(error,'publicWorkerPhase');return allowed.includes(phase)?phase:'UNAVAILABLE';}
+export const admittedWorkerPhase=value=>['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(value)?value:'UNAVAILABLE';
