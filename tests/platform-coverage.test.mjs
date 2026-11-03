@@ -30,8 +30,9 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  assert.equal(healthCross.length,8);
  assert.deepEqual(healthCross.map(x=>x.name).sort(),["clean but numerically broken engine fails its actual baseline before listening","dirty backend top-level side effects cannot run before owned source rejection","dirty source including assume-unchanged and unsafe local config fail before listening","owned actual clean Git source and real numerical baseline expose exact authenticated health","owned malformed identity and wrong external source commit fail before listening","owned source capsule null hooks and attributes profile remains valid","private health requires one exact bearer and exact read-only path","unowned standalone keeps public APIs but module health is unavailable"]);
  for(const entry of healthCross){assert.equal(entry.destination,healthFile);assert.equal(entry.parent,null);assert.equal(entry.occurrence,1);}
- assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===diagnosticFile).length,4);
- assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,56);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===diagnosticFile).length,5);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===diagnosticFile&&x.name==='offline preflight diagnostics admit only fixed public stage labels').length,1);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,57);
  const scientificFiles=JSON.parse(readFileSync('scripts/scientific/test-inventory.json')).filter(file=>/scientific-(?:history-clocks|engine|http|boundary-regressions|runner|composition)\.test\.mjs$/.test(file));
  assert.equal(scientificFiles.length,6);
  for(const file of scientificFiles)assert.ok(inv.tests.some(x=>x.added&&x.platform==='cross'&&x.file===file&&x.destination===file));
