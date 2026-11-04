@@ -35,7 +35,7 @@ function publishDiagnostic(sink,labRoot,text,name){
 
 export function publishWorkerTrace(sink,labRoot,phase){return WORKER_PHASES.includes(phase)&&publishDiagnostic(sink,labRoot,phase==='NO_MARKER'?'':phase+'\n','phase.txt');}
 export function publishWorkerEntryDiagnostic(phaseSink,root,state,captured){try{return captured===true&&ENTRY_STATES.includes(state)&&typeof phaseSink==='string'&&basename(phaseSink)==='phase.txt'&&publishDiagnostic(join(dirname(phaseSink),'entry.txt'),root,state+':TERMINATED\n','entry.txt');}catch{return false;}}
-export function readWorkerEntryDiagnostic(path){try{const m=/^(NO_ENTRY_MARKER|SCRIPT_ENTERED|PAYLOAD_VERIFIED|UNAVAILABLE):TERMINATED\n$/.exec(traceRegular(path,64).toString('ascii'));if(m)return {state:m[1],captured_after_termination:true};}catch{}return {state:'UNAVAILABLE',captured_after_termination:false};}
+export function readWorkerEntryDiagnostic(path){try{const m=/^(NO_ENTRY_MARKER|SCRIPT_ENTERED|PAYLOAD_VERIFIED|JSON_PARSED|RUNTIME_TRACE_RETURNED|UNAVAILABLE):TERMINATED\n$/.exec(traceRegular(path,64).toString('ascii'));if(m)return {state:m[1],captured_after_termination:true};}catch{}return {state:'UNAVAILABLE',captured_after_termination:false};}
 
 const fail=()=>{throw Error('PREFLIGHT_BLOCKED');};
 const need=x=>{if(!x)fail();};
@@ -137,7 +137,7 @@ export function workerTransportCode(child){
 }
 // Optional, NON_QUALIFYING entry diagnostics. Caller admits a fresh private
 // parent and one writer. This is not hostile-owner/host identity attestation.
-const ENTRY_STATES=['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','UNAVAILABLE'];
+const ENTRY_STATES=['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','JSON_PARSED','RUNTIME_TRACE_RETURNED','UNAVAILABLE'];
 const entryPin=b=>hash(Buffer.from(JSON.stringify([b.parent,b.path,b.nonce,b.device,b.inode])));
 export function prepareWorkerEntry(scratch){let fd;try{
  const parent=fs.realpathSync.native(noLinks(scratch)),path=join(parent,'worker-entry.bin'),nonce=randomBytes(32);
@@ -153,7 +153,7 @@ function entryBytes(b){
  need(n<=33&&BigInt(n)===a.size&&z.dev===a.dev&&z.ino===a.ino&&z.nlink===1n&&z.size===a.size&&z.mtimeNs===a.mtimeNs&&z.ctimeNs===a.ctimeNs&&after.dev===a.dev&&after.ino===a.ino&&after.nlink===1n&&!after.isSymbolicLink());const raw=buffer.subarray(0,n);need(raw.subarray(0,32).equals(nonce));return raw;
  }finally{fs.closeSync(fd);}
 }
-export function readWorkerEntry(binding){try{const raw=entryBytes(binding);return raw.length===32?'NO_ENTRY_MARKER':raw.length===33&&raw[32]===1?'SCRIPT_ENTERED':raw.length===33&&raw[32]===2?'PAYLOAD_VERIFIED':'UNAVAILABLE';}catch{return 'UNAVAILABLE';}}
+export function readWorkerEntry(binding){try{const raw=entryBytes(binding);return raw.length===32?'NO_ENTRY_MARKER':raw.length===33&&raw[32]===1?'SCRIPT_ENTERED':raw.length===33&&raw[32]===2?'PAYLOAD_VERIFIED':raw.length===33&&raw[32]===3?'JSON_PARSED':raw.length===33&&raw[32]===4?'RUNTIME_TRACE_RETURNED':'UNAVAILABLE';}catch{return 'UNAVAILABLE';}}
 export function withWorkerEntry(worker,binding){try{
  const raw=entryBytes(binding);need(raw.length===32);const base64=text=>Buffer.from(text,'utf8').toString('base64');
  const start=String.raw`$mathEntryStream=$null
@@ -171,9 +171,13 @@ try {
 }catch{if($mathEntryStream){try{$mathEntryStream.Dispose()}catch{}};$mathEntryStream=$null}
 `.replace('PATH64',base64(binding.path)).replace('PARENT64',base64(binding.parent)).replace('NONCE64',binding.nonce);
  const close="if($mathEntryStream){try{$mathEntryStream.Dispose()}catch{};$mathEntryStream=$null}";
- const verified="if($mathEntryStream){try{$mathEntryStream.Position=32;$mathEntryStream.WriteByte(2);$mathEntryStream.Flush($true)}catch{};"+close+"}";
+ // Keep the same exclusive nonce-validated handle until the first trace returns.
+ // Each optional transition requires the exact previous byte; failure closes
+ // diagnostics only and never changes the worker's authoritative result.
+ const advance=(prior,next)=>"if($mathEntryStream){try{if($mathEntryStream.Length -ne 33){throw 'optional'};$mathEntryStream.Position=32;if($mathEntryStream.ReadByte() -ne "+prior+"){throw 'optional'};$mathEntryStream.Position=32;$mathEntryStream.WriteByte("+next+");$mathEntryStream.Flush($true)}catch{"+close+"}}";
+ const verified=advance(1,2),parsed=advance(2,3),traced=advance(3,4)+close;
  const before="try {\n NoReparse $env:MATH_PREFLIGHT_PAYLOAD",json=" $p=[Text.Encoding]::UTF8.GetString($inputBytes)|ConvertFrom-Json",exit="} catch {}\nTracePhase 'EXIT'";
- need(worker.includes(before)&&worker.includes(json)&&worker.includes(exit));return worker.replace(before,start+before).replace(json,verified+'\n'+json).replace(exit,'} catch {}\n'+close+"\nTracePhase 'EXIT'");
+ need(worker.includes(before)&&worker.includes(json)&&worker.includes(" TracePhase 'RUNTIME'")&&worker.includes(exit));return worker.replace(before,start+before).replace(json,verified+'\n'+json+'\n'+parsed).replace(" TracePhase 'RUNTIME'"," TracePhase 'RUNTIME'\n"+traced).replace(exit,'} catch {}\n'+close+"\nTracePhase 'EXIT'");
  }catch{return worker;}}
 
 

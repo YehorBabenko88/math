@@ -87,7 +87,7 @@ export function publicWorkerReportCode(error){for(let depth=0;depth<4&&error&&ty
 // Fixed pre-cleanup facts only: process state, exit class, output presence, canonical scratch.
 export function publicWorkerBoundary(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerBoundary');if(typeof value==='string'&&/^(RUNNING|EXITED|UNAVAILABLE):(NONE|ZERO|NONZERO|DLL_INITIALIZATION_FAILED|DLL_NOT_FOUND|INVALID_IMAGE_FORMAT|SIGNAL):[01]:[01]:[01U]$/.test(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
 
-const entryStates=new Set(['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','UNAVAILABLE']);
+const entryStates=new Set(['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','JSON_PARSED','RUNTIME_TRACE_RETURNED','UNAVAILABLE']);
 export const admittedWorkerEntry=value=>entryStates.has(value)?value:'UNAVAILABLE';
 export function publicWorkerEntry(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerEntry');if(entryStates.has(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
 export function publicEntryCapturedAfterTermination(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){if(ownValue(error,'publicEntryCapturedAfterTermination')===true)return true;error=ownValue(error,'cause');}return false;}
