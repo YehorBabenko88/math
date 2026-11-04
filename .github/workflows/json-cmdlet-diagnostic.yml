@@ -1,0 +1,28 @@
+name: Non-qualifying Windows JSON cmdlet diagnosis
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Bounded comparison without modifying original worker or native qualification
+        run: node scripts/adminit-containment/json-cmdlet-probe.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: json-cmdlet-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/math-json-cmdlet-${{ github.run_id }}-${{ github.run_attempt }}/report.json
+          if-no-files-found: warn
