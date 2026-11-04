@@ -90,7 +90,7 @@ try {
  if($inputBytes.Length -gt 262144){throw 'blocked'}
  $digest=[Security.Cryptography.SHA256]::Create();try{$actual=[BitConverter]::ToString($digest.ComputeHash($inputBytes)).Replace('-','').ToLowerInvariant()}finally{$digest.Dispose()}
  if($actual -cne $expectedPayloadSha){throw 'blocked'}
- $p=[Text.Encoding]::UTF8.GetString($inputBytes)|ConvertFrom-Json
+ $p=[Text.Encoding]::UTF8.GetString($inputBytes)|Microsoft.PowerShell.Utility\ConvertFrom-Json
  TracePhase 'RUNTIME'
  if($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1 -or [IntPtr]::Size -ne 8){throw 'blocked'}
  $self=[Diagnostics.Process]::GetCurrentProcess();try{$exe=$self.MainModule.FileName}finally{$self.Dispose()}
@@ -176,7 +176,7 @@ try {
  // diagnostics only and never changes the worker's authoritative result.
  const advance=(prior,next)=>"if($mathEntryStream){try{if($mathEntryStream.Length -ne 33){throw 'optional'};$mathEntryStream.Position=32;if($mathEntryStream.ReadByte() -ne "+prior+"){throw 'optional'};$mathEntryStream.Position=32;$mathEntryStream.WriteByte("+next+");$mathEntryStream.Flush($true)}catch{"+close+"}}";
  const verified=advance(1,2),parsed=advance(2,3),traced=advance(3,4)+close;
- const before="try {\n NoReparse $env:MATH_PREFLIGHT_PAYLOAD",json=" $p=[Text.Encoding]::UTF8.GetString($inputBytes)|ConvertFrom-Json",exit="} catch {}\nTracePhase 'EXIT'";
+ const before="try {\n NoReparse $env:MATH_PREFLIGHT_PAYLOAD",json=" $p=[Text.Encoding]::UTF8.GetString($inputBytes)|Microsoft.PowerShell.Utility\\ConvertFrom-Json",exit="} catch {}\nTracePhase 'EXIT'";
  need(worker.includes(before)&&worker.includes(json)&&worker.includes(" TracePhase 'RUNTIME'")&&worker.includes(exit));return worker.replace(before,start+before).replace(json,verified+'\n'+json+'\n'+parsed).replace(" TracePhase 'RUNTIME'"," TracePhase 'RUNTIME'\n"+traced).replace(exit,'} catch {}\n'+close+"\nTracePhase 'EXIT'");
  }catch{return worker;}}
 

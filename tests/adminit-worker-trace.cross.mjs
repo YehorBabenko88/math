@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {parseWorkerTrace,readWorkerTrace,publishWorkerTrace} from '../scripts/adminit-containment/preflight-trace.mjs';import {publishWorkerEntryDiagnostic,readWorkerEntryDiagnostic,prepareWorkerEntry,readWorkerEntry,withWorkerEntry,WINDOWS_WORKER} from '../scripts/adminit-containment/offline-preflight.mjs';
 test('worker trace accepts only bounded complete fixed phases and rejects misleading partial output',()=>{
+ assert.ok(WINDOWS_WORKER.includes(String.raw`|Microsoft.PowerShell.Utility\ConvertFrom-Json`),'resolve the fixed inbox cmdlet without the hosted unqualified discovery stall');
  assert.equal(parseWorkerTrace(Buffer.alloc(0)),'NO_MARKER');
  for(const phase of ['RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT'])assert.equal(parseWorkerTrace(Buffer.from(phase+'\n')),phase);
  for(const text of ['COMPILE','COMPILE\nEXIT\n','secret\n','RUNTIME\r\n','X'.repeat(257),'COMPILE\n\0'])assert.equal(parseWorkerTrace(Buffer.from(text)),'UNAVAILABLE');
