@@ -4,7 +4,7 @@ import {readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-import {admittedWorkerReportCode,admittedTraceStep,admittedWorkerPhase,admittedErrorCode,admittedFailureType,admittedDiagnosticPhase} from './math-module-diagnostics.mjs';
+import {admittedWorkerEntry,admittedWorkerReportCode,admittedTraceStep,admittedWorkerPhase,admittedErrorCode,admittedFailureType,admittedDiagnosticPhase} from './math-module-diagnostics.mjs';
 
 export async function runStrictTests({files,quiet=false,env=process.env}){
  if(!Array.isArray(files)||!files.length)throw Error('Nonempty test inventory required');
@@ -48,7 +48,7 @@ export function terminalFailureAnnotations(events,expected){
   matched++;
   if(lines.length<32){
    const id=createHash('sha256').update(identity).digest('hex');
-   lines.push('::error title=Mandatory test failed::FULL_CI_TERMINAL case_id='+id+' status='+event.status+' code='+admittedErrorCode(event.diagnostic_code)+' type='+admittedFailureType(event.diagnostic_type)+' phase='+admittedDiagnosticPhase(event.diagnostic_phase)+' worker_phase='+admittedWorkerPhase(event.diagnostic_worker_phase)+' trace_step='+admittedTraceStep(event.diagnostic_trace_step)+' worker_report_code='+admittedWorkerReportCode(event.diagnostic_worker_report_code));
+   lines.push('::error title=Mandatory test failed::FULL_CI_TERMINAL case_id='+id+' status='+event.status+' code='+admittedErrorCode(event.diagnostic_code)+' type='+admittedFailureType(event.diagnostic_type)+' phase='+admittedDiagnosticPhase(event.diagnostic_phase)+' worker_phase='+admittedWorkerPhase(event.diagnostic_worker_phase)+' trace_step='+admittedTraceStep(event.diagnostic_trace_step)+' worker_report_code='+admittedWorkerReportCode(event.diagnostic_worker_report_code)+' worker_entry='+admittedWorkerEntry(event.diagnostic_worker_entry)+' captured_after_termination='+(event.diagnostic_entry_captured_after_termination===true));
   }
  }
  if(nonpass)lines.push('::error title=Mandatory terminal evidence failed::FULL_CI_TERMINAL_SUMMARY matched='+matched+' unmatched='+String(nonpass-matched)+' emitted='+lines.length+' truncated='+(matched>lines.length?'yes':'no'));

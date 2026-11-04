@@ -1150,7 +1150,7 @@
     "tests/adminit-g0.test.mjs": "8a57f959aff655e427c3ed00875d38dcfe1212b539b8bb2ce607aeb4909b97bc",
     "tests/adminit-isolation.test.mjs": "33f4b7ef1326b72ecd151385721708586539c5071c11522cd14e36639f6d9935",
     "tests/adminit-native-evidence.test.mjs": "879bc76751f272ca21a486ab631f47c09cc3e9d86e8e6a80704f0d71d2e2bb39",
-    "tests/adminit-offline-preflight.windows.mjs": "970c017e63288031afa16b1c243c59900cb636c557fb56b4300268e4b89a9b48",
+    "tests/adminit-offline-preflight.windows.mjs": "a3f3e0330bfb384c6993aad76f637fa86b538ae9294403b4af6685a2a73823b2",
     "tests/adminit-offline-preflight.cross.mjs": "f58381f2b223c075018dd5f057e9453b52f380495830bfdce1c1849afdf3ac30",
     "tests/adminit-offline-preflight.test.mjs": "069e7945ed8a1e3f5f25675c0a1378896f888cca703faffb7cd732d1b14b2b39",
     "tests/adminit-package-caller-contract.test.mjs": "fa649f6ad81372f17928fb5c22f345bab7df9f196d2e782c70f288a23f96ac84",
@@ -1456,198 +1456,198 @@
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 2012,
-        "end": 5258
+        "start": 2038,
+        "end": 5284
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 5554,
-        "end": 5885
+        "start": 5645,
+        "end": 5976
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 5907,
-        "end": 6809
+        "start": 5998,
+        "end": 6900
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 6818,
-        "end": 6819
+        "start": 6909,
+        "end": 6910
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 6836,
-        "end": 6837
+        "start": 6927,
+        "end": 6928
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 6838,
-        "end": 6839
+        "start": 6929,
+        "end": 6930
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 6858,
-        "end": 6860
+        "start": 6949,
+        "end": 6951
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 6872,
-        "end": 6873
+        "start": 6963,
+        "end": 6964
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 6905,
-        "end": 6906
+        "start": 6996,
+        "end": 6997
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7003,
-        "end": 7010
+        "start": 7182,
+        "end": 7189
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7022,
-        "end": 7023
+        "start": 7201,
+        "end": 7202
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7029,
-        "end": 7030
+        "start": 7208,
+        "end": 7209
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7036,
-        "end": 7037
+        "start": 7243,
+        "end": 7244
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7046,
-        "end": 7276
+        "start": 7253,
+        "end": 7483
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7280,
-        "end": 7281
+        "start": 7487,
+        "end": 7488
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7291,
-        "end": 7301
+        "start": 7498,
+        "end": 7508
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7350,
-        "end": 7415
+        "start": 7557,
+        "end": 7622
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7446,
-        "end": 7448
+        "start": 7653,
+        "end": 7655
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7458,
-        "end": 7460
+        "start": 7665,
+        "end": 7667
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7461,
-        "end": 7462
+        "start": 7668,
+        "end": 7669
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7484,
-        "end": 7485
+        "start": 7691,
+        "end": 7692
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7499,
-        "end": 7525
+        "start": 7753,
+        "end": 7779
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7555,
-        "end": 7581
+        "start": 7809,
+        "end": 7835
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7609,
-        "end": 7640
+        "start": 7863,
+        "end": 7894
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7673,
-        "end": 7874
+        "start": 7927,
+        "end": 8128
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 7921,
-        "end": 8378
+        "start": 8175,
+        "end": 8632
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8480,
-        "end": 8565
+        "start": 8734,
+        "end": 8819
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8608,
-        "end": 8749
+        "start": 8862,
+        "end": 9003
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8890,
-        "end": 8900
+        "start": 9329,
+        "end": 9339
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8942,
-        "end": 8945
+        "start": 9381,
+        "end": 9384
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8962,
-        "end": 8963
+        "start": 9514,
+        "end": 9515
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8982,
-        "end": 8984
+        "start": 9534,
+        "end": 9536
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8993,
-        "end": 8994
+        "start": 9545,
+        "end": 9546
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 8997,
-        "end": 8998
+        "start": 9549,
+        "end": 9550
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 9009,
-        "end": 9014
+        "start": 9561,
+        "end": 9566
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 9043,
-        "end": 9101
+        "start": 9595,
+        "end": 9653
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 9139,
-        "end": 9151
+        "start": 9691,
+        "end": 9703
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 9208,
-        "end": 9209
+        "start": 9760,
+        "end": 9761
       },
       {
         "path": "tests/adminit-offline-preflight.windows.mjs",
-        "start": 9255,
-        "end": 9260
+        "start": 9807,
+        "end": 9812
       }
     ],
     "tests/adminit-package-caller-contract.test.mjs": [

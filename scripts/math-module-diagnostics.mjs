@@ -76,7 +76,7 @@ export function preflightDiagnosticPhase(report){
 export function publicWorkerPhase(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const phase=ownValue(error,'publicWorkerPhase');if(['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(phase))return phase;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
 export const admittedWorkerPhase=value=>['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(value)?value:'UNAVAILABLE';
 
-const traceSteps=new Set(['SETUP','LAUNCH','WAIT_COMPILE','KILL','WAIT_EXIT','RETAINED_PHASE','STDOUT','STDERR','CLEANUP']);
+const traceSteps=new Set(['SETUP','LAUNCH','WAIT_COMPILE','KILL','WAIT_EXIT','RETAINED_PHASE','STDOUT','STDERR','CLEANUP','ENTRY_SCRIPT_PROBE','ENTRY_NONCE_PROBE']);
 export const admittedTraceStep=value=>traceSteps.has(value)?value:'UNAVAILABLE';
 export function publicTraceStep(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const step=ownValue(error,'publicTraceStep');if(traceSteps.has(step))return step;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
 
@@ -86,3 +86,8 @@ export function publicWorkerReportCode(error){for(let depth=0;depth<4&&error&&ty
 
 // Fixed pre-cleanup facts only: process state, exit class, output presence, canonical scratch.
 export function publicWorkerBoundary(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerBoundary');if(typeof value==='string'&&/^(RUNNING|EXITED|UNAVAILABLE):(NONE|ZERO|NONZERO|DLL_INITIALIZATION_FAILED|DLL_NOT_FOUND|INVALID_IMAGE_FORMAT|SIGNAL):[01]:[01]:[01U]$/.test(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+
+const entryStates=new Set(['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','UNAVAILABLE']);
+export const admittedWorkerEntry=value=>entryStates.has(value)?value:'UNAVAILABLE';
+export function publicWorkerEntry(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerEntry');if(entryStates.has(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+export function publicEntryCapturedAfterTermination(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){if(ownValue(error,'publicEntryCapturedAfterTermination')===true)return true;error=ownValue(error,'cause');}return false;}
