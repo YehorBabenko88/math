@@ -83,3 +83,6 @@ export function publicTraceStep(error){for(let depth=0;depth<4&&error&&typeof er
 const workerReportCodes=new Set(['RUNTIME','REPARSE','TYPES','PARSER','COMPILE']);
 export const admittedWorkerReportCode=value=>workerReportCodes.has(value)?value:'UNAVAILABLE';
 export function publicWorkerReportCode(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const code=ownValue(error,'publicWorkerReportCode');if(workerReportCodes.has(code))return code;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+
+// Fixed pre-cleanup facts only: process state, exit class, output presence, canonical scratch.
+export function publicWorkerBoundary(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerBoundary');if(typeof value==='string'&&/^(RUNNING|EXITED|UNAVAILABLE):(NONE|ZERO|NONZERO|DLL_INITIALIZATION_FAILED|DLL_NOT_FOUND|INVALID_IMAGE_FORMAT|SIGNAL):[01]:[01]:[01U]$/.test(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
