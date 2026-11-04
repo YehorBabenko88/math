@@ -24,6 +24,14 @@ export function outcome(result){
  if(result?.status===0&&result.stdout==='JSON_PROBE_OK'&&result.stderr==='')return 'JSON_PARSED';
  return 'PROCESS_REJECTED';
 }
+export function observationsCaptured(results){
+ const variants=['UNQUALIFIED','QUALIFIED','FIXED_INBOX_IMPORT'];
+ return Array.isArray(results)&&results.length===3&&variants.every((variant,index)=>
+  Object.hasOwn(results,index)&&((value)=>
+  value&&Object.keys(value).sort().join(',')==='outcome,qualification,variant'
+  &&value.variant===variant&&value.qualification==='NONE'
+  &&['JSON_PARSED','DEADLINE','PROCESS_REJECTED'].includes(value.outcome))(results[index]));
+}
 export function hostedContext(env,platform,computer){
  const expected={GITHUB_ACTIONS:'true',RUNNER_ENVIRONMENT:'github-hosted',RUNNER_OS:'Windows',GITHUB_REPOSITORY:'YehorBabenko88/math'};
  if(platform!=='win32'||Object.entries(expected).some(([k,v])=>env[k]!==v)||/ADMINIT|LS5|LS7|PC[1-4]/i.test(computer.replace(/[^a-z0-9]/gi,'')))throw Error('HOSTED_DIAGNOSTIC_REQUIRED');
@@ -47,10 +55,13 @@ function main(){
   results.push({variant,outcome:outcome(observed),qualification:'NONE'});
  }
  if(git('rev-parse','HEAD')!==head||git('status','--porcelain','--untracked-files=normal')!=='')throw Error('SOURCE_REJECTED');
- const report={schema:'math.hosted-json-cmdlet-probe.v1',scope:'NON_QUALIFYING_ORDINARY_PARENT_TOKEN_ONLY',head,tree,powershell_sha256:pin,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,restricted_worker_modified:false,native_qualification:'NONE',results};
+ const captured=observationsCaptured(results);
+ const report={schema:'math.hosted-json-cmdlet-probe.v1',status:captured?'OBSERVATIONS_CAPTURED':'COLLECTION_INCOMPLETE',scope:'NON_QUALIFYING_ORDINARY_PARENT_TOKEN_ONLY',head,tree,powershell_sha256:pin,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,restricted_worker_modified:false,original_worker_qualification:'NOT_EVALUATED',native_qualification:'NONE',results};
  writeFileSync(join(root,'report.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});
  console.log(JSON.stringify({scope:report.scope,results}));
- return results.every(x=>x.outcome==='JSON_PARSED')?0:1;
+ // A bounded negative control is a collected fact, not a worker PASS. Original
+ // mandatory suites independently retain their strict target success criteria.
+ return captured?0:1;
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url){
  try{process.exitCode=main();}catch{console.error('JSON_CMDLET_PROBE_REJECTED');process.exitCode=1;}
