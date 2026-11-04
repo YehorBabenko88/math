@@ -4,7 +4,11 @@ export function loaderFactLines(text){
  if(typeof text!=='string'||Buffer.byteLength(text)>16384)return [];
  const out=[],seen=new Set();
  for(const line of text.split(/\r?\n/)){
-  if(line.startsWith('HOSTED_TOKEN_FACT ')){
+  if(line.startsWith('HOSTED_CHILD_DESKTOP ')){
+   const m=/^HOSTED_CHILD_DESKTOP handle_available=(true|false) access_available=(true|false) allowed=(true|false) label_available=(true|false) label=([A-Z_]+) no_write_up=(true|false) no_read_up=(true|false) no_execute_up=(true|false) access_class=(NONE|HANDLE_UNAVAILABLE|TOKEN_DUPLICATE_FAILED|SECURITY_DESCRIPTOR_UNAVAILABLE|SECURITY_DESCRIPTOR_BOUNDS|ACCESS_CHECK_UNAVAILABLE|RESOURCE_RELEASE_FAILED|PROBE_UNAVAILABLE) label_class=(NONE|HANDLE_UNAVAILABLE|SECURITY_DESCRIPTOR_UNAVAILABLE|SECURITY_DESCRIPTOR_BOUNDS|LABEL_UNAVAILABLE|LABEL_BOUNDS|PROBE_UNAVAILABLE)$/.exec(line);
+   if(!m||seen.has('CHILD_DESKTOP')||!labels.includes(m[5])||(m[1]==='false'&&(m[2]!=='false'||m[4]!=='false'||m[9]!=='HANDLE_UNAVAILABLE'||m[10]!=='HANDLE_UNAVAILABLE'))||(m[2]==='true'?m[9]!=='NONE':m[3]!=='false'||m[9]==='NONE')||(m[4]==='true'?m[10]!=='NONE'||m[5]==='UNAVAILABLE':m[5]!=='UNAVAILABLE'||m.slice(6,9).some(x=>x!=='false')||m[10]==='NONE')||(m[5]==='UNLABELLED'&&m.slice(6,9).some(x=>x!=='false')))return [];
+   seen.add('CHILD_DESKTOP');out.push(line);
+  }else if(line.startsWith('HOSTED_TOKEN_FACT ')){
    const m=/^HOSTED_TOKEN_FACT name=(PARENT|LIMITED|CHILD) available=(true|false) integrity=([A-Z_]+) elevation=(DEFAULT|FULL|LIMITED|UNAVAILABLE) kind=(PRIMARY|IMPERSONATION|UNAVAILABLE) restricted=(true|false) admin_enabled=(true|false) admin_deny_only=(true|false) same_user=(true|false) same_session=(true|false)$/.exec(line);
    if(!m||seen.has('TOKEN_'+m[1])||!labels.includes(m[3])||m[3]==='UNLABELLED'||(m[2]==='false'&&(m[3]!=='UNAVAILABLE'||m[4]!=='UNAVAILABLE'||m[5]!=='UNAVAILABLE'||m.slice(6).some(x=>x!=='false')))||(m[2]==='true'&&(m[3]==='UNAVAILABLE'||m[4]==='UNAVAILABLE'||m[5]==='UNAVAILABLE')))return [];
    seen.add('TOKEN_'+m[1]);out.push(line);

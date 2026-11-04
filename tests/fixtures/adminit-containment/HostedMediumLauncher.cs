@@ -166,6 +166,14 @@ namespace MathUniverse.AdminitHosted {
     result.name=index==9?(kind==2?"DESKTOP_GENERIC_ALL":"WINSTA_GENERIC_ALL"):names[index];snapshot.rights.Add(result);
    }
   }
+  public sealed class DesktopSnapshot {public bool handleAvailable;public Result access=new Result().Block("HANDLE_UNAVAILABLE");public Label label=new Label().Block("HANDLE_UNAVAILABLE");}
+  // GetThreadDesktop accepts a thread identifier returned by process creation; this is
+  // a borrowed handle, never closed/rebound. Cross-process lookup/descriptor failures
+  // remain explicitly unavailable and do not establish which desktop was selected.
+  // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getthreaddesktop
+  public static DesktopSnapshot InspectDesktop(IntPtr restricted,uint thread){var value=new DesktopSnapshot();try{IntPtr handle=GetThreadDesktop(thread);if(handle==IntPtr.Zero)return value;value.handleAvailable=true;string failure;byte[] raw=ReadDescriptor(handle,7,out failure);value.access=raw==null?new Result().Block(failure):CheckDescriptor(restricted,raw,2,0x10000000);value.label=ReadLabel(handle);}catch{string failure=value.handleAvailable?"PROBE_UNAVAILABLE":"HANDLE_UNAVAILABLE";value.access.Block(failure);value.label.Block(failure);}return value;}
+  public static void EmitChildFixed(IntPtr restricted,uint thread){try{var v=InspectDesktop(restricted,thread);Console.Out.WriteLine("HOSTED_CHILD_DESKTOP handle_available="+(v.handleAvailable?"true":"false")+" access_available="+(v.access.available?"true":"false")+" allowed="+(v.access.allowed?"true":"false")+" label_available="+(v.label.available?"true":"false")+" label="+v.label.label+" no_write_up="+(v.label.noWriteUp?"true":"false")+" no_read_up="+(v.label.noReadUp?"true":"false")+" no_execute_up="+(v.label.noExecuteUp?"true":"false")+" access_class="+v.access.failureClass+" label_class="+v.label.failureClass);}catch{}}
+
   public static Snapshot InspectCurrent(IntPtr restricted){
    var snapshot=new Snapshot();
    // These handles belong to the process/thread. Never close or reassign them.
@@ -341,7 +349,7 @@ namespace MathUniverse.AdminitHosted {
     job=k.CreateJob();phase="JOB_CONFIGURE";k.ConfigureKillOnClose(job);
     phase="PROCESS_CREATE";
     Check(CreateProcessAsUser(limited,exe,new StringBuilder(Quote(exe)+" --hosted-suite "+Quote(run)),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,package,ref startup,out info),"restricted fixed process creation BLOCKED; no privilege enabling/fallback");
-    p=info.Process;t=info.Thread;phase="JOB_ASSIGN";k.Assign(job,p);assigned=true;RestrictedKernelPolicyProbe.EmitFixed(limited,job,p,t);HostedLoaderFacts.Emit(token,limited,p,Path.Combine(Path.GetDirectoryName(package),"runtime-pins.json"));DateTime loaderResumeUtc=DateTime.UtcNow;phase="THREAD_RESUME";k.Resume(t);
+    p=info.Process;t=info.Thread;phase="JOB_ASSIGN";k.Assign(job,p);assigned=true;RestrictedUserObjectProbe.EmitChildFixed(limited,info.Tid);RestrictedKernelPolicyProbe.EmitFixed(limited,job,p,t);HostedLoaderFacts.Emit(token,limited,p,Path.Combine(Path.GetDirectoryName(package),"runtime-pins.json"));DateTime loaderResumeUtc=DateTime.UtcNow;phase="THREAD_RESUME";k.Resume(t);
     phase="PROCESS_WAIT";
     Check(k.Wait(p,120000)==0,"independent whole-suite watchdog expired: BLOCKED");phase="CHILD_RESULT";result=(int)k.ExitCode(p);if(result!=0)Console.WriteLine("HOSTED_BOOTSTRAP_PHASE="+phase);if(result!=0)Console.WriteLine("HOSTED_CHILD_FAILURE class="+ChildExitClass(unchecked((uint)result)));Console.WriteLine("Fixed Medium supervisor exit="+result+"; inspect results.json; missing evidence is BLOCKED");if(result!=0)LoaderEventProbe.Emit(info.Pid,exe,loaderResumeUtc,DateTime.UtcNow);return result;
    }catch(Exception e){Console.Out.WriteLine("HOSTED_BOOTSTRAP_PHASE="+phase);Console.Error.WriteLine("BLOCKED: "+e.Message);return 2;}

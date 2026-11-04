@@ -56,6 +56,8 @@ public static class OwnUserObjectAccessRegression {
    result.labelParserBounded=parsed.available&&parsed.label=="MEDIUM"&&parsed.noWriteUp&&!parsed.noReadUp&&!parsed.noExecuteUp&&!RestrictedUserObjectProbe.ParseLabel(badOffset).available&&!RestrictedUserObjectProbe.ParseLabel(badCount).available&&!RestrictedUserObjectProbe.ParseLabel(badSize).available;
    stage="BORROWED_HANDLES";IntPtr station=GetProcessWindowStation(),desktop=GetThreadDesktop(GetCurrentThreadId());Need(ValidBorrowed(station)&&ValidBorrowed(desktop));
    var snapshot=RestrictedUserObjectProbe.InspectCurrent(restricted);Need(snapshot.rights.Count==20);
+   stage="ACTUAL_THREAD_DESKTOP";var actual=RestrictedUserObjectProbe.InspectDesktop(restricted,GetCurrentThreadId());Need(actual.handleAvailable&&actual.access.available==snapshot.rights[19].available&&actual.access.allowed==snapshot.rights[19].allowed&&actual.label.available==snapshot.desktopLabel.available&&actual.label.label==snapshot.desktopLabel.label);
+   var invalid=RestrictedUserObjectProbe.InspectDesktop(restricted,UInt32.MaxValue);Need(!invalid.handleAvailable&&!invalid.access.available&&!invalid.access.allowed&&invalid.access.failureClass=="HANDLE_UNAVAILABLE"&&!invalid.label.available&&invalid.label.failureClass=="HANDLE_UNAVAILABLE");
    result.borrowedHandlesPreserved=station==GetProcessWindowStation()&&desktop==GetThreadDesktop(GetCurrentThreadId())&&ValidBorrowed(station)&&ValidBorrowed(desktop);
    Need(result.mappingsCorrect&&result.boundsRejected&&result.labelParserBounded&&result.borrowedHandlesPreserved);
   }finally{bool closed=true;foreach(IntPtr handle in new[]{restricted,original})if(handle!=IntPtr.Zero)closed=CloseHandle(handle)&&closed;Need(closed);result.duplicateHandlesClosed=true;}
