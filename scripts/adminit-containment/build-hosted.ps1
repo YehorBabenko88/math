@@ -48,6 +48,11 @@ Add-Type -TypeDefinition ($helper+"`n"+$bootstrap) -OutputAssembly (Join-Path $r
 Add-Type -TypeDefinition ($helper+"`n"+$diagnostic) -OutputAssembly (Join-Path $root 'HostedClrEntryDiagnostics.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
 Add-Type -TypeDefinition $entry -OutputAssembly (Join-Path $root 'ClrEntryProbe.exe') -OutputType ConsoleApplication
 [IO.File]::WriteAllText((Join-Path $root 'clr-entry.sha256'),(Get-FileHash -LiteralPath (Join-Path $root 'ClrEntryProbe.exe') -Algorithm SHA256).Hash.ToLowerInvariant())
+# Separate diagnostic OS image pin; no change to the four CLR runtime pins or package inventory.
+$osControl=[IO.Path]::GetFullPath((Join-Path ([Environment]::GetFolderPath('System')) 'cmd.exe'))
+for($check=$osControl;$check;$check=[IO.Path]::GetDirectoryName($check)){if(([IO.File]::GetAttributes($check) -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'OS control reparse BLOCKED'}}
+$osImage=[IO.File]::Open($osControl,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+try{$osLength=$osImage.Length;if($osLength -le 0 -or $osLength -gt 134217728){throw 'OS control image BLOCKED'};$osHash=[Security.Cryptography.SHA256]::Create();try{$osPin=[BitConverter]::ToString($osHash.ComputeHash($osImage)).Replace('-','').ToLowerInvariant()}finally{$osHash.Dispose()};if($osImage.Length -ne $osLength){throw 'OS control image changed'};[IO.File]::WriteAllText((Join-Path $root 'os-control.sha256'),($osPin+[char]10),[Text.Encoding]::ASCII)}finally{$osImage.Dispose()}
 $windows=[Environment]::GetFolderPath('Windows')
 $runtimeFiles=@((Join-Path $windows 'System32/mscoree.dll'),(Join-Path $framework 'clr.dll'),(Join-Path $framework 'clrjit.dll'),(Join-Path $framework 'mscorlib.dll'))
 $runtimePins=@($runtimeFiles|ForEach-Object {(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()})

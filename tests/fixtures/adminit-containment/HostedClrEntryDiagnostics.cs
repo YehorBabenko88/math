@@ -33,11 +33,19 @@ namespace MathUniverse.AdminitHosted {
    if(variant=="SYSTEM_PROGRAMDATA"){string common=Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);Need(!String.IsNullOrEmpty(common)&&Path.IsPathRooted(common));common=Path.GetFullPath(common);NoLinks(common);Need(Directory.Exists(common));values.Add("ProgramData",common);}
    return values;
   }
-  static string Run(IntPtr token,string exe,string cwd,SortedDictionary<string,string> values){
+  static string OsControlPath(){string system=Environment.GetFolderPath(Environment.SpecialFolder.System);Need(!String.IsNullOrEmpty(system)&&Path.IsPathRooted(system));string exe=Path.GetFullPath(Path.Combine(system,"cmd.exe"));NoLinks(exe);Need(File.Exists(exe));return exe;}
+  static string OsControlCommand(){return "\""+OsControlPath()+"\" /d /c exit 71";}
+  static string ParseOsPin(byte[] raw){Need(raw!=null&&raw.Length==65&&raw[64]==10);for(int i=0;i<64;i++)Need((raw[i]>=48&&raw[i]<=57)||(raw[i]>=97&&raw[i]<=102));return Encoding.ASCII.GetString(raw,0,64);}
+  static string HashImage(FileStream image){image.Position=0;using(var hash=SHA256.Create())return BitConverter.ToString(hash.ComputeHash(image)).Replace("-","").ToLowerInvariant();}
+  static void OsControl(IntPtr token,string build,string cwd,string profile,string windows){try{string pin=Path.Combine(build,"os-control.sha256");NoLinks(pin);string expected;using(var file=new FileStream(pin,FileMode.Open,FileAccess.Read,FileShare.Read)){Need(file.Length<=66);byte[] raw=new byte[(int)file.Length];int at=0,n;while(at<raw.Length&&(n=file.Read(raw,at,raw.Length-at))>0)at+=n;Need(at==raw.Length);expected=ParseOsPin(raw);}
+   string exe=OsControlPath();using(var image=new FileStream(exe,FileMode.Open,FileAccess.Read,FileShare.Read)){long length=image.Length;Need(length>0&&length<=128*1024*1024&&HashImage(image)==expected);string outcome=Run(token,exe,cwd,EnvironmentFor("BASE",profile,windows),true);Need(image.Length==length&&HashImage(image)==expected);Console.Out.WriteLine("PROCESS_DIAGNOSTIC name=SYSTEM_CMD outcome="+outcome+" pin=BUILD_HOST_OS_PIN_MATCHED qualification=NONE");}
+  }catch{Console.Out.WriteLine("PROCESS_DIAGNOSTIC name=SYSTEM_CMD outcome=UNAVAILABLE pin=UNAVAILABLE qualification=NONE");}}
+
+  static string Run(IntPtr token,string exe,string cwd,SortedDictionary<string,string> values,bool osControl=false){
    IntPtr env=IntPtr.Zero,job=IntPtr.Zero,p=IntPtr.Zero,t=IntPtr.Zero;bool assigned=false;var kernel=new WindowsJobKernel();string outcome="UNAVAILABLE";
    try{var block=new StringBuilder();foreach(var pair in values){Need(pair.Value!=null&&pair.Value.IndexOf('\0')<0);block.Append(pair.Key).Append('=').Append(pair.Value).Append('\0');}block.Append('\0');env=Marshal.StringToHGlobalUni(block.ToString());job=kernel.CreateJob();kernel.ConfigureKillOnClose(job);var startup=new Startup();startup.Size=(uint)Marshal.SizeOf(typeof(Startup));Info info;
-    Need(CreateProcessAsUser(token,exe,new StringBuilder("\""+exe+"\""),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,cwd,ref startup,out info));p=info.Process;t=info.Thread;kernel.Assign(job,p);assigned=true;kernel.Resume(t);
-    if(kernel.Wait(p,10000)!=0)outcome="DEADLINE";else{uint code=kernel.ExitCode(p);outcome=code==71?"CLR_ENTRY_REACHED":code==0xC0000142?"DLL_INITIALIZATION_FAILED":code==0xC0000135?"DLL_NOT_FOUND":code==0xC000007B?"INVALID_IMAGE_FORMAT":"OTHER_EXIT";}
+    if(osControl)Need(String.Equals(exe,OsControlPath(),StringComparison.OrdinalIgnoreCase));Need(CreateProcessAsUser(token,exe,new StringBuilder(osControl?OsControlCommand():"\""+exe+"\""),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,cwd,ref startup,out info));p=info.Process;t=info.Thread;kernel.Assign(job,p);assigned=true;kernel.Resume(t);
+    if(kernel.Wait(p,10000)!=0)outcome="DEADLINE";else{uint code=kernel.ExitCode(p);outcome=code==71?(osControl?"ENTRY_REACHED":"CLR_ENTRY_REACHED"):code==0xC0000142?"DLL_INITIALIZATION_FAILED":code==0xC0000135?"DLL_NOT_FOUND":code==0xC000007B?"INVALID_IMAGE_FORMAT":"OTHER_EXIT";}
    }catch{outcome="UNAVAILABLE";}finally{try{if(assigned){kernel.TerminateJob(job);Need(kernel.WaitJobEmpty(job,5000));}else if(p!=IntPtr.Zero){kernel.TerminateProcess(p);Need(kernel.Wait(p,5000)==0);}}catch{outcome="CLEANUP_UNCONFIRMED";}finally{foreach(IntPtr h in new[]{p,t,job})if(h!=IntPtr.Zero&&!CloseHandle(h))outcome="CLEANUP_UNCONFIRMED";if(env!=IntPtr.Zero)Marshal.FreeHGlobal(env);}}
    return outcome;
   }
@@ -49,6 +57,7 @@ namespace MathUniverse.AdminitHosted {
     Need(OpenProcessToken(GetCurrentProcess(),11|0x80,out token)&&MayLower(token));Need(CreateRestrictedToken(token,5,0,IntPtr.Zero,0,IntPtr.Zero,0,IntPtr.Zero,out limited));Need(ConvertStringSidToSid("S-1-16-8192",out sid));label=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SidAttributes)));Marshal.StructureToPtr(new SidAttributes{Sid=sid,Attributes=0x20},label,false);Need(SetTokenInformation(limited,25,label,(uint)Marshal.SizeOf(typeof(SidAttributes))+GetLengthSid(sid)));
     Need(CreateDirectory(owned,IntPtr.Zero));createdOwned=true;NoLinks(owned);string profile=Path.Combine(owned,"profile");Directory.CreateDirectory(Path.Combine(profile,"AppData","Local"));Directory.CreateDirectory(Path.Combine(profile,"AppData","Roaming"));NoLinks(profile);
     string windows=Environment.GetFolderPath(Environment.SpecialFolder.Windows);NoLinks(windows);foreach(string variant in new[]{"BASE","SYSTEM_PATH","OWNED_PROFILE","SYSTEM_PROGRAMDATA"}){string result;try{result=Run(limited,exe,Path.Combine(build,"package"),EnvironmentFor(variant,profile,windows));}catch{result="UNAVAILABLE";}Console.Out.WriteLine("HOSTED_CLR_DIAGNOSTIC variant="+variant+" outcome="+result+" qualification=NONE");}
+    OsControl(limited,build,Path.Combine(build,"package"),profile,windows);
    }
   }catch{Console.Out.WriteLine("HOSTED_CLR_DIAGNOSTIC variant=SETUP outcome=UNAVAILABLE qualification=NONE");}finally{foreach(IntPtr h in new[]{token,limited})if(h!=IntPtr.Zero)CloseHandle(h);if(sid!=IntPtr.Zero)LocalFree(sid);if(label!=IntPtr.Zero)Marshal.FreeHGlobal(label);
    // Only known empty directories created above are removed; never recursive deletion.
