@@ -36,6 +36,8 @@ $facts=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderFacts.
 $bootstrap+="`n"+$facts
 $events=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderEvents.cs'
 $bootstrap+="`n"+$events
+$privateDesktop=Read-CommittedText 'tests/fixtures/adminit-containment/HostedPrivateDesktop.cs'
+$privateModel=Read-CommittedText 'tests/fixtures/adminit-containment/PrivateDesktopModelRegression.cs'
 $diagnostic=Read-CommittedText 'tests/fixtures/adminit-containment/HostedClrEntryDiagnostics.cs'
 $entry=Read-CommittedText 'tests/fixtures/adminit-containment/ClrEntryProbe.cs'
 $framework=[Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()
@@ -45,7 +47,10 @@ $frameworkRoot=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NE
 foreach($reference in $references){if(-not [IO.File]::Exists($reference) -or -not $reference.StartsWith($frameworkRoot+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Trusted OS Framework reference unavailable: BLOCKED'}}
 Add-Type -TypeDefinition ($helper+"`n"+$fixture) -OutputAssembly (Join-Path $root 'package/AdminitSyntheticHarness.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
 Add-Type -TypeDefinition ($helper+"`n"+$bootstrap) -OutputAssembly (Join-Path $root 'HostedMediumLauncher.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
-Add-Type -TypeDefinition ($helper+"`n"+$diagnostic) -OutputAssembly (Join-Path $root 'HostedClrEntryDiagnostics.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+Add-Type -TypeDefinition ($helper+"`n"+$privateDesktop+"`n"+$diagnostic) -OutputAssembly (Join-Path $root 'HostedClrEntryDiagnostics.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+Add-Type -TypeDefinition ($privateDesktop+"`n"+$privateModel) -OutputAssembly (Join-Path $root 'PrivateDesktopModelRegression.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+& (Join-Path $root 'PrivateDesktopModelRegression.exe')
+if($LASTEXITCODE -ne 0){throw 'Private desktop MODEL failed; native qualification NONE'}
 Add-Type -TypeDefinition $entry -OutputAssembly (Join-Path $root 'ClrEntryProbe.exe') -OutputType ConsoleApplication
 [IO.File]::WriteAllText((Join-Path $root 'clr-entry.sha256'),(Get-FileHash -LiteralPath (Join-Path $root 'ClrEntryProbe.exe') -Algorithm SHA256).Hash.ToLowerInvariant())
 # Separate diagnostic OS image pin; no change to the four CLR runtime pins or package inventory.

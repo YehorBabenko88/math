@@ -4,7 +4,7 @@
 // https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessasuserw
 namespace MathUniverse.AdminitHosted {
  using System;using System.IO;using System.Text;using System.Collections.Generic;
- using System.Runtime.InteropServices;using System.Security.Cryptography;using MathUniverse.Q01;
+ using System.Runtime.InteropServices;using System.Threading;using System.Security.Cryptography;using MathUniverse.Q01;
  public static class ClrEntryDiagnostics {
   [StructLayout(LayoutKind.Sequential)] struct SidAttributes {public IntPtr Sid;public uint Attributes;}
   [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] struct Startup {public uint Size;public string Reserved,Desktop,Title;public uint X,Y,XSize,YSize,XCount,YCount,Fill,Flags;public ushort Show,ReservedSize;public IntPtr ReservedBytes,Input,Output,Error;}
@@ -41,13 +41,29 @@ namespace MathUniverse.AdminitHosted {
    string exe=OsControlPath();using(var image=new FileStream(exe,FileMode.Open,FileAccess.Read,FileShare.Read)){long length=image.Length;Need(length>0&&length<=128*1024*1024&&HashImage(image)==expected);string outcome=Run(token,exe,cwd,EnvironmentFor("BASE",profile,windows),true);Need(image.Length==length&&HashImage(image)==expected);Console.Out.WriteLine("PROCESS_DIAGNOSTIC name=SYSTEM_CMD outcome="+outcome+" pin=BUILD_HOST_OS_PIN_MATCHED qualification=NONE");}
   }catch{Console.Out.WriteLine("PROCESS_DIAGNOSTIC name=SYSTEM_CMD outcome=UNAVAILABLE pin=UNAVAILABLE qualification=NONE");}}
 
-  static string Run(IntPtr token,string exe,string cwd,SortedDictionary<string,string> values,bool osControl=false){
+  static string Run(IntPtr token,string exe,string cwd,SortedDictionary<string,string> values,bool osControl=false){bool cleanup;return RunBounded(token,exe,cwd,values,osControl,null,10000,out cleanup);}
+  static string RunBounded(IntPtr token,string exe,string cwd,SortedDictionary<string,string> values,bool osControl,string desktop,uint wait,out bool cleanup){
+   cleanup=false;bool drained=false,handlesClosed=true;
    IntPtr env=IntPtr.Zero,job=IntPtr.Zero,p=IntPtr.Zero,t=IntPtr.Zero;bool assigned=false;var kernel=new WindowsJobKernel();string outcome="UNAVAILABLE";
-   try{var block=new StringBuilder();foreach(var pair in values){Need(pair.Value!=null&&pair.Value.IndexOf('\0')<0);block.Append(pair.Key).Append('=').Append(pair.Value).Append('\0');}block.Append('\0');env=Marshal.StringToHGlobalUni(block.ToString());job=kernel.CreateJob();kernel.ConfigureKillOnClose(job);var startup=new Startup();startup.Size=(uint)Marshal.SizeOf(typeof(Startup));Info info;
+   try{var block=new StringBuilder();foreach(var pair in values){Need(pair.Value!=null&&pair.Value.IndexOf('\0')<0);block.Append(pair.Key).Append('=').Append(pair.Value).Append('\0');}block.Append('\0');env=Marshal.StringToHGlobalUni(block.ToString());job=kernel.CreateJob();kernel.ConfigureKillOnClose(job);var startup=new Startup();startup.Size=(uint)Marshal.SizeOf(typeof(Startup));startup.Desktop=desktop;Info info;
     if(osControl)Need(String.Equals(exe,OsControlPath(),StringComparison.OrdinalIgnoreCase));Need(CreateProcessAsUser(token,exe,new StringBuilder(osControl?OsControlCommand():"\""+exe+"\""),IntPtr.Zero,IntPtr.Zero,false,4|0x400|0x08000000,env,cwd,ref startup,out info));p=info.Process;t=info.Thread;kernel.Assign(job,p);assigned=true;kernel.Resume(t);
-    if(kernel.Wait(p,10000)!=0)outcome="DEADLINE";else{uint code=kernel.ExitCode(p);outcome=code==71?(osControl?"ENTRY_REACHED":"CLR_ENTRY_REACHED"):code==0xC0000142?"DLL_INITIALIZATION_FAILED":code==0xC0000135?"DLL_NOT_FOUND":code==0xC000007B?"INVALID_IMAGE_FORMAT":"OTHER_EXIT";}
-   }catch{outcome="UNAVAILABLE";}finally{try{if(assigned){kernel.TerminateJob(job);Need(kernel.WaitJobEmpty(job,5000));}else if(p!=IntPtr.Zero){kernel.TerminateProcess(p);Need(kernel.Wait(p,5000)==0);}}catch{outcome="CLEANUP_UNCONFIRMED";}finally{foreach(IntPtr h in new[]{p,t,job})if(h!=IntPtr.Zero&&!CloseHandle(h))outcome="CLEANUP_UNCONFIRMED";if(env!=IntPtr.Zero)Marshal.FreeHGlobal(env);}}
-   return outcome;
+    if(kernel.Wait(p,wait)!=0)outcome="DEADLINE";else{uint code=kernel.ExitCode(p);outcome=code==71?(osControl?"ENTRY_REACHED":"CLR_ENTRY_REACHED"):code==0xC0000142?"DLL_INITIALIZATION_FAILED":code==0xC0000135?"DLL_NOT_FOUND":code==0xC000007B?"INVALID_IMAGE_FORMAT":"OTHER_EXIT";}
+   }catch{outcome="UNAVAILABLE";}finally{try{if(assigned){kernel.TerminateJob(job);Need(kernel.WaitJobEmpty(job,5000));}else if(p!=IntPtr.Zero){kernel.TerminateProcess(p);Need(kernel.Wait(p,5000)==0);}drained=true;}catch{outcome="CLEANUP_UNCONFIRMED";}finally{foreach(IntPtr h in new[]{p,t,job})if(h!=IntPtr.Zero&&!CloseHandle(h)){handlesClosed=false;outcome="CLEANUP_UNCONFIRMED";}if(env!=IntPtr.Zero)Marshal.FreeHGlobal(env);}}
+   cleanup=drained&&handlesClosed;return outcome;
+  }
+  static bool PrivateProbe(IntPtr token,string exe,string cwd,string profile,string windows){
+   string outcome="UNAVAILABLE";bool mustExit=false;
+   // Fresh GUI-free thread; the existing independent 60s owner watchdog remains
+   // the whole-operation bound. Native Win32 calls are not claimed cancellable.
+   var thread=new Thread(()=>{OwnedPrivateDesktop context=null;bool empty=false;try{
+    context=HostedPrivateDesktop.Create(token);
+    outcome=RunBounded(token,exe,cwd,EnvironmentFor("BASE",profile,windows),false,context.DesktopName,5000,out empty);
+   }catch(PrivateDesktopException error){mustExit=error.MustExitOwner;outcome=error.CleanupConfirmed?"UNAVAILABLE":"CLEANUP_UNCONFIRMED";}
+    catch{mustExit=true;outcome="CLEANUP_UNCONFIRMED";}
+    finally{if(context!=null&&!context.CloseAfterChildEmpty(empty)){mustExit=true;outcome="CLEANUP_UNCONFIRMED";}}
+   });thread.IsBackground=false;thread.Start();thread.Join();
+   Console.Out.WriteLine("HOSTED_CLR_DIAGNOSTIC variant=PRIVATE_NONINTERACTIVE outcome="+outcome+" qualification=NONE");
+   return !mustExit;
   }
   public static int Main(string[] args){IntPtr token=IntPtr.Zero,limited=IntPtr.Zero,sid=IntPtr.Zero,label=IntPtr.Zero;string owned=null;bool createdOwned=false;try{
    Need(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true"&&Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")=="github-hosted"&&!String.Equals(Environment.MachineName,"ADMINIT",StringComparison.OrdinalIgnoreCase));Need(args.Length==2);
@@ -58,6 +74,7 @@ namespace MathUniverse.AdminitHosted {
     Need(CreateDirectory(owned,IntPtr.Zero));createdOwned=true;NoLinks(owned);string profile=Path.Combine(owned,"profile");Directory.CreateDirectory(Path.Combine(profile,"AppData","Local"));Directory.CreateDirectory(Path.Combine(profile,"AppData","Roaming"));NoLinks(profile);
     string windows=Environment.GetFolderPath(Environment.SpecialFolder.Windows);NoLinks(windows);foreach(string variant in new[]{"BASE","SYSTEM_PATH","OWNED_PROFILE","SYSTEM_PROGRAMDATA"}){string result;try{result=Run(limited,exe,Path.Combine(build,"package"),EnvironmentFor(variant,profile,windows));}catch{result="UNAVAILABLE";}Console.Out.WriteLine("HOSTED_CLR_DIAGNOSTIC variant="+variant+" outcome="+result+" qualification=NONE");}
     OsControl(limited,build,Path.Combine(build,"package"),profile,windows);
+    if(!PrivateProbe(limited,exe,Path.Combine(build,"package"),profile,windows))return 2;
    }
   }catch{Console.Out.WriteLine("HOSTED_CLR_DIAGNOSTIC variant=SETUP outcome=UNAVAILABLE qualification=NONE");}finally{foreach(IntPtr h in new[]{token,limited})if(h!=IntPtr.Zero)CloseHandle(h);if(sid!=IntPtr.Zero)LocalFree(sid);if(label!=IntPtr.Zero)Marshal.FreeHGlobal(label);
    // Only known empty directories created above are removed; never recursive deletion.

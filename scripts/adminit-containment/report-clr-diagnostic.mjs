@@ -10,7 +10,7 @@ export function clrDiagnosticLines(text){
  if(typeof text!=='string'||Buffer.byteLength(text)>2048)return [];
  const out=[],seen=new Set();
  for(const line of text.split(/\r?\n/).filter(Boolean)){
-  const m=/^HOSTED_CLR_DIAGNOSTIC variant=(BASE|SYSTEM_PATH|OWNED_PROFILE|SYSTEM_PROGRAMDATA|SETUP|CLEANUP) outcome=(CLR_ENTRY_REACHED|DLL_INITIALIZATION_FAILED|DLL_NOT_FOUND|INVALID_IMAGE_FORMAT|OTHER_EXIT|DEADLINE|UNAVAILABLE|CLEANUP_UNCONFIRMED) qualification=NONE$/.exec(line);
+  const m=/^HOSTED_CLR_DIAGNOSTIC variant=(BASE|SYSTEM_PATH|OWNED_PROFILE|SYSTEM_PROGRAMDATA|PRIVATE_NONINTERACTIVE|SETUP|CLEANUP) outcome=(CLR_ENTRY_REACHED|DLL_INITIALIZATION_FAILED|DLL_NOT_FOUND|INVALID_IMAGE_FORMAT|OTHER_EXIT|DEADLINE|UNAVAILABLE|CLEANUP_UNCONFIRMED) qualification=NONE$/.exec(line);
   if(!m||seen.has(m[1])||(m[1]==='SETUP'&&!['DEADLINE','UNAVAILABLE'].includes(m[2]))||(m[1]==='CLEANUP'&&m[2]!=='CLEANUP_UNCONFIRMED'))return [];
   seen.add(m[1]);out.push(line);
  }
