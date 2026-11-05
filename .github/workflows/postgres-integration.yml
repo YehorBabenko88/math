@@ -104,15 +104,14 @@ jobs:
           persist-credentials: false
           ref: ${{ github.sha }}
           fetch-depth: 0
-      - name: Use exact committed LF bytes for mechanical assertion proof
-        shell: pwsh
-        run: |
-          git config core.autocrlf false
-          git -c core.autocrlf=false checkout-index --all --force
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ matrix.node }}
+      - name: Use exact committed LF bytes for mechanical assertion proof
+        shell: pwsh
+        run: |
+          node scripts/prepare-exact-checkout.mjs --expected-head '${{ github.sha }}'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify tracked source before tests
         env:
           SOURCE_IDENTITY_RECEIPT: ${{ runner.temp }}/math-source-before.json

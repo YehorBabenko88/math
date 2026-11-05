@@ -32,13 +32,36 @@ function Read-CommittedText([string]$InputPath){
 $helper=Read-CommittedText 'scripts/q01-lab/WindowsJobContainment.cs'
 $fixture=Read-CommittedText 'tests/fixtures/adminit-containment/AdminitSynthetic.cs'
 $bootstrap=Read-CommittedText 'tests/fixtures/adminit-containment/HostedMediumLauncher.cs'
+$facts=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderFacts.cs'
+$bootstrap+="`n"+$facts
+$events=Read-CommittedText 'tests/fixtures/adminit-containment/HostedLoaderEvents.cs'
+$bootstrap+="`n"+$events
+$privateDesktop=Read-CommittedText 'tests/fixtures/adminit-containment/HostedPrivateDesktop.cs'
+$privateModel=Read-CommittedText 'tests/fixtures/adminit-containment/PrivateDesktopModelRegression.cs'
+$diagnostic=Read-CommittedText 'tests/fixtures/adminit-containment/HostedClrEntryDiagnostics.cs'
+$entry=Read-CommittedText 'tests/fixtures/adminit-containment/ClrEntryProbe.cs'
 $framework=[Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()
 $web=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NET\assembly\GAC_MSIL\System.Web.Extensions\v4.0_4.0.0.0__31bf3856ad364e35\System.Web.Extensions.dll'
-$references=@((Join-Path $framework 'System.dll'),(Join-Path $framework 'System.Core.dll'),$web)
+$references=@((Join-Path $framework 'System.Xml.dll'),(Join-Path $framework 'System.dll'),(Join-Path $framework 'System.Core.dll'),$web)
 $frameworkRoot=Join-Path ([Environment]::GetFolderPath('Windows')) 'Microsoft.NET'
 foreach($reference in $references){if(-not [IO.File]::Exists($reference) -or -not $reference.StartsWith($frameworkRoot+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Trusted OS Framework reference unavailable: BLOCKED'}}
 Add-Type -TypeDefinition ($helper+"`n"+$fixture) -OutputAssembly (Join-Path $root 'package/AdminitSyntheticHarness.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
 Add-Type -TypeDefinition ($helper+"`n"+$bootstrap) -OutputAssembly (Join-Path $root 'HostedMediumLauncher.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+Add-Type -TypeDefinition ($helper+"`n"+$privateDesktop+"`n"+$diagnostic) -OutputAssembly (Join-Path $root 'HostedClrEntryDiagnostics.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+Add-Type -TypeDefinition ($privateDesktop+"`n"+$privateModel) -OutputAssembly (Join-Path $root 'PrivateDesktopModelRegression.exe') -OutputType ConsoleApplication -ReferencedAssemblies $references
+& (Join-Path $root 'PrivateDesktopModelRegression.exe')
+if($LASTEXITCODE -ne 0){throw 'Private desktop MODEL failed; native qualification NONE'}
+Add-Type -TypeDefinition $entry -OutputAssembly (Join-Path $root 'ClrEntryProbe.exe') -OutputType ConsoleApplication
+[IO.File]::WriteAllText((Join-Path $root 'clr-entry.sha256'),(Get-FileHash -LiteralPath (Join-Path $root 'ClrEntryProbe.exe') -Algorithm SHA256).Hash.ToLowerInvariant())
+# Separate diagnostic OS image pin; no change to the four CLR runtime pins or package inventory.
+$osControl=[IO.Path]::GetFullPath((Join-Path ([Environment]::GetFolderPath('System')) 'cmd.exe'))
+for($check=$osControl;$check;$check=[IO.Path]::GetDirectoryName($check)){if(([IO.File]::GetAttributes($check) -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'OS control reparse BLOCKED'}}
+$osImage=[IO.File]::Open($osControl,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+try{$osLength=$osImage.Length;if($osLength -le 0 -or $osLength -gt 134217728){throw 'OS control image BLOCKED'};$osHash=[Security.Cryptography.SHA256]::Create();try{$osPin=[BitConverter]::ToString($osHash.ComputeHash($osImage)).Replace('-','').ToLowerInvariant()}finally{$osHash.Dispose()};if($osImage.Length -ne $osLength){throw 'OS control image changed'};[IO.File]::WriteAllText((Join-Path $root 'os-control.sha256'),($osPin+[char]10),[Text.Encoding]::ASCII)}finally{$osImage.Dispose()}
+$windows=[Environment]::GetFolderPath('Windows')
+$runtimeFiles=@((Join-Path $windows 'System32/mscoree.dll'),(Join-Path $framework 'clr.dll'),(Join-Path $framework 'clrjit.dll'),(Join-Path $framework 'mscorlib.dll'))
+$runtimePins=@($runtimeFiles|ForEach-Object {(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()})
+[IO.File]::WriteAllText((Join-Path $root 'runtime-pins.json'),(ConvertTo-Json -InputObject $runtimePins -Compress))
 $exe=Join-Path $root 'package/AdminitSyntheticHarness.exe'
 $manifest=@{schema=1;sourceHead=$head;sourceTree=$tree;localExecution='BLOCKED_PENDING_ISOLATION_REVIEW';files=@(@{path='AdminitSyntheticHarness.exe';bytes=(Get-Item -LiteralPath $exe).Length;sha256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()})}
 # No bootstrap ships in the ADMINIT package. Exact two-file package inventory.

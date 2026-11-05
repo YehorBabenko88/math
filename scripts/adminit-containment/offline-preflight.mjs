@@ -1,9 +1,42 @@
 // Offline matching/compilation only. This program cannot authorize a token query.
 import * as fs from 'node:fs';
-import {resolve,dirname,join,relative,isAbsolute,sep} from 'node:path';
+import {resolve,dirname,join,relative,isAbsolute,sep,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createHash} from 'node:crypto';
+import {createHash,randomBytes} from 'node:crypto';
 import {execFileSync,spawnSync} from 'node:child_process';
+export const WORKER_PHASES=Object.freeze(['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE']);
+export function parseWorkerTrace(bytes){
+ if(!Buffer.isBuffer(bytes)||bytes.length>256)return 'UNAVAILABLE';
+ if(bytes.length===0)return 'NO_MARKER';
+ const text=bytes.toString('ascii');
+ if(!/^(?:RUNTIME|REPARSE|TYPES|PARSER|COMPILE|EXIT)\n$/.test(text))return 'UNAVAILABLE';
+ return text.trim();
+}
+function traceRegular(path,limit){
+ for(let p=resolve(path);;p=dirname(p)){if(fs.lstatSync(p).isSymbolicLink())throw Error('trace');if(p===dirname(p))break;}
+ const fd=fs.openSync(path,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW??0));
+ try{const a=fs.fstatSync(fd);if(!a.isFile()||a.nlink!==1||a.size>limit)throw Error('trace');const b=Buffer.alloc(limit+1),n=fs.readSync(fd,b,0,b.length,0),z=fs.fstatSync(fd),s=fs.lstatSync(path);if(n>limit||s.isSymbolicLink()||a.dev!==z.dev||a.ino!==z.ino||a.size!==z.size||a.mtimeMs!==z.mtimeMs||a.ctimeMs!==z.ctimeMs||s.dev!==a.dev||s.ino!==a.ino||s.nlink!==1)throw Error('trace');return b.subarray(0,n);}finally{fs.closeSync(fd);}
+}
+export function readWorkerTrace(path){try{return parseWorkerTrace(traceRegular(path,256));}catch{return 'UNAVAILABLE';}}
+function publishDiagnostic(sink,labRoot,text,name){
+ // The caller creates a fresh diagnostic directory outside source and passes its file.
+ // An invalid/unavailable diagnostic sink must never change mandatory execution/results.
+ if(typeof sink!=='string')return false;
+ let fd;
+ try{
+  const root=resolve(labRoot),path=resolve(sink),parent=dirname(path);
+  if(dirname(parent)!==root||!/^worker-diagnostic-[A-Za-z0-9_-]{6,64}$/.test(basename(parent))||basename(path)!==name||!path.startsWith(root+sep))return false;
+  traceRegular(path,32);
+  fd=fs.openSync(path,fs.constants.O_WRONLY|(fs.constants.O_NOFOLLOW??0));
+  const a=fs.fstatSync(fd),s=fs.lstatSync(path);if(!a.isFile()||a.nlink!==1||a.size!==0||s.isSymbolicLink()||a.dev!==s.dev||a.ino!==s.ino) return false;
+  if(text)fs.writeSync(fd,text,0,'ascii');fs.fsyncSync(fd);return true;
+ }catch{return false;}finally{if(fd!==undefined)try{fs.closeSync(fd);}catch{}}
+}
+
+export function publishWorkerTrace(sink,labRoot,phase){return WORKER_PHASES.includes(phase)&&publishDiagnostic(sink,labRoot,phase==='NO_MARKER'?'':phase+'\n','phase.txt');}
+export function publishWorkerEntryDiagnostic(phaseSink,root,state,captured){try{return captured===true&&ENTRY_STATES.includes(state)&&typeof phaseSink==='string'&&basename(phaseSink)==='phase.txt'&&publishDiagnostic(join(dirname(phaseSink),'entry.txt'),root,state+':TERMINATED\n','entry.txt');}catch{return false;}}
+export function readWorkerEntryDiagnostic(path){try{const m=/^(NO_ENTRY_MARKER|SCRIPT_ENTERED|PAYLOAD_VERIFIED|JSON_PARSED|RUNTIME_TRACE_RETURNED|UNAVAILABLE):TERMINATED\n$/.exec(traceRegular(path,64).toString('ascii'));if(m)return {state:m[1],captured_after_termination:true};}catch{}return {state:'UNAVAILABLE',captured_after_termination:false};}
+
 const fail=()=>{throw Error('PREFLIGHT_BLOCKED');};
 const need=x=>{if(!x)fail();};
 const hash=(b,kind='sha256')=>createHash(kind).update(b).digest('hex');
@@ -46,6 +79,7 @@ export function inspectSource(root,git,pins){try{
 export const WINDOWS_WORKER=String.raw`$ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
 $code='RUNTIME';$status='BLOCKED'
+function TracePhase([string]$phase){if(-not $p -or -not $p.workerTrace){return};if($phase -cnotmatch '^(RUNTIME|REPARSE|TYPES|PARSER|COMPILE|EXIT)$'){return};try{$trace=[IO.Path]::Combine($p.scratch,'worker-phase.txt');if($p.workerTrace -cne $trace){return};NoReparse $trace;$f=[IO.File]::Open($trace,[IO.FileMode]::Open,[IO.FileAccess]::Write,[IO.FileShare]::Read);try{if($f.Length -gt 256){return};$raw=[Text.Encoding]::ASCII.GetBytes($phase+[char]10);$f.SetLength(0);$f.Write($raw,0,$raw.Length);$f.Flush()}finally{$f.Dispose()}}catch{}}
 function HashFile([string]$p){$s=[IO.File]::OpenRead($p);$h=[Security.Cryptography.SHA256]::Create();try{return [BitConverter]::ToString($h.ComputeHash($s)).Replace('-','').ToLowerInvariant()}finally{$h.Dispose();$s.Dispose()}}
 function NoReparse([string]$p){$p=[IO.Path]::GetFullPath($p);while($p){if(([IO.File]::GetAttributes($p) -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'blocked'};$parent=[IO.Path]::GetDirectoryName($p);if($parent -eq $p){break};$p=$parent}}
 function TreeNoReparse([string]$p){NoReparse $p;foreach($e in [IO.Directory]::GetFileSystemEntries($p)){NoReparse $e;if(([IO.File]::GetAttributes($e) -band [IO.FileAttributes]::Directory) -ne 0){TreeNoReparse $e}}}
@@ -56,16 +90,17 @@ try {
  if($inputBytes.Length -gt 262144){throw 'blocked'}
  $digest=[Security.Cryptography.SHA256]::Create();try{$actual=[BitConverter]::ToString($digest.ComputeHash($inputBytes)).Replace('-','').ToLowerInvariant()}finally{$digest.Dispose()}
  if($actual -cne $expectedPayloadSha){throw 'blocked'}
- $p=[Text.Encoding]::UTF8.GetString($inputBytes)|ConvertFrom-Json
+ $p=[Text.Encoding]::UTF8.GetString($inputBytes)|Microsoft.PowerShell.Utility\ConvertFrom-Json
+ TracePhase 'RUNTIME'
  if($PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -ne 1 -or [IntPtr]::Size -ne 8){throw 'blocked'}
  $self=[Diagnostics.Process]::GetCurrentProcess();try{$exe=$self.MainModule.FileName}finally{$self.Dispose()}
  NoReparse $exe;if((HashFile $exe) -cne $p.powershellSha){throw 'blocked'}
  $compiler=[IO.Path]::Combine([Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory(),'csc.exe')
  NoReparse $compiler;if((HashFile $compiler) -cne $p.compilerSha){throw 'blocked'}
- $code='REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
- $code='TYPES';NoAdapterTypes
- $code='PARSER';foreach($text in $p.scripts){$tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseInput([string]$text,[ref]$tokens,[ref]$errors);if($errors.Count -ne 0){throw 'blocked'}}
- $code='COMPILE'
+ $code='REPARSE';TracePhase 'REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
+ $code='TYPES';TracePhase 'TYPES';NoAdapterTypes
+ $code='PARSER';TracePhase 'PARSER';foreach($text in $p.scripts){$tokens=$null;$errors=$null;[void][Management.Automation.Language.Parser]::ParseInput([string]$text,[ref]$tokens,[ref]$errors);if($errors.Count -ne 0){throw 'blocked'}}
+ $code='COMPILE';TracePhase 'COMPILE'
  $providerType=[Microsoft.CSharp.CSharpCodeProvider]
  if($providerType.Assembly.FullName -cne 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'){throw 'blocked'}
  $provider=[Microsoft.CSharp.CSharpCodeProvider]::new()
@@ -79,16 +114,73 @@ try {
   [void]$params.ReferencedAssemblies.Add($providerType.Assembly.Location);[void]$params.ReferencedAssemblies.Add([Linq.Enumerable].Assembly.Location)
   try {$result=$provider.CompileAssemblyFromSource($params,[string[]]@([string]$p.csharp));if($result.Errors.HasErrors -or -not [IO.File]::Exists($params.OutputAssembly)){throw 'blocked'}}finally{$params.TempFiles.Dispose()}
  } finally {$provider.Dispose()}
- $code='TYPES';NoAdapterTypes
- $code='REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
+ $code='TYPES';TracePhase 'TYPES';NoAdapterTypes
+ $code='REPARSE';TracePhase 'REPARSE';TreeNoReparse $p.sourceRoot;NoReparse $p.scratch
  $status='PASS';$code='NONE'
 } catch {}
+TracePhase 'EXIT'
 [Console]::Out.WriteLine(('{{"schema":"math.g0.preflight-worker.v1","status":"{0}","code":"{1}"}}' -f $status,$code))
 if($status -eq 'PASS'){exit 0}else{exit 2}`;
 
 export function parseWorkerReport(text){try{need(typeof text==='string'&&Buffer.byteLength(text)<=1024);const r=JSON.parse(text);exact(r,['schema','status','code']);need(text.trim()===JSON.stringify(r));need(r.schema==='math.g0.preflight-worker.v1'&&['PASS','BLOCKED'].includes(r.status)&&['NONE','RUNTIME','REPARSE','TYPES','PARSER','COMPILE'].includes(r.code)&&((r.status==='PASS')===(r.code==='NONE')));return r;}catch{fail();}}
+export function workerDiagnosticReportCode(text){try{const report=parseWorkerReport(text);return report.status==='BLOCKED'&&['RUNTIME','REPARSE','TYPES','PARSER','COMPILE'].includes(report.code)?report.code:'UNAVAILABLE';}catch{return 'UNAVAILABLE';}}
 export function runtimePin(p){noLinks(p.path);need(hash(bytes(p.path,256*1024*1024,true))===p.sha256);}
 const report=(status,code,identity=null)=>({sourceHead:identity?.head??null,sourceTree:identity?.tree??null,sourceBlobs:identity?.count??null,policySha256:identity?.policyHash??null,schema:'math.g0.offline-preflight.v1',status,code,provenance:'PIN_MATCH_ONLY_NOT_ATTESTATION',authority:'NONE',admission:'BLOCKED',localExecute:false,isolationConfirmed:false,physicalCall:'NOT_AUTHORIZED'});
+export function workerTransportCode(child){
+ const own=(object,key)=>{try{const p=Object.getOwnPropertyDescriptor(object,key);return p&&Object.hasOwn(p,'value')?p.value:undefined;}catch{return undefined;}};
+ if(!child||typeof child!=='object')return 'WORKER_LAUNCH';
+ const error=own(child,'error');
+ if(error)return own(error,'code')==='ETIMEDOUT'?'WORKER_TIMEOUT':'WORKER_LAUNCH';
+ if(own(child,'signal'))return 'WORKER_SIGNAL';
+ if(own(child,'stderr')!=='')return 'WORKER_STDERR';
+ return null;
+}
+// Optional, NON_QUALIFYING entry diagnostics. Caller admits a fresh private
+// parent and one writer. This is not hostile-owner/host identity attestation.
+const ENTRY_STATES=['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','JSON_PARSED','RUNTIME_TRACE_RETURNED','UNAVAILABLE'];
+const entryPin=b=>hash(Buffer.from(JSON.stringify([b.parent,b.path,b.nonce,b.device,b.inode])));
+export function prepareWorkerEntry(scratch){let fd;try{
+ const parent=fs.realpathSync.native(noLinks(scratch)),path=join(parent,'worker-entry.bin'),nonce=randomBytes(32);
+ fd=fs.openSync(path,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|(fs.constants.O_NOFOLLOW??0),0o600);fs.writeSync(fd,nonce);fs.fsyncSync(fd);
+ const s=fs.fstatSync(fd,{bigint:true});need(s.isFile()&&s.nlink===1n&&s.size===32n);const binding={parent,path,nonce:nonce.toString('base64'),device:s.dev.toString(),inode:s.ino.toString()};return Object.freeze({...binding,pin:entryPin(binding)});
+ }catch{return null;}finally{if(fd!==undefined)try{fs.closeSync(fd);}catch{}}}
+function entryBytes(b){
+ need(b&&b.pin===entryPin(b)&&b.path===join(b.parent,'worker-entry.bin')&&fs.realpathSync.native(noLinks(b.parent))===b.parent);
+ const nonce=Buffer.from(b.nonce,'base64');need(nonce.length===32&&nonce.toString('base64')===b.nonce);
+ noLinks(b.path);const fd=fs.openSync(b.path,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW??0));
+ try{const a=fs.fstatSync(fd,{bigint:true});need(a.isFile()&&a.dev.toString()===b.device&&a.ino.toString()===b.inode&&a.nlink===1n&&a.size<=33n);
+ const buffer=Buffer.alloc(34),n=fs.readSync(fd,buffer,0,34,0),z=fs.fstatSync(fd,{bigint:true}),after=fs.lstatSync(b.path,{bigint:true});
+ need(n<=33&&BigInt(n)===a.size&&z.dev===a.dev&&z.ino===a.ino&&z.nlink===1n&&z.size===a.size&&z.mtimeNs===a.mtimeNs&&z.ctimeNs===a.ctimeNs&&after.dev===a.dev&&after.ino===a.ino&&after.nlink===1n&&!after.isSymbolicLink());const raw=buffer.subarray(0,n);need(raw.subarray(0,32).equals(nonce));return raw;
+ }finally{fs.closeSync(fd);}
+}
+export function readWorkerEntry(binding){try{const raw=entryBytes(binding);return raw.length===32?'NO_ENTRY_MARKER':raw.length===33&&raw[32]===1?'SCRIPT_ENTERED':raw.length===33&&raw[32]===2?'PAYLOAD_VERIFIED':raw.length===33&&raw[32]===3?'JSON_PARSED':raw.length===33&&raw[32]===4?'RUNTIME_TRACE_RETURNED':'UNAVAILABLE';}catch{return 'UNAVAILABLE';}}
+export function withWorkerEntry(worker,binding){try{
+ const raw=entryBytes(binding);need(raw.length===32);const base64=text=>Buffer.from(text,'utf8').toString('base64');
+ const start=String.raw`$mathEntryStream=$null
+try {
+ $mathEntryPath=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('PATH64'))
+ $mathEntryParent=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('PARENT64'))
+ if([IO.Path]::GetFullPath($mathEntryPath) -cne $mathEntryPath -or [IO.Path]::GetDirectoryName($mathEntryPath) -cne $mathEntryParent -or [IO.Path]::GetFileName($mathEntryPath) -cne 'worker-entry.bin'){throw 'optional'}
+ NoReparse $mathEntryPath
+ if(([IO.File]::GetAttributes($mathEntryPath) -band [IO.FileAttributes]::Directory) -ne 0){throw 'optional'}
+ $mathEntryStream=[IO.File]::Open($mathEntryPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+ if($mathEntryStream.Length -ne 32){throw 'optional'}
+ $mathEntryNonce=[Convert]::FromBase64String('NONCE64')
+ for($mathEntryIndex=0;$mathEntryIndex -lt 32;$mathEntryIndex++){if($mathEntryStream.ReadByte() -ne $mathEntryNonce[$mathEntryIndex]){throw 'optional'}}
+ $mathEntryStream.WriteByte(1);$mathEntryStream.Flush($true)
+}catch{if($mathEntryStream){try{$mathEntryStream.Dispose()}catch{}};$mathEntryStream=$null}
+`.replace('PATH64',base64(binding.path)).replace('PARENT64',base64(binding.parent)).replace('NONCE64',binding.nonce);
+ const close="if($mathEntryStream){try{$mathEntryStream.Dispose()}catch{};$mathEntryStream=$null}";
+ // Keep the same exclusive nonce-validated handle until the first trace returns.
+ // Each optional transition requires the exact previous byte; failure closes
+ // diagnostics only and never changes the worker's authoritative result.
+ const advance=(prior,next)=>"if($mathEntryStream){try{if($mathEntryStream.Length -ne 33){throw 'optional'};$mathEntryStream.Position=32;if($mathEntryStream.ReadByte() -ne "+prior+"){throw 'optional'};$mathEntryStream.Position=32;$mathEntryStream.WriteByte("+next+");$mathEntryStream.Flush($true)}catch{"+close+"}}";
+ const verified=advance(1,2),parsed=advance(2,3),traced=advance(3,4)+close;
+ const before="try {\n NoReparse $env:MATH_PREFLIGHT_PAYLOAD",json=" $p=[Text.Encoding]::UTF8.GetString($inputBytes)|Microsoft.PowerShell.Utility\\ConvertFrom-Json",exit="} catch {}\nTracePhase 'EXIT'";
+ need(worker.includes(before)&&worker.includes(json)&&worker.includes(" TracePhase 'RUNTIME'")&&worker.includes(exit));return worker.replace(before,start+before).replace(json,verified+'\n'+json+'\n'+parsed).replace(" TracePhase 'RUNTIME'"," TracePhase 'RUNTIME'\n"+traced).replace(exit,'} catch {}\n'+close+"\nTracePhase 'EXIT'");
+ }catch{return worker;}}
+
+
 export function runPreflight({source,policy,policySha256}){let stage='POLICY',scratch,labRoot;try{
  need(process.platform==='win32'&&process.arch==='x64'&&process.execArgv.length===0&&!process.env.NODE_OPTIONS&&hex(policySha256,64));
  policy=fs.realpathSync.native(noLinks(ownPath(policy)));
@@ -102,10 +194,16 @@ export function runPreflight({source,policy,policySha256}){let stage='POLICY',sc
  const names=['g0-token-api.ps1','observe-token-api.ps1','collect-g0.ps1'];const scripts=names.map(n=>{const b=before.captured.get('scripts/adminit-containment/'+n);need(b);return b.toString('utf8');});
  const cs=before.captured.get('scripts/adminit-containment/WindowsTokenObservation.cs');need(cs);
  stage='WORKER';scratch=fs.mkdtempSync(join(root,'offline-compile-'));noLinks(scratch);
- const payload=join(scratch,'input.json');const payloadText=JSON.stringify({sourceRoot:source,scratch,powershellSha:p.tools.powershell.sha256,compilerSha:p.tools.compiler.sha256,scripts,csharp:cs.toString('utf8')});fs.writeFileSync(payload,payloadText,{flag:'wx'});
- const worker="$expectedPayloadSha='"+hash(Buffer.from(payloadText))+"';\n"+WINDOWS_WORKER;
+ const workerTrace=join(scratch,'worker-phase.txt');fs.writeFileSync(workerTrace,'',{flag:'wx'});
+ const payload=join(scratch,'input.json');const payloadText=JSON.stringify({sourceRoot:source,scratch,workerTrace,powershellSha:p.tools.powershell.sha256,compilerSha:p.tools.compiler.sha256,scripts,csharp:cs.toString('utf8')});fs.writeFileSync(payload,payloadText,{flag:'wx'});
+ const entryBinding=prepareWorkerEntry(scratch);
+ const worker=withWorkerEntry("$expectedPayloadSha='"+hash(Buffer.from(payloadText))+"';\n"+WINDOWS_WORKER,entryBinding);
  const child=spawnSync(p.tools.powershell.path,['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(worker,'utf16le').toString('base64')],{cwd:scratch,env:{...childEnv(),MATH_PREFLIGHT_PAYLOAD:payload,TEMP:scratch,TMP:scratch,PSModuleAnalysisCachePath:join(scratch,'module.cache'),PSDisableModuleAnalysisCacheCleanup:'1',PSModulePath:join(dirname(p.tools.powershell.path),'Modules')},encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:16384});
- need(!child.error&&!child.signal&&child.stderr==='');const result=parseWorkerReport(child.stdout);if(result.status!=='PASS')stage=result.code;need(child.status===0&&result.status==='PASS');
+ publishWorkerTrace(process.env.MATH_PREFLIGHT_DIAGNOSTIC_SINK,root,readWorkerTrace(workerTrace));
+ publishWorkerEntryDiagnostic(process.env.MATH_PREFLIGHT_DIAGNOSTIC_SINK,root,readWorkerEntry(entryBinding),Number.isInteger(child.pid)&&child.pid>0&&(Number.isInteger(child.status)||typeof child.signal==='string'));
+ const transport=workerTransportCode(child);if(transport){stage=transport;need(false);}
+ stage='WORKER_OUTPUT';const result=parseWorkerReport(child.stdout);
+ stage=result.status!=='PASS'?result.code:'WORKER_EXIT';need(child.status===0&&result.status==='PASS');
  stage='SOURCE';inspectSource(source,p.tools.git.path,p);for(const name of ['node','git','powershell'])runtimePin(p.tools[name]);
  stage='CLEANUP';cleanScratch(scratch,root);scratch=undefined;
  return report('PASS','NONE',{head:p.head,tree:p.tree,count:p.blobs.length,policyHash:policySha256});
