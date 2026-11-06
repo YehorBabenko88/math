@@ -87,6 +87,7 @@ test('agent7 loader timeout and process exit remain distinct diagnostic failures
   const expected=loadInventory().tests.filter(x=>x.destination==='tests/agent7-replay-research.test.mjs');
   assert.equal(expected.length,8,'all additional regressions are mandatory cross-platform identities');
   assert.ok(expected.every(x=>x.platform==='cross'));
+  assert.ok(expected.every(x=>x.added===true),'new regressions must not masquerade as the frozen baseline');
   const events=expected.map(x=>({...x,status:'pass'}));
   assert.equal(validateEvents(events,expected).length,8);
   assert.throws(()=>validateEvents(events.slice(1),expected),/Exact test identity/);

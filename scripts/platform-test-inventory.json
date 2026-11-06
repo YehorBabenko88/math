@@ -12337,7 +12337,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12347,7 +12348,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12357,7 +12359,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12367,7 +12370,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12377,7 +12381,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12387,7 +12392,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12397,7 +12403,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     },
     {
       "file": "tests/agent7-replay-research.test.mjs",
@@ -12407,7 +12414,8 @@
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
-      "destination": "tests/agent7-replay-research.test.mjs"
+      "destination": "tests/agent7-replay-research.test.mjs",
+      "added": true
     }
   ]
 }
