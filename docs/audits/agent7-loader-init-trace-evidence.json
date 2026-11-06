@@ -1,0 +1,42 @@
+{
+  "schema": "agent7.loader-init-trace-evidence.v1",
+  "base_head": "917d99672e37db59835a8ab23b03c99826b12d78",
+  "base_tree": "0e8c7a3712fbbcddee0e0c9e5b8d5f10f34bde69",
+  "design_sha256": "10573d8a884fc47f6945a6d7e40cfee566af6b96aac349551771232c795aab49",
+  "ownership": "ROOT approved six-path diagnostic allocation and path-only amendment; original native workflow and sources unchanged",
+  "qualification": "NONE",
+  "native_acceptance": "BLOCKED",
+  "physical_acceptance": "NOT_RUN_NOT_AUTHORIZED",
+  "hosted_observation": "NOT_DISPATCHED_AWAITING_A8_AND_ROOT_CONCRETE_CHECK",
+  "bounds": {
+    "observation_ms": 10000,
+    "cleanup_ms": 5000,
+    "owner_ms": 30000,
+    "combined_output_bytes": 8192,
+    "debug_events": 256,
+    "poll_ms": 100
+  },
+  "sole_native_variation": "CreateProcessAsUser flags0x08000406 instead of0x08000404; DEBUG_ONLY_THIS_PROCESS. Restricted token flags5, Medium8192, same BASE environment/default desktop/cwd, inheritfalse and job-before-resume preserved.",
+  "original_failure": "Run42246112894 job127988647557 pinnedSYSTEM_CMD and managed variants exitDLL_INITIALIZATION_FAILED; actual causal operation unknown",
+  "limits": [
+    "First first-chance breakpoint convention is debugger perturbation; later/genuine exceptions forwarded",
+    "Last module role never proves culprit",
+    "Debug success is DEBUGGER_PERTURBED_BASELINE, never native PASS",
+    "Hosted guard is consistency/office denial, not host attestation",
+    "External source review/authorization is not proved by a workflow input digest",
+    "No automatic retries, policy changes, privilege enabling or physical invocation"
+  ],
+  "local_checks": {
+    "command": "node --test tests/agent7-replay-research.test.mjs",
+    "exit_code": 0,
+    "tests": 8,
+    "passed": 8,
+    "skipped": 0,
+    "model_cases": 17,
+    "native_invocations": 0,
+    "compile_only_x64_exe": "PASS created but never executed",
+    "review": "Independent reviewer found PS5 native JS quoting and rejected-breakpoint forwarding defects; each RED reproduced and fixed, bounded recheck8/8 PASS no blockers identified",
+    "exact_commit_evidence": "Final HEAD/tree and clean LF188-proof checks are published in external handoff; this file cannot embed its own containing commit SHA."
+  },
+  "overall": "NO-GO"
+}
