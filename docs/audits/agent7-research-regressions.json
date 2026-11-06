@@ -1,0 +1,140 @@
+{
+  "schema": "agent7.regression-evidence.v1",
+  "date": "2026-11-06",
+  "scope": "OFFLINE_SYNTHETIC_ENGINEERING_ONLY",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "endpoint_ack": "PENDING",
+  "physical_acceptance": "NOT_QUALIFIED",
+  "real_orders": "NOT_SENT",
+  "system_acceptance": "BLOCKED",
+  "no_gate_waiver": true,
+  "base_head": "5721987a15d20c3f9984d52eac4446704566d4b9",
+  "tested_source": {
+    "head": "71bfea7096df0b40aa6b022a668bf055647df555",
+    "tree": "407c186a9ae22aaf835bfd345f4ed5aa32d0b9a3",
+    "branch": "agent7/math-native-research-20261106",
+    "tracked_clean": true
+  },
+  "node": "v24.22.1",
+  "command": "node --test tests/agent7-replay-research.test.mjs",
+  "exit_code": 0,
+  "tests": 8,
+  "passed": 8,
+  "failed": 0,
+  "skipped": 0,
+  "fix": "Missing HostedPrivateDesktop.cs source definition in loader fixture joined library and CLR diagnostic executable compile inputs. Existing assertions, timeout30000 and maxBuffer8192 unchanged.",
+  "red": {
+    "tests": 8,
+    "passed": 7,
+    "failed": 1,
+    "log_sha256": "f53f1fa5ca369f6b248017538340d5b09132de4075317a268cf4c124071fa9a5",
+    "compile_only_status": 1
+  },
+  "green": {
+    "log_sha256": "ef0fa83a2d229fa50dcca5641899bbcb92382f43f668dd609fdafc1031cb197d",
+    "compile_only_status": 0
+  },
+  "original_source_proof": {
+    "head": "71bfea7096df0b40aa6b022a668bf055647df555",
+    "files": 188,
+    "sha": "603b14ef27ab67ae944ef47f66ea911f825cff1371e60ae461fd38cebcb21196",
+    "baselineProofSha256": "0696dd46d5386a532060220af8d491b6888e53d7a51082f9defca30684fc857e",
+    "scope": "Raw Git blobs; working CRLF equality not certified"
+  },
+  "local_mandatory": {
+    "command": "node scripts/test-full-ci.mjs",
+    "exit_code": 1,
+    "stage": "SOURCE_PROOF",
+    "note": "Windows checkout CRLF differs from original LF destination bytes; no normalization or hosted guard spoofing performed. Raw Git reconstruction PASS is separate. Hosted lane restores committed bytes using existing workflow."
+  },
+  "windows_ci": "PENDING_FINAL_HEAD_HOSTED_RUN",
+  "native_startup": "Latest actual Medium-token job127988647557 FAILURE; child/all5CLR variants/pinnedSYSTEM_CMD DLL_INITIALIZATION_FAILED, qualificationNONE. Root cause remains unknown. No security relaxation/native source edit.",
+  "original_jobs": [
+    {
+      "run_id": 42056857558,
+      "job_id": 127347474839,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/42056857558/job/127347474839",
+      "outcome": "97/98; loader compile assertion failure"
+    },
+    {
+      "run_id": 42056857844,
+      "job_id": 127347473966,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/42056857844/job/127347473966",
+      "outcome": "DLL_INITIALIZATION_FAILED; all diagnostic variants qualificationNONE"
+    }
+  ],
+  "comparison_only": {
+    "pr": 111,
+    "head": "11c3c470ebec9f9fdb6ec1b69e77b7b8aeea653a",
+    "jobs": [
+      127450265096,
+      127450265767
+    ],
+    "finding": "COMPILE/DIAG_CHILD_STATUS; not timeout. No cherry-pick."
+  },
+  "phase0_registration_fix": {
+    "previous_candidate_head": "5f93cf91acc04c6561da2e940cad87f9ac41baf2",
+    "source_fix_head": "5a969254aa4903f9aca6b5bbeedd6687a903a48b",
+    "source_fix_tree": "292f25d2b86e1c524ec57f9bedb1f7d863d75578",
+    "cause": "8 Agent7 inventory entries lacked added:true, entering frozen1147/cross3 baseline; new entries also require distinct classification from44scientific and66historical added cross entries.",
+    "files": [
+      "scripts/platform-test-inventory.json",
+      "tests/platform-coverage.test.mjs",
+      "tests/agent7-replay-research.test.mjs"
+    ],
+    "owner_ack": "Integration Owner explicitly allocated tests/platform-coverage.test.mjs; only new8metadata entries reclassified. All preexisting entries/test identities/assertions retained.",
+    "red": {
+      "command": "node --test tests/platform-coverage.test.mjs",
+      "checkout": "separate task-private exact-LF checkout at5f93cf9, original primary worktree untouched",
+      "exit_code": 1,
+      "tests": 5,
+      "passed": 4,
+      "failed": 1,
+      "skipped": 0,
+      "assertion": "1155 !==1147",
+      "log_sha256": "26123262a8a8501ac5386dbc771c484eb019300a30b02e7c9b09e3713aff904d"
+    },
+    "green": {
+      "command": "node --test tests/platform-coverage.test.mjs tests/agent7-replay-research.test.mjs",
+      "checkout_head": "5a969254aa4903f9aca6b5bbeedd6687a903a48b",
+      "exit_code": 0,
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "log_sha256": "589c898fbd680400714cc8a2105047d0c9b237ab73a659c0031b21a0131412f9"
+    },
+    "frozen_assertions_retained": [
+      "1147baseline",
+      "12nested",
+      "3baseline-cross",
+      "44scientific",
+      "scientificDigest dc2b3096a5a960fe4ed11b22456ebf744e48b995ad0e67f113049dc875c7561e",
+      "66historical added-cross",
+      "188original rawGit reconstruction"
+    ],
+    "original_linux_job": 127988615815,
+    "original_linux_log_sha256": "61efa6164396d53cd563963b344778ed08d0906df989101b5a56ae9fb7612e9a",
+    "original_linux_artifact": {
+      "id": 13519971787,
+      "bytes": 69592,
+      "sha256": "8bb442eca81d7a79e80afdf158e50022e31aa2c1ca6cebbf674b836609a32807",
+      "receipt_head": "5d42c266048455125a7df7cd771087bff73b2152",
+      "receipt_tree": "28b775578e71c674518dc3b35b11dff329a17d25",
+      "receipt_summary": {
+        "tests": 1204,
+        "pass": 1203,
+        "fail": 1,
+        "skipped": 0
+      },
+      "source_relation": "Verified synthetic merge parents5721987+5f93cf9; tree equals previous candidate."
+    },
+    "hosted_status": "NEW_FINAL_HEAD_REQUIRED; old Windows22/24 SUCCESS not reused for new candidate."
+  },
+  "phase0_native_log": {
+    "job": 127988647557,
+    "sha256": "2e014fab33077001065fab939d31d2dd6f8ae87d988ba2f7d7782a013a48685a",
+    "scope": "Targeted original job log retained locally; not physical office acceptance."
+  }
+}

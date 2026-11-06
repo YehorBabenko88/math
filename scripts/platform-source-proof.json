@@ -2897,6 +2897,7 @@
     "tests/adminit-loader-diagnostics.cross.mjs",
     "tests/adminit-loader-facts.windows.mjs",
     "tests/adminit-worker-trace.cross.mjs",
-    "tests/adminit-loader-events.windows.mjs"
+    "tests/adminit-loader-events.windows.mjs",
+    "tests/agent7-replay-research.test.mjs"
   ]
 }
