@@ -1,47 +1,70 @@
 name: Agent7 NON-QUALIFYING loader observation
 on:
-  workflow_dispatch:
-    inputs:
-      expected_head:
-        description: Exact reviewed diagnostic source HEAD
-        required: true
-        type: string
-      expected_tree:
-        description: Exact reviewed diagnostic source tree
-        required: true
-        type: string
-      review_record_sha256:
-        description: External A8 review plus ROOT concrete authorization record digest
-        required: true
-        type: string
+  pull_request:
+    types: [labeled]
 permissions:
   contents: read
+concurrency:
+  group: agent7-loader-init-pr113
+  cancel-in-progress: false
 jobs:
   observation:
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      github.actor == 'YehorBabenko88' && github.triggering_actor == 'YehorBabenko88' &&
+      github.run_attempt == 1 && github.repository == 'YehorBabenko88/math' &&
+      github.event.number == 113 && github.event.pull_request.number == 113 &&
+      github.event.pull_request.head.repo.full_name == 'YehorBabenko88/math' &&
+      github.event.pull_request.base.repo.full_name == 'YehorBabenko88/math' &&
+      github.event.pull_request.head.ref == 'agent7/math-loader-init-diagnostics-20261106' &&
+      github.event.pull_request.base.ref == 'agent7/math-native-research-20261106' &&
+      github.event.label.name == format('diag-{0}', github.event.pull_request.head.sha)
     runs-on: windows-latest
     timeout-minutes: 10
     env:
-      SOURCE_HEAD: ${{ inputs.expected_head }}
-      SOURCE_TREE: ${{ inputs.expected_tree }}
-      REVIEW_RECORD_SHA256: ${{ inputs.review_record_sha256 }}
+      EVENT_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
     steps:
+      - name: Validate exact label event before source checkout
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          # BEGIN_PURE_EVENT_ADMISSION
+          function Admit-TraceEvent($c) {
+            if($c.eventName -cne 'pull_request' -or $c.action -cne 'labeled' -or $c.actor -cne 'YehorBabenko88' -or $c.triggeringActor -cne 'YehorBabenko88' -or $c.attempt -cne '1' -or $c.repository -cne 'YehorBabenko88/math' -or $c.pr -ne 113){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.branch -cne 'agent7/math-loader-init-diagnostics-20261106' -or $c.base -cne 'agent7/math-native-research-20261106' -or $c.headRepo -cne 'YehorBabenko88/math' -or $c.baseRepo -cne 'YehorBabenko88/math'){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.head -cnotmatch '\A[0-9a-f]{40}\z' -or $c.eventSha -cnotmatch '\A[0-9a-f]{40}\z' -or $c.label -cne ('diag-'+$c.head) -or $c.description -cnotmatch '\Areview-sha256:[0-9a-f]{64}\z'){throw 'EVENT_TRACE_BLOCKED'}
+            return [pscustomobject]@{SourceHead=$c.head;EventSha=$c.eventSha;ReviewRecordSha256=$c.description.Split(':')[1]}
+          }
+          # END_PURE_EVENT_ADMISSION
+          if($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted' -or (Get-Item -LiteralPath $env:GITHUB_EVENT_PATH).Length -gt 131072){throw 'EVENT_TRACE_BLOCKED'}
+          $e=Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
+          if($e.number -ne 113 -or $e.pull_request.number -ne 113 -or $e.repository.full_name -cne $env:GITHUB_REPOSITORY){throw 'EVENT_TRACE_BLOCKED'}
+          $c=[pscustomobject]@{eventName=$env:GITHUB_EVENT_NAME;actor=$env:GITHUB_ACTOR;triggeringActor=$env:EVENT_TRIGGERING_ACTOR;attempt=$env:GITHUB_RUN_ATTEMPT;eventSha=$env:GITHUB_SHA;repository=$env:GITHUB_REPOSITORY;action=$e.action;pr=$e.number;head=$e.pull_request.head.sha;branch=$e.pull_request.head.ref;base=$e.pull_request.base.ref;headRepo=$e.pull_request.head.repo.full_name;baseRepo=$e.pull_request.base.repo.full_name;label=$e.label.name;description=$e.label.description}
+          $r=Admit-TraceEvent $c
+          # Only validated hex strings cross into later action/env inputs.
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value ('SOURCE_HEAD='+$r.SourceHead)
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value ('EVENT_SHA='+$r.EventSha)
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value ('REVIEW_RECORD_SHA256='+$r.ReviewRecordSha256)
+          # Persist no executable code or private event data between steps.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ inputs.expected_head }}
+          ref: ${{ env.SOURCE_HEAD }}
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Exact manual source admission and MODEL tests
+      - name: Exact PR-head source admission and MODEL tests
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          if($env:SOURCE_HEAD -cnotmatch '^[0-9a-f]{40}$' -or $env:SOURCE_TREE -cnotmatch '^[0-9a-f]{40}$' -or $env:REVIEW_RECORD_SHA256 -cnotmatch '^[0-9a-f]{64}$'){throw 'SOURCE_TRACE_BLOCKED'}
-          if($env:GITHUB_EVENT_NAME -cne 'workflow_dispatch' -or $env:GITHUB_SHA -cne $env:SOURCE_HEAD){throw 'SOURCE_TRACE_BLOCKED'}
+          if($env:SOURCE_HEAD -cnotmatch '\A[0-9a-f]{40}\z' -or $env:EVENT_SHA -cnotmatch '\A[0-9a-f]{40}\z' -or $env:REVIEW_RECORD_SHA256 -cnotmatch '\A[0-9a-f]{64}\z'){throw 'SOURCE_TRACE_BLOCKED'}
           $head=git --no-replace-objects rev-parse HEAD
           if($LASTEXITCODE -ne 0 -or $head -cne $env:SOURCE_HEAD){throw 'SOURCE_TRACE_BLOCKED'}
           $tree=git --no-replace-objects rev-parse 'HEAD^{tree}'
-          if($LASTEXITCODE -ne 0 -or $tree -cne $env:SOURCE_TREE){throw 'SOURCE_TRACE_BLOCKED'}
+          if($LASTEXITCODE -ne 0 -or $tree -cnotmatch '\A[0-9a-f]{40}\z'){throw 'SOURCE_TRACE_BLOCKED'}
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value ('SOURCE_TREE='+$tree)
+          # Source tree comes from the pinned Git commit, never GITHUB_SHA's merge.
+          @{schema='math.loader-init-event.v1';sourceHead=$head;sourceTree=$tree;eventSha=$env:EVENT_SHA;reviewRecordSha256=$env:REVIEW_RECORD_SHA256;qualification='NONE';nativeAcceptance='BLOCKED'} | ConvertTo-Json -Compress
           node scripts/prepare-exact-checkout.mjs --expected-head $env:SOURCE_HEAD
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
           node --test tests/agent7-replay-research.test.mjs
@@ -58,5 +81,6 @@ jobs:
           $root=Join-Path $env:RUNNER_TEMP 'agent7-loader-init-build'
           node scripts/agent7-loader-init/report.mjs $root $env:SOURCE_HEAD $env:SOURCE_TREE
           exit $LASTEXITCODE
-      # No private paths, environment, event strings or native binaries uploaded.
-      # Exit0 means bounded diagnostic collection ONLY, never native acceptance.
+      # ROOT must verify external authorization and exact HEAD/tree before ONE label.
+      # Label digest is a reference, not consent proof; never auto-relabel/retry UNKNOWN.
+      # No private paths, debug strings or binaries uploaded. Exit0 never means native PASS.
