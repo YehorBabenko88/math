@@ -1,0 +1,62 @@
+name: Agent7 NON-QUALIFYING loader observation
+on:
+  workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact reviewed diagnostic source HEAD
+        required: true
+        type: string
+      expected_tree:
+        description: Exact reviewed diagnostic source tree
+        required: true
+        type: string
+      review_record_sha256:
+        description: External A8 review plus ROOT concrete authorization record digest
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  observation:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      SOURCE_HEAD: ${{ inputs.expected_head }}
+      SOURCE_TREE: ${{ inputs.expected_tree }}
+      REVIEW_RECORD_SHA256: ${{ inputs.review_record_sha256 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.expected_head }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Exact manual source admission and MODEL tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          if($env:SOURCE_HEAD -cnotmatch '^[0-9a-f]{40}$' -or $env:SOURCE_TREE -cnotmatch '^[0-9a-f]{40}$' -or $env:REVIEW_RECORD_SHA256 -cnotmatch '^[0-9a-f]{64}$'){throw 'SOURCE_TRACE_BLOCKED'}
+          if($env:GITHUB_EVENT_NAME -cne 'workflow_dispatch' -or $env:GITHUB_SHA -cne $env:SOURCE_HEAD){throw 'SOURCE_TRACE_BLOCKED'}
+          $head=git --no-replace-objects rev-parse HEAD
+          if($LASTEXITCODE -ne 0 -or $head -cne $env:SOURCE_HEAD){throw 'SOURCE_TRACE_BLOCKED'}
+          $tree=git --no-replace-objects rev-parse 'HEAD^{tree}'
+          if($LASTEXITCODE -ne 0 -or $tree -cne $env:SOURCE_TREE){throw 'SOURCE_TRACE_BLOCKED'}
+          node scripts/prepare-exact-checkout.mjs --expected-head $env:SOURCE_HEAD
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+          node --test tests/agent7-replay-research.test.mjs
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+      - name: Compile immutable sources without launching target
+        shell: powershell
+        run: |
+          $root=Join-Path $env:RUNNER_TEMP 'agent7-loader-init-build'
+          & ./scripts/agent7-loader-init/build.ps1 -OutputRoot $root -ExpectedHead $env:SOURCE_HEAD -ExpectedTree $env:SOURCE_TREE
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+      - name: One owned-child observation with independent 30s owner watchdog
+        shell: pwsh
+        run: |
+          $root=Join-Path $env:RUNNER_TEMP 'agent7-loader-init-build'
+          node scripts/agent7-loader-init/report.mjs $root $env:SOURCE_HEAD $env:SOURCE_TREE
+          exit $LASTEXITCODE
+      # No private paths, environment, event strings or native binaries uploaded.
+      # Exit0 means bounded diagnostic collection ONLY, never native acceptance.

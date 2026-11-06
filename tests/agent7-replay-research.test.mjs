@@ -101,4 +101,33 @@ test('agent7 loader timeout and process exit remain distinct diagnostic failures
   assert.ok(/class OwnedPrivateDesktop\b/.test(sources.join('\n')),'CLR recipe omits owned desktop dependency');
   assert.ok(/class HostedPrivateDesktop\b/.test(sources.join('\n')),'CLR recipe omits desktop factory dependency');
   // The zero diagnostic code does not constitute native or security admission.
+  const reporterUrl=new URL('../scripts/agent7-loader-init/report.mjs',import.meta.url);
+  await assert.doesNotReject(readFile(reporterUrl),'closed diagnostic parser is required');
+  const {parseTrace}=await import(reporterUrl.href);
+  const identity={head:'1'.repeat(40),tree:'2'.repeat(40)};
+  const sample={schema:'math.loader-init-trace.v1',...identity,qualification:'NONE',nativeAcceptance:'BLOCKED',outcome:'DLL_INITIALIZATION_FAILED',events:7,breakpointHandled:true,firstException:'NONE',lastModule:'OS_NTDLL',cleanup:'CONFIRMED'};
+  const line=JSON.stringify(sample)+'\n';
+  assert.deepEqual(parseTrace(line,identity),sample);
+  for(const bad of [line+line,line.replace('"events":7','"events":7,"events":8'),line.replace('"qualification":"NONE"','"qualification":"PASS"'),JSON.stringify({...sample,pid:123}),JSON.stringify({...sample,events:257}),JSON.stringify({...sample,head:'3'.repeat(40)}),JSON.stringify({...sample,lastModule:'C:\\private\\x.dll'}),' '.repeat(8193)])
+    assert.throws(()=>parseTrace(bad,identity),/TRACE_REJECTED/);
+  if(process.platform==='win32') {
+    const builder=await readFile(new URL('../scripts/agent7-loader-init/build.ps1',import.meta.url),'utf8');
+    const verifyLine=builder.match(/^\$verify='.*'$/m)[0];
+    const readFunction=builder.match(/^function Read-Committed\([\s\S]*?^}/m)[0];
+    const recipeDir=await mkdtemp(join(tmpdir(),'agent7-ps-'));
+    try {
+      const validator=join(recipeDir,'validator.mjs');
+      await writeFile(validator,"export const verifySourceIdentity=()=>({trackedSourceSha256:'a'.repeat(64)});\n");
+      const script="$ProgressPreference='SilentlyContinue';$ErrorActionPreference='Stop';$ExpectedHead=$env:AGENT7_RECIPE_HEAD;"+verifyLine+"\n& node --input-type=module -e $verify $env:AGENT7_VALIDATOR $ExpectedHead;if($LASTEXITCODE -ne 0){exit $LASTEXITCODE};\n"+readFunction+"\n$v=Read-Committed 'tests/fixtures/adminit-containment/ClrEntryProbe.cs';if($v -notmatch 'class ClrEntryProbe'){throw 'RECIPE_FAILED'};Write-Output 'RECIPES_MODEL_ONLY'";
+      const child=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{encoding:'utf8',timeout:30000,maxBuffer:8192,windowsHide:true,env:{...process.env,AGENT7_VALIDATOR:validator,AGENT7_RECIPE_HEAD:spawnSync('git',['--no-replace-objects','rev-parse','HEAD'],{encoding:'utf8',windowsHide:true}).stdout.trim()}});
+      assert.equal(child.error,undefined);assert.equal(child.status,0,child.stderr);assert.match(child.stdout,/RECIPES_MODEL_ONLY/);
+    } finally {await rm(recipeDir,{recursive:true,force:true});}
+    // Compile + injected MODEL only. Never invoke Main or a native backend here.
+    const source=new URL('./fixtures/agent7-loader-init/HostedLoaderInitTrace.cs',import.meta.url);
+    const modelScript="$ProgressPreference='SilentlyContinue';$ErrorActionPreference='Stop';$r=$env:AGENT7_MODEL_REPO;$s=[IO.File]::ReadAllText((Join-Path $r 'scripts/q01-lab/WindowsJobContainment.cs'))+[char]10+[IO.File]::ReadAllText((Join-Path $r 'tests/fixtures/adminit-containment/HostedPrivateDesktop.cs'))+[char]10+[IO.File]::ReadAllText($env:AGENT7_MODEL_SOURCE);Add-Type -TypeDefinition $s;[MathUniverse.Agent7.LoaderInitTrace]::RunModelTests()";
+    const {fileURLToPath}=await import('node:url');
+    const model=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(modelScript,'utf16le').toString('base64')],{encoding:'utf8',timeout:30000,maxBuffer:8192,windowsHide:true,env:{...process.env,AGENT7_MODEL_SOURCE:fileURLToPath(source),AGENT7_MODEL_REPO:fileURLToPath(new URL('../',import.meta.url))}});
+    assert.equal(model.error,undefined);assert.equal(model.status,0,model.stderr);
+    assert.match(model.stdout,/MODEL_ONLY cases=\d+ qualification=NONE/);
+  }
 });
