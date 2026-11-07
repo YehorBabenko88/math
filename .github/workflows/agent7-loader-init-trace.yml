@@ -5,7 +5,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: agent7-loader-init-pr113
+  group: agent7-loader-init-pr115
   cancel-in-progress: false
 jobs:
   observation:
@@ -13,12 +13,12 @@ jobs:
       github.event_name == 'pull_request' && github.event.action == 'labeled' &&
       github.actor == 'YehorBabenko88' && github.triggering_actor == 'YehorBabenko88' &&
       github.run_attempt == 1 && github.repository == 'YehorBabenko88/math' &&
-      github.event.number == 113 && github.event.pull_request.number == 113 &&
+      github.event.number == 115 && github.event.pull_request.number == 115 &&
       github.event.pull_request.head.repo.full_name == 'YehorBabenko88/math' &&
       github.event.pull_request.base.repo.full_name == 'YehorBabenko88/math' &&
-      github.event.pull_request.head.ref == 'agent7/math-loader-init-diagnostics-20261106' &&
-      github.event.pull_request.base.ref == 'agent7/math-native-research-20261106' &&
-      github.event.label.name == format('diag-{0}', github.event.pull_request.head.sha)
+      github.event.pull_request.head.ref == 'agent7/math-loader-init-followup-20261107' &&
+      github.event.pull_request.base.ref == 'agent7/math-verifier-import-20261107' &&
+      github.event.label.name == format('diag-followup-{0}', github.event.pull_request.head.sha)
     runs-on: windows-latest
     timeout-minutes: 10
     env:
@@ -30,15 +30,15 @@ jobs:
           $ErrorActionPreference='Stop'
           # BEGIN_PURE_EVENT_ADMISSION
           function Admit-TraceEvent($c) {
-            if($c.eventName -cne 'pull_request' -or $c.action -cne 'labeled' -or $c.actor -cne 'YehorBabenko88' -or $c.triggeringActor -cne 'YehorBabenko88' -or $c.attempt -cne '1' -or $c.repository -cne 'YehorBabenko88/math' -or $c.pr -ne 113){throw 'EVENT_TRACE_BLOCKED'}
-            if($c.branch -cne 'agent7/math-loader-init-diagnostics-20261106' -or $c.base -cne 'agent7/math-native-research-20261106' -or $c.headRepo -cne 'YehorBabenko88/math' -or $c.baseRepo -cne 'YehorBabenko88/math'){throw 'EVENT_TRACE_BLOCKED'}
-            if($c.head -cnotmatch '\A[0-9a-f]{40}\z' -or $c.eventSha -cnotmatch '\A[0-9a-f]{40}\z' -or $c.label -cne ('diag-'+$c.head) -or $c.description -cnotmatch '\Areview-sha256:[0-9a-f]{64}\z'){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.eventName -cne 'pull_request' -or $c.action -cne 'labeled' -or $c.actor -cne 'YehorBabenko88' -or $c.triggeringActor -cne 'YehorBabenko88' -or $c.attempt -cne '1' -or $c.repository -cne 'YehorBabenko88/math' -or $c.pr -ne 115){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.branch -cne 'agent7/math-loader-init-followup-20261107' -or $c.base -cne 'agent7/math-verifier-import-20261107' -or $c.headRepo -cne 'YehorBabenko88/math' -or $c.baseRepo -cne 'YehorBabenko88/math'){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.head -cnotmatch '\A[0-9a-f]{40}\z' -or $c.eventSha -cnotmatch '\A[0-9a-f]{40}\z' -or $c.label -cne ('diag-followup-'+$c.head) -or $c.description -cnotmatch '\Afollowup-review-sha256:[0-9a-f]{64}\z'){throw 'EVENT_TRACE_BLOCKED'}
             return [pscustomobject]@{SourceHead=$c.head;EventSha=$c.eventSha;ReviewRecordSha256=$c.description.Split(':')[1]}
           }
           # END_PURE_EVENT_ADMISSION
           if($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted' -or (Get-Item -LiteralPath $env:GITHUB_EVENT_PATH).Length -gt 131072){throw 'EVENT_TRACE_BLOCKED'}
           $e=Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
-          if($e.number -ne 113 -or $e.pull_request.number -ne 113 -or $e.repository.full_name -cne $env:GITHUB_REPOSITORY){throw 'EVENT_TRACE_BLOCKED'}
+          if($e.number -ne 115 -or $e.pull_request.number -ne 115 -or $e.repository.full_name -cne $env:GITHUB_REPOSITORY){throw 'EVENT_TRACE_BLOCKED'}
           $c=[pscustomobject]@{eventName=$env:GITHUB_EVENT_NAME;actor=$env:GITHUB_ACTOR;triggeringActor=$env:EVENT_TRIGGERING_ACTOR;attempt=$env:GITHUB_RUN_ATTEMPT;eventSha=$env:GITHUB_SHA;repository=$env:GITHUB_REPOSITORY;action=$e.action;pr=$e.number;head=$e.pull_request.head.sha;branch=$e.pull_request.head.ref;base=$e.pull_request.base.ref;headRepo=$e.pull_request.head.repo.full_name;baseRepo=$e.pull_request.base.repo.full_name;label=$e.label.name;description=$e.label.description}
           $r=Admit-TraceEvent $c
           # Only validated hex strings cross into later action/env inputs.
