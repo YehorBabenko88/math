@@ -6,6 +6,8 @@ import shutil
 import subprocess
 import sys
 import unittest
+import tempfile
+from unittest.mock import patch
 from test_history_timed import request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -28,11 +30,23 @@ def joint_request():
 
 
 def run(q):
-    return subprocess.run([sys.executable, '-I', '-S', str(ROOT / 'python/history_scientific_worker.py'),
+    return subprocess.run([sys.executable, '-I', '-S', '-B', str(ROOT / 'python/history_scientific_worker.py'),
                            shutil.which('node')], input=json.dumps(q).encode(), capture_output=True, timeout=15)
 
 
 class JointContract(unittest.TestCase):
+    def test_actual_child_does_not_generate_bytecode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            staged = pathlib.Path(directory)
+            shutil.copytree(ROOT / 'python', staged / 'python',
+                            ignore=shutil.ignore_patterns('__pycache__', '*.pyc', '*.pyo'))
+            with patch(__name__ + '.ROOT', staged):
+                result = run({})
+            self.assertEqual(result.returncode, 1, result.stderr.decode())
+            self.assertEqual(result.stdout, b'')
+            self.assertEqual(list(staged.rglob('*.pyc')), [])
+            self.assertEqual(list(staged.rglob('*.pyo')), [])
+
     def test_real_composition_preserves_clocks_and_forecast_parity(self):
         q = joint_request()
         q['history']['rows'][-1]['available_at_ms'] += 500
