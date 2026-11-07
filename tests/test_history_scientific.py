@@ -44,6 +44,7 @@ class JointContract(unittest.TestCase):
                 result = run({})
             self.assertEqual(result.returncode, 1, result.stderr.decode())
             self.assertEqual(result.stdout, b'')
+            self.assertEqual(result.stderr, b'JOINT_REQUEST_REJECTED\n')
             self.assertEqual(list(staged.rglob('*.pyc')), [])
             self.assertEqual(list(staged.rglob('*.pyo')), [])
 
