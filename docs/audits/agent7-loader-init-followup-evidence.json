@@ -34,10 +34,12 @@
     "attempt": "1",
     "owner_and_triggering_actor": "YehorBabenko88",
     "repository": "YehorBabenko88/math",
-    "label": "diag-followup-<exact-source-head>",
+    "label": "diag-f-<exact-source-head>",
     "description": "followup-review-sha256:<fresh-immutable-ROOT-record-raw-sha256>",
     "concurrency": "agent7-loader-init-pr115",
-    "cancel_in_progress": false
+    "cancel_in_progress": false,
+    "max_label_ascii_bytes": "50",
+    "exact_label_ascii_bytes": "47"
   },
   "native_budgets": {
     "observation_ms": "10000",
@@ -84,22 +86,65 @@
   "changed_source_bytes": [
     {
       "path": ".github/workflows/agent7-loader-init-trace.yml",
-      "raw_sha256": "d3884ca15fb2721da1c3c1b2df19fdb2494db246d2bf6449d6a576b8d851d00c"
+      "raw_sha256": "f4b1f8ef9d7f9a629247c5406026443ec2d8733d852e9670a946c1cd1df24a48"
     },
     {
       "path": "tests/agent7-replay-research.test.mjs",
-      "raw_sha256": "eff78ac094706554a01972e51697ded9079b883511b8babeaaa945deb45b3803"
+      "raw_sha256": "2cc6693ff3bf34c0097ef2ea8952749850d931643e1c778269a770f7c217ece1"
     }
   ],
   "independent_review": {
-    "scope": "PREPARATION_DIFF_ONLY",
+    "scope": "NEW_LABEL_LIMIT_FIX_DIFF_SOURCE_MODEL_ONLY",
     "findings": {
       "P0": 0,
       "P1": 0,
       "P2": 0
     },
-    "tests_passed": 13,
+    "passed": 13,
+    "failed": 0,
     "skipped": 0,
-    "limits": "Extracted PowerShell event admission MODEL, not GitHub expression evaluator or actual event; final source A8 review pending"
+    "other_tracked_files_raw_byte_identical_to_both_63_and_9f08": 688,
+    "activation": "NOT_PERFORMED",
+    "fresh_A8_final_source_event_review": "PENDING"
+  },
+  "label_limit_fix": {
+    "previous_head": "63a0036d406042bee2d3434aac34dd6a15138ae3",
+    "previous_tree": "803c3a28bb6e3e489b315fac703ea094d6030e09",
+    "preserved_local_ref": "agent7/math115-pre-label-limit-63a0036",
+    "defect": "GitHub repository-label definition rejects names longer than50; previous exact-head label was54",
+    "evidence_source": "ROOT reported definitive externalAPI422; errorfile release/diagnostic-authorizations/math115/dispatch-preflight/label-definition.stdout.json",
+    "previous_prefix": "diag-followup-",
+    "previous_label_bytes": "54",
+    "new_prefix": "diag-f-",
+    "new_label_bytes": "47",
+    "label_add_api_calls_by_agent7": "0",
+    "native_observation": "NOT_RUN",
+    "previous_conditional_record_sha256": "355ca961ac39edb3c9a0f5505467610926a9abaaafc1bb54bc9275ce56e61442",
+    "previous_record_disposition": "HISTORICAL_PRE_DISPATCH_REJECTION_NO_ISSUE_LABEL_ADD_NO_NATIVE_JOB_REPORTED_BY_ROOT",
+    "previous_A8_ack": "PHASE40_APPLIES_ONLY_TO_OLD63SOURCE_NOT_TRANSFERRED",
+    "fresh_A8_review": "REQUIRED_PENDING",
+    "fresh_ROOT_authorization_record": "REQUIRED_PENDING",
+    "regression": {
+      "red": {
+        "command": "node --test tests/agent7-replay-research.test.mjs",
+        "passed": 7,
+        "failed": 1,
+        "skipped": 0,
+        "exit_code": 1,
+        "log_sha256": "fff5b00702cf030afba50d524b492ebc1c0729b389ad66bfd404ea4c82f6ff79"
+      },
+      "green": {
+        "command": "node --test tests/agent7-replay-research.test.mjs tests/platform-coverage.test.mjs",
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "event_vectors": 17,
+        "log_sha256": "b7f43476db4d867a707e2b8c7fe12125e874ca79397c72bd13de0e02014ad201"
+      },
+      "positive_label_bytes": "47_LE_50",
+      "negative_label_bytes": "54_GT_50",
+      "old_PR113_and_prefix": "REJECTED"
+    }
   }
 }

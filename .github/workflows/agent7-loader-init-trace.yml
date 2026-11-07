@@ -18,7 +18,7 @@ jobs:
       github.event.pull_request.base.repo.full_name == 'YehorBabenko88/math' &&
       github.event.pull_request.head.ref == 'agent7/math-loader-init-followup-20261107' &&
       github.event.pull_request.base.ref == 'agent7/math-verifier-import-20261107' &&
-      github.event.label.name == format('diag-followup-{0}', github.event.pull_request.head.sha)
+      github.event.label.name == format('diag-f-{0}', github.event.pull_request.head.sha)
     runs-on: windows-latest
     timeout-minutes: 10
     env:
@@ -32,7 +32,8 @@ jobs:
           function Admit-TraceEvent($c) {
             if($c.eventName -cne 'pull_request' -or $c.action -cne 'labeled' -or $c.actor -cne 'YehorBabenko88' -or $c.triggeringActor -cne 'YehorBabenko88' -or $c.attempt -cne '1' -or $c.repository -cne 'YehorBabenko88/math' -or $c.pr -ne 115){throw 'EVENT_TRACE_BLOCKED'}
             if($c.branch -cne 'agent7/math-loader-init-followup-20261107' -or $c.base -cne 'agent7/math-verifier-import-20261107' -or $c.headRepo -cne 'YehorBabenko88/math' -or $c.baseRepo -cne 'YehorBabenko88/math'){throw 'EVENT_TRACE_BLOCKED'}
-            if($c.head -cnotmatch '\A[0-9a-f]{40}\z' -or $c.eventSha -cnotmatch '\A[0-9a-f]{40}\z' -or $c.label -cne ('diag-followup-'+$c.head) -or $c.description -cnotmatch '\Afollowup-review-sha256:[0-9a-f]{64}\z'){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.label.Length -gt 50){throw 'EVENT_TRACE_BLOCKED'}
+            if($c.head -cnotmatch '\A[0-9a-f]{40}\z' -or $c.eventSha -cnotmatch '\A[0-9a-f]{40}\z' -or $c.label -cne ('diag-f-'+$c.head) -or $c.description -cnotmatch '\Afollowup-review-sha256:[0-9a-f]{64}\z'){throw 'EVENT_TRACE_BLOCKED'}
             return [pscustomobject]@{SourceHead=$c.head;EventSha=$c.eventSha;ReviewRecordSha256=$c.description.Split(':')[1]}
           }
           # END_PURE_EVENT_ADMISSION
