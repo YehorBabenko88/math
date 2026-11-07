@@ -12,9 +12,9 @@ $head=git --no-replace-objects rev-parse HEAD
 if($LASTEXITCODE -ne 0 -or $head -cne $ExpectedHead){throw 'SOURCE_TRACE_BLOCKED'}
 $tree=git --no-replace-objects rev-parse 'HEAD^{tree}'
 if($LASTEXITCODE -ne 0 -or $tree -cne $ExpectedTree){throw 'SOURCE_TRACE_BLOCKED'}
-$verify='const {pathToFileURL}=await import(''node:url'');const {verifySourceIdentity}=await import(pathToFileURL(process.argv[1]).href);console.log(verifySourceIdentity(process.argv[2]).trackedSourceSha256);'
+$verify='const {pathToFileURL}=await import(''node:url'');const {verifySourceIdentity}=await import(pathToFileURL(process.argv[2]).href);console.log(verifySourceIdentity(process.argv[3]).trackedSourceSha256);'
 $validator=Join-Path $checkout 'scripts/verify-source-identity.mjs'
-$before=& node --input-type=module -e $verify $validator $ExpectedHead
+$before=& node --input-type=module -e $verify source-kit-check $validator $ExpectedHead
 if($LASTEXITCODE -ne 0 -or $before -cnotmatch '^[a-f0-9]{64}$'){throw 'SOURCE_TRACE_BLOCKED'}
 # Reuse original unmodified builder/package/pins. It runs MODEL tests only.
 & (Join-Path $checkout 'scripts/adminit-containment/build-hosted.ps1') -OutputRoot $OutputRoot -ExpectedHead $ExpectedHead
@@ -34,7 +34,7 @@ $parameters.CompilerOptions='/platform:x64'
 $parameters.ReferencedAssemblies.Add('System.dll')|Out-Null
 $parameters.ReferencedAssemblies.Add('System.Core.dll')|Out-Null
 Add-Type -TypeDefinition $source -CompilerParameters $parameters
-$after=& node --input-type=module -e $verify $validator $ExpectedHead
+$after=& node --input-type=module -e $verify source-kit-check $validator $ExpectedHead
 if($LASTEXITCODE -ne 0 -or $after -cne $before){throw 'SOURCE_TRACE_BLOCKED'}
 $identity=@{head=$head;tree=$tree;sha256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant();trackedSourceSha256=$before;qualification='NONE';nativeAcceptance='BLOCKED'}
 [IO.File]::WriteAllText((Join-Path $OutputRoot 'loader-init-identity.json'),($identity|ConvertTo-Json -Compress),(New-Object Text.UTF8Encoding($false)))
