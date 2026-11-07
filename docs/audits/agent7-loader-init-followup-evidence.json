@@ -1,0 +1,28 @@
+{
+  "schema": "math.agent7.loader-init-followup-preparation.v1",
+  "qualification": "NONE",
+  "status": "PREPARATION_ONLY",
+  "base_head": "9f08b237b9d0a47abfb03ee4741c7f1688081fbd",
+  "base_tree": "94e3a3fc112b18e8ca633cb3aeadbb9837213af5",
+  "old_run": "42274233717",
+  "old_attempt": "1",
+  "old_run_disposition": "TERMINAL_FAILURE_BEFORE_NATIVE_OBSERVATION",
+  "old_authorization": "CONSUMED_NOT_RENEWED",
+  "activation": "NOT_AUTHORIZED",
+  "permitted_effect": "ONE_FUTURE_NONQUALIFYING_OWNED_CHILD_OBSERVATION_ONLY_AFTER_FRESH_REVIEW_AND_RECORD",
+  "required_gates": [
+    "EXACT_FINAL_SOURCE_HEAD_TREE",
+    "FRESH_A8_EVENT_WORKFLOW_REVIEW",
+    "NEW_IMMUTABLE_ROOT_AUTHORIZATION_RECORD",
+    "ONE_NEW_OWNER_LABEL_EVENT"
+  ],
+  "exclusions": [
+    "NO_OLD_LABEL_REUSE",
+    "NO_RERUN",
+    "NO_OFFICE_PC",
+    "NO_PRIVILEGE_ENABLE",
+    "NO_INJECTION",
+    "NO_POLICY_CHANGE",
+    "NO_REAL_ORDERS"
+  ]
+}
