@@ -1,6 +1,7 @@
 """Real stdio integration: both engines execute from this source checkout."""
 import copy
 import json
+import os
 import pathlib
 import shutil
 import subprocess
@@ -44,7 +45,7 @@ class JointContract(unittest.TestCase):
                 result = run({})
             self.assertEqual(result.returncode, 1, result.stderr.decode())
             self.assertEqual(result.stdout, b'')
-            self.assertEqual(result.stderr, b'JOINT_REQUEST_REJECTED\n')
+            self.assertEqual(result.stderr, b'JOINT_REQUEST_REJECTED' + os.linesep.encode('ascii'))
             self.assertEqual(list(staged.rglob('*.pyc')), [])
             self.assertEqual(list(staged.rglob('*.pyo')), [])
 
