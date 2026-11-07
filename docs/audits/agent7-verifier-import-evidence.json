@@ -1,0 +1,40 @@
+{
+  "schema": "agent7.verifier-import-fix-evidence.v1",
+  "base_head": "dbb9bb1da9b180a8bb9f1d5401f1117894256941",
+  "base_tree": "ade739990db8da7926bc7bdd9ed58e41acbd011e",
+  "original_run": 42274233717,
+  "attempt": 1,
+  "job": 128086308505,
+  "actual_outcome": "FAILURE_BEFORE_NATIVE_OBSERVATION",
+  "native_observation": "SKIPPED_NOT_EXECUTED",
+  "artifacts": 0,
+  "cause": "Node-e argv1 equalled imported verifier module pathname, activating its unchanged CLIentryguard withwrongCLIargs; builder thenrefusednonzeroexit. Fakeexport-only testcouldnotdetectentryguard.",
+  "minimal_fix": "Use existing originalbuilder source-kit-check sentinelargv1, verifierpathargv2, expectedheadargv3 in bothbefore/after calls. Securityverifier/originalbuilder/nativecode unchanged.",
+  "regressions": "Actualrealverifier copiedintotinyownedGitfixture includingCLIentryguard; exactbuilderbefore/after recipes; cleanmetadatahashmatches, realtrackededitrefuses. Existing8identities/17MODELcases retained.",
+  "real_full_source_PS5_control": {
+    "source_head": "dbb9bb1da9b180a8bb9f1d5401f1117894256941",
+    "old_command_exit": 1,
+    "old_error": "SOURCE_IDENTITY_FAILURE stageCLI_ARGUMENTS reasonCLI_ARGUMENTS_REJECTED",
+    "fixed_command_exit": 0,
+    "tracked_source_sha256": "c85eb764dadd085833b6b4df98da52d3f9e474fc164cd0c149ce0b1e93c3643e",
+    "scope": "Realunchangedverifier oncleanLFsource only; no nativecalls"
+  },
+  "local_new_tests": {
+    "command": "node --test tests/agent7-replay-research.test.mjs",
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "before_fix": "7pass1fail exactCLIguardcase"
+  },
+  "authorization": "Futurefixpreparation only. Old113refs/oneactivationfrozen; no newnativeattempt authorized.",
+  "qualification": "NONE",
+  "native_acceptance": "BLOCKED",
+  "physical": "NOT_RUN_NOT_AUTHORIZED",
+  "overall": "NO-GO",
+  "local_evidence_hashes": {
+    "math-real-verifier-import-red.log": "36bc1cbf88ca2c5e601e90da6c1074a98f314a0c21572b4085feec3f8609d995",
+    "math-real-verifier-import-green.log": "4a13408725cf5c164f2bb60a401c5d1ae8974ddf9856b9010fc8ea7f04f5615d",
+    "math-verifier-import-test-red.log": "6a7112b7ca7973ef7892f97be568ae4c22f67a966fe91e0f3536b8b4d8530151",
+    "math-verifier-import-test-green.log": "64c6bb0dae0d3467662e10ae102ea3b6597f63df1ecea9fae4226e19ede6ae38"
+  }
+}

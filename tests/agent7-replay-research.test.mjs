@@ -123,14 +123,36 @@ test('agent7 loader timeout and process exit remain distinct diagnostic failures
     assert.equal(eventModel.error,undefined);assert.equal(eventModel.status,0,eventModel.stderr);assert.match(eventModel.stdout,/EVENT_MODEL_ONLY cases=16/);
     const builder=await readFile(new URL('../scripts/agent7-loader-init/build.ps1',import.meta.url),'utf8');
     const verifyLine=builder.match(/^\$verify='.*'$/m)[0];
+    const beforeLine=builder.match(/^\$before=& node .*$/m)[0];
+    const afterLine=builder.match(/^\$after=& node .*$/m)[0];
     const readFunction=builder.match(/^function Read-Committed\([\s\S]*?^}/m)[0];
     const recipeDir=await mkdtemp(join(tmpdir(),'agent7-ps-'));
     try {
       const validator=join(recipeDir,'validator.mjs');
       await writeFile(validator,"export const verifySourceIdentity=()=>({trackedSourceSha256:'a'.repeat(64)});\n");
-      const script="$ProgressPreference='SilentlyContinue';$ErrorActionPreference='Stop';$ExpectedHead=$env:AGENT7_RECIPE_HEAD;"+verifyLine+"\n& node --input-type=module -e $verify $env:AGENT7_VALIDATOR $ExpectedHead;if($LASTEXITCODE -ne 0){exit $LASTEXITCODE};\n"+readFunction+"\n$v=Read-Committed 'tests/fixtures/adminit-containment/ClrEntryProbe.cs';if($v -notmatch 'class ClrEntryProbe'){throw 'RECIPE_FAILED'};Write-Output 'RECIPES_MODEL_ONLY'";
+      const script="$ProgressPreference='SilentlyContinue';$ErrorActionPreference='Stop';$ExpectedHead=$env:AGENT7_RECIPE_HEAD;$validator=$env:AGENT7_VALIDATOR;"+verifyLine+"\n"+beforeLine+"\nif($LASTEXITCODE -ne 0){exit $LASTEXITCODE};\n"+readFunction+"\n$v=Read-Committed 'tests/fixtures/adminit-containment/ClrEntryProbe.cs';if($v -notmatch 'class ClrEntryProbe'){throw 'RECIPE_FAILED'};Write-Output 'RECIPES_MODEL_ONLY'";
       const child=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{encoding:'utf8',timeout:30000,maxBuffer:8192,windowsHide:true,env:{...process.env,AGENT7_VALIDATOR:validator,AGENT7_RECIPE_HEAD:spawnSync('git',['--no-replace-objects','rev-parse','HEAD'],{encoding:'utf8',windowsHide:true}).stdout.trim()}});
       assert.equal(child.error,undefined);assert.equal(child.status,0,child.stderr);assert.match(child.stdout,/RECIPES_MODEL_ONLY/);
+      const {mkdir}=await import('node:fs/promises');
+      const actual=join(recipeDir,'actual');await mkdir(actual);
+      const realValidator=join(actual,'verify-source-identity.mjs');
+      await writeFile(realValidator,await readFile(new URL('../scripts/verify-source-identity.mjs',import.meta.url)));
+      await writeFile(join(actual,'inert.txt'),'raw fixture source\n');
+      const cleanEnv=Object.fromEntries(Object.entries(process.env).filter(([k])=>!k.startsWith('GIT_')));
+      Object.assign(cleanEnv,{GIT_CONFIG_GLOBAL:'NUL',GIT_CONFIG_NOSYSTEM:'1'});
+      const git=(...args)=>{
+        const r=spawnSync('git',['--no-replace-objects','-c','core.hooksPath=NUL','-c','core.autocrlf=false',...args],{cwd:actual,env:cleanEnv,encoding:'utf8',timeout:10000,maxBuffer:8192,windowsHide:true});
+        assert.equal(r.error,undefined);assert.equal(r.status,0,r.stderr);return r.stdout.trim();
+      };
+      git('init','-q');git('add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','-c','commit.gpgsign=false','commit','-qm','real verifier import fixture');
+      const fixtureHead=git('rev-parse','HEAD');
+      // Copy the REAL unchanged module, including its CLI entry guard. A fake
+      // export cannot expose process.argv[1] accidentally masquerading as Main.
+      const actualScript="$ProgressPreference='SilentlyContinue';$ErrorActionPreference='Stop';$ExpectedHead=$env:AGENT7_REAL_HEAD;$validator=$env:AGENT7_REAL_VALIDATOR;"+verifyLine+"\n"+beforeLine+"\nif($LASTEXITCODE -ne 0){exit $LASTEXITCODE};\n"+afterLine+"\nif($LASTEXITCODE -ne 0){exit $LASTEXITCODE};if($before -cnotmatch '^[a-f0-9]{64}$' -or $after -cne $before){throw 'REAL_VERIFIER_FAILED'};Write-Output 'REAL_VERIFIER_IMPORT_ONLY'";
+      const runActual=()=>spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(actualScript,'utf16le').toString('base64')],{cwd:actual,env:{...cleanEnv,AGENT7_REAL_HEAD:fixtureHead,AGENT7_REAL_VALIDATOR:realValidator},encoding:'utf8',timeout:30000,maxBuffer:8192,windowsHide:true});
+      const verified=runActual();assert.equal(verified.error,undefined);assert.equal(verified.status,0,verified.stderr);assert.equal(verified.stderr,'');assert.match(verified.stdout,/REAL_VERIFIER_IMPORT_ONLY/);
+      await writeFile(join(actual,'inert.txt'),'dirty source must still refuse\n');
+      const dirty=runActual();assert.equal(dirty.error,undefined);assert.notEqual(dirty.status,0);assert.doesNotMatch(dirty.stdout,/REAL_VERIFIER_IMPORT_ONLY/);
     } finally {await rm(recipeDir,{recursive:true,force:true});}
     // Compile + injected MODEL only. Never invoke Main or a native backend here.
     const source=new URL('./fixtures/agent7-loader-init/HostedLoaderInitTrace.cs',import.meta.url);
