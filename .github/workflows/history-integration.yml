@@ -39,8 +39,8 @@ jobs:
         run: python scripts/history_ci.py tests 'test_history*.py'
         env:
           GRID_REFERENCE: ${{ github.workspace }}/reference-grid
-      - name: Pinned original-source parity for both APIs
-        run: python scripts/history/parity.py
+      - name: Explicit pinned finite kernel profile and original scientific parity
+        run: python scripts/history/parity.py --kernel-profile finite-bootstrap-v2
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

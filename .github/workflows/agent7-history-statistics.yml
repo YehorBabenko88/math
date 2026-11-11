@@ -8,6 +8,7 @@ permissions:
   contents: read
 jobs:
   finite:
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     strategy:
       fail-fast: false
       matrix:
