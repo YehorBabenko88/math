@@ -12,13 +12,14 @@ from typing import Mapping
 from market_profile_math import (price_bucket, volume_profile_poc, executed_volume_delta,
                                  wall_notional, untouched_decimal_levels,
                                  tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios,
-                                 orderflow_volume_metrics)
+                                 orderflow_volume_metrics, aggregate_orderflow)
 
 SCHEMA = "math.market.compute.v1"
 RESULT = "math.market.result.v1"
 ALGORITHMS = frozenset({"price_bucket", "volume_profile_poc", "executed_volume_delta",
                         "wall_notional", "untouched_decimal_levels", "tape_velocity_metrics",
-                        "flow_window_metrics", "wall_turnover_ratios", "orderflow_volume_metrics"})
+                        "flow_window_metrics", "wall_turnover_ratios", "orderflow_volume_metrics",
+                        "aggregate_orderflow"})
 MAX_BATCH = 256
 MAX_REQUEST_BYTES = 262144
 
@@ -107,6 +108,24 @@ def _compute(item):
         result = flow_window_metrics(decoded, args["now_ms"], args["window_seconds"])
         return {key: str(value) if isinstance(value, Decimal) else value
                 for key,value in result.items()}
+    if operation == "aggregate_orderflow":
+        _record(args, {"trades", "mode", "interval_ms", "tick_size", "initial_delta"})
+        rows = args["trades"]
+        if not isinstance(rows, list) or len(rows) > 2048:
+            raise ValueError("AGGREGATE_LIMIT")
+        parsed = []
+        for trade in rows:
+            _record(trade, {"timestamp_ms", "price", "volume", "side"})
+            parsed.append((trade["timestamp_ms"], _decimal(trade["price"]),
+                           _decimal(trade["volume"]), trade["side"]))
+        tick = None if args["tick_size"] is None else _decimal(args["tick_size"])
+        output = aggregate_orderflow(parsed, mode=args["mode"],
+                   interval_ms=args["interval_ms"], tick_size=tick,
+                   initial_delta=_decimal(args["initial_delta"]))
+        return [{"bucket":str(key) if isinstance(key,Decimal) else key,
+                 "metrics":{name:str(value) if isinstance(value,Decimal) else value
+                            for name,value in metrics.items()}}
+                for key,metrics in output]
     if operation == "orderflow_volume_metrics":
         _record(args, {"trades", "initial_delta"})
         rows = args["trades"]
@@ -180,7 +199,7 @@ def compute_batch(request: Mapping) -> dict:
                     else "quote" if operation["operation"] == "wall_notional"
                     else "mixed" if operation["operation"] in
                     ("tape_velocity_metrics", "flow_window_metrics", "wall_turnover_ratios",
-                     "orderflow_volume_metrics")
+                     "orderflow_volume_metrics", "aggregate_orderflow")
                     else "quote/base")
             results.append({"operation": operation["operation"], "unit": unit, "value": value})
     # JSON roundtrip detaches nested caller-owned DTOs from the response.
