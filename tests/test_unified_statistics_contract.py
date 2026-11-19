@@ -269,6 +269,33 @@ class MetaMarketMathContract(unittest.TestCase):
                                                       initial_delta=D("5"),**kwargs)
                 self.assertEqual([(key,vars(metric)) for key,metric in expected],
                                  list(actual))
+            # 100k identical-data comparison against the original pinned
+            # Meta implementation, not against a second reconstructed formula.
+            old_history=[
+                orderflow_module.Trade((i*37)%8640000,
+                    (D("100.09"),D("100.19"),D("100.29"))[i%3],
+                    D("0.000000000000000001") if i%5 else D("0.01"),
+                    ("buy","sell","unknown","buy")[i%4])
+                for i in range(100_000)
+            ]
+            for mode, method, parameter in (
+                ("time",aggregate_module.aggregate_by_time,60_000),
+                ("price",aggregate_module.aggregate_by_price,D("0.1")),
+            ):
+                with self.subTest(original_source_100k=mode):
+                    expected=method(old_history,parameter,
+                                    initial_delta=D("1.000000000000000001"))
+                    streamed=PROFILE.aggregate_orderflow_stream(
+                        ((trade.timestamp_ms,trade.price,trade.volume,trade.side)
+                         for trade in old_history),mode=mode,
+                        interval_ms=parameter if mode=="time" else None,
+                        tick_size=parameter if mode=="price" else None,
+                        initial_delta=D("1.000000000000000001"))
+                    self.assertEqual(
+                        [(key,vars(metrics)) for key,metrics in expected],
+                        list(streamed))
+                    self.assertEqual(
+                        sum(metrics["trade_count"] for _,metrics in streamed),100_000)
             zero_flow = orderflow_module.calculate([
                 orderflow_module.Trade(1000,D("100"),D("2"),"unknown")])
             self.assertEqual(PROFILE.orderflow_volume_metrics(
