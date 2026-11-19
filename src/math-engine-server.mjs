@@ -9,7 +9,7 @@ const MAX_BYTES=262144;
 // Math owns research only. Reject execution economics at every JSON entrypoint;
 // a market-trade observation is fine, but orders, fills and PnL are Terminan's.
 const TRADING_KEYS=new Set(['paper_trading','simulated_trading','virtual_order','virtual_orders',
- 'order_id','order_type','order_quantity','orders','fills','fill_price','position','positions',
+ 'order_id','order_type','order_quantity','paper_orders','virtual_positions','fills','fill_price',
  'position_size','position_sizing','strategy_execution','execute_strategy',
  'backtest_trades','simulated_fills','pnl','net_pnl','gross_pnl','realized_pnl',
  'unrealized_pnl','portfolio_pnl','commission','commissions','fees','fee_rate',
