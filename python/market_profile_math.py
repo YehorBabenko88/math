@@ -3,7 +3,7 @@
 Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, ROUND_FLOOR
 
 
 def _positive_finite_decimal(value, *, zero_allowed=False):
@@ -192,3 +192,45 @@ def orderflow_volume_metrics(trades, initial_delta: Decimal = Decimal(0)):
             "delta": delta, "cumulative_delta": initial_delta + delta,
             "imbalance": delta / classified if classified else None,
             "trade_count": len(trades)}
+
+
+def aggregate_orderflow(trades, *, mode: str, interval_ms: int | None = None,
+                        tick_size: Decimal | None = None,
+                        initial_delta: Decimal = Decimal(0)):
+    """Meta aggregate_by_time/aggregate_by_price arithmetic, one metrics owner.
+
+    Each trade is (timestamp_ms, price, volume, side). Output is a tuple of
+    (bucket_start_ms or tick_price, volume_metrics). Event provenance stays with Grid.
+    """
+    if type(mode) is not str or mode not in ("time", "price"):
+        raise ValueError("INVALID_AGGREGATE_MODE")
+    if not isinstance(trades, (list, tuple)) or len(trades) > 20000:
+        raise ValueError("INVALID_AGGREGATE_BATCH")
+    if mode == "time":
+        if type(interval_ms) is not int or interval_ms <= 0:
+            raise ValueError("INVALID_INTERVAL_MS")
+    else:
+        _positive_finite_decimal(tick_size)
+    groups = {}
+    for entry in trades:
+        if not isinstance(entry, (list, tuple)) or len(entry) != 4:
+            raise ValueError("INVALID_AGGREGATE_TRADE")
+        ts, price, volume, side = entry
+        if type(ts) is not int or ts < 0:
+            raise ValueError("INVALID_TRADE_CLOCK")
+        _positive_finite_decimal(price)
+        _positive_finite_decimal(volume, zero_allowed=True)
+        if side not in ("buy", "sell", "unknown"):
+            raise ValueError("INVALID_TRADE_SIDE")
+        if mode == "time":
+            key = ts // interval_ms * interval_ms
+        else:
+            key = (price/tick_size).to_integral_value(rounding=ROUND_FLOOR)*tick_size
+        groups.setdefault(key, []).append((price, volume, side))
+    cumulative = initial_delta
+    rows = []
+    for key in sorted(groups):
+        metrics = orderflow_volume_metrics(groups[key], cumulative)
+        cumulative = metrics["cumulative_delta"]
+        rows.append((key, metrics))
+    return tuple(rows)
