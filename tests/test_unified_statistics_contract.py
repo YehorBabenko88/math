@@ -182,6 +182,22 @@ class MetaMarketMathContract(unittest.TestCase):
                 else:
                     sys.modules[key] = old
 
+    def test_meta_tape_wall_flow_pure_arithmetic(self):
+        D=Decimal
+        events=[(1000,D("100"),D("1"),"Buy"),(2000,D("101"),D("2"),"Sell")]
+        tape=PROFILE.tape_velocity_metrics(events,D("100"),D("1"),5000,D("20"),2000)
+        self.assertEqual(tape,(D("0.4"),D("60.4"),D("100"),D("202")))
+        self.assertEqual(PROFILE.wall_notional(D("100"),D("1000")),D("100000"))
+        flow=PROFILE.flow_window_metrics([(1000,D("100"),"buy"),(2000,D("202"),"sell")],2000,60)
+        self.assertEqual(flow,{"turnover_usd":D("302"),"trades":2,"buy_usd":D("100"),
+                              "sell_usd":D("202"),"trades_per_second":D(2)/D(60)})
+        ratios=PROFILE.wall_turnover_ratios(D("10"),D("100"),{60:D("1000"),300:D("0")})
+        self.assertEqual(ratios["wall_usd"],D("1000"))
+        self.assertEqual(ratios["ratios"],{60:D("1"),300:D("1000")})
+        for bad in ((1000,D("100"),D("-1"),"Buy"),(1000,D("100"),D("1"),"INVALID")):
+            with self.assertRaises(ValueError):
+                PROFILE.tape_velocity_metrics([bad],D("100"),D("1"),5000,D("20"),2000)
+
     def test_delta_and_invalid_decimal_inputs_refuse(self):
         self.assertEqual(PROFILE.executed_volume_delta(Decimal("3"), Decimal("1")), Decimal("2"))
         self.assertEqual(PROFILE.executed_volume_delta(Decimal("0"), Decimal("0")), Decimal("0"))
