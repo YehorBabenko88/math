@@ -47,6 +47,8 @@ jobs:
           persist-credentials: false
       - name: Verify immutable Meta source and Math numerical parity
         run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
+      - name: Enforce independent Math SDK no-trading boundary
+        run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
       - name: Qualify installed Math batch package without modifying checkout
         shell: python {0}
         run: |
