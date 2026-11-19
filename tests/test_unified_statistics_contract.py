@@ -9,7 +9,7 @@ from decimal import Decimal, localcontext
 import subprocess
 import sys
 import types
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import unittest
 
@@ -168,6 +168,21 @@ class MetaMarketMathContract(unittest.TestCase):
                 self.assertEqual(PROFILE.volume_profile_poc(minute.profile), book.poc)
                 self.assertEqual(PROFILE.executed_volume_delta(D("5"), D("3")),
                                  footprint_module.FootprintCell(D("5"), D("3")).delta)
+            original_candles = [
+                core_module.Candle(now, D("101"), D("99"), D("100"), D("100")),
+                core_module.Candle(now+timedelta(days=1), D("102"), D("99"), D("100"), D("101")),
+            ]
+            original_levels = core_module.untouched_levels(original_candles, "D1")
+            new_levels = PROFILE.untouched_decimal_levels([
+                (int(c.start.timestamp()*1000), c.high, c.low) for c in original_candles
+            ])
+            self.assertEqual(
+                [(level.kind, level.price, int(level.source_start.timestamp()*1000))
+                 for level in original_levels],
+                list(new_levels)
+            )
+            self.assertEqual({(side,price) for side,price,_ in new_levels},
+                             {("high",D("102")),("low",D("99"))})
             empty = core_module.Minute(now, D("1"), D("100"), D("100"),
                                        D("100"), D("100"))
             with self.assertRaises(ValueError):
@@ -197,6 +212,18 @@ class MetaMarketMathContract(unittest.TestCase):
         for bad in ((1000,D("100"),D("-1"),"Buy"),(1000,D("100"),D("1"),"INVALID")):
             with self.assertRaises(ValueError):
                 PROFILE.tape_velocity_metrics([bad],D("100"),D("1"),5000,D("20"),2000)
+
+    def test_untouched_levels_refuse_unverified_inputs(self):
+        D=Decimal
+        for candles in (
+            [(0,D("100"),D("101"))],
+            [(0,D("101"),D("99")),(0,D("102"),D("98"))],
+            [(0,D("Infinity"),D("99"))],
+            [(True,D("101"),D("99"))],
+            [(0,D("101"),D("0"))],
+        ):
+            with self.subTest(candles=repr(candles)),self.assertRaises(ValueError):
+                PROFILE.untouched_decimal_levels(candles)
 
     def test_delta_and_invalid_decimal_inputs_refuse(self):
         self.assertEqual(PROFILE.executed_volume_delta(Decimal("3"), Decimal("1")), Decimal("2"))
