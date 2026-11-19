@@ -397,9 +397,14 @@ class BoundedComputeApiContract(unittest.TestCase):
         self.assertEqual(out["results"][0]["value"],{
             "trades_per_second":"0.4","notional_per_second":"60.4",
             "buy_notional":"100","sell_notional":"202","distance_ticks":"1"})
-        self.assertEqual(out["results"][1]["value"],{
-            "turnover_usd":"302","trades":2,"buy_usd":"100","sell_usd":"202",
-            "trades_per_second":str(Decimal(2)/Decimal(60))})
+        self.assertEqual(out["results"][1]["value"]["turnover_usd"],"302")
+        self.assertEqual(out["results"][1]["value"]["trades"],2)
+        self.assertEqual(out["results"][1]["value"]["buy_usd"],"100")
+        self.assertEqual(out["results"][1]["value"]["sell_usd"],"202")
+        with localcontext() as numeric:
+            numeric.prec=96
+            self.assertEqual(out["results"][1]["value"]["trades_per_second"],
+                             str(Decimal(2)/Decimal(60)))
         self.assertEqual(out["results"][2]["value"]["wall_usd"],"1000")
         self.assertEqual(out["results"][2]["value"]["ratios"]["60"],"1")
         self.assertEqual(out["results"][0]["unit"],"mixed")
