@@ -7,14 +7,18 @@ from __future__ import annotations
 from decimal import Context, Decimal, InvalidOperation, ROUND_HALF_UP, localcontext
 from hashlib import sha256
 import json
+import math
 from typing import Mapping
 
+from history_statistics import paired_observation_bootstrap, block_observation_bootstrap
+
 from market_profile_math import (price_bucket, volume_profile_poc, executed_volume_delta,
-                                 wall_notional, untouched_decimal_levels,
+                                 wall_notional, untouched_decimal_levels, untouched_timeframe_levels,
                                  tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios,
                                  orderflow_volume_metrics, aggregate_orderflow, aggregate_orderflow_stream)
 
 STREAM_ABI = "math.market.orderflow.stream.v1"
+TIMEFRAME_LEVELS_ABI = "math.market.levels.binary64.v1"
 SCHEMA = "math.market.compute.v1"
 RESULT = "math.market.result.v1"
 ALGORITHMS = frozenset({"price_bucket", "volume_profile_poc", "executed_volume_delta",
@@ -211,3 +215,124 @@ def compute_batch(request: Mapping) -> dict:
             "source": snapshot["source"], "results": results,
             "provenance": "CALLER_SUPPLIED_UNATTESTED", "execution_authority": False,
             "trading_authorized": False}
+
+
+# This is an independent scientific observation API, NOT a trade/backtest API.
+# Numerical resampling is implemented once, in history_statistics.py.
+OBSERVATION_BOOTSTRAP_REQUEST = "math.observation.bootstrap.request.v1"
+OBSERVATION_BOOTSTRAP_RESULT = "math.observation.bootstrap.result.v1"
+MAX_OBSERVATIONS = 4096
+MAX_BOOTSTRAP_WORK = 1_000_000
+SUPPORTED_OBSERVATION_UNITS = frozenset(
+    {"dimensionless", "ratio", "price_delta", "volume", "basis_points"}
+)
+
+
+def _numeric_observation(value):
+    """Admit an unlabelled finite numeric observation, never a trade/PnL DTO."""
+    if type(value) not in (int, float):
+        raise ValueError("INVALID_NUMERIC_OBSERVATION")
+    try:
+        converted = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("INVALID_NUMERIC_OBSERVATION") from exc
+    if not math.isfinite(converted):
+        raise ValueError("NONFINITE_OBSERVATION")
+    return converted
+
+
+def _observation_rows(rows):
+    if type(rows) is not list or len(rows) > MAX_OBSERVATIONS:
+        raise ValueError("OBSERVATION_LIMIT")
+    seen = set()
+    admitted = []
+    for row in rows:
+        _record(row, {"id", "value"})
+        identifier = row["id"]
+        if (type(identifier) is not str or not identifier or
+                len(identifier) > 128 or any(ord(ch) < 33 or ord(ch) > 126 for ch in identifier)):
+            raise ValueError("INVALID_OBSERVATION_ID")
+        if identifier in seen:
+            raise ValueError("DUPLICATE_OBSERVATION_ID")
+        seen.add(identifier)
+        admitted.append((identifier, _numeric_observation(row["value"])))
+    return admitted
+
+
+def compute_observation_bootstrap(request: Mapping) -> dict:
+    """Versioned pure bootstrap over caller-supplied numerical observations.
+
+    Caller must supply a source digest and unit, but this SDK does NOT
+    authenticate those claims, determine any trading PnL, or authorize strategy
+    promotion. Trade objects and execution policy belong exclusively to Terminan.
+    """
+    _record(request, {"schema", "execution_authority", "source", "analysis"})
+    if (request["schema"] != OBSERVATION_BOOTSTRAP_REQUEST or
+            request["execution_authority"] is not False):
+        raise ValueError("INVALID_OBSERVATION_CONTRACT")
+    source = request["source"]
+    _record(source, {"snapshot_sha256", "as_of_ms", "unit"})
+    digest = source["snapshot_sha256"]
+    if (type(digest) is not str or len(digest) != 64 or
+            any(char not in "0123456789abcdef" for char in digest)):
+        raise ValueError("INVALID_SOURCE_PIN")
+    if (type(source["as_of_ms"]) is not int or
+            not 0 <= source["as_of_ms"] <= 2**63 - 1):
+        raise ValueError("INVALID_SOURCE_CLOCK")
+    if type(source["unit"]) is not str or source["unit"] not in SUPPORTED_OBSERVATION_UNITS:
+        raise ValueError("INVALID_OBSERVATION_UNIT")
+    analysis = request["analysis"]
+    if type(analysis) is not dict or type(analysis.get("method")) is not str:
+        raise ValueError("INVALID_OBSERVATION_METHOD")
+    method = analysis["method"]
+    if method == "paired":
+        _record(analysis, {"method", "base", "variant", "runs", "seed"})
+        base = _observation_rows(analysis["base"])
+        variant = _observation_rows(analysis["variant"])
+        workload = max(len(base), len(variant))
+    elif method == "block":
+        _record(analysis, {"method", "values", "block_size", "runs", "seed"})
+        values = analysis["values"]
+        if type(values) is not list or len(values) > MAX_OBSERVATIONS:
+            raise ValueError("OBSERVATION_LIMIT")
+        values = [_numeric_observation(value) for value in values]
+        block_size = analysis["block_size"]
+        if type(block_size) is not int or not 1 <= block_size <= MAX_OBSERVATIONS:
+            raise ValueError("INVALID_BLOCK_SIZE")
+        workload = len(values)
+    else:
+        raise ValueError("UNKNOWN_OBSERVATION_METHOD")
+    runs, seed = analysis["runs"], analysis["seed"]
+    if (type(runs) is not int or not 1 <= runs <= 1000 or
+            type(seed) is not int or not 0 <= seed <= 2**31 - 1):
+        raise ValueError("INVALID_BOOTSTRAP_BUDGET")
+    if workload * runs > MAX_BOOTSTRAP_WORK:
+        raise ValueError("BOOTSTRAP_WORK_LIMIT")
+    try:
+        canonical = json.dumps(
+            request, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=True, allow_nan=False
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("INVALID_OBSERVATION_JSON") from exc
+    if len(canonical) > MAX_REQUEST_BYTES:
+        raise ValueError("OBSERVATION_REQUEST_LIMIT")
+    if method == "paired":
+        result = paired_observation_bootstrap(base, variant, runs=runs, seed=seed)
+    else:
+        result = block_observation_bootstrap(
+            values, block_size=block_size, runs=runs, seed=seed
+        )
+    detached_source = json.loads(canonical)["source"]
+    return {
+        "schema": OBSERVATION_BOOTSTRAP_RESULT,
+        "algorithm_version": "math.observation.bootstrap.v1",
+        "method": method,
+        "numeric_policy": "finite IEEE-754 binary64 observations",
+        "request_sha256": sha256(canonical).hexdigest(),
+        "source": detached_source,
+        "result": result,
+        "provenance": "CALLER_SUPPLIED_UNATTESTED",
+        "execution_authority": False,
+        "trading_authorized": False,
+    }

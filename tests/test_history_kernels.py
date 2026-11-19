@@ -1,6 +1,7 @@
 import importlib.util
 import math
 import os
+import subprocess
 from pathlib import Path
 import sys
 import unittest
@@ -11,7 +12,6 @@ import history_timeseries as port
 import history_nonlinear as analog
 import history_stochastic as stochastic
 import history_statistics as bootstrap
-import history_sizing as sizing
 from history_worker import evaluate
 
 
@@ -31,11 +31,21 @@ class Parity(unittest.TestCase):
         stats=load(grid/'grid/strategy_statistics.py')
         a=[{'signal_id':i,'pnl':i*.1,'fees':.01,'slippage':.02} for i in range(30)]
         b=[{**r,'pnl':r['pnl']+.05} for r in a]
-        self.assertEqual(bootstrap.paired_expectancy_bootstrap(a,b,runs=50),stats.paired_expectancy_bootstrap(a,b,runs=50))
-        self.assertEqual(bootstrap.block_bootstrap_expectancy(a,block_size=5,runs=50),stats.block_bootstrap_expectancy(a,block_size=5,runs=50))
+        def observations(rows):
+            for row in rows:
+                yield row['signal_id'], row['pnl'] - row['fees'] - row['slippage']
+        self.assertEqual(bootstrap.paired_observation_bootstrap(observations(a),observations(b),runs=50),
+                         stats.paired_expectancy_bootstrap(a,b,runs=50))
+        self.assertEqual(bootstrap.block_observation_bootstrap((v for _,v in observations(a)),block_size=5,runs=50),
+                         stats.block_bootstrap_expectancy(a,block_size=5,runs=50))
+        # Load the historical sizing oracle from Git, never from active Math code.
+        source=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'cat-file','blob',
+                                        '322289e3f9c5017c9b67babda68920c36ff5228e'],timeout=10)
+        sizing={}
+        exec(compile(source,'<pinned-history-sizing>','exec'),sizing)
         sr=load(grid/'grid/position_sizing_research.py')
-        self.assertEqual(sizing.apply_sizing(a),sr.apply_sizing(a))
-        self.assertEqual(sizing.ruin_stats(a),sr.ruin_stats(a))
+        self.assertEqual(sizing["apply_sizing"](a),sr.apply_sizing(a))
+        self.assertEqual(sizing["ruin_stats"](a),sr.ruin_stats(a))
 
     def test_original_grid_semantics(self):
         grid=Path(os.environ.get('GRID_REFERENCE',ROOT.parent/'grid'))

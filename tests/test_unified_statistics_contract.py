@@ -5,7 +5,7 @@ This test suite exercises the committed module; does not contact Grid or an exch
 import hashlib
 import importlib.util
 import math
-from decimal import Decimal, localcontext
+from decimal import Decimal, Inexact, ROUND_DOWN, Rounded, localcontext
 import subprocess
 import sys
 import types
@@ -26,36 +26,49 @@ def trade(identifier, pnl):
     return {"signal_id": identifier, "pnl": pnl, "fees": 0.01, "slippage": 0.02}
 
 
+def paired_observations(rows):
+    for row in rows:
+        yield row["signal_id"], row["pnl"] - row["fees"] - row["slippage"]
+
+
+def run_paired(base, variant, **options):
+    return MODULE.paired_observation_bootstrap(paired_observations(base), paired_observations(variant), **options)
+
+
+def blocked(rows, **options):
+    return MODULE.block_observation_bootstrap((value for _, value in paired_observations(rows)), **options)
+
+
 class ConsolidatedBootstrapContract(unittest.TestCase):
     def test_seeded_paired_and_block_results_reproducible(self):
         base = [trade(str(i), float(i) / 10) for i in range(24)]
         variant = [trade(str(i), float(i) / 10 + (i % 3) / 100) for i in range(24)]
-        paired = MODULE.paired_expectancy_bootstrap(base, variant, runs=50, seed=17)
-        self.assertEqual(paired, MODULE.paired_expectancy_bootstrap(base, variant, runs=50, seed=17))
+        paired = run_paired(base, variant, runs=50, seed=17)
+        self.assertEqual(paired, run_paired(base, variant, runs=50, seed=17))
         self.assertEqual(paired["paired"], 24)
         self.assertEqual(set(paired), {"paired", "delta_mean", "ci95", "positive_supported", "negative_supported"})
-        block = MODULE.block_bootstrap_expectancy(base, block_size=4, runs=50, seed=23)
-        self.assertEqual(block, MODULE.block_bootstrap_expectancy(base, block_size=4, runs=50, seed=23))
+        block = blocked(base, block_size=4, runs=50, seed=23)
+        self.assertEqual(block, blocked(base, block_size=4, runs=50, seed=23))
         self.assertEqual(set(block), {"samples", "blocks", "ci95"})
 
     def test_invalid_controls_refuse(self):
         for runs in (True, False, 0, -1, 0.5, "2"):
             with self.subTest(runs=runs), self.assertRaises(ValueError):
-                MODULE.paired_expectancy_bootstrap([trade("a", 1), trade("b", 2)],
+                run_paired([trade("a", 1), trade("b", 2)],
                                                     [trade("a", 2), trade("b", 3)], runs=runs)
         with self.assertRaisesRegex(ValueError, "duplicate"):
-            MODULE.paired_expectancy_bootstrap([trade("a", 1), trade("a", 2)], [trade("a", 3)])
+            run_paired([trade("a", 1), trade("a", 2)], [trade("a", 3)])
         for value in (math.nan, math.inf, -math.inf):
             with self.subTest(value=value), self.assertRaises(ValueError):
-                MODULE.block_bootstrap_expectancy([trade("a", value), trade("b", 1)], block_size=1, runs=4)
+                blocked([trade("a", value), trade("b", 1)], block_size=1, runs=4)
 
     def test_extreme_finite_mean_and_schemas(self):
         large = [trade("a", 1e308), trade("b", 1e308)]
-        self.assertEqual(MODULE.paired_expectancy_bootstrap(
+        self.assertEqual(run_paired(
             [trade("a", 0), trade("b", 0)], large, runs=4)["delta_mean"], 1e308)
-        self.assertEqual(MODULE.block_bootstrap_expectancy(large, block_size=1, runs=4)["ci95"],
+        self.assertEqual(blocked(large, block_size=1, runs=4)["ci95"],
                          [1e308, 1e308])
-        self.assertEqual(MODULE.paired_expectancy_bootstrap([], [], runs=1),
+        self.assertEqual(run_paired([], [], runs=1),
                          {"paired": 0, "delta_mean": None, "ci95": None})
 
 
@@ -80,16 +93,16 @@ class ConsolidatedBootstrapContract(unittest.TestCase):
             old_block = previous["block_bootstrap_expectancy"]
             first = [dict(row, pnl=0) for row in rows]
             with self.subTest(kind="paired", rows=len(rows), value=rows[0]["pnl"]):
-                self.assertEqual(MODULE.paired_expectancy_bootstrap(first, rows, runs=30, seed=17),
+                self.assertEqual(run_paired(first, rows, runs=30, seed=17),
                                  old_paired(first, rows, runs=30, seed=17))
             with self.subTest(kind="block", rows=len(rows), value=rows[0]["pnl"]):
-                self.assertEqual(MODULE.block_bootstrap_expectancy(rows, block_size=2, runs=30, seed=23),
+                self.assertEqual(blocked(rows, block_size=2, runs=30, seed=23),
                                  old_block(rows, block_size=2, runs=30, seed=23))
 
     def test_input_records_are_not_mutated(self):
         original = [trade("a", 1), trade("b", 2)]
         before = [dict(row) for row in original]
-        MODULE.block_bootstrap_expectancy(original, block_size=1, runs=4)
+        blocked(original, block_size=1, runs=4)
         self.assertEqual(original, before)
 
 
@@ -104,6 +117,37 @@ class MetaMarketMathContract(unittest.TestCase):
         ):
             with self.subTest(price=price, tick=tick):
                 self.assertEqual(PROFILE.price_bucket(Decimal(price), Decimal(tick)), Decimal(expected))
+
+    def test_price_bucket_exact_across_decimal_contexts(self):
+        cases = (
+            ("100.005", "0.01", "100.01"),
+            ("100.004999999999999999", "0.01", "100.00"),
+            ("12345.675", "0.01", "12345.68"),
+            ("1.125", "0.25", "1.25"),
+            ("1.124999999999999999", "0.25", "1.00"),
+            ("0.0001", "0.0100", "0.0000"),
+            ("1.005e-950", "1e-952", "1.01e-950"),
+            ("1.005e950", "1e948", "1.01e950"),
+            ("1e1000", "1e-1000", "1e1000"),
+            ("1e-1000", "1e1000", "0e1000"),
+        )
+        for precision in (3, 5, 6, 28):
+            with localcontext() as ctx:
+                ctx.prec, ctx.rounding, ctx.Emax, ctx.Emin = precision, ROUND_DOWN, 20, -20
+                ctx.traps[Inexact] = ctx.traps[Rounded] = True
+                ctx.clear_flags()
+                for price, tick, expected in cases:
+                    with self.subTest(precision=precision, price=price, tick=tick):
+                        result = PROFILE.price_bucket(Decimal(price), Decimal(tick))
+                        self.assertEqual(result, Decimal(expected))
+                        self.assertEqual(result.as_tuple().exponent, Decimal(tick).as_tuple().exponent)
+                self.assertFalse(any(ctx.flags.values()))
+
+    def test_price_bucket_refuses_inputs_outside_work_bound(self):
+        for oversized in (Decimal("1e1001"), Decimal("1e-1001"), Decimal("1" * 129)):
+            for price, tick in ((oversized, Decimal(1)), (Decimal(1), oversized)):
+                with self.subTest(price=price, tick=tick), self.assertRaises(ValueError):
+                    PROFILE.price_bucket(price, tick)
 
     def test_distinct_meta_poc_tie_contracts(self):
         profile = {Decimal("100"): Decimal("1"), Decimal("101"): Decimal("1")}

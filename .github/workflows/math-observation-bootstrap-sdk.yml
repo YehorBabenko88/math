@@ -1,0 +1,127 @@
+name: Math Observation Bootstrap SDK
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  observation-sdk:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Exact-head pure observation API and refusal cases
+        run: python -B -m unittest discover -s tests -p test_observation_bootstrap_api.py -v
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/Terminan
+          ref: d129840274f6a0faa1591a0ac3a5b92cc0bb5d88
+          path: reference-terminan
+          persist-credentials: false
+      - name: Compare levels and footprint POC with pinned Terminan source
+        run: python -B -m unittest discover -s tests -p test_terminan_math_parity.py -v
+      - name: Verify Math SDK contains scientific code only
+        run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
+      - name: Build and install standalone Math SDK from exact committed source
+        shell: python {0}
+        run: |
+          import hashlib, os, pathlib, subprocess, tempfile, venv, zipfile
+          root=pathlib.Path.cwd()
+          names=['pyproject.toml','python/market_compute_api.py',
+                 'python/market_profile_math.py','python/history_statistics.py']
+          def call(args,**kwargs):
+              subprocess.run([str(x) for x in args],check=True,timeout=120,**kwargs)
+          with tempfile.TemporaryDirectory(prefix='math-observations-') as home:
+              tmp=pathlib.Path(home)
+              source=tmp/'source'
+              for name in names:
+                  destination=source/name
+                  destination.parent.mkdir(parents=True,exist_ok=True)
+                  committed=subprocess.check_output(
+                      ['git','--no-replace-objects','-C',str(root),
+                       'show','HEAD:'+name],timeout=15)
+                  current=(root/name).read_bytes()
+                  if current not in (committed,committed.replace(b'\n',b'\r\n')):
+                      raise RuntimeError('MATH_OBSERVATION_SOURCE_CHANGED:'+name)
+                  destination.write_bytes(committed)
+              # Use the same pinned builder on Linux and Windows; never
+              # silently change metadata or skip the Python 3.11 job.
+              builder=tmp/'builder'
+              venv.EnvBuilder(with_pip=True).create(builder)
+              executable='Scripts/python.exe' if os.name=='nt' else 'bin/python'
+              build_python=builder/executable
+              call([build_python,'-m','pip','install','--no-deps',
+                    '--only-binary=:all:','setuptools==80.9.0'])
+              wheels=tmp/'wheels'
+              wheels.mkdir()
+              env={**os.environ,'SOURCE_DATE_EPOCH':'315532800'}
+              call([build_python,'-m','pip','wheel','--no-deps',
+                    '--no-build-isolation','--wheel-dir',wheels,source],env=env)
+              files=list(wheels.glob('unified_math_kernels-*.whl'))
+              if len(files)!=1:
+                  raise RuntimeError('MATH_OBSERVATION_WHEEL_COUNT')
+              with zipfile.ZipFile(files[0]) as wheel:
+                  for name in names:
+                      if not name.startswith('python/'):
+                          continue
+                      module=pathlib.PurePosixPath(name).name
+                      if wheel.read(module)!=(source/name).read_bytes():
+                          raise RuntimeError('MATH_WHEEL_SOURCE_MISMATCH:'+module)
+              installed=tmp/'installed'
+              venv.EnvBuilder(with_pip=True).create(installed)
+              py=installed/executable
+              call([py,'-m','pip','install','--no-index','--no-deps',files[0]])
+              program=("import importlib.metadata as m;"
+                       "from decimal import Decimal,Inexact,getcontext;"
+                       "from market_compute_api import OBSERVATION_BOOTSTRAP_REQUEST,"
+                       "STREAM_ABI,TIMEFRAME_LEVELS_ABI,aggregate_orderflow_stream,"
+                       "compute_observation_bootstrap,price_bucket,untouched_timeframe_levels;"
+                       "import history_statistics as h;"
+                       "dist=m.distribution('unified-math-kernels');"
+                       "assert dist.version=='0.1.0';"
+                       "assert dist.metadata['Requires-Python']=='>=3.11';"
+                       "assert not dist.requires;"
+                       "assert {p.name for p in dist.files if p.suffix=='.py'}=="
+                       "{'market_compute_api.py','market_profile_math.py','history_statistics.py'};"
+                       "assert TIMEFRAME_LEVELS_ABI=='math.market.levels.binary64.v1';"
+                       "levels=untouched_timeframe_levels([{'t':0,'h':2,'l':1}],'1h',3600000);"
+                       "assert [level['price'] for level in levels]==[2.0,1.0];"
+                       "assert STREAM_ABI=='math.market.orderflow.stream.v1';"
+                       "rows=((i,Decimal('100'),Decimal('0.01'),'buy') for i in range(100_000));"
+                       "buckets=aggregate_orderflow_stream(rows,mode='time',interval_ms=60_000);"
+                       "assert sum(m['trade_count'] for _,m in buckets)==100_000;"
+                       "assert sum(m['buy_volume'] for _,m in buckets)==Decimal('1000');"
+                       "assert callable(h.paired_observation_bootstrap);"
+                       "q={'schema':OBSERVATION_BOOTSTRAP_REQUEST,"
+                       "'execution_authority':False,"
+                       "'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,"
+                       "'unit':'dimensionless'},"
+                       "'analysis':{'method':'paired','runs':8,'seed':17,"
+                       "'base':[{'id':'a','value':1.0},{'id':'b','value':2.0}],"
+                       "'variant':[{'id':'a','value':1.25},"
+                       "{'id':'b','value':2.25}]}};"
+                       "r=compute_observation_bootstrap(q);"
+                       "assert r['result']['delta_mean']==0.25;"
+                       "assert r['provenance']=='CALLER_SUPPLIED_UNATTESTED';"
+                       "assert r['trading_authorized'] is False;"
+                       "assert r['execution_authority'] is False;"
+                       "getcontext().prec=5;"
+                       "getcontext().traps[Inexact]=True;"
+                       "assert price_bucket(Decimal('100.005'),Decimal('0.01'))==Decimal('100.01');"
+                       "assert price_bucket(Decimal('12345.675'),Decimal('0.01'))==Decimal('12345.68')")
+              call([py,'-I','-B','-c',program],cwd=tmp)
+              print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
+              print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
