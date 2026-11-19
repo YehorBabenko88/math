@@ -50,7 +50,8 @@ def executed_volume_delta(buy: Decimal, sell: Decimal) -> Decimal:
 
 
 def tape_velocity_metrics(events, level_price: Decimal, tick_size: Decimal,
-                          window_ms: int, proximity_ticks: Decimal, now_ms: int):
+                          window_ms: int, proximity_ticks: Decimal, now_ms: int,
+                          *, observed_price: Decimal | None = None):
     """Pure Meta TapeVelocity arithmetic; event ordering and gaps remain caller-owned."""
     _positive_finite_decimal(level_price)
     _positive_finite_decimal(tick_size)
@@ -76,7 +77,11 @@ def tape_velocity_metrics(events, level_price: Decimal, tick_size: Decimal,
             else:
                 sells += amount
     seconds = Decimal(window_ms)/Decimal(1000)
-    return (Decimal(count)/seconds, (buys+sells)/seconds, buys, sells)
+    distance = None
+    if observed_price is not None:
+        _positive_finite_decimal(observed_price)
+        distance = abs(observed_price-level_price)/tick_size
+    return (Decimal(count)/seconds, (buys+sells)/seconds, buys, sells, distance)
 
 
 def wall_notional(price: Decimal, size: Decimal) -> Decimal:
