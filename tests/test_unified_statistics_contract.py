@@ -371,6 +371,46 @@ class BoundedComputeApiContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"DUPLICATE_CANDLE_TIME"):
             compute_batch(duplicates)
 
+    def test_batch_tape_flow_wall_and_fail_closed_continuity(self):
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            from market_compute_api import compute_batch
+        finally:
+            sys.path.pop(0)
+        tape = {"operation":"tape_velocity_metrics","input":{
+            "events":[{"timestamp_ms":1000,"price":"100","quantity":"1","side":"Buy"},
+                      {"timestamp_ms":2000,"price":"101","quantity":"2","side":"Sell"}],
+            "level_price":"100","tick_size":"1","window_ms":5000,
+            "proximity_ticks":"20","now_ms":2000,"observed_price":"101",
+            "contiguous":True}}
+        flow = {"operation":"flow_window_metrics","input":{
+            "events":[{"timestamp_ms":1000,"notional":"100","side":"buy"},
+                      {"timestamp_ms":2000,"notional":"202","side":"sell"}],
+            "now_ms":2000,"window_seconds":60}}
+        walls = {"operation":"wall_turnover_ratios","input":{
+            "price":"10","size":"100","turnovers":{"60":"1000","300":"0","3600":"302"}}}
+        base={"schema":"math.market.compute.v1","execution_authority":False,
+              "source":{"snapshot_sha256":"d"*64,"as_of_ms":2000,
+                        "units":{"price":"quote/base","volume":"base"}},
+              "operations":[tape,flow,walls]}
+        out=compute_batch(base)
+        self.assertEqual(out["results"][0]["value"],{
+            "trades_per_second":"0.4","notional_per_second":"60.4",
+            "buy_notional":"100","sell_notional":"202","distance_ticks":"1"})
+        self.assertEqual(out["results"][1]["value"],{
+            "turnover_usd":"302","trades":2,"buy_usd":"100","sell_usd":"202",
+            "trades_per_second":str(Decimal(2)/Decimal(60))})
+        self.assertEqual(out["results"][2]["value"]["wall_usd"],"1000")
+        self.assertEqual(out["results"][2]["value"]["ratios"]["60"],"1")
+        self.assertEqual(out["results"][0]["unit"],"mixed")
+        bad_tape = dict(tape, input=dict(tape["input"], contiguous=False))
+        with self.assertRaisesRegex(ValueError, "UNTRUSTED_TAPE_CONTINUITY"):
+            compute_batch(dict(base, operations=[bad_tape]))
+        reversed_tape = dict(tape, input=dict(tape["input"],
+                           events=list(reversed(tape["input"]["events"]))))
+        with self.assertRaisesRegex(ValueError, "NONMONOTONIC_TAPE"):
+            compute_batch(dict(base, operations=[reversed_tape]))
+
     def test_batch_rejects_untrusted_fields_and_bad_shapes(self):
         sys.path.insert(0, str(ROOT / "python"))
         try:
