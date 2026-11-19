@@ -461,6 +461,41 @@ class BoundedComputeApiContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "NONMONOTONIC_TAPE"):
             compute_batch(dict(base, operations=[reversed_tape]))
 
+    def test_batch_orderflow_aggregations_and_unknown_side(self):
+        sys.path.insert(0,str(ROOT/"python"))
+        try:
+            from market_compute_api import compute_batch
+        finally:
+            sys.path.pop(0)
+        records=[{"timestamp_ms":2000,"price":"100.19","volume":"3","side":"buy"},
+                 {"timestamp_ms":999,"price":"100.09","volume":"2","side":"sell"},
+                 {"timestamp_ms":1000,"price":"100.11","volume":"1","side":"buy"},
+                 {"timestamp_ms":1001,"price":"100.12","volume":"7","side":"unknown"}]
+        source={"snapshot_sha256":"f"*64,"as_of_ms":3000,
+                "units":{"price":"quote/base","volume":"base"}}
+        operations=[
+            {"operation":"aggregate_orderflow","input":{
+                "trades":records,"mode":"time","interval_ms":1000,
+                "tick_size":None,"initial_delta":"5"}},
+            {"operation":"aggregate_orderflow","input":{
+                "trades":records,"mode":"price","interval_ms":None,
+                "tick_size":"0.1","initial_delta":"5"}}]
+        out=compute_batch({"schema":"math.market.compute.v1","execution_authority":False,
+                           "source":source,"operations":operations})
+        self.assertEqual([x["bucket"] for x in out["results"][0]["value"]],[0,1000,2000])
+        self.assertEqual([x["metrics"]["cumulative_delta"] for x in out["results"][0]["value"]],
+                         ["3","4","7"])
+        self.assertEqual([x["bucket"] for x in out["results"][1]["value"]],
+                         ["100.0","100.1"])
+        self.assertEqual(out["results"][1]["value"][1]["metrics"]["unknown_volume"],"7")
+        self.assertEqual(out["provenance"],"CALLER_SUPPLIED_UNATTESTED")
+        with self.assertRaises(ValueError):
+            compute_batch({"schema":"math.market.compute.v1","execution_authority":False,
+                           "source":source,"operations":[
+                               {"operation":"aggregate_orderflow","input":{
+                                   "trades":records,"mode":"price","interval_ms":None,
+                                   "tick_size":"0","initial_delta":"5"}}]})
+
     def test_batch_rejects_untrusted_fields_and_bad_shapes(self):
         sys.path.insert(0, str(ROOT / "python"))
         try:
