@@ -4,7 +4,7 @@ All values are untrusted until independently attested by Grid/Unified.
 No market provider, DB, strategy, service or order execution is introduced.
 """
 from __future__ import annotations
-from decimal import Decimal, InvalidOperation
+from decimal import Context, Decimal, InvalidOperation, ROUND_HALF_UP, localcontext
 from hashlib import sha256
 import json
 from typing import Mapping
@@ -27,6 +27,9 @@ def _decimal(text):
         raise ValueError("INVALID_DECIMAL_ENCODING") from exc
     if not value.is_finite():
         raise ValueError("NONFINITE_DECIMAL")
+    parts = value.as_tuple()
+    if len(parts.digits) > 38 or not -30 <= parts.exponent <= 30:
+        raise ValueError("DECIMAL_DOMAIN")
     return value
 
 
@@ -87,10 +90,21 @@ def compute_batch(request: Mapping) -> dict:
     if len(canonical) > MAX_REQUEST_BYTES:
         raise ValueError("REQUEST_LIMIT")
     results = []
-    for operation in operations:
-        _record(operation, {"operation", "input"})
-        results.append({"operation": operation["operation"], "value": _compute(operation)})
-    return {"schema": RESULT, "request_sha256": sha256(canonical).hexdigest(),
-            "source": source.copy(), "results": results,
+    # An explicit context prevents ambient caller Decimal settings from changing outputs.
+    with localcontext(Context(prec=96, rounding=ROUND_HALF_UP)):
+        for operation in operations:
+            _record(operation, {"operation", "input"})
+            try:
+                value = _compute(operation)
+            except (InvalidOperation, OverflowError) as exc:
+                raise ValueError("NUMERIC_COMPUTATION_REJECTED") from exc
+            unit = "base" if operation["operation"] == "executed_volume_delta" else "quote/base"
+            results.append({"operation": operation["operation"], "unit": unit, "value": value})
+    # JSON roundtrip detaches nested caller-owned DTOs from the response.
+    snapshot = json.loads(canonical)
+    return {"schema": RESULT, "algorithm_version": "math.market.v1",
+            "numeric_policy": {"number": "Decimal", "precision": 96, "rounding": "ROUND_HALF_UP"},
+            "request_sha256": sha256(canonical).hexdigest(),
+            "source": snapshot["source"], "results": results,
             "provenance": "CALLER_SUPPLIED_UNATTESTED", "execution_authority": False,
             "trading_authorized": False}
