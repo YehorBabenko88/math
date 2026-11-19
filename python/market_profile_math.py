@@ -160,3 +160,35 @@ def untouched_decimal_levels(closed_candles):
         active[("high", high)] = ("high", high, start)
         active[("low", low)] = ("low", low, start)
     return tuple(active.values())
+
+
+def orderflow_volume_metrics(trades, initial_delta: Decimal = Decimal(0)):
+    """Pure Meta orderflow_metrics.calculate arithmetic including unknown side volume.
+
+    Inputs are (price, volume, side), where side is buy/sell/unknown.
+    """
+    if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
+        raise ValueError("invalid initial delta")
+    if not isinstance(trades, (tuple, list)) or len(trades) > 20000:
+        raise ValueError("invalid trade batch")
+    buy = sell = unknown = Decimal(0)
+    for item in trades:
+        if not isinstance(item, (tuple, list)) or len(item) != 3:
+            raise ValueError("invalid trade")
+        price, volume, side = item
+        _positive_finite_decimal(price)
+        _positive_finite_decimal(volume, zero_allowed=True)
+        if side == "buy":
+            buy += volume
+        elif side == "sell":
+            sell += volume
+        elif side == "unknown":
+            unknown += volume
+        else:
+            raise ValueError("unsupported trade side")
+    delta = buy - sell
+    classified = buy + sell
+    return {"buy_volume": buy, "sell_volume": sell, "unknown_volume": unknown,
+            "delta": delta, "cumulative_delta": initial_delta + delta,
+            "imbalance": delta / classified if classified else None,
+            "trade_count": len(trades)}
