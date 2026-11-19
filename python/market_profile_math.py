@@ -39,8 +39,8 @@ def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None
         _positive_finite_decimal(price)
         _positive_finite_decimal(volume, zero_allowed=True)
     if close is None:
-        return min(profile, key=lambda price: (-profile[price], price))
-    return min(profile, key=lambda price: (-profile[price], abs(price - close), price))
+        return min(profile, key=lambda price: (profile[price].copy_negate(), price))
+    return min(profile, key=lambda price: (profile[price].copy_negate(), abs(price - close), price))
 
 
 def executed_volume_delta(buy: Decimal, sell: Decimal) -> Decimal:

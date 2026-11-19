@@ -1,5 +1,5 @@
 """Parity against the frozen Terminan level and footprint source."""
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from hashlib import sha256
 from pathlib import Path
 from random import Random
@@ -79,6 +79,14 @@ class TerminanMathParity(unittest.TestCase):
                 api.untouched_timeframe_levels([{"t": 0, "h": bad, "l": 1}], "1h", 3600000)
             with self.subTest(tick=bad), self.assertRaises(ValueError):
                 api.untouched_timeframe_levels([], "1h", 3600000, tick_size=bad)
+
+    def test_poc_volume_priority_does_not_round_in_caller_context(self):
+        low, high = Decimal("10"), Decimal("11")
+        profile = {low: Decimal("1.00001"), high: Decimal("1.00002")}
+        with localcontext() as ctx:
+            ctx.prec = 5
+            self.assertEqual(api.volume_profile_poc(profile), high)
+            self.assertEqual(api.volume_profile_poc(profile, close=low), high)
 
     def test_footprint_poc_uses_max_per_price_and_existing_selector(self):
         contracts = oracle("contracts")
