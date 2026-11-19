@@ -545,5 +545,101 @@ class BoundedComputeApiContract(unittest.TestCase):
                 compute_batch(item)
 
 
+
+class BoundedStreamingOrderflowContract(unittest.TestCase):
+    """Strict 20k batch cap, bounded stream buckets, no lost events."""
+
+    @staticmethod
+    def api():
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            from market_compute_api import STREAM_ABI, aggregate_orderflow_stream
+            from market_profile_math import aggregate_orderflow
+            return STREAM_ABI, aggregate_orderflow_stream, aggregate_orderflow
+        finally:
+            sys.path.pop(0)
+
+    @staticmethod
+    def trades(n):
+        D = Decimal
+        for i in range(n):
+            yield (i * 100, D("100.19"), D("0.01"),
+                   ("buy", "sell", "unknown")[i % 3])
+
+    def test_19999_20000_20001_100000_and_memory_bound(self):
+        import tracemalloc
+        abi, stream, batch = self.api()
+        self.assertEqual(abi, "math.market.orderflow.stream.v1")
+        D = Decimal
+        for n in (19_999, 20_000, 20_001, 100_000):
+            with self.subTest(n=n):
+                tracemalloc.start()
+                try:
+                    grouped = stream(self.trades(n), mode="time", interval_ms=60_000,
+                                     initial_delta=D("2.25"))
+                    _, peak = tracemalloc.get_traced_memory()
+                finally:
+                    tracemalloc.stop()
+                self.assertLess(peak, 12 * 1024 * 1024)
+                priced = stream(self.trades(n), mode="price", tick_size=D("0.1"),
+                                initial_delta=D("2.25"))
+                for result in (grouped, priced):
+                    self.assertEqual(sum(m["trade_count"] for _, m in result), n)
+                    self.assertEqual(sum((m["buy_volume"] for _, m in result), D(0)),
+                                     D((n + 2) // 3) / 100)
+                    self.assertEqual(sum((m["sell_volume"] for _, m in result), D(0)),
+                                     D((n + 1) // 3) / 100)
+                    self.assertEqual(sum((m["unknown_volume"] for _, m in result), D(0)),
+                                     D(n // 3) / 100)
+                    self.assertEqual(result[-1][1]["cumulative_delta"],
+                                     D("2.25") + D((n + 2) // 3) / 100
+                                     - D((n + 1) // 3) / 100)
+                self.assertEqual([key for key, _ in priced], [D("100.1")])
+                if n <= 20_000:
+                    self.assertEqual(
+                        batch(list(self.trades(n)), mode="time", interval_ms=60_000,
+                              initial_delta=D("2.25")), grouped)
+                else:
+                    with self.assertRaisesRegex(ValueError, "INVALID_AGGREGATE_BATCH"):
+                        batch(list(self.trades(20_001)), mode="time", interval_ms=60_000)
+
+    def test_late_events_unknown_and_exact_cumulative_decimal(self):
+        _, stream, _ = self.api()
+        D = Decimal
+        def source():
+            for i in range(20_001):
+                yield (3_600_000 + i, D("100.125"),
+                       D("0.000000000000000001"), "buy")
+            yield (0, D("100.125"), D("0.000000000000000003"), "sell")
+            yield (7_200_000, D("100.125"), D("5"), "unknown")
+        rows = stream(source(), mode="time", interval_ms=60_000,
+                      initial_delta=D("1.000000000000000001"))
+        self.assertEqual([key for key, _ in rows], [0, 3_600_000, 7_200_000])
+        self.assertEqual([m["trade_count"] for _, m in rows], [1, 20_001, 1])
+        self.assertEqual(rows[0][1]["delta"], D("-0.000000000000000003"))
+        self.assertEqual(rows[1][1]["buy_volume"], D("0.000000000000020001"))
+        self.assertEqual(rows[1][1]["cumulative_delta"], D("1.000000000000019999"))
+        self.assertEqual(rows[2][1]["unknown_volume"], D("5"))
+        self.assertEqual(rows[2][1]["cumulative_delta"],
+                         rows[1][1]["cumulative_delta"])
+
+    def test_20001_unique_buckets_and_bad_trades_refuse(self):
+        _, stream, batch = self.api()
+        D = Decimal
+        with self.assertRaisesRegex(ValueError, "STREAM_BUCKET_LIMIT"):
+            stream(((i, D(i + 1), D("1"), "buy") for i in range(20_001)),
+                   mode="price", tick_size=D("1"))
+        for records in (
+            [(0, D("100"), D("1"), "bad")],
+            [(0, D("100"), D("NaN"), "buy")],
+            [(True, D("100"), D("1"), "buy")],
+            [(-1, D("100"), D("1"), "buy")],
+        ):
+            with self.subTest(records=repr(records)), self.assertRaises(ValueError):
+                stream(iter(records), mode="time", interval_ms=1000)
+        with self.assertRaisesRegex(ValueError, "INVALID_AGGREGATE_BATCH"):
+            batch(iter([(0, D("1"), D("1"), "buy")]), mode="time",
+                  interval_ms=1000)
+
 if __name__ == "__main__":
     unittest.main()
