@@ -5,7 +5,7 @@ This test suite exercises the committed module; does not contact Grid or an exch
 import hashlib
 import importlib.util
 import math
-from decimal import Decimal
+from decimal import Decimal, localcontext
 import subprocess
 import sys
 import types
@@ -220,6 +220,33 @@ class BoundedComputeApiContract(unittest.TestCase):
         self.assertFalse(first["trading_authorized"])
         self.assertEqual(first["provenance"], "CALLER_SUPPLIED_UNATTESTED")
 
+    def test_batch_units_precision_provenance_and_no_caller_alias(self):
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            from market_compute_api import compute_batch
+        finally:
+            sys.path.pop(0)
+        request = {"schema": "math.market.compute.v1", "execution_authority": False,
+                   "source": {"snapshot_sha256": "a" * 64, "as_of_ms": 3,
+                              "units": {"price": "quote/base", "volume": "base"}},
+                   "operations": [
+                       {"operation": "price_bucket", "input": {"price": "100.005", "tick": "0.01"}},
+                       {"operation": "executed_volume_delta",
+                        "input": {"buy": "100000000000000000000.001", "sell": "100000000000000000000"}}]}
+        with localcontext() as ambient:
+            ambient.prec = 4
+            ambient.rounding = "ROUND_DOWN"
+            result = compute_batch(request)
+        self.assertEqual([x["value"] for x in result["results"]], ["100.01", "0.001"])
+        self.assertEqual([x["unit"] for x in result["results"]], ["quote/base", "base"])
+        self.assertEqual(result["numeric_policy"]["precision"], 96)
+        self.assertEqual(result["algorithm_version"], "math.market.v1")
+        request["source"]["units"]["price"] = "CHANGED"
+        self.assertEqual(result["source"]["units"]["price"], "quote/base")
+        self.assertEqual(result["provenance"], "CALLER_SUPPLIED_UNATTESTED")
+        self.assertFalse(result["execution_authority"])
+        self.assertFalse(result["trading_authorized"])
+
     def test_batch_rejects_untrusted_fields_and_bad_shapes(self):
         sys.path.insert(0, str(ROOT / "python"))
         try:
@@ -239,6 +266,9 @@ class BoundedComputeApiContract(unittest.TestCase):
                dict(base, source=dict(base["source"], snapshot_sha256="INVALID")),
                dict(base, operations=[{"operation": "price_bucket",
                                        "input": {"price": "NaN", "tick": "0.01"}}]),
+               dict(base, operations=[{"operation": "price_bucket",
+                                       "input": {"price": "1e1000", "tick": "0.01"}}]),
+               dict(base, operations=[{"operation": [], "input": {}}]),
                dict(base, operations=[{"operation": "volume_profile_poc",
                                        "input": {"close": None, "profile": [
                                            {"price": "1", "volume": "1"},
