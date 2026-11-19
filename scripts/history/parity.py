@@ -22,22 +22,37 @@ ORIGINAL_KERNEL_SHA256={'python/history_timeseries.py': '0fe1848d0ba8b341c374456
 FINITE_STATISTICS_SHA256='c6db429dd77c88abe263c52dd0db4e5e76f321657dec53eb1ccec44280197371'
 UNIFIED_STATISTICS_SHA256='c1cf9c4bd6abaf08ba36494751ff149a189bf197682bffbda5b489ec7a666419'
 
+SIZING_PATH = 'python/history_sizing.py'
+STATISTICS_PATH = 'python/history_statistics.py'
+RESEARCH_PROFILE = 'observation-bootstrap-v4'
+RESEARCH_STATISTICS_SHA256 = 'f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b'
+PROFILES = ('original-v1', 'finite-bootstrap-v2', 'unified-bootstrap-v3', RESEARCH_PROFILE)
+
 def validate_kernel_profile(profile,original,current):
     paths={'python/'+name for name in KERNELS}
-    if profile not in ('original-v1','finite-bootstrap-v2','unified-bootstrap-v3'):
+    if profile not in PROFILES:
         raise ValueError('UNKNOWN_HISTORY_KERNEL_PROFILE')
-    if type(original) is not dict or type(current) is not dict or set(original)!=paths or set(current)!=paths:
+    current_paths = paths - {SIZING_PATH} if profile == RESEARCH_PROFILE else paths
+    if type(original) is not dict or type(current) is not dict or set(original)!=paths or set(current)!=current_paths:
         raise ValueError('HISTORY_KERNEL_PROFILE_PATHS')
     hashes={};preserved={};changed=[]
     for path in sorted(paths):
-        old,new=original[path],current[path]
+        old=original[path]
+        if path not in current_paths:
+            if type(old) is not bytes or hashlib.sha256(old).hexdigest()!=ORIGINAL_KERNEL_SHA256[path]:
+                raise ValueError('HISTORY_REFERENCE_PIN_MISMATCH:'+path)
+            changed.append(path)
+            continue
+        new=current[path]
         if type(old) is not bytes or type(new) is not bytes:
             raise ValueError('HISTORY_KERNEL_PROFILE_BYTES')
         old_sha=hashlib.sha256(old).hexdigest();new_sha=hashlib.sha256(new).hexdigest()
         if old_sha!=ORIGINAL_KERNEL_SHA256[path]:
             raise ValueError('HISTORY_REFERENCE_PIN_MISMATCH:'+path)
-        permitted=profile in ('finite-bootstrap-v2','unified-bootstrap-v3') and path=='python/history_statistics.py'
-        if permitted:
+        if profile == RESEARCH_PROFILE and path == STATISTICS_PATH:
+            if new_sha != RESEARCH_STATISTICS_SHA256:
+                raise ValueError('RESEARCH_KERNEL_PROFILE_PIN_MISMATCH:'+path)
+        elif profile in ('finite-bootstrap-v2','unified-bootstrap-v3') and path==STATISTICS_PATH:
             pin=FINITE_STATISTICS_SHA256 if profile=='finite-bootstrap-v2' else UNIFIED_STATISTICS_SHA256
             if new_sha!=pin:
                 marker='FINITE' if profile=='finite-bootstrap-v2' else 'UNIFIED'
@@ -46,7 +61,7 @@ def validate_kernel_profile(profile,original,current):
         hashes[path]=new_sha
         if old==new:preserved[path]=new_sha
         else:changed.append(path)
-    return {'kernel_profile':profile,'comparison_mode':{'original-v1':'ORIGINAL_RAW_BYTE_PARITY','finite-bootstrap-v2':'PINNED_FINITE_PROFILE_NOT_ORIGINAL_BYTE_PARITY','unified-bootstrap-v3':'PINNED_UNIFIED_PROFILE_NOT_ORIGINAL_BYTE_PARITY'}[profile],
+    return {'kernel_profile':profile,'comparison_mode':{'original-v1':'ORIGINAL_RAW_BYTE_PARITY','finite-bootstrap-v2':'PINNED_FINITE_PROFILE_NOT_ORIGINAL_BYTE_PARITY','unified-bootstrap-v3':'PINNED_UNIFIED_PROFILE_NOT_ORIGINAL_BYTE_PARITY', RESEARCH_PROFILE:'PINNED_OBSERVATION_PROFILE_NOT_ORIGINAL_BYTE_PARITY'}[profile],
             'current_kernel_sha256':hashes,'preserved_original_kernel_sha256':preserved,'changed_kernel_paths':changed,
             'semantic_equivalence':'NOT_CLAIMED_BY_SOURCE_PROFILE','numerical_qualification':'SEPARATE_REQUIRED'}
 
@@ -63,13 +78,17 @@ process.stdout.write(JSON.stringify(executeScientificGraph(JSON.parse(readFileSy
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--kernel-profile',choices=('original-v1','finite-bootstrap-v2','unified-bootstrap-v3'),default='original-v1')
+    parser.add_argument('--kernel-profile',choices=PROFILES,default='original-v1')
     args=parser.parse_args()
     original={};current={}
     for name in KERNELS:
         path='python/'+name
         original[path]=git('show',HISTORY+':'+path)
-        current[path]=git('show','HEAD:'+path)
+        if args.kernel_profile == RESEARCH_PROFILE and path == SIZING_PATH:
+            if git('ls-tree', 'HEAD', '--', path) or (ROOT / path).exists():
+                raise ValueError('RETIRED_HISTORY_SIZING_PRESENT')
+        else:
+            current[path]=git('show','HEAD:'+path)
     profile=validate_kernel_profile(args.kernel_profile,original,current)
     kernels=profile['preserved_original_kernel_sha256']
     with tempfile.TemporaryDirectory(prefix='math-scientific-parity-') as temp:
@@ -86,7 +105,9 @@ def main():
                'preserved_git_blob_sha256': kernels,
                'scientific_full_result_sha256': hashlib.sha256(after).hexdigest(),
                'status': 'PASS', 'source_authenticity': 'NOT_EVALUATED', 'trading_authorized': False}
-    if args.kernel_profile!='original-v1':
+    if args.kernel_profile == RESEARCH_PROFILE:
+        receipt.update(schema='math.history.scientific.profile-parity.v4', **profile)
+    elif args.kernel_profile!='original-v1':
         receipt.update(schema='math.history.scientific.profile-parity.v3' if args.kernel_profile=='unified-bootstrap-v3' else 'math.history.scientific.profile-parity.v2',**profile)
     (out / 'parity.json').write_text(json.dumps(receipt, indent=2, sort_keys=True), encoding='utf8')
     print(json.dumps(receipt, sort_keys=True))

@@ -89,7 +89,7 @@ jobs:
                        "r['execution_authority'] is False and r['trading_authorized'] is False")
               call([py,'-B','-c',program],cwd=tmp)
       - name: Explicit pinned consolidated kernel profile and original scientific parity
-        run: python scripts/history/parity.py --kernel-profile unified-bootstrap-v3
+        run: python scripts/history/parity.py --kernel-profile observation-bootstrap-v4
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
