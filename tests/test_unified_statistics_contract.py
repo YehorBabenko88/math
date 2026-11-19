@@ -339,6 +339,38 @@ class BoundedComputeApiContract(unittest.TestCase):
         self.assertFalse(result["execution_authority"])
         self.assertFalse(result["trading_authorized"])
 
+    def test_batch_levels_and_wall_no_unclosed_candles(self):
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            from market_compute_api import compute_batch
+        finally:
+            sys.path.pop(0)
+        base = {"schema":"math.market.compute.v1","execution_authority":False,
+                "source":{"snapshot_sha256":"c"*64,"as_of_ms":200000000,
+                          "units":{"price":"quote/base","volume":"base"}}}
+        candles = [{"start_ms":1000,"high":"101","low":"99","complete":True},
+                   {"start_ms":2000,"high":"102","low":"99","complete":True}]
+        request = dict(base,operations=[
+            {"operation":"untouched_decimal_levels","input":{"candles":candles}},
+            {"operation":"wall_notional","input":{"price":"100","size":"1000"}}])
+        result=compute_batch(request)
+        self.assertEqual(result["results"][0]["value"],[
+            {"side":"high","price":"102","origin_ms":2000},
+            {"side":"low","price":"99","origin_ms":2000}])
+        self.assertEqual(result["results"][1]["value"],"100000")
+        self.assertEqual(result["results"][1]["unit"],"quote")
+        self.assertFalse(result["trading_authorized"])
+        invalid=dict(base,operations=[
+            {"operation":"untouched_decimal_levels",
+             "input":{"candles":[dict(candles[0],complete=False)]}}])
+        with self.assertRaisesRegex(ValueError,"UNCLOSED_CANDLE"):
+            compute_batch(invalid)
+        duplicates=dict(base,operations=[
+            {"operation":"untouched_decimal_levels",
+             "input":{"candles":[candles[0],dict(candles[0],high="103")]}}])
+        with self.assertRaisesRegex(ValueError,"DUPLICATE_CANDLE_TIME"):
+            compute_batch(duplicates)
+
     def test_batch_rejects_untrusted_fields_and_bad_shapes(self):
         sys.path.insert(0, str(ROOT / "python"))
         try:
