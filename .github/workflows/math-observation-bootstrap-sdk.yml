@@ -25,10 +25,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Exact-head pure observation API and refusal cases
         run: python -B -m unittest discover -s tests -p test_observation_bootstrap_api.py -v
+      - name: Verify Math SDK contains scientific code only
+        run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
       - name: Build and install standalone Math SDK from exact committed source
         shell: python {0}
         run: |
-          import hashlib, os, pathlib, subprocess, tempfile, venv
+          import hashlib, os, pathlib, subprocess, tempfile, venv, zipfile
           root=pathlib.Path.cwd()
           names=['pyproject.toml','python/market_compute_api.py',
                  'python/market_profile_math.py','python/history_statistics.py']
@@ -63,6 +65,13 @@ jobs:
               files=list(wheels.glob('unified_math_kernels-*.whl'))
               if len(files)!=1:
                   raise RuntimeError('MATH_OBSERVATION_WHEEL_COUNT')
+              with zipfile.ZipFile(files[0]) as wheel:
+                  for name in names:
+                      if not name.startswith('python/'):
+                          continue
+                      module=pathlib.PurePosixPath(name).name
+                      if wheel.read(module)!=(source/name).read_bytes():
+                          raise RuntimeError('MATH_WHEEL_SOURCE_MISMATCH:'+module)
               installed=tmp/'installed'
               venv.EnvBuilder(with_pip=True).create(installed)
               py=installed/executable
@@ -97,6 +106,6 @@ jobs:
                        "assert r['provenance']=='CALLER_SUPPLIED_UNATTESTED';"
                        "assert r['trading_authorized'] is False;"
                        "assert r['execution_authority'] is False")
-              call([py,'-B','-c',program],cwd=tmp)
+              call([py,'-I','-B','-c',program],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
               print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
