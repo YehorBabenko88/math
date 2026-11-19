@@ -667,6 +667,11 @@ class BoundedStreamingOrderflowContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INVALID_AGGREGATE_BATCH"):
             batch(iter([(0, D("1"), D("1"), "buy")]), mode="time",
                   interval_ms=1000)
+        # The streaming API is explicitly bounded in total work, too:
+        # 1,000,001 same-bucket rows refuse instead of silently truncating.
+        with self.assertRaisesRegex(ValueError, "STREAM_EVENT_LIMIT"):
+            stream(((0, D("100"), D("0"), "unknown") for _ in range(1_000_001)),
+                   mode="time", interval_ms=1000)
 
 if __name__ == "__main__":
     unittest.main()
