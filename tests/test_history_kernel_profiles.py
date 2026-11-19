@@ -4,15 +4,18 @@ Fixtures are exact raw Git source data, not project imports. No native admission
 import ast,hashlib,pathlib,subprocess,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'scripts/history/parity.py'
-SOURCE_SHA='8986b9d9bb24968730d7fa0c4f2d6e14d78062ca6233d575e4ece7caae1226b7'
+SOURCE_SHA='ffc015ba26a3e2c3172298a15c0d2eec5d118766ac88b17cb95ec63d84b602fd'
 ORIGINAL='3a9c542841e160f8b1924f155aaa2d1a676dfd04'
 FINITE='b9c2f24b33285b7b0e06aebc354a9c61a909d204'
 class SetupStageError(RuntimeError):pass
 class KernelProfileContract(unittest.TestCase):
  def setUp(self):
   raw=SOURCE.read_bytes()
-  if hashlib.sha256(raw).hexdigest()!=SOURCE_SHA:raise SetupStageError('PROPOSED_ACTUAL_SOURCE_PIN')
-  tree=ast.parse(raw);names={'KERNELS','ORIGINAL_KERNEL_SHA256','FINITE_STATISTICS_SHA256'};constants={}
+  committed=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','HEAD:scripts/history/parity.py'],timeout=10)
+  # Accept only exact committed LF or whole-file checkout CRLF; no other filter transformation.
+  if hashlib.sha256(committed).hexdigest()!=SOURCE_SHA or (raw!=committed and raw!=committed.replace(b'\n',b'\r\n')):raise SetupStageError('PROPOSED_ACTUAL_SOURCE_PIN')
+  raw=committed
+  tree=ast.parse(raw);names={'KERNELS','ORIGINAL_KERNEL_SHA256','FINITE_STATISTICS_SHA256','UNIFIED_STATISTICS_SHA256'};constants={}
   for node in tree.body:
    if isinstance(node,ast.Assign) and len(node.targets)==1 and isinstance(node.targets[0],ast.Name) and node.targets[0].id in names:constants[node.targets[0].id]=ast.literal_eval(node.value)
   funcs=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name=='validate_kernel_profile']
@@ -20,7 +23,7 @@ class KernelProfileContract(unittest.TestCase):
   namespace={'hashlib':hashlib,**constants};exec(compile(ast.fix_missing_locations(ast.Module(body=funcs,type_ignores=[])),'<actual-proposed-profile-helper>','exec'),namespace);self.validate=namespace['validate_kernel_profile']
   def blob(ref,path):
    return subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',ref+':'+path],timeout=10)
-  paths=['python/'+n for n in constants['KERNELS']];self.original={p:blob(ORIGINAL,p) for p in paths};self.finite={p:blob(FINITE,p) for p in paths}
+  paths=['python/'+n for n in constants['KERNELS']];self.original={p:blob(ORIGINAL,p) for p in paths};self.finite={p:blob(FINITE,p) for p in paths};self.unified={p:blob('HEAD',p) for p in paths}
   changed=[p for p in paths if self.original[p]!=self.finite[p]]
   if changed!=['python/history_statistics.py']:raise SetupStageError('EXACT_SINGLE_FINITE_FIXTURE_CALIBRATION')
  def test_original_profile_keeps_all_seven_byte_parity(self):
@@ -60,7 +63,19 @@ class KernelProfileContract(unittest.TestCase):
   old=self.original.copy();current=self.finite.copy();self.validate('finite-bootstrap-v2',self.original,self.finite)
   with self.assertRaises(ValueError):self.validate('original-v1',self.original,self.finite)
   self.assertEqual(self.original,old);self.assertEqual(self.finite,current)
+ def test_explicit_unified_profile_preserves_six_kernels_and_records_no_automatic_equivalence(self):
+  result=self.validate('unified-bootstrap-v3',self.original,self.unified)
+  self.assertEqual(result['comparison_mode'],'PINNED_UNIFIED_PROFILE_NOT_ORIGINAL_BYTE_PARITY')
+  self.assertEqual(result['changed_kernel_paths'],['python/history_statistics.py'])
+  self.assertEqual(len(result['preserved_original_kernel_sha256']),6)
+  self.assertEqual(result['semantic_equivalence'],'NOT_CLAIMED_BY_SOURCE_PROFILE')
+  self.assertEqual(result['numerical_qualification'],'SEPARATE_REQUIRED')
+ def test_unified_profile_refuses_original_finite_or_unpinned_statistics(self):
+  for data in (self.original['python/history_statistics.py'],self.finite['python/history_statistics.py'],self.unified['python/history_statistics.py']+b'\\n'):
+   with self.subTest(data_size=len(data)):
+    current=self.unified.copy();current['python/history_statistics.py']=data
+    with self.assertRaisesRegex(ValueError,'UNIFIED_KERNEL_PROFILE_PIN_MISMATCH'):self.validate('unified-bootstrap-v3',self.original,current)
  def test_workflow_uses_explicit_profile_and_existing_branch_policy(self):
   finite=(ROOT/'.github/workflows/agent7-history-statistics.yml').read_text();history=(ROOT/'.github/workflows/history-integration.yml').read_text();script=SOURCE.read_text()
   for predicate in ("github.head_ref != 'fix/walk-forward-forecast-guard'","github.ref != 'refs/heads/fix/walk-forward-forecast-guard'"):self.assertIn(predicate,finite)
-  self.assertIn('python scripts/history/parity.py --kernel-profile finite-bootstrap-v2',history);self.assertIn("default='original-v1'",script);self.assertIn("schema='math.history.scientific.profile-parity.v2'",script)
+  self.assertIn('python scripts/history/parity.py --kernel-profile unified-bootstrap-v3',history);self.assertIn("default='original-v1'",script);self.assertIn("'math.history.scientific.profile-parity.v3'",script)
