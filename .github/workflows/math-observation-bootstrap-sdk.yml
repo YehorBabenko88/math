@@ -123,5 +123,8 @@ jobs:
                        "assert price_bucket(Decimal('100.005'),Decimal('0.01'))==Decimal('100.01');"
                        "assert price_bucket(Decimal('12345.675'),Decimal('0.01'))==Decimal('12345.68')")
               call([py,'-I','-B','-c',program],cwd=tmp)
+              # The same precision/trap/100k distribution tests exercise only
+              # the installed wheel: -I excludes checkout/PYTHONPATH imports.
+              call([py,'-I','-B',root/'tests/test_orderflow_decimal_context.py'],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
               print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())

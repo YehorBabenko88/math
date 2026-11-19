@@ -4,7 +4,7 @@ Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
 from collections.abc import Mapping
-from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_FLOOR
+from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_HALF_EVEN
 from math import isfinite
 
 
@@ -308,32 +308,70 @@ MAX_STREAM_EVENTS = 1_000_000
 MAX_STREAM_BUCKETS = 20_000
 
 
+def _orderflow_decimal(value):
+    """Bound input before exponent alignment, including signed initial delta."""
+    if not isinstance(value, Decimal) or not value.is_finite():
+        raise ValueError("ORDERFLOW_DECIMAL_DOMAIN")
+    parts = value.as_tuple()
+    if len(parts.digits) > 128 or abs(parts.exponent) > 1000:
+        raise ValueError("ORDERFLOW_DECIMAL_DOMAIN")
+    return value
+
+
+def _orderflow_context():
+    # Aligned inputs require at most 128 + 2*1000 digits. One million
+    # events and the initial delta add at most seven digits. All sums and
+    # differences fit exactly; Inexact is a fail-closed internal invariant.
+    return Context(prec=2140, Emin=MIN_EMIN, Emax=MAX_EMAX, traps=[Inexact])
+
+
+def _orderflow_price_floor(price, tick):
+    """Exact positive FLOOR index; never round the quotient before flooring."""
+    p, t = price.as_tuple(), tick.as_tuple()
+    numerator = int(Decimal((0, p.digits, 0)))
+    coefficient = int(Decimal((0, t.digits, 0)))
+    denominator = coefficient
+    shift = p.exponent - t.exponent
+    if shift >= 0:
+        numerator *= 10**shift
+    else:
+        denominator *= 10**-shift
+    units = numerator // denominator
+    return Decimal((0, Decimal(units * coefficient).as_tuple().digits, t.exponent))
+
+
 def _new_orderflow_totals():
     return [Decimal(0), Decimal(0), Decimal(0), 0]
 
 
-def _accumulate_orderflow(totals, price, volume, side):
+def _accumulate_orderflow(totals, price, volume, side, exact):
     """The one shared per-trade arithmetic for batch and streaming modes."""
     _positive_finite_decimal(price)
     _positive_finite_decimal(volume, zero_allowed=True)
+    _orderflow_decimal(price)
+    _orderflow_decimal(volume)
     if side == "buy":
-        totals[0] += volume
+        totals[0] = exact.add(totals[0], volume)
     elif side == "sell":
-        totals[1] += volume
+        totals[1] = exact.add(totals[1], volume)
     elif side == "unknown":
-        totals[2] += volume
+        totals[2] = exact.add(totals[2], volume)
     else:
         raise ValueError("unsupported trade side")
     totals[3] += 1
 
 
-def _finish_orderflow(totals, initial_delta):
+def _finish_orderflow(totals, initial_delta, exact):
     buy, sell, unknown, count = totals
-    delta = buy - sell
-    classified = buy + sell
+    delta = exact.subtract(buy, sell)
+    classified = exact.add(buy, sell)
+    # A dimensionless ratio can repeat forever. Fix its public policy at
+    # 28 significant digits, HALF_EVEN, independently of caller traps.
+    ratio = Context(prec=28, rounding=ROUND_HALF_EVEN, Emin=MIN_EMIN,
+                    Emax=MAX_EMAX, traps=[])
     return {"buy_volume": buy, "sell_volume": sell, "unknown_volume": unknown,
-            "delta": delta, "cumulative_delta": initial_delta + delta,
-            "imbalance": delta / classified if classified else None,
+            "delta": delta, "cumulative_delta": exact.add(initial_delta, delta),
+            "imbalance": ratio.divide(delta, classified) if classified else None,
             "trade_count": count}
 
 
@@ -344,14 +382,16 @@ def orderflow_volume_metrics(trades, initial_delta: Decimal = Decimal(0)):
     """
     if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
         raise ValueError("invalid initial delta")
+    _orderflow_decimal(initial_delta)
     if not isinstance(trades, (tuple, list)) or len(trades) > MAX_ORDERFLOW_BATCH:
         raise ValueError("invalid trade batch")
     totals = _new_orderflow_totals()
+    exact = _orderflow_context()
     for item in trades:
         if not isinstance(item, (tuple, list)) or len(item) != 3:
             raise ValueError("invalid trade")
-        _accumulate_orderflow(totals, *item)
-    return _finish_orderflow(totals, initial_delta)
+        _accumulate_orderflow(totals, *item, exact)
+    return _finish_orderflow(totals, initial_delta, exact)
 
 
 def aggregate_orderflow_stream(trades, *, mode: str,
@@ -362,19 +402,24 @@ def aggregate_orderflow_stream(trades, *, mode: str,
 
     Never materializes trade rows. Memory O(unique bucket count), strictly
     <=20,000 bucket states, independent of the number of input trades.
-    Bucket keys are sorted only after the stream ends; within each bucket,
-    Decimal additions follow original input order exactly. A caller may send
-    arbitrarily interleaved/late buckets without changing those semantics.
+    Bucket keys are sorted after the stream ends. Volumes, deltas and price
+    FLOOR bins are exact, independent of caller precision/traps. Decimal
+    inputs accept <=128 coefficient digits and exponents -1000..1000.
+    Imbalance uses 28 significant digits, HALF_EVEN (None if unclassified).
+    Interleaved/late buckets retain the same exact totals.
     """
     if type(mode) is not str or mode not in ("time", "price"):
         raise ValueError("INVALID_AGGREGATE_MODE")
     if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
         raise ValueError("INVALID_INITIAL_DELTA")
+    _orderflow_decimal(initial_delta)
+    exact = _orderflow_context()
     if mode == "time":
         if type(interval_ms) is not int or interval_ms <= 0:
             raise ValueError("INVALID_INTERVAL_MS")
     else:
         _positive_finite_decimal(tick_size)
+        _orderflow_decimal(tick_size)
     try:
         source = iter(trades)
     except TypeError as exc:
@@ -392,21 +437,23 @@ def aggregate_orderflow_stream(trades, *, mode: str,
             raise ValueError("INVALID_TRADE_CLOCK")
         _positive_finite_decimal(price)
         _positive_finite_decimal(volume, zero_allowed=True)
+        _orderflow_decimal(price)
+        _orderflow_decimal(volume)
         # Keep the original Meta grouping semantics: epoch-floor by timestamp
         # or ROUND_FLOOR price index. Never normalize price into HALF_UP bins.
         key = (ts // interval_ms * interval_ms if mode == "time" else
-               (price / tick_size).to_integral_value(rounding=ROUND_FLOOR) * tick_size)
+               _orderflow_price_floor(price, tick_size))
         totals = buckets.get(key)
         if totals is None:
             if len(buckets) >= MAX_STREAM_BUCKETS:
                 raise ValueError("STREAM_BUCKET_LIMIT")
             totals = _new_orderflow_totals()
             buckets[key] = totals
-        _accumulate_orderflow(totals, price, volume, side)
+        _accumulate_orderflow(totals, price, volume, side, exact)
     cumulative = initial_delta
     output = []
     for key in sorted(buckets):
-        metrics = _finish_orderflow(buckets[key], cumulative)
+        metrics = _finish_orderflow(buckets[key], cumulative, exact)
         cumulative = metrics["cumulative_delta"]
         output.append((key, metrics))
     return tuple(output)
