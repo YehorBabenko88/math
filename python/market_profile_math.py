@@ -124,3 +124,39 @@ def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers):
             "ratios": {window: amount/max(Decimal(1), _positive_finite_decimal(total, zero_allowed=True))
                        for window,total in turnovers.items()},
             "observed_turnover": turnovers.copy()}
+
+
+def untouched_decimal_levels(closed_candles):
+    """Meta core.untouched_levels numeric equivalence on verified CLOSED candles.
+
+    Each item is (start_ms, high, low). Grid/Terminan must establish coverage,
+    timeframe close, timestamp provenance and source authenticity separately.
+    """
+    if not isinstance(closed_candles, (tuple, list)):
+        raise ValueError("INVALID_CANDLES")
+    if len(closed_candles) > 20000:
+        raise ValueError("CANDLE_LIMIT")
+    normalized = []
+    for candle in closed_candles:
+        if not isinstance(candle, (tuple, list)) or len(candle) != 3:
+            raise ValueError("INVALID_CANDLE")
+        start, high, low = candle
+        if type(start) is not int or start < 0 or start > 2**63-1:
+            raise ValueError("INVALID_CANDLE_TIME")
+        _positive_finite_decimal(high)
+        _positive_finite_decimal(low)
+        if high < low:
+            raise ValueError("INVALID_CANDLE_RANGE")
+        normalized.append((start, high, low))
+    normalized.sort(key=lambda row: row[0])
+    if any(a[0] == b[0] for a, b in zip(normalized, normalized[1:])):
+        raise ValueError("DUPLICATE_CANDLE_TIME")
+    active = {}
+    for start, high, low in normalized:
+        for key, level in list(active.items()):
+            side, price, _ = level
+            if side == "high" and high >= price or side == "low" and low <= price:
+                del active[key]
+        active[("high", high)] = ("high", high, start)
+        active[("low", low)] = ("low", low, start)
+    return tuple(active.values())
