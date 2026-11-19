@@ -39,9 +39,16 @@ jobs:
         run: python scripts/history_ci.py tests 'test_history*.py'
         env:
           GRID_REFERENCE: ${{ github.workspace }}/reference-grid
-      - name: Pinned consolidated bootstrap numerical equivalence and refusal
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/meta_analyse
+          ref: f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1
+          path: reference-meta
+          persist-credentials: false
+      - name: Verify immutable Meta source and Math numerical parity
         run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
-      - name: Explicit pinned finite kernel profile and original scientific parity
+        run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
+      - name: Explicit pinned consolidated kernel profile and original scientific parity
         run: python scripts/history/parity.py --kernel-profile unified-bootstrap-v3
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
