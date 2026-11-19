@@ -197,5 +197,56 @@ class MetaMarketMathContract(unittest.TestCase):
             PROFILE.volume_profile_poc({Decimal("100"): Decimal("-1")})
 
 
+
+class BoundedComputeApiContract(unittest.TestCase):
+    def test_versioned_batch_and_no_authorization(self):
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            from market_compute_api import compute_batch
+        finally:
+            sys.path.pop(0)
+        request = {"schema": "math.market.compute.v1", "execution_authority": False,
+                   "source": {"snapshot_sha256": "a" * 64, "as_of_ms": 1700000000000,
+                              "units": {"price": "quote/base", "volume": "base"}},
+                   "operations": [
+                       {"operation": "price_bucket", "input": {"price": "1.235", "tick": "0.01"}},
+                       {"operation": "volume_profile_poc", "input": {"close": "101", "profile": [
+                           {"price": "100", "volume": "2"}, {"price": "101", "volume": "2"}]}},
+                       {"operation": "executed_volume_delta", "input": {"buy": "3", "sell": "1"}}]}
+        first = compute_batch(request)
+        self.assertEqual(first, compute_batch(request))
+        self.assertEqual([x["value"] for x in first["results"]], ["1.24", "101", "2"])
+        self.assertFalse(first["execution_authority"])
+        self.assertFalse(first["trading_authorized"])
+        self.assertEqual(first["provenance"], "CALLER_SUPPLIED_UNATTESTED")
+
+    def test_batch_rejects_untrusted_fields_and_bad_shapes(self):
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            from market_compute_api import compute_batch
+        finally:
+            sys.path.pop(0)
+        base = {"schema": "math.market.compute.v1", "execution_authority": False,
+                "source": {"snapshot_sha256": "b" * 64, "as_of_ms": 1,
+                           "units": {"price": "quote/base", "volume": "base"}},
+                "operations": [{"operation": "price_bucket",
+                                "input": {"price": "2", "tick": "0.01"}}]}
+        bad = [dict(base, execution_authority=True),
+               dict(base, extra="field"),
+               dict(base, operations=[]),
+               dict(base, operations=base["operations"] * 257),
+               dict(base, operations=[{"operation": "unknown", "input": {}}]),
+               dict(base, source=dict(base["source"], snapshot_sha256="INVALID")),
+               dict(base, operations=[{"operation": "price_bucket",
+                                       "input": {"price": "NaN", "tick": "0.01"}}]),
+               dict(base, operations=[{"operation": "volume_profile_poc",
+                                       "input": {"close": None, "profile": [
+                                           {"price": "1", "volume": "1"},
+                                           {"price": "1.0", "volume": "2"}]}}])]
+        for index, item in enumerate(bad):
+            with self.subTest(case=index), self.assertRaises(ValueError):
+                compute_batch(item)
+
+
 if __name__ == "__main__":
     unittest.main()
