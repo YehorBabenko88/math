@@ -24,13 +24,15 @@ def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
 def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None):
     """Executed-volume POC: Meta Minute ties nearest close; footprint ties lowest price.
 
-    Return None only for an empty profile; reject ambiguous non-Decimal quantities.
+    The Meta Minute (close provided) raises on an empty profile; the footprint\n    (close omitted) returns None. Reject ambiguous non-Decimal quantities.
     """
     if not isinstance(profile, dict):
         raise ValueError("volume profile must be a dict")
     if close is not None:
         _positive_finite_decimal(close)
     if not profile:
+        if close is not None:
+            raise ValueError("empty volume profile")
         return None
     for price, volume in profile.items():
         _positive_finite_decimal(price)
