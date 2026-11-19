@@ -1,0 +1,89 @@
+name: Math Observation Bootstrap SDK
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  observation-sdk:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Exact-head pure observation API and refusal cases
+        run: python -B -m unittest discover -s tests -p test_observation_bootstrap_api.py -v
+      - name: Build and install standalone Math SDK from exact committed source
+        shell: python {0}
+        run: |
+          import importlib, os, pathlib, subprocess, sys, tempfile, venv
+          root=pathlib.Path.cwd()
+          names=['pyproject.toml','python/market_compute_api.py',
+                 'python/market_profile_math.py','python/history_statistics.py']
+          def call(args,**kwargs):
+              subprocess.run([str(x) for x in args],check=True,timeout=120,**kwargs)
+          with tempfile.TemporaryDirectory(prefix='math-observations-') as home:
+              tmp=pathlib.Path(home)
+              source=tmp/'source'
+              for name in names:
+                  destination=source/name
+                  destination.parent.mkdir(parents=True,exist_ok=True)
+                  committed=subprocess.check_output(
+                      ['git','--no-replace-objects','-C',str(root),
+                       'show','HEAD:'+name],timeout=15)
+                  current=(root/name).read_bytes()
+                  if current not in (committed,committed.replace(b'\n',b'\r\n')):
+                      raise RuntimeError('MATH_OBSERVATION_SOURCE_CHANGED:'+name)
+                  destination.write_bytes(committed)
+              # Use the same pinned builder on Linux and Windows; never
+              # silently change metadata or skip the Python 3.11 job.
+              builder=tmp/'builder'
+              venv.EnvBuilder(with_pip=True).create(builder)
+              executable='Scripts/python.exe' if os.name=='nt' else 'bin/python'
+              build_python=builder/executable
+              call([build_python,'-m','pip','install','--no-deps',
+                    '--only-binary=:all:','setuptools==80.9.0'])
+              wheels=tmp/'wheels'
+              wheels.mkdir()
+              env={**os.environ,'SOURCE_DATE_EPOCH':'315532800'}
+              call([build_python,'-m','pip','wheel','--no-deps',
+                    '--no-build-isolation','--wheel-dir',wheels,source],env=env)
+              files=list(wheels.glob('unified_math_kernels-*.whl'))
+              if len(files)!=1:
+                  raise RuntimeError('MATH_OBSERVATION_WHEEL_COUNT')
+              installed=tmp/'installed'
+              venv.EnvBuilder(with_pip=True).create(installed)
+              py=installed/executable
+              call([py,'-m','pip','install','--no-index','--no-deps',files[0]])
+              program=("import importlib.metadata as m;"
+                       "from market_compute_api import compute_observation_bootstrap;"
+                       "import history_statistics as h;"
+                       "assert m.version('unified-math-kernels')=='0.1.0';"
+                       "assert callable(h.paired_observation_bootstrap);"
+                       "q={'schema':'math.observation.bootstrap.request.v1',"
+                       "'execution_authority':False,"
+                       "'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,"
+                       "'unit':'dimensionless'},"
+                       "'analysis':{'method':'paired','runs':8,'seed':17,"
+                       "'base':[{'id':'a','value':1.0},{'id':'b','value':2.0}],"
+                       "'variant':[{'id':'a','value':1.25},"
+                       "{'id':'b','value':2.25}]}};"
+                       "r=compute_observation_bootstrap(q);"
+                       "assert r['result']['delta_mean']==0.25;"
+                       "assert r['provenance']=='CALLER_SUPPLIED_UNATTESTED';"
+                       "assert r['trading_authorized'] is False;"
+                       "assert r['execution_authority'] is False")
+              call([py,'-B','-c',program],cwd=tmp)
+              print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
