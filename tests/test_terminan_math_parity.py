@@ -1,5 +1,5 @@
 """Parity against the frozen Terminan level and footprint source."""
-from decimal import Decimal, localcontext
+from decimal import Decimal, Inexact, MAX_EMAX, localcontext
 from hashlib import sha256
 from pathlib import Path
 from random import Random
@@ -117,6 +117,39 @@ class TerminanMathParity(unittest.TestCase):
             ctx.prec = 5
             self.assertEqual(api.volume_profile_poc(profile), high)
             self.assertEqual(api.volume_profile_poc(profile, close=low), high)
+
+    def test_poc_close_distance_is_exact_under_caller_precision(self):
+        lower, upper = Decimal("10"), Decimal("11")
+        profile = {upper: Decimal("1"), lower: Decimal("1")}
+        for precision in (3, 5, 28):
+            with self.subTest(precision=precision), localcontext() as ctx:
+                ctx.prec = precision
+                ctx.traps[Inexact] = True
+                self.assertEqual(api.volume_profile_poc(
+                    profile, close=Decimal("10.500001")), upper)
+                self.assertEqual(api.volume_profile_poc(
+                    profile, close=Decimal("10.499999")), lower)
+                self.assertEqual(api.volume_profile_poc(
+                    profile, close=Decimal("10.5")), lower)
+                self.assertEqual(api.volume_profile_poc(profile, close=upper), upper)
+                self.assertEqual(api.volume_profile_poc(
+                    profile | {lower: Decimal("1.000001")}, close=upper), lower)
+
+    def test_poc_close_handles_large_exponent_gaps(self):
+        lower = Decimal(1)
+        close = Decimal(f"1e{MAX_EMAX}")
+        cases = (
+            (Decimal(f"2e{MAX_EMAX}"), lower),
+            (Decimal(f"1.999999e{MAX_EMAX}"), Decimal(f"1.999999e{MAX_EMAX}")),
+            (Decimal(f"5e{MAX_EMAX}"), lower),
+            (close, close),
+        )
+        for upper, expected in cases:
+            with self.subTest(upper=upper), localcontext() as ctx:
+                ctx.prec = 3
+                ctx.traps[Inexact] = True
+                self.assertEqual(api.volume_profile_poc(
+                    {lower: Decimal(1), upper: Decimal(1)}, close=close), expected)
 
     def test_footprint_poc_uses_max_per_price_and_existing_selector(self):
         contracts = oracle("contracts")

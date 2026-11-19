@@ -4,7 +4,7 @@ Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
 from collections.abc import Mapping
-from decimal import Decimal, ROUND_HALF_UP, ROUND_FLOOR
+from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_HALF_UP, ROUND_FLOOR
 from math import isfinite
 
 
@@ -41,7 +41,46 @@ def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None
         _positive_finite_decimal(volume, zero_allowed=True)
     if close is None:
         return min(profile, key=lambda price: (profile[price].copy_negate(), price))
-    return min(profile, key=lambda price: (profile[price].copy_negate(), abs(price - close), price))
+    highest_volume = max(profile.values())
+    lower = upper = None
+    for price, volume in profile.items():
+        if volume != highest_volume:
+            continue
+        if price == close:
+            return price
+        if price < close:
+            if lower is None or price > lower:
+                lower = price
+        elif upper is None or price < upper:
+            upper = price
+    if lower is None:
+        return upper
+    if upper is None:
+        return lower
+    return _nearest_bracket_price(lower, upper, close)
+
+
+def _subtract_nearby(high, low):
+    # The adjusted exponents are at most one apart. Aligning the coefficients
+    # needs at most one extra digit, regardless of the absolute exponent.
+    precision = max(len(high.as_tuple().digits), len(low.as_tuple().digits)) + 2
+    exact = Context(prec=precision, Emin=MIN_EMIN, Emax=MAX_EMAX, traps=[Inexact])
+    return exact.subtract(high, low)
+
+
+def _nearest_bracket_price(lower, upper, close):
+    # Upper wins only when (upper - close) + lower < close. Avoid constructing
+    # an exact sum over arbitrary exponent gaps: compare magnitudes first.
+    if upper.adjusted() > close.adjusted() + 1:
+        return lower
+    upper_gap = _subtract_nearby(upper, close)
+    larger = max(upper_gap, lower)
+    if larger >= close:
+        return lower
+    if larger.adjusted() < close.adjusted() - 1:
+        return upper
+    remaining = _subtract_nearby(close, larger)
+    return upper if min(upper_gap, lower) < remaining else lower
 
 
 def executed_volume_delta(buy: Decimal, sell: Decimal) -> Decimal:
