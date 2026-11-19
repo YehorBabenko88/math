@@ -5,6 +5,7 @@ This test suite exercises the committed module; does not contact Grid or an exch
 import hashlib
 import importlib.util
 import math
+from decimal import Decimal
 import subprocess
 from pathlib import Path
 import unittest
@@ -13,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("math_owned_statistics", ROOT / "python/history_statistics.py")
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
+PROFILE_SPEC = importlib.util.spec_from_file_location("math_owned_market_profile", ROOT / "python/market_profile_math.py")
+PROFILE = importlib.util.module_from_spec(PROFILE_SPEC)
+PROFILE_SPEC.loader.exec_module(PROFILE)
 
 
 def trade(identifier, pnl):
@@ -84,6 +88,44 @@ class ConsolidatedBootstrapContract(unittest.TestCase):
         before = [dict(row) for row in original]
         MODULE.block_bootstrap_expectancy(original, block_size=1, runs=4)
         self.assertEqual(original, before)
+
+
+
+class MetaMarketMathContract(unittest.TestCase):
+    def test_decimal_price_bucket_exact_half_up(self):
+        for price, tick, expected in (
+            ("1.234", "0.01", "1.23"),
+            ("1.235", "0.01", "1.24"),
+            ("1.225", "0.01", "1.23"),
+            ("100.005", "0.01", "100.01"),
+        ):
+            with self.subTest(price=price, tick=tick):
+                self.assertEqual(PROFILE.price_bucket(Decimal(price), Decimal(tick)), Decimal(expected))
+
+    def test_distinct_meta_poc_tie_contracts(self):
+        profile = {Decimal("100"): Decimal("1"), Decimal("101"): Decimal("1")}
+        # Meta core.Minute.poc chooses the price nearest the candle close.
+        self.assertEqual(PROFILE.volume_profile_poc(profile, close=Decimal("101")), Decimal("101"))
+        self.assertEqual(PROFILE.volume_profile_poc(profile, close=Decimal("100.5")), Decimal("100"))
+        # Meta footprint.Footprint.poc chooses the lower price for equal volume.
+        self.assertEqual(PROFILE.volume_profile_poc(profile), Decimal("100"))
+        self.assertEqual(PROFILE.volume_profile_poc({}), None)
+        with self.assertRaisesRegex(ValueError, "empty volume profile"):
+            PROFILE.volume_profile_poc({}, close=Decimal("100"))
+
+    def test_delta_and_invalid_decimal_inputs_refuse(self):
+        self.assertEqual(PROFILE.executed_volume_delta(Decimal("3"), Decimal("1")), Decimal("2"))
+        self.assertEqual(PROFILE.executed_volume_delta(Decimal("0"), Decimal("0")), Decimal("0"))
+        for value in (Decimal("NaN"), Decimal("Infinity"), Decimal("-Infinity"), Decimal("-1"), 1.0):
+            with self.subTest(value=repr(value)):
+                with self.assertRaises(ValueError):
+                    PROFILE.price_bucket(value, Decimal("0.01"))
+                with self.assertRaises(ValueError):
+                    PROFILE.executed_volume_delta(value, Decimal("1"))
+        with self.assertRaises(ValueError):
+            PROFILE.price_bucket(Decimal("1"), Decimal("0"))
+        with self.assertRaises(ValueError):
+            PROFILE.volume_profile_poc({Decimal("100"): Decimal("-1")})
 
 
 if __name__ == "__main__":
