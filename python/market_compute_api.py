@@ -39,7 +39,7 @@ def _record(value, fields):
 def _compute(item):
     _record(item, {"operation", "input"})
     operation = item["operation"]
-    if operation not in ALGORITHMS:
+    if type(operation) is not str or operation not in ALGORITHMS:
         raise ValueError("UNKNOWN_OPERATION")
     args = item["input"]
     if operation == "price_bucket":
