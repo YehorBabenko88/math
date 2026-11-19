@@ -162,57 +162,91 @@ def untouched_decimal_levels(closed_candles):
     return tuple(active.values())
 
 
-def orderflow_volume_metrics(trades, initial_delta: Decimal = Decimal(0)):
-    """Pure Meta orderflow_metrics.calculate arithmetic including unknown side volume.
+# Two independent limits: the existing fixed-size batch contract stays at
+# 20,000 rows; the explicit streaming contract may consume a larger bounded
+# iterator but retains no raw event history and at most 20,000 bucket states.
+MAX_ORDERFLOW_BATCH = 20_000
+MAX_STREAM_EVENTS = 1_000_000
+MAX_STREAM_BUCKETS = 20_000
 
-    Inputs are (price, volume, side), where side is buy/sell/unknown.
-    """
-    if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
-        raise ValueError("invalid initial delta")
-    if not isinstance(trades, (tuple, list)) or len(trades) > 20000:
-        raise ValueError("invalid trade batch")
-    buy = sell = unknown = Decimal(0)
-    for item in trades:
-        if not isinstance(item, (tuple, list)) or len(item) != 3:
-            raise ValueError("invalid trade")
-        price, volume, side = item
-        _positive_finite_decimal(price)
-        _positive_finite_decimal(volume, zero_allowed=True)
-        if side == "buy":
-            buy += volume
-        elif side == "sell":
-            sell += volume
-        elif side == "unknown":
-            unknown += volume
-        else:
-            raise ValueError("unsupported trade side")
+
+def _new_orderflow_totals():
+    return [Decimal(0), Decimal(0), Decimal(0), 0]
+
+
+def _accumulate_orderflow(totals, price, volume, side):
+    """The one shared per-trade arithmetic for batch and streaming modes."""
+    _positive_finite_decimal(price)
+    _positive_finite_decimal(volume, zero_allowed=True)
+    if side == "buy":
+        totals[0] += volume
+    elif side == "sell":
+        totals[1] += volume
+    elif side == "unknown":
+        totals[2] += volume
+    else:
+        raise ValueError("unsupported trade side")
+    totals[3] += 1
+
+
+def _finish_orderflow(totals, initial_delta):
+    buy, sell, unknown, count = totals
     delta = buy - sell
     classified = buy + sell
     return {"buy_volume": buy, "sell_volume": sell, "unknown_volume": unknown,
             "delta": delta, "cumulative_delta": initial_delta + delta,
             "imbalance": delta / classified if classified else None,
-            "trade_count": len(trades)}
+            "trade_count": count}
 
 
-def aggregate_orderflow(trades, *, mode: str, interval_ms: int | None = None,
-                        tick_size: Decimal | None = None,
-                        initial_delta: Decimal = Decimal(0)):
-    """Meta aggregate_by_time/aggregate_by_price arithmetic, one metrics owner.
+def orderflow_volume_metrics(trades, initial_delta: Decimal = Decimal(0)):
+    """Pure Meta orderflow_metrics.calculate arithmetic including unknown volume.
 
-    Each trade is (timestamp_ms, price, volume, side). Output is a tuple of
-    (bucket_start_ms or tick_price, volume_metrics). Event provenance stays with Grid.
+    Preserves the original bounded batch contract: at most 20,000 trade rows.
+    """
+    if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
+        raise ValueError("invalid initial delta")
+    if not isinstance(trades, (tuple, list)) or len(trades) > MAX_ORDERFLOW_BATCH:
+        raise ValueError("invalid trade batch")
+    totals = _new_orderflow_totals()
+    for item in trades:
+        if not isinstance(item, (tuple, list)) or len(item) != 3:
+            raise ValueError("invalid trade")
+        _accumulate_orderflow(totals, *item)
+    return _finish_orderflow(totals, initial_delta)
+
+
+def aggregate_orderflow_stream(trades, *, mode: str,
+                               interval_ms: int | None = None,
+                               tick_size: Decimal | None = None,
+                               initial_delta: Decimal = Decimal(0)):
+    """One-pass bounded-memory aggregation of a generator or finite iterable.
+
+    Never materializes trade rows. Memory O(unique bucket count), strictly
+    <=20,000 bucket states, independent of the number of input trades.
+    Bucket keys are sorted only after the stream ends; within each bucket,
+    Decimal additions follow original input order exactly. A caller may send
+    arbitrarily interleaved/late buckets without changing those semantics.
     """
     if type(mode) is not str or mode not in ("time", "price"):
         raise ValueError("INVALID_AGGREGATE_MODE")
-    if not isinstance(trades, (list, tuple)) or len(trades) > 20000:
-        raise ValueError("INVALID_AGGREGATE_BATCH")
+    if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
+        raise ValueError("INVALID_INITIAL_DELTA")
     if mode == "time":
         if type(interval_ms) is not int or interval_ms <= 0:
             raise ValueError("INVALID_INTERVAL_MS")
     else:
         _positive_finite_decimal(tick_size)
-    groups = {}
-    for entry in trades:
+    try:
+        source = iter(trades)
+    except TypeError as exc:
+        raise ValueError("INVALID_AGGREGATE_STREAM") from exc
+    buckets = {}
+    count = 0
+    for entry in source:
+        count += 1
+        if count > MAX_STREAM_EVENTS:
+            raise ValueError("STREAM_EVENT_LIMIT")
         if not isinstance(entry, (list, tuple)) or len(entry) != 4:
             raise ValueError("INVALID_AGGREGATE_TRADE")
         ts, price, volume, side = entry
@@ -220,20 +254,34 @@ def aggregate_orderflow(trades, *, mode: str, interval_ms: int | None = None,
             raise ValueError("INVALID_TRADE_CLOCK")
         _positive_finite_decimal(price)
         _positive_finite_decimal(volume, zero_allowed=True)
-        if side not in ("buy", "sell", "unknown"):
-            raise ValueError("INVALID_TRADE_SIDE")
-        if mode == "time":
-            key = ts // interval_ms * interval_ms
-        else:
-            key = (price/tick_size).to_integral_value(rounding=ROUND_FLOOR)*tick_size
-        groups.setdefault(key, []).append((price, volume, side))
+        # Keep the original Meta grouping semantics: epoch-floor by timestamp
+        # or ROUND_FLOOR price index. Never normalize price into HALF_UP bins.
+        key = (ts // interval_ms * interval_ms if mode == "time" else
+               (price / tick_size).to_integral_value(rounding=ROUND_FLOOR) * tick_size)
+        totals = buckets.get(key)
+        if totals is None:
+            if len(buckets) >= MAX_STREAM_BUCKETS:
+                raise ValueError("STREAM_BUCKET_LIMIT")
+            totals = _new_orderflow_totals()
+            buckets[key] = totals
+        _accumulate_orderflow(totals, price, volume, side)
     cumulative = initial_delta
-    rows = []
-    for key in sorted(groups):
-        metrics = orderflow_volume_metrics(groups[key], cumulative)
+    output = []
+    for key in sorted(buckets):
+        metrics = _finish_orderflow(buckets[key], cumulative)
         cumulative = metrics["cumulative_delta"]
-        rows.append((key, metrics))
-    return tuple(rows)
+        output.append((key, metrics))
+    return tuple(output)
+
+
+def aggregate_orderflow(trades, *, mode: str, interval_ms: int | None = None,
+                        tick_size: Decimal | None = None,
+                        initial_delta: Decimal = Decimal(0)):
+    """Legacy bounded batch API; do not weaken its 20,000-row admission."""
+    if not isinstance(trades, (list, tuple)) or len(trades) > MAX_ORDERFLOW_BATCH:
+        raise ValueError("INVALID_AGGREGATE_BATCH")
+    return aggregate_orderflow_stream(trades, mode=mode, interval_ms=interval_ms,
+                                      tick_size=tick_size, initial_delta=initial_delta)
 
 
 def large_liquidity_levels(bids, asks, level_price: Decimal, tick_size: Decimal,
