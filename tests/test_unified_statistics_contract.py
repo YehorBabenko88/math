@@ -144,6 +144,8 @@ class MetaMarketMathContract(unittest.TestCase):
                                     "81233ea9d36b38d75615ac169ea0f41d6eca02ef")
         aggregate_source = original("src/meta_analyse/orderflow_aggregation.py",
                                     "f56837a23b80df373cde5a120e7637850d229a80")
+        liquidity_source = original("src/meta_analyse/liquidity.py",
+                                    "82e02f52f33aa65203031e24dbf961f9931feb4d")
         package = types.ModuleType("pinned_meta_math_reference")
         package.__path__ = []
         core_module = types.ModuleType("pinned_meta_math_reference.core")
@@ -152,13 +154,15 @@ class MetaMarketMathContract(unittest.TestCase):
         wall_module = types.ModuleType("pinned_meta_math_reference.wall_tracker")
         orderflow_module = types.ModuleType("pinned_meta_math_reference.orderflow_metrics")
         aggregate_module = types.ModuleType("pinned_meta_math_reference.orderflow_aggregation")
+        liquidity_module = types.ModuleType("pinned_meta_math_reference.liquidity")
         namespace = {"pinned_meta_math_reference": package,
                      "pinned_meta_math_reference.core": core_module,
                      "pinned_meta_math_reference.footprint": footprint_module,
                      "pinned_meta_math_reference.tape_velocity": tape_module,
                      "pinned_meta_math_reference.wall_tracker": wall_module,
                      "pinned_meta_math_reference.orderflow_metrics": orderflow_module,
-                     "pinned_meta_math_reference.orderflow_aggregation": aggregate_module}
+                     "pinned_meta_math_reference.orderflow_aggregation": aggregate_module,
+                     "pinned_meta_math_reference.liquidity": liquidity_module}
         previous = {key: sys.modules.get(key) for key in namespace}
         try:
             sys.modules.update(namespace)
@@ -173,6 +177,8 @@ class MetaMarketMathContract(unittest.TestCase):
                  orderflow_module.__dict__)
             exec(compile(aggregate_source, "<pinned-meta-aggregation>", "exec"),
                  aggregate_module.__dict__)
+            exec(compile(liquidity_source, "<pinned-meta-liquidity>", "exec"),
+                 liquidity_module.__dict__)
             D = Decimal
             for n in range(1, 120):
                 price = D(n) / D("1000")
@@ -267,6 +273,18 @@ class MetaMarketMathContract(unittest.TestCase):
                 orderflow_module.Trade(1000,D("100"),D("2"),"unknown")])
             self.assertEqual(PROFILE.orderflow_volume_metrics(
                 [(D("100"),D("2"),"unknown")]),vars(zero_flow))
+            liquidity_book = types.SimpleNamespace(
+                valid=True,symbol="BTCUSDT",
+                bids={D("100"):D("1000"),D("99"):D("10000")},
+                asks={D("101"):D("2000"),D("102"):D("500")})
+            old_liquidity = liquidity_module.large_levels(
+                liquidity_book,D("100"),D("1"))
+            new_liquidity = PROFILE.large_liquidity_levels(
+                liquidity_book.bids,liquidity_book.asks,D("100"),D("1"))
+            self.assertEqual(new_liquidity,tuple((
+                item.side,item.price,item.notional,item.distance_ticks,
+                item.relative_to_median) for item in old_liquidity))
+            self.assertEqual(len(new_liquidity),1)
             empty = core_module.Minute(now, D("1"), D("100"), D("100"),
                                        D("100"), D("100"))
             with self.assertRaises(ValueError):
