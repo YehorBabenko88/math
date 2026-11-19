@@ -2,8 +2,10 @@
 
 This test suite exercises the committed module; does not contact Grid or an exchange.
 """
+import hashlib
 import importlib.util
 import math
+import subprocess
 from pathlib import Path
 import unittest
 
@@ -48,6 +50,34 @@ class ConsolidatedBootstrapContract(unittest.TestCase):
                          [1e308, 1e308])
         self.assertEqual(MODULE.paired_expectancy_bootstrap([], [], runs=1),
                          {"paired": 0, "delta_mean": None, "ci95": None})
+
+
+    def test_exact_pinned_finite_baseline_numerical_parity(self):
+        # Independent immutable prior implementation; no Grid runtime or provider.
+        reference = subprocess.check_output(
+            ["git", "--no-replace-objects", "-C", str(ROOT), "show",
+             "b9c2f24b33285b7b0e06aebc354a9c61a909d204:python/history_statistics.py"],
+            timeout=10)
+        self.assertEqual(hashlib.sha256(reference).hexdigest(),
+                         "c6db429dd77c88abe263c52dd0db4e5e76f321657dec53eb1ccec44280197371")
+        previous = {}
+        exec(compile(reference, "<pinned-math-finite-bootstrap-v2>", "exec"), previous)
+        cases = [
+            [trade(str(i), i * 0.03125) for i in range(16)],
+            [trade(str(i), 1e308) for i in range(8)],
+            [trade(str(i), 5e-324) for i in range(8)],
+            [trade(str(i), v) for i, v in enumerate([1e308, -1e308] * 4)],
+        ]
+        for rows in cases:
+            old_paired = previous["paired_expectancy_bootstrap"]
+            old_block = previous["block_bootstrap_expectancy"]
+            first = [dict(row, pnl=0) for row in rows]
+            with self.subTest(kind="paired", rows=len(rows), value=rows[0]["pnl"]):
+                self.assertEqual(MODULE.paired_expectancy_bootstrap(first, rows, runs=30, seed=17),
+                                 old_paired(first, rows, runs=30, seed=17))
+            with self.subTest(kind="block", rows=len(rows), value=rows[0]["pnl"]):
+                self.assertEqual(MODULE.block_bootstrap_expectancy(rows, block_size=2, runs=30, seed=23),
+                                 old_block(rows, block_size=2, runs=30, seed=23))
 
     def test_input_records_are_not_mutated(self):
         original = [trade("a", 1), trade("b", 2)]
