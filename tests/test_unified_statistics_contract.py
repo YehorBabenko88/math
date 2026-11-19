@@ -142,6 +142,8 @@ class MetaMarketMathContract(unittest.TestCase):
                                "a393ca3f09e52a467eda3b9745aaf154d4f13345")
         orderflow_source = original("src/meta_analyse/orderflow_metrics.py",
                                     "81233ea9d36b38d75615ac169ea0f41d6eca02ef")
+        aggregate_source = original("src/meta_analyse/orderflow_aggregation.py",
+                                    "f56837a23b80df373cde5a120e7637850d229a80")
         package = types.ModuleType("pinned_meta_math_reference")
         package.__path__ = []
         core_module = types.ModuleType("pinned_meta_math_reference.core")
@@ -149,12 +151,14 @@ class MetaMarketMathContract(unittest.TestCase):
         tape_module = types.ModuleType("pinned_meta_math_reference.tape_velocity")
         wall_module = types.ModuleType("pinned_meta_math_reference.wall_tracker")
         orderflow_module = types.ModuleType("pinned_meta_math_reference.orderflow_metrics")
+        aggregate_module = types.ModuleType("pinned_meta_math_reference.orderflow_aggregation")
         namespace = {"pinned_meta_math_reference": package,
                      "pinned_meta_math_reference.core": core_module,
                      "pinned_meta_math_reference.footprint": footprint_module,
                      "pinned_meta_math_reference.tape_velocity": tape_module,
                      "pinned_meta_math_reference.wall_tracker": wall_module,
-                     "pinned_meta_math_reference.orderflow_metrics": orderflow_module}
+                     "pinned_meta_math_reference.orderflow_metrics": orderflow_module,
+                     "pinned_meta_math_reference.orderflow_aggregation": aggregate_module}
         previous = {key: sys.modules.get(key) for key in namespace}
         try:
             sys.modules.update(namespace)
@@ -167,6 +171,8 @@ class MetaMarketMathContract(unittest.TestCase):
                  wall_module.__dict__)
             exec(compile(orderflow_source, "<pinned-meta-orderflow>", "exec"),
                  orderflow_module.__dict__)
+            exec(compile(aggregate_source, "<pinned-meta-aggregation>", "exec"),
+                 aggregate_module.__dict__)
             D = Decimal
             for n in range(1, 120):
                 price = D(n) / D("1000")
@@ -247,6 +253,16 @@ class MetaMarketMathContract(unittest.TestCase):
             new_flow = PROFILE.orderflow_volume_metrics(
                 [(t.price,t.volume,t.side) for t in old_trades],D("5"))
             self.assertEqual(new_flow,vars(old_flow))
+            new_trades=[(t.timestamp_ms,t.price,t.volume,t.side) for t in old_trades]
+            for mode, kwargs in (("time",{"interval_ms":1000}),("price",{"tick_size":D("0.1")})):
+                expected = (aggregate_module.aggregate_by_time(old_trades,1000,initial_delta=D("5"))
+                            if mode == "time"
+                            else aggregate_module.aggregate_by_price(old_trades,D("0.1"),
+                                                                     initial_delta=D("5")))
+                actual = PROFILE.aggregate_orderflow(new_trades,mode=mode,
+                                                      initial_delta=D("5"),**kwargs)
+                self.assertEqual([(key,vars(metric)) for key,metric in expected],
+                                 list(actual))
             zero_flow = orderflow_module.calculate([
                 orderflow_module.Trade(1000,D("100"),D("2"),"unknown")])
             self.assertEqual(PROFILE.orderflow_volume_metrics(
