@@ -1,0 +1,318 @@
+"""Pure Decimal market analytics migrated from Meta Analyse.
+
+Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
+Does not ingest market data, run strategies, or assign trading authority.
+"""
+from decimal import Decimal, ROUND_HALF_UP, ROUND_FLOOR
+
+
+def _positive_finite_decimal(value, *, zero_allowed=False):
+    if not isinstance(value, Decimal) or not value.is_finite() or (
+        value < 0 if zero_allowed else value <= 0
+    ):
+        raise ValueError("finite Decimal required")
+    return value
+
+
+def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
+    """ROUND_HALF_UP reproduces Meta Analyse core.price_bucket."""
+    _positive_finite_decimal(price)
+    _positive_finite_decimal(tick)
+    return (price / tick).quantize(Decimal("1"), rounding=ROUND_HALF_UP) * tick
+
+
+def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None):
+    """Executed-volume POC: Meta Minute ties nearest close; footprint ties lowest price.
+
+    The Meta Minute (close provided) raises on an empty profile; the footprint\n    (close omitted) returns None. Reject ambiguous non-Decimal quantities.
+    """
+    if not isinstance(profile, dict):
+        raise ValueError("volume profile must be a dict")
+    if close is not None:
+        _positive_finite_decimal(close)
+    if not profile:
+        if close is not None:
+            raise ValueError("empty volume profile")
+        return None
+    for price, volume in profile.items():
+        _positive_finite_decimal(price)
+        _positive_finite_decimal(volume, zero_allowed=True)
+    if close is None:
+        return min(profile, key=lambda price: (-profile[price], price))
+    return min(profile, key=lambda price: (-profile[price], abs(price - close), price))
+
+
+def executed_volume_delta(buy: Decimal, sell: Decimal) -> Decimal:
+    """Pure signed taker delta; does not classify trade side or trust continuity."""
+    _positive_finite_decimal(buy, zero_allowed=True)
+    _positive_finite_decimal(sell, zero_allowed=True)
+    return buy - sell
+
+
+def tape_velocity_metrics(events, level_price: Decimal, tick_size: Decimal,
+                          window_ms: int, proximity_ticks: Decimal, now_ms: int,
+                          *, observed_price: Decimal | None = None):
+    """Pure Meta TapeVelocity arithmetic; event ordering and gaps remain caller-owned."""
+    _positive_finite_decimal(level_price)
+    _positive_finite_decimal(tick_size)
+    _positive_finite_decimal(proximity_ticks, zero_allowed=True)
+    if type(window_ms) is not int or window_ms <= 0 or type(now_ms) is not int or now_ms < 0:
+        raise ValueError("invalid tape window")
+    if not isinstance(events, (tuple, list)):
+        raise ValueError("invalid tape events")
+    buys = sells = Decimal(0)
+    count = 0
+    for timestamp_ms, price, quantity, side in events:
+        if type(timestamp_ms) is not int or timestamp_ms < now_ms-window_ms or timestamp_ms > now_ms:
+            raise ValueError("invalid tape timestamp")
+        _positive_finite_decimal(price)
+        _positive_finite_decimal(quantity, zero_allowed=True)
+        if side not in ("Buy", "Sell"):
+            raise ValueError("invalid tape side")
+        if abs(price-level_price)/tick_size <= proximity_ticks:
+            count += 1
+            amount = price * quantity
+            if side == "Buy":
+                buys += amount
+            else:
+                sells += amount
+    seconds = Decimal(window_ms)/Decimal(1000)
+    distance = None
+    if observed_price is not None:
+        _positive_finite_decimal(observed_price)
+        distance = abs(observed_price-level_price)/tick_size
+    return (Decimal(count)/seconds, (buys+sells)/seconds, buys, sells, distance)
+
+
+def wall_notional(price: Decimal, size: Decimal) -> Decimal:
+    """Source-owned wall arithmetic; book membership and lifetime stay with observer."""
+    _positive_finite_decimal(price)
+    _positive_finite_decimal(size, zero_allowed=True)
+    return price*size
+
+
+def flow_window_metrics(events, now_ms: int, window_seconds: int):
+    """Pure Meta RollingFlow metrics. Input: (time_ms, notional, side) tuples."""
+    if type(now_ms) is not int or type(window_seconds) is not int or window_seconds <= 0:
+        raise ValueError("invalid flow window")
+    if not isinstance(events, (tuple, list)):
+        raise ValueError("invalid flow events")
+    buys = sells = total = Decimal(0)
+    count = 0
+    for timestamp_ms, notional, side in events:
+        if type(timestamp_ms) is not int:
+            raise ValueError("invalid flow timestamp")
+        _positive_finite_decimal(notional, zero_allowed=True)
+        if not 0 <= now_ms-timestamp_ms <= window_seconds*1000:
+            continue
+        count += 1
+        total += notional
+        if side in ("buy", "1"):
+            buys += notional
+        elif side in ("sell", "2"):
+            sells += notional
+    return {"turnover_usd": total, "trades": count, "buy_usd": buys,
+            "sell_usd": sells, "trades_per_second": Decimal(count)/Decimal(window_seconds)}
+
+
+def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers):
+    """Pure Meta RollingFlow.wall_score arithmetic; unknown source stays unverified."""
+    amount = wall_notional(price, size)
+    if not isinstance(turnovers, dict):
+        raise ValueError("invalid turnovers")
+    return {"wall_usd": amount,
+            "ratios": {window: amount/max(Decimal(1), _positive_finite_decimal(total, zero_allowed=True))
+                       for window,total in turnovers.items()},
+            "observed_turnover": turnovers.copy()}
+
+
+def untouched_decimal_levels(closed_candles):
+    """Meta core.untouched_levels numeric equivalence on verified CLOSED candles.
+
+    Each item is (start_ms, high, low). Grid/Terminan must establish coverage,
+    timeframe close, timestamp provenance and source authenticity separately.
+    """
+    if not isinstance(closed_candles, (tuple, list)):
+        raise ValueError("INVALID_CANDLES")
+    if len(closed_candles) > 20000:
+        raise ValueError("CANDLE_LIMIT")
+    normalized = []
+    for candle in closed_candles:
+        if not isinstance(candle, (tuple, list)) or len(candle) != 3:
+            raise ValueError("INVALID_CANDLE")
+        start, high, low = candle
+        if type(start) is not int or start < 0 or start > 2**63-1:
+            raise ValueError("INVALID_CANDLE_TIME")
+        _positive_finite_decimal(high)
+        _positive_finite_decimal(low)
+        if high < low:
+            raise ValueError("INVALID_CANDLE_RANGE")
+        normalized.append((start, high, low))
+    normalized.sort(key=lambda row: row[0])
+    if any(a[0] == b[0] for a, b in zip(normalized, normalized[1:])):
+        raise ValueError("DUPLICATE_CANDLE_TIME")
+    active = {}
+    for start, high, low in normalized:
+        for key, level in list(active.items()):
+            side, price, _ = level
+            if side == "high" and high >= price or side == "low" and low <= price:
+                del active[key]
+        active[("high", high)] = ("high", high, start)
+        active[("low", low)] = ("low", low, start)
+    return tuple(active.values())
+
+
+# Two independent limits: the existing fixed-size batch contract stays at
+# 20,000 rows; the explicit streaming contract may consume a larger bounded
+# iterator but retains no raw event history and at most 20,000 bucket states.
+MAX_ORDERFLOW_BATCH = 20_000
+MAX_STREAM_EVENTS = 1_000_000
+MAX_STREAM_BUCKETS = 20_000
+
+
+def _new_orderflow_totals():
+    return [Decimal(0), Decimal(0), Decimal(0), 0]
+
+
+def _accumulate_orderflow(totals, price, volume, side):
+    """The one shared per-trade arithmetic for batch and streaming modes."""
+    _positive_finite_decimal(price)
+    _positive_finite_decimal(volume, zero_allowed=True)
+    if side == "buy":
+        totals[0] += volume
+    elif side == "sell":
+        totals[1] += volume
+    elif side == "unknown":
+        totals[2] += volume
+    else:
+        raise ValueError("unsupported trade side")
+    totals[3] += 1
+
+
+def _finish_orderflow(totals, initial_delta):
+    buy, sell, unknown, count = totals
+    delta = buy - sell
+    classified = buy + sell
+    return {"buy_volume": buy, "sell_volume": sell, "unknown_volume": unknown,
+            "delta": delta, "cumulative_delta": initial_delta + delta,
+            "imbalance": delta / classified if classified else None,
+            "trade_count": count}
+
+
+def orderflow_volume_metrics(trades, initial_delta: Decimal = Decimal(0)):
+    """Pure Meta orderflow_metrics.calculate arithmetic including unknown volume.
+
+    Preserves the original bounded batch contract: at most 20,000 trade rows.
+    """
+    if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
+        raise ValueError("invalid initial delta")
+    if not isinstance(trades, (tuple, list)) or len(trades) > MAX_ORDERFLOW_BATCH:
+        raise ValueError("invalid trade batch")
+    totals = _new_orderflow_totals()
+    for item in trades:
+        if not isinstance(item, (tuple, list)) or len(item) != 3:
+            raise ValueError("invalid trade")
+        _accumulate_orderflow(totals, *item)
+    return _finish_orderflow(totals, initial_delta)
+
+
+def aggregate_orderflow_stream(trades, *, mode: str,
+                               interval_ms: int | None = None,
+                               tick_size: Decimal | None = None,
+                               initial_delta: Decimal = Decimal(0)):
+    """One-pass bounded-memory aggregation of a generator or finite iterable.
+
+    Never materializes trade rows. Memory O(unique bucket count), strictly
+    <=20,000 bucket states, independent of the number of input trades.
+    Bucket keys are sorted only after the stream ends; within each bucket,
+    Decimal additions follow original input order exactly. A caller may send
+    arbitrarily interleaved/late buckets without changing those semantics.
+    """
+    if type(mode) is not str or mode not in ("time", "price"):
+        raise ValueError("INVALID_AGGREGATE_MODE")
+    if not isinstance(initial_delta, Decimal) or not initial_delta.is_finite():
+        raise ValueError("INVALID_INITIAL_DELTA")
+    if mode == "time":
+        if type(interval_ms) is not int or interval_ms <= 0:
+            raise ValueError("INVALID_INTERVAL_MS")
+    else:
+        _positive_finite_decimal(tick_size)
+    try:
+        source = iter(trades)
+    except TypeError as exc:
+        raise ValueError("INVALID_AGGREGATE_STREAM") from exc
+    buckets = {}
+    count = 0
+    for entry in source:
+        count += 1
+        if count > MAX_STREAM_EVENTS:
+            raise ValueError("STREAM_EVENT_LIMIT")
+        if not isinstance(entry, (list, tuple)) or len(entry) != 4:
+            raise ValueError("INVALID_AGGREGATE_TRADE")
+        ts, price, volume, side = entry
+        if type(ts) is not int or ts < 0:
+            raise ValueError("INVALID_TRADE_CLOCK")
+        _positive_finite_decimal(price)
+        _positive_finite_decimal(volume, zero_allowed=True)
+        # Keep the original Meta grouping semantics: epoch-floor by timestamp
+        # or ROUND_FLOOR price index. Never normalize price into HALF_UP bins.
+        key = (ts // interval_ms * interval_ms if mode == "time" else
+               (price / tick_size).to_integral_value(rounding=ROUND_FLOOR) * tick_size)
+        totals = buckets.get(key)
+        if totals is None:
+            if len(buckets) >= MAX_STREAM_BUCKETS:
+                raise ValueError("STREAM_BUCKET_LIMIT")
+            totals = _new_orderflow_totals()
+            buckets[key] = totals
+        _accumulate_orderflow(totals, price, volume, side)
+    cumulative = initial_delta
+    output = []
+    for key in sorted(buckets):
+        metrics = _finish_orderflow(buckets[key], cumulative)
+        cumulative = metrics["cumulative_delta"]
+        output.append((key, metrics))
+    return tuple(output)
+
+
+def aggregate_orderflow(trades, *, mode: str, interval_ms: int | None = None,
+                        tick_size: Decimal | None = None,
+                        initial_delta: Decimal = Decimal(0)):
+    """Legacy bounded batch API; do not weaken its 20,000-row admission."""
+    if not isinstance(trades, (list, tuple)) or len(trades) > MAX_ORDERFLOW_BATCH:
+        raise ValueError("INVALID_AGGREGATE_BATCH")
+    return aggregate_orderflow_stream(trades, mode=mode, interval_ms=interval_ms,
+                                      tick_size=tick_size, initial_delta=initial_delta)
+
+
+def large_liquidity_levels(bids, asks, level_price: Decimal, tick_size: Decimal,
+                           *, min_notional=Decimal("100000"),
+                           min_relative=Decimal("5"),
+                           max_distance_ticks=Decimal("50")):
+    """Math part of Meta liquidity.large_levels; caller owns book validity/provenance."""
+    _positive_finite_decimal(level_price)
+    _positive_finite_decimal(tick_size)
+    _positive_finite_decimal(min_notional, zero_allowed=True)
+    _positive_finite_decimal(min_relative, zero_allowed=True)
+    _positive_finite_decimal(max_distance_ticks, zero_allowed=True)
+    if not isinstance(bids, dict) or not isinstance(asks, dict) or len(bids)+len(asks)>4096:
+        raise ValueError("INVALID_LIQUIDITY_BOOK")
+    entries = []
+    for side, levels in (("bid", bids), ("ask", asks)):
+        for price, size in levels.items():
+            _positive_finite_decimal(price)
+            _positive_finite_decimal(size, zero_allowed=True)
+            entries.append((side, price, price*size))
+    amounts = sorted(amount for _,_,amount in entries if amount>0)
+    if not amounts:
+        return ()
+    mid=len(amounts)//2
+    median=amounts[mid] if len(amounts)%2 else (amounts[mid-1]+amounts[mid])/2
+    if median<=0:
+        return ()
+    results=[]
+    for side,price,amount in entries:
+        distance=abs(price-level_price)/tick_size
+        relative=amount/median
+        if amount>=min_notional and relative>=min_relative and distance<=max_distance_ticks:
+            results.append((side,price,amount,distance,relative))
+    return tuple(sorted(results,key=lambda value:(value[3],-value[2])))

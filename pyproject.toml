@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=75,<83"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unified-math-kernels"
+version = "0.1.0"
+description = "Pure, versioned Math-owned numerical kernels for the Unified research system"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+py-modules = ["market_compute_api", "market_profile_math"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.pyc"]
