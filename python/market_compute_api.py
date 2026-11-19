@@ -88,6 +88,7 @@ def compute_batch(request: Mapping) -> dict:
         raise ValueError("REQUEST_LIMIT")
     results = []
     for operation in operations:
+        _record(operation, {"operation", "input"})
         results.append({"operation": operation["operation"], "value": _compute(operation)})
     return {"schema": RESULT, "request_sha256": sha256(canonical).hexdigest(),
             "source": source.copy(), "results": results,
