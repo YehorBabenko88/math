@@ -47,6 +47,40 @@ jobs:
           persist-credentials: false
       - name: Verify immutable Meta source and Math numerical parity
         run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
+      - name: Qualify installed Math batch package without modifying checkout
+        shell: python {0}
+        run: |
+          import hashlib, json, os, pathlib, shutil, subprocess, sys, tempfile, venv, zipfile
+          root=pathlib.Path.cwd()
+          names=['pyproject.toml','python/market_profile_math.py','python/market_compute_api.py']
+          def call(args,**kwargs):
+              return subprocess.check_output([str(a) for a in args],timeout=120,**kwargs)
+          with tempfile.TemporaryDirectory(prefix='math-package-') as tmp:
+              tmp=pathlib.Path(tmp);source=tmp/'source';source.mkdir()
+              for name in names:
+                  src=root/name;dst=source/name;dst.parent.mkdir(parents=True,exist_ok=True)
+                  data=src.read_bytes();oid=call(['git','--no-replace-objects','-C',root,'show','HEAD:'+name])
+                  if data!=oid:raise RuntimeError('MATH_PACKAGE_SOURCE_MISMATCH:'+name)
+                  dst.write_bytes(data)
+              wheel_dir=tmp/'wheels';wheel_dir.mkdir()
+              call([sys.executable,'-m','pip','wheel','--no-deps','--no-build-isolation',
+                    '--wheel-dir',wheel_dir,source],cwd=tmp)
+              wheels=list(wheel_dir.glob('*.whl'))
+              if len(wheels)!=1:raise RuntimeError('MATH_PACKAGE_WHEEL_COUNT')
+              with zipfile.ZipFile(wheels[0]) as archive:
+                  members=set(archive.namelist())
+                  if not {'market_compute_api.py','market_profile_math.py'}<=members:
+                      raise RuntimeError('MATH_PACKAGE_MODULES_MISSING')
+              env_dir=tmp/'venv';venv.EnvBuilder(with_pip=True,clear=True).create(env_dir)
+              py=env_dir/('Scripts/python.exe' if os.name=='nt' else 'bin/python')
+              call([py,'-m','pip','install','--no-index','--no-deps',wheels[0]],cwd=tmp)
+              program="""import json;from market_compute_api import compute_batch
+          r=compute_batch({'schema':'math.market.compute.v1','execution_authority':False,
+          'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,'units':{'price':'quote/base','volume':'base'}},
+          'operations':[{'operation':'price_bucket','input':{'price':'1.235','tick':'0.01'}}]})
+          assert r['results'][0]['value']=='1.24' and r['provenance']=='CALLER_SUPPLIED_UNATTESTED'
+          assert r['execution_authority'] is False and r['trading_authorized'] is False"""
+              call([py,'-B','-c',program],cwd=tmp)
       - name: Explicit pinned consolidated kernel profile and original scientific parity
         run: python scripts/history/parity.py --kernel-profile unified-bootstrap-v3
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
