@@ -25,6 +25,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Exact-head pure observation API and refusal cases
         run: python -B -m unittest discover -s tests -p test_observation_bootstrap_api.py -v
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/Terminan
+          ref: d129840274f6a0faa1591a0ac3a5b92cc0bb5d88
+          path: reference-terminan
+          persist-credentials: false
+      - name: Compare levels and footprint POC with pinned Terminan source
+        run: python -B -m unittest discover -s tests -p test_terminan_math_parity.py -v
       - name: Verify Math SDK contains scientific code only
         run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
       - name: Build and install standalone Math SDK from exact committed source
@@ -79,7 +87,8 @@ jobs:
               program=("import importlib.metadata as m;"
                        "from decimal import Decimal;"
                        "from market_compute_api import OBSERVATION_BOOTSTRAP_REQUEST,"
-                       "STREAM_ABI,aggregate_orderflow_stream,compute_observation_bootstrap;"
+                       "STREAM_ABI,TIMEFRAME_LEVELS_ABI,aggregate_orderflow_stream,"
+                       "compute_observation_bootstrap,untouched_timeframe_levels;"
                        "import history_statistics as h;"
                        "dist=m.distribution('unified-math-kernels');"
                        "assert dist.version=='0.1.0';"
@@ -87,6 +96,9 @@ jobs:
                        "assert not dist.requires;"
                        "assert {p.name for p in dist.files if p.suffix=='.py'}=="
                        "{'market_compute_api.py','market_profile_math.py','history_statistics.py'};"
+                       "assert TIMEFRAME_LEVELS_ABI=='math.market.levels.binary64.v1';"
+                       "levels=untouched_timeframe_levels([{'t':0,'h':2,'l':1}],'1h',3600000);"
+                       "assert [level['price'] for level in levels]==[2.0,1.0];"
                        "assert STREAM_ABI=='math.market.orderflow.stream.v1';"
                        "rows=((i,Decimal('100'),Decimal('0.01'),'buy') for i in range(100_000));"
                        "buckets=aggregate_orderflow_stream(rows,mode='time',interval_ms=60_000);"

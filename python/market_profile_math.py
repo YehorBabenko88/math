@@ -4,6 +4,7 @@ Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
 from decimal import Decimal, ROUND_HALF_UP, ROUND_FLOOR
+from math import isfinite
 
 
 def _positive_finite_decimal(value, *, zero_allowed=False):
@@ -151,15 +152,70 @@ def untouched_decimal_levels(closed_candles):
     normalized.sort(key=lambda row: row[0])
     if any(a[0] == b[0] for a, b in zip(normalized, normalized[1:])):
         raise ValueError("DUPLICATE_CANDLE_TIME")
+    return _untouched_price_sweep(normalized)
+
+
+def _untouched_price_sweep(candles, tick_size=None):
     active = {}
-    for start, high, low in normalized:
+    for start, high, low in candles:
         for key, level in list(active.items()):
             side, price, _ = level
-            if side == "high" and high >= price or side == "low" and low <= price:
+            observed = high if side == "high" else low
+            boundary = price
+            if tick_size is not None:
+                boundary = price - tick_size if side == "high" else price + tick_size
+            touched = observed >= boundary if side == "high" else observed <= boundary
+            if touched:
                 del active[key]
         active[("high", high)] = ("high", high, start)
         active[("low", low)] = ("low", low, start)
     return tuple(active.values())
+
+
+_LEVEL_PERIOD_MS = {"1h": 3600000, "4h": 14400000, "1d": 86400000, "1w": 604800000}
+
+
+def untouched_timeframe_levels(candles, timeframe, as_of_ms, *, tick_size=0, max_levels=200):
+    """Legacy binary64 level ABI for finite candles from a caller-qualified snapshot.
+
+    Start times are UTC epoch milliseconds. Missing complete flags retain legacy
+    behavior. Explicitly incomplete candles and candles closing after as-of are
+    excluded. This function gives no assurance about source or coverage.
+    """
+    if (timeframe not in _LEVEL_PERIOD_MS or type(as_of_ms) is not int or as_of_ms < 0
+            or type(max_levels) is not int or not 1 <= max_levels <= 2000):
+        raise ValueError("invalid level parameters")
+    if not isinstance(candles, (list, tuple)) or len(candles) > 20000:
+        raise ValueError("invalid candle collection")
+    period = _LEVEL_PERIOD_MS[timeframe]
+    try:
+        tick_size = float(tick_size)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("invalid tick size") from exc
+    if not isfinite(tick_size) or tick_size < 0:
+        raise ValueError("invalid tick size")
+    normalized = []
+    for candle in candles:
+        try:
+            start = int(candle["t"])
+            high, low = float(candle["h"]), float(candle["l"])
+        except (KeyError, TypeError, ValueError, OverflowError) as exc:
+            raise ValueError("invalid candle") from exc
+        if start < 0 or not isfinite(high) or not isfinite(low) or high < low:
+            raise ValueError("invalid candle")
+        if start + period <= as_of_ms and candle.get("complete") is not False:
+            normalized.append((start, high, low))
+    normalized.sort(key=lambda row: row[0])
+    active = _untouched_price_sweep(normalized, tick_size)
+    # The legacy response groups surviving older levels by side before adding
+    # the newest high/low pair and clipping to max_levels.
+    survivors, latest = active[:-2], active[-2:]
+    ordered = sorted(survivors, key=lambda level: level[0]) + list(latest)
+    return [
+        {"timeframe": timeframe, "side": side, "price": price,
+         "origin_ms": start, "confirmed_ms": start + period}
+        for side, price, start in ordered[-max_levels:]
+    ]
 
 
 # Two independent limits: the existing fixed-size batch contract stays at
