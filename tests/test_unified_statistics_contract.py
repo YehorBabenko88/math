@@ -136,19 +136,31 @@ class MetaMarketMathContract(unittest.TestCase):
                         "d75c40244f5a486f87d710e818c2194212a74f67")
         footprint = original("src/meta_analyse/footprint.py",
                              "7ba45e2073ca989dda222d63bda116f2c5741ec0")
+        tape_source = original("src/meta_analyse/tape_velocity.py",
+                               "b97a681a70a60c9e9e8a9381591b60a27b2b7519")
+        wall_source = original("src/meta_analyse/wall_tracker.py",
+                               "a393ca3f09e52a467eda3b9745aaf154d4f13345")
         package = types.ModuleType("pinned_meta_math_reference")
         package.__path__ = []
         core_module = types.ModuleType("pinned_meta_math_reference.core")
         footprint_module = types.ModuleType("pinned_meta_math_reference.footprint")
+        tape_module = types.ModuleType("pinned_meta_math_reference.tape_velocity")
+        wall_module = types.ModuleType("pinned_meta_math_reference.wall_tracker")
         namespace = {"pinned_meta_math_reference": package,
                      "pinned_meta_math_reference.core": core_module,
-                     "pinned_meta_math_reference.footprint": footprint_module}
+                     "pinned_meta_math_reference.footprint": footprint_module,
+                     "pinned_meta_math_reference.tape_velocity": tape_module,
+                     "pinned_meta_math_reference.wall_tracker": wall_module}
         previous = {key: sys.modules.get(key) for key in namespace}
         try:
             sys.modules.update(namespace)
             exec(compile(core, "<pinned-meta-core>", "exec"), core_module.__dict__)
             exec(compile(footprint, "<pinned-meta-footprint>", "exec"),
                  footprint_module.__dict__)
+            exec(compile(tape_source, "<pinned-meta-tape-velocity>", "exec"),
+                 tape_module.__dict__)
+            exec(compile(wall_source, "<pinned-meta-wall-tracker>", "exec"),
+                 wall_module.__dict__)
             D = Decimal
             for n in range(1, 120):
                 price = D(n) / D("1000")
@@ -183,6 +195,43 @@ class MetaMarketMathContract(unittest.TestCase):
             )
             self.assertEqual({(side,price) for side,price,_ in new_levels},
                              {("high",D("102")),("low",D("99"))})
+            first = types.SimpleNamespace(timestamp_ms=1000,price=D("100"),
+                                           quantity=D("1"),taker_side="Buy")
+            second = types.SimpleNamespace(timestamp_ms=2000,price=D("101"),
+                                            quantity=D("2"),taker_side="Sell")
+            original_tape = tape_module.TapeVelocity(D("1"),window_ms=5000,
+                                                     proximity_ticks=20)
+            original_tape.add(first,D("100"),contiguous=True)
+            original_snapshot = original_tape.add(second,D("100"),contiguous=True)
+            new_snapshot = PROFILE.tape_velocity_metrics(
+                [(first.timestamp_ms,first.price,first.quantity,first.taker_side),
+                 (second.timestamp_ms,second.price,second.quantity,second.taker_side)],
+                 D("100"),D("1"),5000,D("20"),2000,observed_price=D("101"))
+            self.assertEqual(new_snapshot,(
+                original_snapshot.trades_per_second,original_snapshot.notional_per_second,
+                original_snapshot.buy_notional,original_snapshot.sell_notional,
+                original_snapshot.distance_ticks
+            ))
+            flow = core_module.RollingFlow()
+            flow_trade = core_module.Trade("BTCUSDT",now+timedelta(seconds=1),
+                                         D("10"),D("100"),"Buy")
+            flow.add(flow_trade)
+            point = now+timedelta(seconds=2)
+            expected_flow = flow.metrics(point)[60]
+            observed_flow = PROFILE.flow_window_metrics([
+                (int(flow_trade.time.timestamp()*1000),flow_trade.price*flow_trade.size,"buy")
+            ],int(point.timestamp()*1000),60)
+            self.assertEqual(observed_flow,expected_flow)
+            wall_score = flow.wall_score(D("10"),D("100"),point)
+            self.assertEqual(PROFILE.wall_turnover_ratios(
+                D("10"),D("100"),{s:flow.metrics(point)[s]["turnover_usd"]
+                                 for s in (60,300,3600)}),wall_score)
+            tracker = wall_module.WallTracker(min_notional=D("100000"),max_age_ms=3000)
+            book = types.SimpleNamespace(valid=True,bids={D("100"):D("1000")},asks={})
+            self.assertEqual(tracker.observe(book,1000),[])
+            warning = tracker.observe(types.SimpleNamespace(valid=True,bids={},asks={}),2000)
+            self.assertEqual(len(warning),1)
+            self.assertEqual(PROFILE.wall_notional(D("100"),D("1000")),warning[0].notional)
             empty = core_module.Minute(now, D("1"), D("100"), D("100"),
                                        D("100"), D("100"))
             with self.assertRaises(ValueError):
