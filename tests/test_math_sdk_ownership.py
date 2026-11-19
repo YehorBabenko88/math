@@ -15,7 +15,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SDK_MODULES = ("market_compute_api", "market_profile_math")
+SDK_MODULES = ("market_compute_api", "market_profile_math", "history_statistics")
 DISALLOWED_IMPORT_ROOTS = frozenset({
     "bybit", "grid", "terminan", "strattester", "meta_analyse",
     "psycopg", "sqlite3", "websockets", "requests", "httpx",
@@ -40,8 +40,29 @@ class MathSdkOwnershipTests(unittest.TestCase):
         self.assertEqual(len(modules), len(SDK_MODULES))
         # Historical trading-like sources MUST NOT be distributed as Math SDK.
         self.assertNotIn("history_sizing", modules)
-        self.assertNotIn("history_statistics", modules)
         self.assertNotIn("history_scientific_worker", modules)
+
+    def test_observation_bootstrap_is_pure_and_reproducible(self):
+        sys.path.insert(0, str(ROOT / "python"))
+        try:
+            stats = importlib.import_module("history_statistics")
+            self.assertFalse(hasattr(stats, "apply_sizing"))
+            self.assertFalse(hasattr(stats, "ruin_stats"))
+            self.assertFalse(hasattr(stats, "paired_expectancy_bootstrap"))
+            self.assertFalse(hasattr(stats, "block_bootstrap_expectancy"))
+            values = [("a", 1.0), ("b", 2.0), ("c", 3.0), ("d", 4.0)]
+            shifted = [(key, value + 0.25) for key, value in values]
+            p = stats.paired_observation_bootstrap(values, shifted, runs=40, seed=17)
+            self.assertEqual(p, stats.paired_observation_bootstrap(values, shifted, runs=40, seed=17))
+            self.assertEqual(p["paired"], 4)
+            self.assertAlmostEqual(p["delta_mean"], 0.25)
+            b = stats.block_observation_bootstrap((x for _, x in values), block_size=2, runs=40, seed=23)
+            self.assertEqual(b, stats.block_observation_bootstrap((x for _, x in values), block_size=2, runs=40, seed=23))
+            self.assertEqual(b["samples"], 4)
+            with self.assertRaises(ValueError):
+                stats.block_observation_bootstrap([1.0, float("nan")], block_size=1)
+        finally:
+            sys.path.pop(0)
 
     def test_exported_math_code_has_no_exchange_database_or_trade_engine(self):
         for module in SDK_MODULES:
