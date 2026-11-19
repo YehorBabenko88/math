@@ -47,7 +47,6 @@ jobs:
           persist-credentials: false
       - name: Verify immutable Meta source and Math numerical parity
         run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
-        run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
       - name: Explicit pinned consolidated kernel profile and original scientific parity
         run: python scripts/history/parity.py --kernel-profile unified-bootstrap-v3
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
