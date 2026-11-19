@@ -28,7 +28,7 @@ jobs:
       - name: Build and install standalone Math SDK from exact committed source
         shell: python {0}
         run: |
-          import importlib, os, pathlib, subprocess, sys, tempfile, venv
+          import hashlib, os, pathlib, subprocess, tempfile, venv
           root=pathlib.Path.cwd()
           names=['pyproject.toml','python/market_compute_api.py',
                  'python/market_profile_math.py','python/history_statistics.py']
@@ -68,11 +68,23 @@ jobs:
               py=installed/executable
               call([py,'-m','pip','install','--no-index','--no-deps',files[0]])
               program=("import importlib.metadata as m;"
-                       "from market_compute_api import compute_observation_bootstrap;"
+                       "from decimal import Decimal;"
+                       "from market_compute_api import OBSERVATION_BOOTSTRAP_REQUEST,"
+                       "STREAM_ABI,aggregate_orderflow_stream,compute_observation_bootstrap;"
                        "import history_statistics as h;"
-                       "assert m.version('unified-math-kernels')=='0.1.0';"
+                       "dist=m.distribution('unified-math-kernels');"
+                       "assert dist.version=='0.1.0';"
+                       "assert dist.metadata['Requires-Python']=='>=3.11';"
+                       "assert not dist.requires;"
+                       "assert {p.name for p in dist.files if p.suffix=='.py'}=="
+                       "{'market_compute_api.py','market_profile_math.py','history_statistics.py'};"
+                       "assert STREAM_ABI=='math.market.orderflow.stream.v1';"
+                       "rows=((i,Decimal('100'),Decimal('0.01'),'buy') for i in range(100_000));"
+                       "buckets=aggregate_orderflow_stream(rows,mode='time',interval_ms=60_000);"
+                       "assert sum(m['trade_count'] for _,m in buckets)==100_000;"
+                       "assert sum(m['buy_volume'] for _,m in buckets)==Decimal('1000');"
                        "assert callable(h.paired_observation_bootstrap);"
-                       "q={'schema':'math.observation.bootstrap.request.v1',"
+                       "q={'schema':OBSERVATION_BOOTSTRAP_REQUEST,"
                        "'execution_authority':False,"
                        "'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,"
                        "'unit':'dimensionless'},"
@@ -87,3 +99,4 @@ jobs:
                        "assert r['execution_authority'] is False")
               call([py,'-B','-c',program],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
+              print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
