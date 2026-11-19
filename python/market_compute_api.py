@@ -11,13 +11,14 @@ from typing import Mapping
 
 from market_profile_math import (price_bucket, volume_profile_poc, executed_volume_delta,
                                  wall_notional, untouched_decimal_levels,
-                                 tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios)
+                                 tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios,
+                                 orderflow_volume_metrics)
 
 SCHEMA = "math.market.compute.v1"
 RESULT = "math.market.result.v1"
 ALGORITHMS = frozenset({"price_bucket", "volume_profile_poc", "executed_volume_delta",
                         "wall_notional", "untouched_decimal_levels", "tape_velocity_metrics",
-                        "flow_window_metrics", "wall_turnover_ratios"})
+                        "flow_window_metrics", "wall_turnover_ratios", "orderflow_volume_metrics"})
 MAX_BATCH = 256
 MAX_REQUEST_BYTES = 262144
 
@@ -106,6 +107,18 @@ def _compute(item):
         result = flow_window_metrics(decoded, args["now_ms"], args["window_seconds"])
         return {key: str(value) if isinstance(value, Decimal) else value
                 for key,value in result.items()}
+    if operation == "orderflow_volume_metrics":
+        _record(args, {"trades", "initial_delta"})
+        rows = args["trades"]
+        if not isinstance(rows, list) or len(rows) > 2048:
+            raise ValueError("TRADE_LIMIT")
+        parsed = []
+        for trade in rows:
+            _record(trade, {"price", "volume", "side"})
+            parsed.append((_decimal(trade["price"]), _decimal(trade["volume"]), trade["side"]))
+        result = orderflow_volume_metrics(parsed, _decimal(args["initial_delta"]))
+        return {name:str(value) if isinstance(value,Decimal) else value
+                for name,value in result.items()}
     if operation == "wall_turnover_ratios":
         _record(args, {"price", "size", "turnovers"})
         amounts = args["turnovers"]
@@ -166,7 +179,8 @@ def compute_batch(request: Mapping) -> dict:
             unit = ("base" if operation["operation"] == "executed_volume_delta"
                     else "quote" if operation["operation"] == "wall_notional"
                     else "mixed" if operation["operation"] in
-                    ("tape_velocity_metrics", "flow_window_metrics", "wall_turnover_ratios")
+                    ("tape_velocity_metrics", "flow_window_metrics", "wall_turnover_ratios",
+                     "orderflow_volume_metrics")
                     else "quote/base")
             results.append({"operation": operation["operation"], "unit": unit, "value": value})
     # JSON roundtrip detaches nested caller-owned DTOs from the response.
