@@ -60,8 +60,9 @@ jobs:
               for name in names:
                   src=root/name;dst=source/name;dst.parent.mkdir(parents=True,exist_ok=True)
                   data=src.read_bytes();oid=call(['git','--no-replace-objects','-C',root,'show','HEAD:'+name])
-                  if data!=oid:raise RuntimeError('MATH_PACKAGE_SOURCE_MISMATCH:'+name)
-                  dst.write_bytes(data)
+                  if data!=oid and data!=oid.replace(b'\n',b'\r\n'):
+                      raise RuntimeError('MATH_PACKAGE_SOURCE_MISMATCH:'+name)
+                  dst.write_bytes(oid)
               wheel_dir=tmp/'wheels';wheel_dir.mkdir()
               call([sys.executable,'-m','pip','wheel','--no-deps','--no-build-isolation',
                     '--wheel-dir',wheel_dir,source],cwd=tmp)
