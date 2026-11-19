@@ -93,7 +93,6 @@ def compute_batch(request: Mapping) -> dict:
     # An explicit context prevents ambient caller Decimal settings from changing outputs.
     with localcontext(Context(prec=96, rounding=ROUND_HALF_UP)):
         for operation in operations:
-            _record(operation, {"operation", "input"})
             try:
                 value = _compute(operation)
             except (InvalidOperation, OverflowError) as exc:
