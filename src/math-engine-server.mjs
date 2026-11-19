@@ -6,6 +6,33 @@ import {dirname,resolve,isAbsolute,join} from 'node:path';
 import {devNull} from 'node:os';
 import {execFileSync} from 'node:child_process';
 const MAX_BYTES=262144;
+// Math owns research only. Reject execution economics at every JSON entrypoint;
+// a market-trade observation is fine, but orders, fills and PnL are Terminan's.
+const TRADING_KEYS=new Set(['paper_trading','simulated_trading','virtual_order','virtual_orders',
+ 'order_id','order_type','order_quantity','orders','fills','fill_price','position','positions',
+ 'position_size','position_sizing','strategy_execution','execute_strategy',
+ 'backtest_trades','simulated_fills','pnl','net_pnl','gross_pnl','realized_pnl',
+ 'unrealized_pnl','portfolio_pnl','commission','commissions','fees','fee_rate',
+ 'slippage','slippage_bps','execution_costs','promotion_decision']);
+const TRADING_MODES=new Set(['PAPER_TRADING','SIMULATED_TRADING','STRATEGY_EXECUTION',
+ 'TRADE_BACKTEST','EXECUTE_ORDERS']);
+export function rejectTradingOwnership(body){
+ const stack=[body];let seen=0;
+ while(stack.length){
+  if(++seen>32768)throw Error('MATH_RESEARCH_INPUT_LIMIT');
+  const item=stack.pop();
+  if(!item||typeof item!=='object')continue;
+  if(Array.isArray(item)){for(const entry of item)stack.push(entry);continue;}
+  for(const [name,value] of Object.entries(item)){
+   const key=name.replace(/([a-z0-9])([A-Z])/g,'$1_$2').toLowerCase();
+   if(TRADING_KEYS.has(key)||((key==='mode'||key==='kind')&&
+     typeof value==='string'&&TRADING_MODES.has(value.toUpperCase())))
+      throw Error('TERMINAN_TRADING_OWNER_ONLY');
+   if(value&&typeof value==='object')stack.push(value);
+  }
+ }
+ return body;
+}
 let moduleStartupRejected=false;
 let startupPhase='SOURCE_IDENTITY';
 function privateFixturePhase(){
@@ -18,9 +45,10 @@ let evaluateUnitRequest,executeScientificGraph,scientificCapabilities,runBounded
 export function decodeMathBody(chunks,expectedLength){
  const bytes=Buffer.concat(chunks);
  if(bytes.length!==expectedLength||bytes.length>MAX_BYTES)throw Error('BODY_LIMIT');
- return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+ return rejectTradingOwnership(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
 }
 export function evaluateMathRequest(body) {
+ rejectTradingOwnership(body);
  if(moduleStartupRejected)throw Error('MODULE_STARTUP_REJECTED');
  if(!body||typeof body!=='object'||Array.isArray(body)||body.schema!=='math.evaluate.v1'||body.mode!=='HISTORICAL_RESEARCH'||body.execution_authority!==false)
   throw Error('INVALID_CONTRACT');
