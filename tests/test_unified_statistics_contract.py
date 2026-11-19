@@ -185,8 +185,8 @@ class MetaMarketMathContract(unittest.TestCase):
     def test_meta_tape_wall_flow_pure_arithmetic(self):
         D=Decimal
         events=[(1000,D("100"),D("1"),"Buy"),(2000,D("101"),D("2"),"Sell")]
-        tape=PROFILE.tape_velocity_metrics(events,D("100"),D("1"),5000,D("20"),2000)
-        self.assertEqual(tape,(D("0.4"),D("60.4"),D("100"),D("202")))
+        tape=PROFILE.tape_velocity_metrics(events,D("100"),D("1"),5000,D("20"),2000,observed_price=D("101"))
+        self.assertEqual(tape,(D("0.4"),D("60.4"),D("100"),D("202"),D("1")))
         self.assertEqual(PROFILE.wall_notional(D("100"),D("1000")),D("100000"))
         flow=PROFILE.flow_window_metrics([(1000,D("100"),"buy"),(2000,D("202"),"sell")],2000,60)
         self.assertEqual(flow,{"turnover_usd":D("302"),"trades":2,"buy_usd":D("100"),
