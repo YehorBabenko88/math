@@ -7,6 +7,9 @@ import importlib.util
 import math
 from decimal import Decimal
 import subprocess
+import sys
+import types
+from datetime import datetime, timezone
 from pathlib import Path
 import unittest
 
@@ -112,6 +115,72 @@ class MetaMarketMathContract(unittest.TestCase):
         self.assertEqual(PROFILE.volume_profile_poc({}), None)
         with self.assertRaisesRegex(ValueError, "empty volume profile"):
             PROFILE.volume_profile_poc({}, close=Decimal("100"))
+
+
+    def test_exact_pinned_meta_core_and_footprint_parity(self):
+        """Execute original immutable Meta algorithm bytes against the Math owner."""
+        reference_root = ROOT / "reference-meta"
+        if not reference_root.is_dir():
+            self.fail("PINNED_META_REFERENCE_MISSING: checkout required, never skip")
+        upstream = "f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1"
+        def original(path, oid):
+            source = subprocess.check_output(
+                ["git", "--no-replace-objects", "-C", str(reference_root),
+                 "show", upstream + ":" + path], timeout=15)
+            observed = subprocess.check_output(
+                ["git", "hash-object", "--stdin"], input=source, timeout=15
+            ).decode().strip()
+            self.assertEqual(observed, oid, "META_SOURCE_BLOB_MISMATCH:" + path)
+            return source
+        core = original("src/meta_analyse/core.py",
+                        "d75c40244f5a486f87d710e818c2194212a74f67")
+        footprint = original("src/meta_analyse/footprint.py",
+                             "7ba45e2073ca989dda222d63bda116f2c5741ec0")
+        package = types.ModuleType("pinned_meta_math_reference")
+        package.__path__ = []
+        core_module = types.ModuleType("pinned_meta_math_reference.core")
+        footprint_module = types.ModuleType("pinned_meta_math_reference.footprint")
+        namespace = {"pinned_meta_math_reference": package,
+                     "pinned_meta_math_reference.core": core_module,
+                     "pinned_meta_math_reference.footprint": footprint_module}
+        previous = {key: sys.modules.get(key) for key in namespace}
+        try:
+            sys.modules.update(namespace)
+            exec(compile(core, "<pinned-meta-core>", "exec"), core_module.__dict__)
+            exec(compile(footprint, "<pinned-meta-footprint>", "exec"),
+                 footprint_module.__dict__)
+            D = Decimal
+            for n in range(1, 120):
+                price = D(n) / D("1000")
+                tick = (D("0.01"), D("0.005"), D("0.1"))[n % 3]
+                with self.subTest(case=n):
+                    self.assertEqual(PROFILE.price_bucket(price, tick),
+                                     core_module.price_bucket(price, tick))
+            now = datetime(2026, 11, 19, tzinfo=timezone.utc)
+            for close in (D("100"), D("101"), D("100.5")):
+                minute = core_module.Minute(now, D("1"), close, close, close, close)
+                minute.profile = {D("100"): D("2"), D("101"): D("2")}
+                self.assertEqual(PROFILE.volume_profile_poc(minute.profile, close=close),
+                                 minute.poc)
+                cells = {price: footprint_module.FootprintCell(buy=volume)
+                         for price, volume in minute.profile.items()}
+                book = footprint_module.Footprint("BTCUSDT", 0, 60000, D("1"), cells)
+                self.assertEqual(PROFILE.volume_profile_poc(minute.profile), book.poc)
+                self.assertEqual(PROFILE.executed_volume_delta(D("5"), D("3")),
+                                 footprint_module.FootprintCell(D("5"), D("3")).delta)
+            empty = core_module.Minute(now, D("1"), D("100"), D("100"),
+                                       D("100"), D("100"))
+            with self.assertRaises(ValueError):
+                _ = empty.poc
+            with self.assertRaises(ValueError):
+                PROFILE.volume_profile_poc({}, close=D("100"))
+            self.assertIsNone(PROFILE.volume_profile_poc({}))
+        finally:
+            for key, old in previous.items():
+                if old is None:
+                    sys.modules.pop(key, None)
+                else:
+                    sys.modules[key] = old
 
     def test_delta_and_invalid_decimal_inputs_refuse(self):
         self.assertEqual(PROFILE.executed_volume_delta(Decimal("3"), Decimal("1")), Decimal("2"))
