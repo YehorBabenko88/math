@@ -5,7 +5,7 @@ This test suite exercises the committed module; does not contact Grid or an exch
 import hashlib
 import importlib.util
 import math
-from decimal import Decimal, localcontext
+from decimal import Decimal, Inexact, ROUND_DOWN, Rounded, localcontext
 import subprocess
 import sys
 import types
@@ -117,6 +117,37 @@ class MetaMarketMathContract(unittest.TestCase):
         ):
             with self.subTest(price=price, tick=tick):
                 self.assertEqual(PROFILE.price_bucket(Decimal(price), Decimal(tick)), Decimal(expected))
+
+    def test_price_bucket_exact_across_decimal_contexts(self):
+        cases = (
+            ("100.005", "0.01", "100.01"),
+            ("100.004999999999999999", "0.01", "100.00"),
+            ("12345.675", "0.01", "12345.68"),
+            ("1.125", "0.25", "1.25"),
+            ("1.124999999999999999", "0.25", "1.00"),
+            ("0.0001", "0.0100", "0.0000"),
+            ("1.005e-950", "1e-952", "1.01e-950"),
+            ("1.005e950", "1e948", "1.01e950"),
+            ("1e1000", "1e-1000", "1e1000"),
+            ("1e-1000", "1e1000", "0e1000"),
+        )
+        for precision in (3, 5, 6, 28):
+            with localcontext() as ctx:
+                ctx.prec, ctx.rounding, ctx.Emax, ctx.Emin = precision, ROUND_DOWN, 20, -20
+                ctx.traps[Inexact] = ctx.traps[Rounded] = True
+                ctx.clear_flags()
+                for price, tick, expected in cases:
+                    with self.subTest(precision=precision, price=price, tick=tick):
+                        result = PROFILE.price_bucket(Decimal(price), Decimal(tick))
+                        self.assertEqual(result, Decimal(expected))
+                        self.assertEqual(result.as_tuple().exponent, Decimal(tick).as_tuple().exponent)
+                self.assertFalse(any(ctx.flags.values()))
+
+    def test_price_bucket_refuses_inputs_outside_work_bound(self):
+        for oversized in (Decimal("1e1001"), Decimal("1e-1001"), Decimal("1" * 129)):
+            for price, tick in ((oversized, Decimal(1)), (Decimal(1), oversized)):
+                with self.subTest(price=price, tick=tick), self.assertRaises(ValueError):
+                    PROFILE.price_bucket(price, tick)
 
     def test_distinct_meta_poc_tie_contracts(self):
         profile = {Decimal("100"): Decimal("1"), Decimal("101"): Decimal("1")}

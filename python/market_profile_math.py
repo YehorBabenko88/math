@@ -4,7 +4,7 @@ Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
 from collections.abc import Mapping
-from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_HALF_UP, ROUND_FLOOR
+from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_FLOOR
 from math import isfinite
 
 
@@ -16,11 +16,38 @@ def _positive_finite_decimal(value, *, zero_allowed=False):
     return value
 
 
+_PRICE_BUCKET_MAX_DIGITS = 128
+_PRICE_BUCKET_MAX_ABS_EXPONENT = 1000
+
+
 def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
-    """ROUND_HALF_UP reproduces Meta Analyse core.price_bucket."""
-    _positive_finite_decimal(price)
-    _positive_finite_decimal(tick)
-    return (price / tick).quantize(Decimal("1"), rounding=ROUND_HALF_UP) * tick
+    """Round to a tick with exact HALF_UP semantics and the tick's exponent.
+
+    Positive finite operands accept up to 128 coefficient digits and an
+    exponent from -1000 through 1000. Wider inputs raise ValueError before
+    any integer scaling. The caller's Decimal context is unused.
+    """
+    price_parts = _positive_finite_decimal(price).as_tuple()
+    tick_parts = _positive_finite_decimal(tick).as_tuple()
+    for parts in (price_parts, tick_parts):
+        if (len(parts.digits) > _PRICE_BUCKET_MAX_DIGITS
+                or abs(parts.exponent) > _PRICE_BUCKET_MAX_ABS_EXPONENT):
+            raise ValueError("price bucket Decimal outside supported domain")
+
+    numerator = int(Decimal((0, price_parts.digits, 0)))
+    tick_coefficient = int(Decimal((0, tick_parts.digits, 0)))
+    denominator = tick_coefficient
+    shift = price_parts.exponent - tick_parts.exponent
+    if shift >= 0:
+        numerator *= 10**shift
+    else:
+        denominator *= 10**-shift
+
+    ticks, remainder = divmod(numerator, denominator)
+    if 2 * remainder >= denominator:
+        ticks += 1
+    digits = Decimal(ticks * tick_coefficient).as_tuple().digits
+    return Decimal((0, digits, tick_parts.exponent))
 
 
 def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None):

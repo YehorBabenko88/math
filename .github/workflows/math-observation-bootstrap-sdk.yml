@@ -85,10 +85,10 @@ jobs:
               py=installed/executable
               call([py,'-m','pip','install','--no-index','--no-deps',files[0]])
               program=("import importlib.metadata as m;"
-                       "from decimal import Decimal;"
+                       "from decimal import Decimal,Inexact,getcontext;"
                        "from market_compute_api import OBSERVATION_BOOTSTRAP_REQUEST,"
                        "STREAM_ABI,TIMEFRAME_LEVELS_ABI,aggregate_orderflow_stream,"
-                       "compute_observation_bootstrap,untouched_timeframe_levels;"
+                       "compute_observation_bootstrap,price_bucket,untouched_timeframe_levels;"
                        "import history_statistics as h;"
                        "dist=m.distribution('unified-math-kernels');"
                        "assert dist.version=='0.1.0';"
@@ -117,7 +117,11 @@ jobs:
                        "assert r['result']['delta_mean']==0.25;"
                        "assert r['provenance']=='CALLER_SUPPLIED_UNATTESTED';"
                        "assert r['trading_authorized'] is False;"
-                       "assert r['execution_authority'] is False")
+                       "assert r['execution_authority'] is False;"
+                       "getcontext().prec=5;"
+                       "getcontext().traps[Inexact]=True;"
+                       "assert price_bucket(Decimal('100.005'),Decimal('0.01'))==Decimal('100.01');"
+                       "assert price_bucket(Decimal('12345.675'),Decimal('0.01'))==Decimal('12345.68')")
               call([py,'-I','-B','-c',program],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
               print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
