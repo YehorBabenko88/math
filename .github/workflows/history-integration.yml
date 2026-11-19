@@ -40,7 +40,7 @@ jobs:
         env:
           GRID_REFERENCE: ${{ github.workspace }}/reference-grid
       - name: Explicit pinned finite kernel profile and original scientific parity
-        run: python scripts/history/parity.py --kernel-profile finite-bootstrap-v2
+        run: python scripts/history/parity.py --kernel-profile unified-bootstrap-v3
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
