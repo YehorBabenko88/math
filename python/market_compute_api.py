@@ -9,11 +9,13 @@ from hashlib import sha256
 import json
 from typing import Mapping
 
-from market_profile_math import price_bucket, volume_profile_poc, executed_volume_delta
+from market_profile_math import (price_bucket, volume_profile_poc, executed_volume_delta,
+                                 wall_notional, untouched_decimal_levels)
 
 SCHEMA = "math.market.compute.v1"
 RESULT = "math.market.result.v1"
-ALGORITHMS = frozenset({"price_bucket", "volume_profile_poc", "executed_volume_delta"})
+ALGORITHMS = frozenset({"price_bucket", "volume_profile_poc", "executed_volume_delta",
+                        "wall_notional", "untouched_decimal_levels"})
 MAX_BATCH = 256
 MAX_REQUEST_BYTES = 262144
 
@@ -51,6 +53,21 @@ def _compute(item):
     if operation == "executed_volume_delta":
         _record(args, {"buy", "sell"})
         return str(executed_volume_delta(_decimal(args["buy"]), _decimal(args["sell"])))
+    if operation == "wall_notional":
+        _record(args, {"price", "size"})
+        return str(wall_notional(_decimal(args["price"]), _decimal(args["size"])))
+    if operation == "untouched_decimal_levels":
+        _record(args, {"candles"})
+        if not isinstance(args["candles"], list) or len(args["candles"]) > 2048:
+            raise ValueError("CANDLE_LIMIT")
+        rows = []
+        for candle in args["candles"]:
+            _record(candle, {"start_ms", "high", "low", "complete"})
+            if candle["complete"] is not True:
+                raise ValueError("UNCLOSED_CANDLE")
+            rows.append((candle["start_ms"], _decimal(candle["high"]), _decimal(candle["low"])))
+        return [{"side":side,"price":str(price),"origin_ms":start}
+                for side,price,start in untouched_decimal_levels(rows)]
     _record(args, {"profile", "close"})
     if not isinstance(args["profile"], list) or len(args["profile"]) > 2048:
         raise ValueError("INVALID_PROFILE")
@@ -97,7 +114,9 @@ def compute_batch(request: Mapping) -> dict:
                 value = _compute(operation)
             except (InvalidOperation, OverflowError) as exc:
                 raise ValueError("NUMERIC_COMPUTATION_REJECTED") from exc
-            unit = "base" if operation["operation"] == "executed_volume_delta" else "quote/base"
+            unit = ("base" if operation["operation"] == "executed_volume_delta"
+                    else "quote" if operation["operation"] == "wall_notional"
+                    else "quote/base")
             results.append({"operation": operation["operation"], "unit": unit, "value": value})
     # JSON roundtrip detaches nested caller-owned DTOs from the response.
     snapshot = json.loads(canonical)
