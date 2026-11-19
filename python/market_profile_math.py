@@ -47,3 +47,75 @@ def executed_volume_delta(buy: Decimal, sell: Decimal) -> Decimal:
     _positive_finite_decimal(buy, zero_allowed=True)
     _positive_finite_decimal(sell, zero_allowed=True)
     return buy - sell
+
+
+def tape_velocity_metrics(events, level_price: Decimal, tick_size: Decimal,
+                          window_ms: int, proximity_ticks: Decimal, now_ms: int):
+    """Pure Meta TapeVelocity arithmetic; event ordering and gaps remain caller-owned."""
+    _positive_finite_decimal(level_price)
+    _positive_finite_decimal(tick_size)
+    _positive_finite_decimal(proximity_ticks, zero_allowed=True)
+    if type(window_ms) is not int or window_ms <= 0 or type(now_ms) is not int or now_ms < 0:
+        raise ValueError("invalid tape window")
+    if not isinstance(events, (tuple, list)):
+        raise ValueError("invalid tape events")
+    buys = sells = Decimal(0)
+    count = 0
+    for timestamp_ms, price, quantity, side in events:
+        if type(timestamp_ms) is not int or timestamp_ms < now_ms-window_ms or timestamp_ms > now_ms:
+            raise ValueError("invalid tape timestamp")
+        _positive_finite_decimal(price)
+        _positive_finite_decimal(quantity, zero_allowed=True)
+        if side not in ("Buy", "Sell"):
+            raise ValueError("invalid tape side")
+        if abs(price-level_price)/tick_size <= proximity_ticks:
+            count += 1
+            amount = price * quantity
+            if side == "Buy":
+                buys += amount
+            else:
+                sells += amount
+    seconds = Decimal(window_ms)/Decimal(1000)
+    return (Decimal(count)/seconds, (buys+sells)/seconds, buys, sells)
+
+
+def wall_notional(price: Decimal, size: Decimal) -> Decimal:
+    """Source-owned wall arithmetic; book membership and lifetime stay with observer."""
+    _positive_finite_decimal(price)
+    _positive_finite_decimal(size, zero_allowed=True)
+    return price*size
+
+
+def flow_window_metrics(events, now_ms: int, window_seconds: int):
+    """Pure Meta RollingFlow metrics. Input: (time_ms, notional, side) tuples."""
+    if type(now_ms) is not int or type(window_seconds) is not int or window_seconds <= 0:
+        raise ValueError("invalid flow window")
+    if not isinstance(events, (tuple, list)):
+        raise ValueError("invalid flow events")
+    buys = sells = total = Decimal(0)
+    count = 0
+    for timestamp_ms, notional, side in events:
+        if type(timestamp_ms) is not int:
+            raise ValueError("invalid flow timestamp")
+        _positive_finite_decimal(notional, zero_allowed=True)
+        if not 0 <= now_ms-timestamp_ms <= window_seconds*1000:
+            continue
+        count += 1
+        total += notional
+        if side in ("buy", "1"):
+            buys += notional
+        elif side in ("sell", "2"):
+            sells += notional
+    return {"turnover_usd": total, "trades": count, "buy_usd": buys,
+            "sell_usd": sells, "trades_per_second": Decimal(count)/Decimal(window_seconds)}
+
+
+def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers):
+    """Pure Meta RollingFlow.wall_score arithmetic; unknown source stays unverified."""
+    amount = wall_notional(price, size)
+    if not isinstance(turnovers, dict):
+        raise ValueError("invalid turnovers")
+    return {"wall_usd": amount,
+            "ratios": {window: amount/max(Decimal(1), _positive_finite_decimal(total, zero_allowed=True))
+                       for window,total in turnovers.items()},
+            "observed_turnover": turnovers.copy()}
