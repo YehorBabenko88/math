@@ -80,6 +80,36 @@ class TerminanMathParity(unittest.TestCase):
             with self.subTest(tick=bad), self.assertRaises(ValueError):
                 api.untouched_timeframe_levels([], "1h", 3600000, tick_size=bad)
 
+    def test_malformed_candle_metadata_fails_closed(self):
+        row = {"t": 0, "h": 2, "l": 1, "complete": True}
+        invalid = [
+            {"t": -0.5}, {"t": 0.5}, {"t": True}, {"t": "0"}, {"t": 2**63},
+            {"h": True}, {"l": False}, {"complete": 0}, {"complete": "False"},
+            {"complete": None},
+        ]
+        for fields in invalid:
+            with self.subTest(fields=fields), self.assertRaises(ValueError):
+                api.untouched_timeframe_levels([row | fields], "1h", 3600000)
+        for timeframe in ([], "1m"):
+            with self.subTest(timeframe=timeframe), self.assertRaises(ValueError):
+                api.untouched_timeframe_levels([row], timeframe, 3600000)
+        for as_of in (True, 3600000.0, 2**63):
+            with self.subTest(as_of=as_of), self.assertRaises(ValueError):
+                api.untouched_timeframe_levels([row], "1h", as_of)
+        with self.assertRaises(ValueError):
+            api.untouched_timeframe_levels([row], "1h", 3600000, tick_size=True)
+
+    def test_exact_close_boundary_and_optional_completion(self):
+        row = {"t": 1, "h": Decimal("2"), "l": "1"}
+        self.assertEqual(api.untouched_timeframe_levels([row], "1h", 3600000), [])
+        levels = api.untouched_timeframe_levels([row], "1h", 3600001, tick_size="0")
+        self.assertEqual([(x["origin_ms"], x["confirmed_ms"]) for x in levels],
+                         [(1, 3600001), (1, 3600001)])
+        self.assertEqual(api.untouched_timeframe_levels(
+            [row | {"complete": True}], "1h", 3600001), levels)
+        self.assertEqual(api.untouched_timeframe_levels(
+            [row | {"complete": False}], "1h", 3600001), [])
+
     def test_poc_volume_priority_does_not_round_in_caller_context(self):
         low, high = Decimal("10"), Decimal("11")
         profile = {low: Decimal("1.00001"), high: Decimal("1.00002")}

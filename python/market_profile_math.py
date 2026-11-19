@@ -3,6 +3,7 @@
 Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
+from collections.abc import Mapping
 from decimal import Decimal, ROUND_HALF_UP, ROUND_FLOOR
 from math import isfinite
 
@@ -175,35 +176,50 @@ def _untouched_price_sweep(candles, tick_size=None):
 _LEVEL_PERIOD_MS = {"1h": 3600000, "4h": 14400000, "1d": 86400000, "1w": 604800000}
 
 
-def untouched_timeframe_levels(candles, timeframe, as_of_ms, *, tick_size=0, max_levels=200):
-    """Legacy binary64 level ABI for finite candles from a caller-qualified snapshot.
+def _finite_level_number(value):
+    if type(value) not in (int, float, Decimal, str):
+        raise ValueError("invalid level number")
+    try:
+        number = float(value)
+    except (ValueError, OverflowError) as exc:
+        raise ValueError("invalid level number") from exc
+    if not isfinite(number):
+        raise ValueError("invalid level number")
+    return number
 
-    Start times are UTC epoch milliseconds. Missing complete flags retain legacy
-    behavior. Explicitly incomplete candles and candles closing after as-of are
-    excluded. This function gives no assurance about source or coverage.
+
+def untouched_timeframe_levels(candles, timeframe, as_of_ms, *, tick_size=0, max_levels=200):
+    """Compute levels from up to 20,000 caller-qualified t/h/l candles.
+
+    t and as_of_ms are nonnegative integer UTC epoch milliseconds in int64.
+    h, l and tick_size are finite binary64 values after conversion from int,
+    float, Decimal or numeric string. complete must be Boolean when present.
+    Missing complete retains legacy behavior. Incomplete candles and candles
+    closing after as_of_ms are excluded. Source and coverage are caller-owned.
     """
-    if (timeframe not in _LEVEL_PERIOD_MS or type(as_of_ms) is not int or as_of_ms < 0
+    if (type(timeframe) is not str or timeframe not in _LEVEL_PERIOD_MS
+            or type(as_of_ms) is not int or not 0 <= as_of_ms < 2**63
             or type(max_levels) is not int or not 1 <= max_levels <= 2000):
         raise ValueError("invalid level parameters")
     if not isinstance(candles, (list, tuple)) or len(candles) > 20000:
         raise ValueError("invalid candle collection")
     period = _LEVEL_PERIOD_MS[timeframe]
-    try:
-        tick_size = float(tick_size)
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise ValueError("invalid tick size") from exc
-    if not isfinite(tick_size) or tick_size < 0:
+    tick_size = _finite_level_number(tick_size)
+    if tick_size < 0:
         raise ValueError("invalid tick size")
     normalized = []
     for candle in candles:
-        try:
-            start = int(candle["t"])
-            high, low = float(candle["h"]), float(candle["l"])
-        except (KeyError, TypeError, ValueError, OverflowError) as exc:
-            raise ValueError("invalid candle") from exc
-        if start < 0 or not isfinite(high) or not isfinite(low) or high < low:
+        if not isinstance(candle, Mapping) or not {"t", "h", "l"} <= candle.keys():
             raise ValueError("invalid candle")
-        if start + period <= as_of_ms and candle.get("complete") is not False:
+        start = candle["t"]
+        complete = candle.get("complete", True)
+        if type(start) is not int or not 0 <= start < 2**63 or type(complete) is not bool:
+            raise ValueError("invalid candle time or completion")
+        high = _finite_level_number(candle["h"])
+        low = _finite_level_number(candle["l"])
+        if high < low:
+            raise ValueError("invalid candle range")
+        if complete and start + period <= as_of_ms:
             normalized.append((start, high, low))
     normalized.sort(key=lambda row: row[0])
     active = _untouched_price_sweep(normalized, tick_size)
