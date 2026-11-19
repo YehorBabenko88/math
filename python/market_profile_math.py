@@ -234,3 +234,37 @@ def aggregate_orderflow(trades, *, mode: str, interval_ms: int | None = None,
         cumulative = metrics["cumulative_delta"]
         rows.append((key, metrics))
     return tuple(rows)
+
+
+def large_liquidity_levels(bids, asks, level_price: Decimal, tick_size: Decimal,
+                           *, min_notional=Decimal("100000"),
+                           min_relative=Decimal("5"),
+                           max_distance_ticks=Decimal("50")):
+    """Math part of Meta liquidity.large_levels; caller owns book validity/provenance."""
+    _positive_finite_decimal(level_price)
+    _positive_finite_decimal(tick_size)
+    _positive_finite_decimal(min_notional, zero_allowed=True)
+    _positive_finite_decimal(min_relative, zero_allowed=True)
+    _positive_finite_decimal(max_distance_ticks, zero_allowed=True)
+    if not isinstance(bids, dict) or not isinstance(asks, dict) or len(bids)+len(asks)>4096:
+        raise ValueError("INVALID_LIQUIDITY_BOOK")
+    entries = []
+    for side, levels in (("bid", bids), ("ask", asks)):
+        for price, size in levels.items():
+            _positive_finite_decimal(price)
+            _positive_finite_decimal(size, zero_allowed=True)
+            entries.append((side, price, price*size))
+    amounts = sorted(amount for _,_,amount in entries if amount>0)
+    if not amounts:
+        return ()
+    mid=len(amounts)//2
+    median=amounts[mid] if len(amounts)%2 else (amounts[mid-1]+amounts[mid])/2
+    if median<=0:
+        return ()
+    results=[]
+    for side,price,amount in entries:
+        distance=abs(price-level_price)/tick_size
+        relative=amount/median
+        if amount>=min_notional and relative>=min_relative and distance<=max_distance_ticks:
+            results.append((side,price,amount,distance,relative))
+    return tuple(sorted(results,key=lambda value:(value[3],-value[2])))
