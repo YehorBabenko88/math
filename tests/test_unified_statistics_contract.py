@@ -140,17 +140,21 @@ class MetaMarketMathContract(unittest.TestCase):
                                "b97a681a70a60c9e9e8a9381591b60a27b2b7519")
         wall_source = original("src/meta_analyse/wall_tracker.py",
                                "a393ca3f09e52a467eda3b9745aaf154d4f13345")
+        orderflow_source = original("src/meta_analyse/orderflow_metrics.py",
+                                    "81233ea9d36b38d75615ac169ea0f41d6eca02ef")
         package = types.ModuleType("pinned_meta_math_reference")
         package.__path__ = []
         core_module = types.ModuleType("pinned_meta_math_reference.core")
         footprint_module = types.ModuleType("pinned_meta_math_reference.footprint")
         tape_module = types.ModuleType("pinned_meta_math_reference.tape_velocity")
         wall_module = types.ModuleType("pinned_meta_math_reference.wall_tracker")
+        orderflow_module = types.ModuleType("pinned_meta_math_reference.orderflow_metrics")
         namespace = {"pinned_meta_math_reference": package,
                      "pinned_meta_math_reference.core": core_module,
                      "pinned_meta_math_reference.footprint": footprint_module,
                      "pinned_meta_math_reference.tape_velocity": tape_module,
-                     "pinned_meta_math_reference.wall_tracker": wall_module}
+                     "pinned_meta_math_reference.wall_tracker": wall_module,
+                     "pinned_meta_math_reference.orderflow_metrics": orderflow_module}
         previous = {key: sys.modules.get(key) for key in namespace}
         try:
             sys.modules.update(namespace)
@@ -161,6 +165,8 @@ class MetaMarketMathContract(unittest.TestCase):
                  tape_module.__dict__)
             exec(compile(wall_source, "<pinned-meta-wall-tracker>", "exec"),
                  wall_module.__dict__)
+            exec(compile(orderflow_source, "<pinned-meta-orderflow>", "exec"),
+                 orderflow_module.__dict__)
             D = Decimal
             for n in range(1, 120):
                 price = D(n) / D("1000")
@@ -232,6 +238,19 @@ class MetaMarketMathContract(unittest.TestCase):
             warning = tracker.observe(types.SimpleNamespace(valid=True,bids={},asks={}),2000)
             self.assertEqual(len(warning),1)
             self.assertEqual(PROFILE.wall_notional(D("100"),D("1000")),warning[0].notional)
+            old_trades = [
+                orderflow_module.Trade(1000,D("100"),D("3"),"buy"),
+                orderflow_module.Trade(1001,D("100.1"),D("1"),"sell"),
+                orderflow_module.Trade(1002,D("100.2"),D("7"),"unknown")
+            ]
+            old_flow = orderflow_module.calculate(old_trades,initial_delta=D("5"))
+            new_flow = PROFILE.orderflow_volume_metrics(
+                [(t.price,t.volume,t.side) for t in old_trades],D("5"))
+            self.assertEqual(new_flow,vars(old_flow))
+            zero_flow = orderflow_module.calculate([
+                orderflow_module.Trade(1000,D("100"),D("2"),"unknown")])
+            self.assertEqual(PROFILE.orderflow_volume_metrics(
+                [(D("100"),D("2"),"unknown")]),vars(zero_flow))
             empty = core_module.Minute(now, D("1"), D("100"), D("100"),
                                        D("100"), D("100"))
             with self.assertRaises(ValueError):
@@ -406,6 +425,16 @@ class BoundedComputeApiContract(unittest.TestCase):
             self.assertEqual(out["results"][1]["value"]["trades_per_second"],
                              str(Decimal(2)/Decimal(60)))
         self.assertEqual(out["results"][2]["value"]["wall_usd"],"1000")
+        classified={"operation":"orderflow_volume_metrics","input":{
+            "trades":[{"price":"100","volume":"3","side":"buy"},
+                      {"price":"100.1","volume":"1","side":"sell"},
+                      {"price":"100.2","volume":"7","side":"unknown"}],
+            "initial_delta":"5"}}
+        extra=compute_batch(dict(base,operations=[classified]))
+        self.assertEqual(extra["results"][0]["value"],{
+            "buy_volume":"3","sell_volume":"1","unknown_volume":"7",
+            "delta":"2","cumulative_delta":"7","imbalance":"0.5","trade_count":3})
+        self.assertFalse(extra["trading_authorized"])
         self.assertEqual(out["results"][2]["value"]["ratios"]["60"],"1")
         self.assertEqual(out["results"][0]["unit"],"mixed")
         bad_tape = dict(tape, input=dict(tape["input"], contiguous=False))
