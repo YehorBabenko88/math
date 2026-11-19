@@ -74,12 +74,16 @@ jobs:
               env_dir=tmp/'venv';venv.EnvBuilder(with_pip=True,clear=True).create(env_dir)
               py=env_dir/('Scripts/python.exe' if os.name=='nt' else 'bin/python')
               call([py,'-m','pip','install','--no-index','--no-deps',wheels[0]],cwd=tmp)
-              program="""import json;from market_compute_api import compute_batch
-          r=compute_batch({'schema':'math.market.compute.v1','execution_authority':False,
-          'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,'units':{'price':'quote/base','volume':'base'}},
-          'operations':[{'operation':'price_bucket','input':{'price':'1.235','tick':'0.01'}}]})
-          assert r['results'][0]['value']=='1.24' and r['provenance']=='CALLER_SUPPLIED_UNATTESTED'
-          assert r['execution_authority'] is False and r['trading_authorized'] is False"""
+              program=("from market_compute_api import compute_batch;"
+                       "q={'schema':'math.market.compute.v1','execution_authority':False,"
+                       "'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,"
+                       "'units':{'price':'quote/base','volume':'base'}},"
+                       "'operations':[{'operation':'price_bucket',"
+                       "'input':{'price':'1.235','tick':'0.01'}}]};"
+                       "r=compute_batch(q);"
+                       "assert r['results'][0]['value']=='1.24' and "
+                       "r['provenance']=='CALLER_SUPPLIED_UNATTESTED' and "
+                       "r['execution_authority'] is False and r['trading_authorized'] is False")
               call([py,'-B','-c',program],cwd=tmp)
       - name: Explicit pinned consolidated kernel profile and original scientific parity
         run: python scripts/history/parity.py --kernel-profile unified-bootstrap-v3
