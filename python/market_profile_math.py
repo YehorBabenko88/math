@@ -674,7 +674,9 @@ def decimal_epoch_units(seconds, precision):
     """Floor nonnegative decimal epoch seconds to integer ms(3) or us(6).
 
     Accept only Decimal/string, finite 0<=seconds<253402300800; <=128
-    coefficient digits, exponent -1000..1000, and strings <=256 characters.
+    coefficient digits and strings <=256 characters. Extreme tiny/zero
+    exponents floor to zero before any scaling; nonzero results need only
+    bounded powers (at most133 places for128 coefficient digits).
     Parsing and integer scaling never use or mutate the caller's context.
     This converts units only; timestamp source/causality remain caller-owned.
     """
@@ -687,9 +689,8 @@ def decimal_epoch_units(seconds, precision):
     if type(seconds) is not Decimal or not seconds.is_finite() or not 0<=seconds<Decimal('253402300800'):
         raise ValueError('INVALID_EPOCH_SECONDS')
     parts=seconds.as_tuple()
-    if len(parts.digits)>128 or abs(parts.exponent)>1000:
-        raise ValueError('EPOCH_DECIMAL_DOMAIN')
+    if len(parts.digits)>128:raise ValueError('EPOCH_DECIMAL_DOMAIN')
+    if seconds.is_zero() or seconds.adjusted()+precision<0:return 0
     coefficient=int(Decimal((0,parts.digits,0)))
-    if coefficient==0:return 0
     shift=parts.exponent+precision
     return coefficient*10**shift if shift>=0 else coefficient//10**-shift
