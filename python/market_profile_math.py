@@ -4,7 +4,7 @@ Preserves the source-defined HALF_UP tick bucket and explicit POC tie policies.
 Does not ingest market data, run strategies, or assign trading authority.
 """
 from collections.abc import Mapping
-from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_HALF_EVEN
+from decimal import Context, Decimal, Inexact, InvalidOperation, MAX_EMAX, MIN_EMIN, ROUND_HALF_EVEN
 from math import isfinite
 import math
 
@@ -668,3 +668,28 @@ def large_liquidity_levels(bids, asks, level_price: Decimal, tick_size: Decimal,
             value = (side, price, amount, _market_ratio(gap, tick_size), _market_ratio(amount, median))
             results.append((gap, amount.copy_negate(), value))
     return tuple(value for _,_,value in sorted(results, key=lambda item: item[:2]))
+
+
+def decimal_epoch_units(seconds, precision):
+    """Floor nonnegative decimal epoch seconds to integer ms(3) or us(6).
+
+    Accept only Decimal/string, finite 0<=seconds<253402300800; <=128
+    coefficient digits, exponent -1000..1000, and strings <=256 characters.
+    Parsing and integer scaling never use or mutate the caller's context.
+    This converts units only; timestamp source/causality remain caller-owned.
+    """
+    if type(precision) is not int or precision not in (3,6):
+        raise ValueError('INVALID_EPOCH_PRECISION')
+    if type(seconds) is str:
+        if not 0<len(seconds)<=256:raise ValueError('INVALID_EPOCH_SECONDS')
+        try:seconds=Decimal(seconds,context=Context(traps=[InvalidOperation]))
+        except InvalidOperation as exc:raise ValueError('INVALID_EPOCH_SECONDS') from exc
+    if type(seconds) is not Decimal or not seconds.is_finite() or not 0<=seconds<Decimal('253402300800'):
+        raise ValueError('INVALID_EPOCH_SECONDS')
+    parts=seconds.as_tuple()
+    if len(parts.digits)>128 or abs(parts.exponent)>1000:
+        raise ValueError('EPOCH_DECIMAL_DOMAIN')
+    coefficient=int(Decimal((0,parts.digits,0)))
+    if coefficient==0:return 0
+    shift=parts.exponent+precision
+    return coefficient*10**shift if shift>=0 else coefficient//10**-shift
