@@ -40,6 +40,15 @@ class HistoricalAggregateIntegrityTests(unittest.TestCase):
         for sample in cases:
             with self.subTest(sample=sample):self.assertFalse(historical_aggregate_integrity(sample))
 
+    def test_positive_price_domain_precedes_subnormal_ulp_tolerance(self):
+        tiny=5e-324
+        sample=dict(open=tiny,high=tiny,low=tiny,close=tiny,buy_volume=1.0,sell_volume=0.0,delta=1.0,
+            trade_count=1,poc_price=tiny,levels=[dict(price=tiny,buy_volume=1.0,sell_volume=0.0,
+            delta=1.0,volume=1.0,buy_count=1,sell_count=0)])
+        for price,want in ((0.0,False),(-0.0,False),(-tiny,False),(tiny,True),(2*tiny,True),(9*tiny,True),(10*tiny,False)):
+            candidate=deepcopy(sample);candidate['poc_price']=candidate['levels'][0]['price']=price
+            with self.subTest(price=price):self.assertEqual(historical_aggregate_integrity(candidate),want)
+
     def test_immutable_original_source_parity_supplements_hand_oracles(self):
         source=(Path(__file__).parent/'fixtures/historical_integrity_fa09e688.py.txt').read_bytes()
         self.assertEqual(hashlib.sha256(source).hexdigest(),'0f417cef63f103f347a0e0b90deba650888af86922862f6f464f35dcc265657b')
