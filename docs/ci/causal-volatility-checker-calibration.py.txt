@@ -1,0 +1,96 @@
+import ast,copy,hashlib,json,pathlib,stat,sys,tempfile,textwrap,types
+base,fixed=map(pathlib.Path,sys.argv[1:3])
+def deny_effect(event,args):
+    if event.startswith(('socket.','subprocess.','ctypes.')) or event in ('os.system','os.startfile','sqlite3.connect'):raise RuntimeError('INERT_CALIBRATION_EFFECT_FORBIDDEN:'+event)
+sys.addaudithook(deny_effect)
+def build_program(path):
+    text=path.read_text(encoding='utf-8');marker='      - name: Build and install standalone Math SDK from exact committed source'
+    part=text.split(marker,1)[1].split('        run: |\n',1)[1]
+    body='\n'.join(line[10:] if line.startswith('          ') else line for line in part.splitlines())
+    compile(body,str(path),'exec',dont_inherit=True);return text,ast.parse(body)
+before,old=build_program(base);after,new=build_program(fixed)
+oldwith=next(n for n in old.body if isinstance(n,ast.With));newwith=next(n for n in new.body if isinstance(n,ast.With))
+programs=[n for n in ast.walk(new) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='volatility_program' for t in n.targets)]
+assert len(programs)==1
+value=programs[0].value;assert isinstance(value,ast.Call) and ast.unparse(value.func)=='textwrap.dedent'
+program=textwrap.dedent(ast.literal_eval(value.args[0]));compile(program,'causal-volatility-ci-program','exec',dont_inherit=True)
+child_calls=[n for n in ast.walk(new) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='call' and any(isinstance(x,ast.Name) and x.id=='volatility_program' for x in ast.walk(n))]
+assert len(child_calls)==2
+for call,mode,exe in zip(sorted(child_calls,key=lambda x:x.lineno),('source','wheel'),('sys.executable','py')):
+    args=call.args[0].elts;assert ast.unparse(args[0])==exe
+    assert [ast.literal_eval(x) for x in args[1:5]]==['-I','-S','-B','-X']
+    assert ast.literal_eval(args[-1])==mode and ast.literal_eval(args[6])=='-c' and ast.unparse(args[7])=='volatility_program'
+    assert 'sysconfig' not in ast.unparse(call)
+purelib_node=next(n.value for n in ast.walk(new) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='purelib' for t in n.targets))
+for operating,ver,path_type,expected_path in [('nt',11,pathlib.PureWindowsPath,'C:/venv/Lib/site-packages'),('nt',12,pathlib.PureWindowsPath,'C:/venv/Lib/site-packages'),('posix',11,pathlib.PurePosixPath,'/venv/lib/python3.11/site-packages'),('posix',12,pathlib.PurePosixPath,'/venv/lib/python3.12/site-packages')]:
+    installed=path_type('C:/venv' if operating=='nt' else '/venv');value=eval(compile(ast.Expression(body=purelib_node),'inert_path_expression','eval'),{'installed':installed,'os':types.SimpleNamespace(name=operating),'sys':types.SimpleNamespace(version_info=types.SimpleNamespace(major=3,minor=ver))})
+    assert value==path_type(expected_path)
+assert all(token in after for token in ('Lib/site-packages','lib/python','sys.version_info.major','sys.version_info.minor','HEAD:'+"'"+'+test_name'))
+# Removing only the additions reconstructs the entire original build program AST.
+start=next(i for i,n in enumerate(newwith.body) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='test_name' for t in n.targets))
+finish=next(i for i,n in enumerate(newwith.body) if isinstance(n,ast.Expr) and n.value is sorted(child_calls,key=lambda x:x.lineno)[0])
+newwith.body[start:finish+1]=[]
+newwith.body=[n for n in newwith.body if not(isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='purelib' for t in n.targets)) and not(isinstance(n,ast.Expr) and n.value in child_calls)]
+for n in new.body:
+    if isinstance(n,ast.Import):n.names=[x for x in n.names if x.name not in ('json','textwrap')]
+assert ast.dump(new,include_attributes=False)==ast.dump(old,include_attributes=False),'Original SDK checks/build/installed tests changed'
+assert before.split('      - name: Build and install standalone Math SDK from exact committed source')[0]==after.split('      - name: Build and install standalone Math SDK from exact committed source')[0],'Original axes/checks/exclusion changed'
+# Execute only stdlib guards on inert private text fixtures; never SDK/test bodies/main success.
+ptree=ast.parse(program);safe=[n for n in ptree.body if isinstance(n,(ast.Import,ast.ImportFrom,ast.FunctionDef)) or isinstance(n,ast.Assign)]
+ns={};exec(compile(ast.Module(body=safe,type_ignores=[]),'stdlib_guard_functions_only','exec'),ns)
+def denied(operation,code=None):
+    try:operation()
+    except (RuntimeError,FileExistsError) as error:
+        if code:assert str(error)==code,str(error)
+    else:raise AssertionError('refusal missing')
+controls=4
+with tempfile.TemporaryDirectory(prefix='inert-volatility-ci-') as home:
+    root=pathlib.Path(home);sdk=root/'container'/'sdk';sdk.mkdir(parents=True);test=root/'tests'/'test.py';test.parent.mkdir();test.write_bytes(b'INERT_ONLY=1\n');checkout=root/'checkout';checkout.mkdir()
+    real=ns['sys'];flags=types.SimpleNamespace(isolated=1,no_site=1,dont_write_bytecode=1)
+    def fake(cache,**changes):
+        value=types.SimpleNamespace(flags=flags,dont_write_bytecode=True,modules={},pycache_prefix=str(cache),_xoptions={'pycache_prefix':str(cache)})
+        for k,v in changes.items():setattr(value,k,v)
+        return value
+    # Real -I -S -B without -X must refuse before importing any SDK or test.
+    argv=real.argv;real.argv=['-c',str(sdk),str(test),str(root/'manifest.json'),str(root/'real-no-x'),str(sdk.parent),str(checkout),'source']
+    try:denied(ns['main'],'VOLATILITY_CLI_CACHE_REQUIRED');controls+=1
+    finally:real.argv=argv
+    for field in ('isolated','no_site','dont_write_bytecode'):
+        cache=root/('bad-'+field);state=fake(cache);state.flags=types.SimpleNamespace(**dict(isolated=1,no_site=1,dont_write_bytecode=1));setattr(state.flags,field,0);ns['sys']=state
+        denied(lambda:ns['claim_cache'](cache,sdk,sdk.parent,checkout,test),'VOLATILITY_REAL_ISOLATED_FLAGS_REQUIRED');controls+=1
+    cache=root/'wrong-x';ns['sys']=fake(cache,_xoptions={});denied(lambda:ns['claim_cache'](cache,sdk,sdk.parent,checkout,test),'VOLATILITY_CLI_CACHE_REQUIRED');controls+=1
+    for name in ns['SDK']+ns['FORBIDDEN']+(ns['TEST_MODULE'],):
+        cache=root/('preloaded-'+name);ns['sys']=fake(cache,modules={name:object()});denied(lambda:ns['claim_cache'](cache,sdk,sdk.parent,checkout,test),'VOLATILITY_PRELOADED_SDK_REJECTED');controls+=1
+    for cache in (sdk/'cache',sdk.parent/'cache',checkout/'cache',test.parent/'cache'):
+        ns['sys']=fake(cache);denied(lambda:ns['claim_cache'](cache,sdk,sdk.parent,checkout,test),'VOLATILITY_EXTERNAL_CACHE_REQUIRED');controls+=1
+    cache=root/'polluted';cache.mkdir();(cache/'inert.pyc').write_bytes(b'INERT_NOT_CODE');ns['sys']=fake(cache);denied(lambda:ns['claim_cache'](cache,sdk,sdk.parent,checkout,test));controls+=1
+    cache=root/'fresh-modeled';ns['sys']=fake(cache);identity=ns['claim_cache'](cache,sdk,sdk.parent,checkout,test);ns['cache_unchanged'](cache,identity);controls+=1
+    (cache/'inert.pyc').write_bytes(b'INERT_NOT_CODE');denied(lambda:ns['cache_unchanged'](cache,identity),'VOLATILITY_CACHE_CHANGED');controls+=1
+    paths={};expected={}
+    for name in ns['SDK']:
+        path=sdk/(name+'.py');path.write_bytes(b'INERT_CONSTANT_ONLY=1\n');paths[name]=path;expected[name]=hashlib.sha256(path.read_bytes()).hexdigest()
+    paths['test']=test;expected['test']=hashlib.sha256(test.read_bytes()).hexdigest();ns['snapshot'](paths,expected);controls+=1
+    for key,path in paths.items():
+        original=path.read_bytes();path.write_bytes(original+b'INERT_DRIFT=1\n');denied(lambda:ns['snapshot'](paths,expected),'VOLATILITY_COMMITTED_BYTES_MISMATCH');path.write_bytes(original);controls+=1
+    # SourceFileLoader objects below are inspected only; no source/code is loaded.
+    import importlib.machinery,importlib.util
+    original_prefix=real.pycache_prefix;mapping_cache=root/'mapping-only';mapping_cache.mkdir()
+    try:
+        real.pycache_prefix=str(mapping_cache)
+        shape={}
+        for name in ns['SDK']+(ns['TEST_MODULE'],):
+            path=test if name==ns['TEST_MODULE'] else sdk/(name+'.py')
+            spec=types.SimpleNamespace(origin=str(path),loader=importlib.machinery.SourceFileLoader(name,str(path)))
+            shape[name]=types.SimpleNamespace(__file__=str(path),__spec__=spec,__cached__=importlib.util.cache_from_source(str(path)))
+        ns['sys']=fake(mapping_cache,modules=shape);ns['loaded_origins'](sdk,test,mapping_cache);controls+=1
+        module=shape[ns['SDK'][0]]
+        for field,value,code in [('__file__',str(test),'VOLATILITY_MODULE_ORIGIN_MISMATCH'),('__cached__',str(root/'unapproved.pyc'),'VOLATILITY_CACHED_ORIGIN_MISMATCH')]:
+            old_value=getattr(module,field);setattr(module,field,value);denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),code);setattr(module,field,old_value);controls+=1
+        old_origin=module.__spec__.origin;module.__spec__.origin=str(test);denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_MODULE_ORIGIN_MISMATCH');module.__spec__.origin=old_origin;controls+=1
+        shape['market_math.extra']=module;denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_UNAPPROVED_MODULE');del shape['market_math.extra'];controls+=1
+        assert not list(mapping_cache.iterdir())
+    finally:real.pycache_prefix=original_prefix;ns['sys']=real
+    good=types.SimpleNamespace(wasSuccessful=lambda:True,testsRun=9,skipped=[],expectedFailures=[],unexpectedSuccesses=[]);assert ns['accepted'](good);controls+=1
+    for field,value in [('testsRun',8),('testsRun',10),('skipped',[1]),('expectedFailures',[1]),('unexpectedSuccesses',[1]),('wasSuccessful',lambda:False)]:
+        bad=copy.copy(good);setattr(bad,field,value);assert not ns['accepted'](bad);controls+=1
+print(json.dumps({'scope':'INERT_SOURCE_AND_COMMAND_FIXTURES_ONLY','controls':controls,'program_definitions':1,'fixed_child_calls':2,'original_build_ast':'UNCHANGED','new_sdk_tests_executed':0,'build_venv_pip_child_native':'NOT_RUN'}))
