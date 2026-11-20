@@ -12,7 +12,7 @@ from typing import Mapping
 
 from history_statistics import paired_observation_bootstrap, block_observation_bootstrap
 
-from market_profile_math import (price_bucket, volume_profile_poc, executed_volume_delta,
+from market_math import (price_bucket, volume_profile_poc, executed_volume_delta,
                                  wall_notional, untouched_decimal_levels, untouched_timeframe_levels,
                                  tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios,
                                  orderflow_volume_metrics, aggregate_orderflow, aggregate_orderflow_stream,

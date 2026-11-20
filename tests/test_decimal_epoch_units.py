@@ -1,7 +1,7 @@
 """Literal epoch boundaries and precision-independent floor oracles."""
 from decimal import Decimal as D,localcontext
 import unittest
-from market_profile_math import decimal_epoch_units
+from market_math import decimal_epoch_units
 
 class DecimalEpochUnitsTests(unittest.TestCase):
  def test_literal_millisecond_and_microsecond_floor_oracles(self):

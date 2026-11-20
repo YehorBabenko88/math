@@ -1,7 +1,7 @@
 """Independent literal liquidity oracles; no legacy implementation oracle."""
 from decimal import Decimal as D, localcontext
 import unittest
-from market_profile_math import large_liquidity_levels
+from market_math import large_liquidity_levels
 
 class LiquidityDecimalContextTests(unittest.TestCase):
     def contexts(self):return ((p,traps) for p in (2,7,28) for traps in (False,True))

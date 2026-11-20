@@ -1,6 +1,6 @@
 from decimal import Decimal as D,localcontext
 import unittest
-from market_profile_math import candle_ohlcv_valid
+from market_math import candle_ohlcv_valid
 class CandleOhlcvDomainTests(unittest.TestCase):
  def test_literal_valid_and_invalid_domains_under_all_traps(self):
   for precision in (1,2,7,28):

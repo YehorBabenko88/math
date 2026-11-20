@@ -1,6 +1,6 @@
 from decimal import Decimal as D,localcontext
 import unittest
-from market_profile_math import paper_scale_value,paper_size_multiplier,paper_net_pnl,paper_equity_update
+from market_math import paper_scale_value,paper_size_multiplier,paper_net_pnl,paper_equity_update
 class PaperBinary64PolicyTests(unittest.TestCase):
  def test_literal_products_caps_and_sequential_binary64_subtraction(self):
   self.assertEqual(paper_scale_value(2.5,3),7.5)

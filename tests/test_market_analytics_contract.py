@@ -1,7 +1,7 @@
 """Pure Math ownership of minute, footprint, tape and book quantities."""
 from decimal import Decimal as D, Inexact, Rounded, localcontext
 import unittest
-from market_profile_math import (minute_volume_update, footprint_cell_update,
+from market_math import (minute_volume_update, footprint_cell_update,
     exact_sum, wall_notional, executed_volume_delta, tick_distance, within_tick_distance, volume_profile_poc, price_bucket,
     book_summary_metrics, tape_velocity_metrics, flow_window_metrics,
     wall_turnover_ratios)
