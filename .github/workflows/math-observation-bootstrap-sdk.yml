@@ -136,7 +136,7 @@ jobs:
                       calculated=pathlib.Path(importlib.util.cache_from_source(str(declared_source)))
                       need(pathlib.Path(module.__cached__)==calculated and calculated.is_relative_to(cache),'VOLATILITY_CACHED_ORIGIN_MISMATCH')
               def accepted(result):
-                  return result.wasSuccessful() and result.testsRun==9 and not result.skipped and not result.expectedFailures and not result.unexpectedSuccesses
+                  return result.wasSuccessful() and result.testsRun==11 and not result.skipped and not result.expectedFailures and not result.unexpectedSuccesses
               def main():
                   need(len(sys.argv)==8,'VOLATILITY_FIXED_ARGUMENTS_REQUIRED')
                   sdk,test,bindings,cache,container,checkout=map(pathlib.Path,sys.argv[1:7]);mode=sys.argv[7]
@@ -157,12 +157,12 @@ jobs:
                   module=importlib.util.module_from_spec(spec);sys.modules[TEST_MODULE]=module;spec.loader.exec_module(module)
                   loaded_origins(sdk,test,cache);cache_unchanged(cache,identity)
                   suite=unittest.defaultTestLoader.loadTestsFromModule(module)
-                  need(suite.countTestCases()==9,'VOLATILITY_EXACT_NINE_CASES_REQUIRED')
+                  need(suite.countTestCases()==11,'VOLATILITY_EXACT_ELEVEN_CASES_REQUIRED')
                   result=unittest.TextTestRunner(verbosity=2).run(suite)
                   need(snapshot(paths,expected)==before,'VOLATILITY_INPUT_IDENTITY_CHANGED')
                   loaded_origins(sdk,test,cache);cache_unchanged(cache,identity)
                   need(accepted(result),'VOLATILITY_NONPASS_CASE')
-                  print('MATH_CAUSAL_VOLATILITY_'+mode.upper()+'=9_PASS;SCOPE_PURE_NUMERIC_ONLY')
+                  print('MATH_CAUSAL_VOLATILITY_'+mode.upper()+'=11_PASS;SCOPE_PURE_NUMERIC_ONLY')
               main()
               ''')
               call([sys.executable,'-I','-S','-B','-X','pycache_prefix='+str(tmp/'volatility-source-cache'),'-c',volatility_program,source/'python',volatility_test,volatility_bindings,tmp/'volatility-source-cache',source,root,'source'],cwd=tmp)

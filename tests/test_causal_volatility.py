@@ -4,7 +4,7 @@ from decimal import Decimal,localcontext,Inexact
 import market_math as m
 
 def bar(t=0,**changes):
- return dict(event_start_ms=t,open=100,high=101,low=99,close=100,volume=100,turnover=10000,**changes)
+ return dict(event_start_ms=t,available_at_ms=t+60,open=100,high=101,low=99,close=100,volume=100,turnover=10000,**changes)
 class CausalVolatilityTests(unittest.TestCase):
  def call(self,rows,**kw):return m.causal_volatility_metrics(rows,window=kw.pop('window',2),percentile_lookback=kw.pop('percentile_lookback',10),bar_duration_ms=60,**kw)
  def test_constant_vector_retains_original_formulas_and_prior_percentile(self):
@@ -37,7 +37,7 @@ class CausalVolatilityTests(unittest.TestCase):
   self.assertEqual(rows,before);self.assertIsInstance(out,tuple);self.assertIsInstance(out[0],tuple)
  def test_nonfinite_derived_metric_refuses_not_infinite_receipt(self):
   row=dict(bar(),open=1.0,high=1e308,low=1e-308,close=1.0)
-  with self.assertRaises(ValueError):self.call([row,dict(row,event_start_ms=60)])
+  with self.assertRaises(ValueError):self.call([row,dict(row,event_start_ms=60,available_at_ms=120)])
  def test_hostile_numeric_subclass_does_not_run_coercion_or_equality(self):
   calls=[]
   class Meta(type):
@@ -51,10 +51,23 @@ class CausalVolatilityTests(unittest.TestCase):
  def test_lossy_integer_conversion_cannot_hide_invalid_ohlc(self):
   n=2**53
   invalid=dict(bar(),open=n+1,high=n,low=n,close=n)
-  with self.assertRaises(ValueError):self.call([invalid,dict(invalid,event_start_ms=60)])
+  with self.assertRaises(ValueError):self.call([invalid,dict(invalid,event_start_ms=60,available_at_ms=120)])
   for field in ('open','high','low','close','volume','turnover'):
    with self.subTest(field=field):
     row=dict(bar(),**{field:n+1})
-    with self.assertRaises(ValueError):self.call([row,dict(row,event_start_ms=60)])
+    with self.assertRaises(ValueError):self.call([row,dict(row,event_start_ms=60,available_at_ms=120)])
   exact=dict(bar(),open=2**54,high=2**54,low=2**54,close=2**54)
-  self.assertEqual(self.call([exact,dict(exact,event_start_ms=60)])[0][2:6],(0.0,0.0,0.0,0.0))
+  self.assertEqual(self.call([exact,dict(exact,event_start_ms=60,available_at_ms=120)])[0][2:6],(0.0,0.0,0.0,0.0))
+
+ def test_declared_availability_covers_entire_consumed_prefix(self):
+  rows=[dict(bar(0),available_at_ms=1000),bar(60),bar(120),bar(180)]
+  self.assertEqual([r[1] for r in self.call(rows)],[1000,1000,1000])
+  original=self.call(rows)
+  self.assertEqual(self.call(rows+[dict(bar(240),available_at_ms=2000)])[:len(original)],original)
+  self.assertEqual(self.call([bar(0),bar(60)])[0][1],120)
+ def test_missing_or_invalid_declared_availability_refused(self):
+  missing=bar();del missing['available_at_ms']
+  for row in [missing]+[dict(bar(),available_at_ms=x) for x in (True,False,-1,59,253402300800000,'60',60.0,None)]:
+   with self.subTest(value=row.get('available_at_ms')):
+    with self.assertRaises(ValueError):self.call([row,bar(60)])
+  self.assertEqual(self.call([dict(bar(),available_at_ms=253402300799999),bar(60)])[0][1],253402300799999)

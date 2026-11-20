@@ -363,4 +363,4 @@ PERCENT_NUMERIC_CAPABILITIES = frozenset({'percent_to_fraction'})
 SCALAR_NUMERIC_CAPABILITIES = frozenset({'finite_nonnegative_number_valid'})
 
 VOLATILITY_NUMERIC_CAPABILITIES = frozenset({'causal_volatility_metrics'})
-VOLATILITY_ABI = "math.market.volatility.binary64.v1"
+VOLATILITY_ABI = "math.market.volatility.binary64.v2"

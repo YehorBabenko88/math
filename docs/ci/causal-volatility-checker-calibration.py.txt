@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory(prefix='inert-volatility-ci-') as home:
         item.__spec__.loader=original_loader;item.__loader__=original_loader
         assert not list(mapping_cache.iterdir())
     finally:real.pycache_prefix=original_prefix;ns['sys']=real
-    good=types.SimpleNamespace(wasSuccessful=lambda:True,testsRun=9,skipped=[],expectedFailures=[],unexpectedSuccesses=[]);assert ns['accepted'](good);controls+=1
-    for field,value in [('testsRun',8),('testsRun',10),('skipped',[1]),('expectedFailures',[1]),('unexpectedSuccesses',[1]),('wasSuccessful',lambda:False)]:
+    good=types.SimpleNamespace(wasSuccessful=lambda:True,testsRun=11,skipped=[],expectedFailures=[],unexpectedSuccesses=[]);assert ns['accepted'](good);controls+=1
+    for field,value in [('testsRun',10),('testsRun',12),('skipped',[1]),('expectedFailures',[1]),('unexpectedSuccesses',[1]),('wasSuccessful',lambda:False)]:
         bad=copy.copy(good);setattr(bad,field,value);assert not ns['accepted'](bad);controls+=1
 print(json.dumps({'scope':'INERT_SOURCE_AND_COMMAND_FIXTURES_ONLY','controls':controls,'program_definitions':1,'fixed_child_calls':2,'original_build_ast':'UNCHANGED','new_sdk_tests_executed':0,'build_venv_pip_child_native':'NOT_RUN'}))

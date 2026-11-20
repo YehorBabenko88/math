@@ -1183,7 +1183,11 @@ def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_du
     Original Strattester volatility formulas: mean true range / close,
     RMS log return, Parkinson, current-window range, prior-window volume and
     turnover ratios, and percentile against prior ATR observations only.
-    Strict canonical seven-field OHLCV rows; timestamp units are explicit ms.
+    Strict canonical eight-field OHLCV rows; timestamp units are explicit ms.
+    available_at_ms is a required CALLER_DECLARED clock, never authenticated
+    availability/PIT evidence. It must not precede the bar end. Output uses the
+    maximum declared clock over the entire consumed prefix (including prior
+    close and ATR percentile dependencies); no bar-close default is inferred.
     Output tuples contain start, available, seven metrics and regime index0..4.
     Budgets are representation/work limits, never coverage/source authority.
     """
@@ -1195,15 +1199,19 @@ def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_du
     if (type(candles) is not list and type(candles) is not tuple) or len(candles)>4096:
         raise ValueError('VOLATILITY_ROW_BUDGET')
     if len(candles)*(window+percentile_lookback)>2_000_000:raise ValueError('VOLATILITY_WORK_BUDGET')
-    fields=('event_start_ms','open','high','low','close','volume','turnover');rows=[];previous=None
+    fields=('event_start_ms','open','high','low','close','volume','turnover','available_at_ms');rows=[];previous=None;availability=[]
     for row in candles:
-        if type(row) is not dict or len(row)!=7 or any(type(key) is not str or key not in fields for key in row):
+        if type(row) is not dict or len(row)!=8 or any(type(key) is not str or key not in fields for key in row):
             raise ValueError('VOLATILITY_ROW_FIELDS')
         start=row['event_start_ms']
         if (type(start) is not int or not 0<=start<=253402300799999-bar_duration_ms
                 or previous is not None and start<previous+bar_duration_ms):raise ValueError('VOLATILITY_TIME_DOMAIN')
+        available=row['available_at_ms']
+        if type(available) is not int or not start+bar_duration_ms<=available<=253402300799999:
+            raise ValueError('VOLATILITY_AVAILABILITY_DOMAIN')
+        availability.append(available)
         values=[]
-        for field in fields[1:]:
+        for field in fields[1:7]:
             value=row[field]
             if type(value) is not int and type(value) is not float:raise ValueError('VOLATILITY_LITERAL_NUMBER_REQUIRED')
             number=_paper_binary64(value)
@@ -1215,9 +1223,10 @@ def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_du
         rows.append((start,open_,high,low,close,volume,turnover));previous=start
     rows=tuple(rows)
     if len(rows)<window:return ()
-    atr_history=[];true_ranges=[];log_returns=[];park_terms=[];out=[]
+    atr_history=[];true_ranges=[];log_returns=[];park_terms=[];out=[];prefix_available=0
     try:
         for index,(stamp,open_,high,low,close,volume,turnover) in enumerate(rows):
+            prefix_available=max(prefix_available,availability[index])
             prev_close=rows[index-1][4] if index else open_
             true_ranges.append(max(high-low,abs(high-prev_close),abs(low-prev_close)))
             log_returns.append(math.log(close/prev_close) if index else 0.0)
@@ -1235,6 +1244,6 @@ def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_du
             percentile=sum(value<=atr_fraction for value in prior)/len(prior) if prior else .5
             metrics=tuple(_paper_binary64(value) for value in (atr_fraction,realized,parkinson,range_fraction,volume_ratio,turnover_ratio,percentile))
             regime=0 if percentile<=.20 else 1 if percentile<=.40 else 2 if percentile<=.60 else 3 if percentile<=.80 else 4
-            out.append((stamp,stamp+bar_duration_ms,*metrics,regime));atr_history.append(atr_fraction)
+            out.append((stamp,prefix_available,*metrics,regime));atr_history.append(atr_fraction)
     except (ValueError,OverflowError,ZeroDivisionError) as exc:raise ValueError('VOLATILITY_DERIVED_DOMAIN') from exc
     return tuple(out)
