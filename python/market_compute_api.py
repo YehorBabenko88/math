@@ -23,7 +23,7 @@ from market_math import (price_bucket, volume_profile_poc, executed_volume_delta
                                  paper_stop_price, paper_entry_side, paper_fill_metrics, candle_ohlcv_valid,
                                  paper_scale_value, paper_size_multiplier, paper_net_pnl, paper_equity_update,
                                  paper_quote_metrics, paper_account_balances, paper_reservation_metrics,
-                                 book_tape_research_metrics, paper_input_numeric_integrity, paper_quote_book_valid, paper_quote_funding_valid, rank_volatile_symbols, exact_scaled_integer, history_window_ms, query_minute_grid_ms, candle_ohlcv_turnover_valid, percent_to_fraction, finite_nonnegative_number_valid)
+                                 book_tape_research_metrics, paper_input_numeric_integrity, paper_quote_book_valid, paper_quote_funding_valid, rank_volatile_symbols, exact_scaled_integer, history_window_ms, query_minute_grid_ms, candle_ohlcv_turnover_valid, percent_to_fraction, finite_nonnegative_number_valid, causal_volatility_metrics)
 
 # Direct pure SDK functions only; this does not expose strategy/execution RPCs.
 CAUSAL_PAPER_NUMERIC_CAPABILITIES = frozenset({
@@ -361,3 +361,6 @@ QUERY_NUMERIC_CAPABILITIES = frozenset({'query_minute_grid_ms','candle_ohlcv_tur
 PERCENT_NUMERIC_CAPABILITIES = frozenset({'percent_to_fraction'})
 
 SCALAR_NUMERIC_CAPABILITIES = frozenset({'finite_nonnegative_number_valid'})
+
+VOLATILITY_NUMERIC_CAPABILITIES = frozenset({'causal_volatility_metrics'})
+VOLATILITY_ABI = "math.market.volatility.binary64.v1"

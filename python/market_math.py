@@ -1175,3 +1175,65 @@ def finite_nonnegative_number_valid(value):
     if type(value) is not int and type(value) is not float:return False
     try:return _paper_binary64(value)>=0
     except ValueError:return False
+
+
+def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_duration_ms):
+    """Bounded causal binary64 volatility metrics; no data IO or strategy policy.
+
+    Original Strattester volatility formulas: mean true range / close,
+    RMS log return, Parkinson, current-window range, prior-window volume and
+    turnover ratios, and percentile against prior ATR observations only.
+    Strict canonical seven-field OHLCV rows; timestamp units are explicit ms.
+    Output tuples contain start, available, seven metrics and regime index0..4.
+    Budgets are representation/work limits, never coverage/source authority.
+    """
+    from statistics import mean
+    if (type(window) is not int or not 2<=window<=4096
+            or type(percentile_lookback) is not int or not 1<=percentile_lookback<=4096
+            or type(bar_duration_ms) is not int or not 1<=bar_duration_ms<=253402300799999):
+        raise ValueError('VOLATILITY_PARAMETER_DOMAIN')
+    if (type(candles) is not list and type(candles) is not tuple) or len(candles)>4096:
+        raise ValueError('VOLATILITY_ROW_BUDGET')
+    if len(candles)*(window+percentile_lookback)>2_000_000:raise ValueError('VOLATILITY_WORK_BUDGET')
+    fields=('event_start_ms','open','high','low','close','volume','turnover');rows=[];previous=None
+    for row in candles:
+        if type(row) is not dict or len(row)!=7 or any(type(key) is not str or key not in fields for key in row):
+            raise ValueError('VOLATILITY_ROW_FIELDS')
+        start=row['event_start_ms']
+        if (type(start) is not int or not 0<=start<=253402300799999-bar_duration_ms
+                or previous is not None and start<previous+bar_duration_ms):raise ValueError('VOLATILITY_TIME_DOMAIN')
+        values=[]
+        for field in fields[1:]:
+            value=row[field]
+            if type(value) is not int and type(value) is not float:raise ValueError('VOLATILITY_LITERAL_NUMBER_REQUIRED')
+            number=_paper_binary64(value)
+            if number<0 or field not in ('volume','turnover') and number==0:raise ValueError('VOLATILITY_NUMBER_DOMAIN')
+            values.append(number)
+        open_,high,low,close,volume,turnover=values
+        if not low<=open_<=high or not low<=close<=high:raise ValueError('VOLATILITY_OHLC_DOMAIN')
+        rows.append((start,open_,high,low,close,volume,turnover));previous=start
+    rows=tuple(rows)
+    if len(rows)<window:return ()
+    atr_history=[];true_ranges=[];log_returns=[];park_terms=[];out=[]
+    try:
+        for index,(stamp,open_,high,low,close,volume,turnover) in enumerate(rows):
+            prev_close=rows[index-1][4] if index else open_
+            true_ranges.append(max(high-low,abs(high-prev_close),abs(low-prev_close)))
+            log_returns.append(math.log(close/prev_close) if index else 0.0)
+            park_terms.append(math.log(high/low)**2)
+            if index+1<window:continue
+            lower=index+1-window;selected=rows[lower:index+1]
+            atr_fraction=mean(true_ranges[lower:index+1])/close
+            rets=log_returns[lower:index+1];realized=math.sqrt(sum(value*value for value in rets)/len(rets))
+            terms=park_terms[lower:index+1];parkinson=math.sqrt(sum(terms)/(4*math.log(2)*len(terms)))
+            range_fraction=(max(row[2] for row in selected)-min(row[3] for row in selected))/close
+            volume_base=mean(row[5] for row in selected[:-1]);turnover_base=mean(row[6] for row in selected[:-1])
+            volume_ratio=volume/volume_base if volume_base>0 else 1.0
+            turnover_ratio=turnover/turnover_base if turnover_base>0 else 1.0
+            prior=atr_history[-percentile_lookback:]
+            percentile=sum(value<=atr_fraction for value in prior)/len(prior) if prior else .5
+            metrics=tuple(_paper_binary64(value) for value in (atr_fraction,realized,parkinson,range_fraction,volume_ratio,turnover_ratio,percentile))
+            regime=0 if percentile<=.20 else 1 if percentile<=.40 else 2 if percentile<=.60 else 3 if percentile<=.80 else 4
+            out.append((stamp,stamp+bar_duration_ms,*metrics,regime));atr_history.append(atr_fraction)
+    except (ValueError,OverflowError,ZeroDivisionError) as exc:raise ValueError('VOLATILITY_DERIVED_DOMAIN') from exc
+    return tuple(out)
