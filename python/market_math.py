@@ -1160,3 +1160,18 @@ def percent_to_fraction(value):
     _policy_decimal(value)
     sign,digits,exponent=value.as_tuple()
     return Decimal((sign,digits,exponent-2))
+
+
+def finite_nonnegative_number_valid(value):
+    """Literal int/float finite-binary64 nonnegative predicate, no policy grant.
+
+    Boolean/subclass/string/Decimal coercion is refused. Reuse the existing
+    bounded conversion (int bit length<=1024, finite binary64) so oversized
+    integers refuse before unbounded conversion and overflow never escapes.
+    Signed zero is nonnegative; caller Decimal contexts remain untouched.
+    This validates legacy JSON numeric shape, not financial exactness, source
+    authenticity, fee/risk policy, or permission to execute any operation.
+    """
+    if type(value) not in (int,float):return False
+    try:return _paper_binary64(value)>=0
+    except ValueError:return False

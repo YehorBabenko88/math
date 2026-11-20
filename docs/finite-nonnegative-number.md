@@ -1,0 +1,5 @@
+# Literal finite nonnegative numeric predicate
+
+`market_math.finite_nonnegative_number_valid(value)` validates the legacy JSON int/float numeric domain without granting financial, source or execution authority. It accepts literal finite binary64-representable nonnegative numbers, including negative zero. It rejects booleans, subclasses, Decimal, strings, nonfinite values and oversized/overflowing integers. The existing bounded `_paper_binary64` conversion is reused; no second numerical implementation is introduced. Caller Decimal context/traps/flags are untouched.
+
+This supports moving research-import validation from Data to Terminan. Fees/risk policy and exact Decimal financial calculations remain separate caller/kernel contracts. Previous kernels and test rosters remain intact. Six new source/artifact cases cover boundaries, hostile coercion, overflow, legacy finite-domain equivalence and context/reexport. Local safe numerical tests do not qualify native installation or source authenticity. Release status NO_GO.
