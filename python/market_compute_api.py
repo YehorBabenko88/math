@@ -21,7 +21,9 @@ from market_math import (price_bucket, volume_profile_poc, executed_volume_delta
                                  historical_aggregate_integrity, decimal_epoch_units,
                                  adverse_execution_price, paper_position_size, paper_entry_fee,
                                  paper_stop_price, paper_entry_side, paper_fill_metrics, candle_ohlcv_valid,
-                                 paper_scale_value, paper_size_multiplier, paper_net_pnl, paper_equity_update)
+                                 paper_scale_value, paper_size_multiplier, paper_net_pnl, paper_equity_update,
+                                 paper_quote_metrics, paper_account_balances, paper_reservation_metrics,
+                                 book_tape_research_metrics, paper_input_numeric_integrity)
 
 STREAM_ABI = "math.market.orderflow.stream.v1"
 TIMEFRAME_LEVELS_ABI = "math.market.levels.binary64.v1"
