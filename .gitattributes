@@ -13,3 +13,6 @@ package-lock.json -text
 /python/market_compute_api.py text eol=lf
 /python/history_statistics.py text eol=lf
 /pyproject.toml text eol=lf
+
+# Immutable pre-transfer caller inputs; preserve exact Git bytes.
+/docs/migration/root-ci-evidence-caller-20261120/raw/*.txt -text

@@ -10,12 +10,15 @@ on:
       - '.github/workflows/confidential-synthetic-e2e.yml'
 permissions:
   contents: read
+  actions: read
+  id-token: write
 jobs:
   qualification:
     if: github.head_ref != 'fix/walk-forward-forecast-guard' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
+      actions: read
       id-token: write
-    uses: YehorBabenko88/math/.github/workflows/confidential-collector.yml@53aff113b29746b8b393261a59889d344ac4b376
+    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-collector.yml@82bf1578c5e36bafd76615661fbb3fe4e22dca55
     with:
-      collector-sha: 53aff113b29746b8b393261a59889d344ac4b376
+      collector-sha: 82bf1578c5e36bafd76615661fbb3fe4e22dca55

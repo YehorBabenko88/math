@@ -1,0 +1,7 @@
+# Root-owned CI evidence caller
+
+This source-only candidate routes the unchanged one-job Math workload caller to immutable Root tool 82bf1578c5e36bafd76615661fbb3fe4e22dca55. Both caller permission maps are exactly contents:read, actions:read and id-token:write. Existing same-repository PR and unresolved-integration exclusion guards remain unchanged. Configuration tests are not successful OIDC, source authentication, native or production qualification.
+
+The Root tool executes its twenty original hosted roles before issuer requests; three loader roles have Root static controls, and the three Math caller/isolation roles remain active here. All original twenty-six roles are accounted for in role-map.json and Root's immutable original twenty-four raw inputs. Root R1 is a CI infrastructure tool pin, independent of the current Root SDK/cohort; a later cohort can pin this Math candidate without a self-reference.
+
+No Math runtime collector code is removed in this first commit. Retirement of the exclusive confidential collector closure requires independent acceptance of this caller first. Shared evidence-receiver code has additional native observation and contract consumers beyond the Root twenty-six-role port; those remain mandatory and cannot be silently deleted or relabeled transferred. The complete pinned-base executable-reference inventory is retained in the external review evidence. Historical .txt caller inputs are exact raw Git blobs, not active code.
