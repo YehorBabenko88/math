@@ -1146,3 +1146,17 @@ def query_minute_grid_ms(start_ms,end_ms,*,event_cut_ms=None):
     if event_cut_ms is not None and history_window_ms(end_ms,event_cut_ms,cadence_minutes=1) is None:
         raise ValueError('QUERY_EVENT_CUT_PRECEDES_END')
     return tuple((point,point+60000) for point in range(start_ms,end_ms,60000))
+
+
+def percent_to_fraction(value):
+    """Exact bounded Decimal percent -> fraction, with no rounding or policy.
+
+    Strict finite Decimal, <=128coefficient digits and exponent+/-4096.
+    The output shifts the decimal quantum by-2 (exponent-4098..4094), preserving
+    coefficient and signed zero. Values outside0..100 remain legitimate numeric
+    percentages; caller-owned fee/threshold/risk policy is checked separately.
+    No caller precision, traps or flags participate in this unit conversion.
+    """
+    _policy_decimal(value)
+    sign,digits,exponent=value.as_tuple()
+    return Decimal((sign,digits,exponent-2))
