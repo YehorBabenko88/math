@@ -53,6 +53,8 @@ jobs:
         run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
       - name: Canonical Math namespace and exact raw numerical baseline
         run: python -B -c "import sys,unittest; sys.path.insert(0,'python'); s=unittest.defaultTestLoader.discover('tests',pattern='test_market_math_namespace.py'); r=unittest.TextTestRunner(verbosity=2).run(s); raise SystemExit(not r.wasSuccessful())"
+      - name: Query grid and turnover numerical domains
+        run: python -B -c "import sys,unittest; sys.path.insert(0,'python'); s=unittest.defaultTestLoader.discover('tests',pattern='test_query_numeric_kernels.py'); r=unittest.TextTestRunner(verbosity=2).run(s); assert r.testsRun==8 and not r.skipped; raise SystemExit(not r.wasSuccessful())"
       - name: Build and install standalone Math SDK from exact committed source
         shell: python {0}
         run: |
@@ -159,5 +161,7 @@ jobs:
               call([py,'-I','-B',root/'tests/test_orderflow_decimal_context.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_market_analytics_contract.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_historical_aggregate_integrity.py'],cwd=tmp)
+              call([py,'-I','-B',root/'tests/test_history_window_ms.py'],cwd=tmp)
+              call([py,'-I','-B',root/'tests/test_query_numeric_kernels.py'],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
               print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
