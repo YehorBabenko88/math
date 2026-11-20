@@ -1007,3 +1007,16 @@ def paper_input_numeric_integrity(kind,payload):
             return True
         return False
     except (KeyError,ValueError,TypeError,OverflowError,InvalidOperation):return False
+
+
+def paper_quote_book_valid(bid,ask):
+    """Pure quote-domain predicate: exact Decimal1e-12..1e12, bid<=ask.
+
+    Locked books are allowed by causal paper quote policy. This deliberately
+    differs from the Data input BOOK policy's stricter spread/different bounds.
+    No source validity, freshness, execution or state authority is granted.
+    """
+    try:
+        for value in (bid,ask):_causal_decimal(value,Decimal('1e-12'),Decimal('1e12'))
+    except ValueError:return False
+    return bid<=ask

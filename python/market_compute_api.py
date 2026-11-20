@@ -23,7 +23,12 @@ from market_math import (price_bucket, volume_profile_poc, executed_volume_delta
                                  paper_stop_price, paper_entry_side, paper_fill_metrics, candle_ohlcv_valid,
                                  paper_scale_value, paper_size_multiplier, paper_net_pnl, paper_equity_update,
                                  paper_quote_metrics, paper_account_balances, paper_reservation_metrics,
-                                 book_tape_research_metrics, paper_input_numeric_integrity)
+                                 book_tape_research_metrics, paper_input_numeric_integrity, paper_quote_book_valid)
+
+# Direct pure SDK functions only; this does not expose strategy/execution RPCs.
+CAUSAL_PAPER_NUMERIC_CAPABILITIES = frozenset({
+    'paper_quote_metrics', 'paper_account_balances', 'paper_reservation_metrics',
+    'book_tape_research_metrics', 'paper_input_numeric_integrity', 'paper_quote_book_valid'})
 
 STREAM_ABI = "math.market.orderflow.stream.v1"
 TIMEFRAME_LEVELS_ABI = "math.market.levels.binary64.v1"
