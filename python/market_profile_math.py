@@ -20,13 +20,16 @@ _PRICE_BUCKET_MAX_DIGITS = 128
 _PRICE_BUCKET_MAX_ABS_EXPONENT = 1000
 
 
-def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
-    """Round to a tick with exact HALF_UP semantics and the tick's exponent.
+def price_bucket(price: Decimal, tick: Decimal, *, rounding="half_up") -> Decimal:
+    """Round to a tick exactly, preserving its exponent (default HALF_UP).
 
     Positive finite operands accept up to 128 coefficient digits and an
     exponent from -1000 through 1000. Wider inputs raise ValueError before
-    any integer scaling. The caller's Decimal context is unused.
+    any integer scaling. The caller's Decimal context is unused. Explicit
+    half_even preserves the data-builder tie rule without another kernel.
     """
+    if type(rounding) is not str or rounding not in ("half_up", "half_even"):
+        raise ValueError("unsupported price bucket rounding")
     price_parts = _positive_finite_decimal(price).as_tuple()
     tick_parts = _positive_finite_decimal(tick).as_tuple()
     for parts in (price_parts, tick_parts):
@@ -44,17 +47,20 @@ def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
         denominator *= 10**-shift
 
     ticks, remainder = divmod(numerator, denominator)
-    if 2 * remainder >= denominator:
+    if (2 * remainder > denominator
+            or 2 * remainder == denominator and (rounding == "half_up" or ticks % 2)):
         ticks += 1
     digits = Decimal(ticks * tick_coefficient).as_tuple().digits
     return Decimal((0, digits, tick_parts.exponent))
 
 
-def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None):
-    """Executed-volume POC: Meta Minute ties nearest close; footprint ties lowest price.
+def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None, tie_policy=None):
+    """Executed-volume POC: nearest close/lowest price, or explicit first-seen ties.
 
     The Meta Minute (close provided) raises on an empty profile; the footprint\n    (close omitted) returns None. Reject ambiguous non-Decimal quantities.
     """
+    if tie_policy not in (None, "first_seen") or tie_policy is not None and close is not None:
+        raise ValueError("incompatible POC tie policy")
     if not isinstance(profile, dict):
         raise ValueError("volume profile must be a dict")
     if close is not None:
@@ -67,6 +73,8 @@ def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None
         _positive_finite_decimal(price)
         _positive_finite_decimal(volume, zero_allowed=True)
     if close is None:
+        if tie_policy == "first_seen":
+            return max(profile, key=profile.get)
         return min(profile, key=lambda price: (profile[price].copy_negate(), price))
     highest_volume = max(profile.values())
     lower = upper = None
@@ -110,86 +118,198 @@ def _nearest_bracket_price(lower, upper, close):
     return upper if min(upper_gap, lower) < remaining else lower
 
 
+def _market_amount(value):
+    """Bound exact accumulated quantities/products before exponent alignment."""
+    if not isinstance(value, Decimal) or not value.is_finite():
+        raise ValueError("MARKET_DECIMAL_DOMAIN")
+    parts = value.as_tuple()
+    if (len(parts.digits) > 4270 or abs(parts.exponent) > 2000
+            or value and value.copy_abs().adjusted() > 2262):
+        raise ValueError("MARKET_DECIMAL_DOMAIN")
+    return value
+
+
+def _market_context():
+    # Bounded product/accumulator exponent span is at most 4263 digits.
+    # 4300 retains exact sums/differences, including up to one million inputs.
+    return Context(prec=4300, Emin=MIN_EMIN, Emax=MAX_EMAX, traps=[Inexact])
+
+
+def _market_ratio(numerator, denominator, precision=28):
+    if type(precision) is not int or precision not in (28, 96):
+        raise ValueError("INVALID_RATIO_POLICY")
+    return Context(prec=precision, rounding=ROUND_HALF_EVEN, Emin=MIN_EMIN,
+                   Emax=MAX_EMAX, traps=[]).divide(numerator, denominator)
+
+
+def exact_sum(values):
+    """One-pass signed exact market-amount sum; <=1M bounded finite inputs.
+
+    Inputs/results have <=4270 coefficient digits, exponent -2000..2000,
+    adjusted magnitude <=2262. These bounds admit exact products of the
+    128-digit/-1000..1000 market inputs and bounded accumulated quantities.
+    No source trust or execution authority is conferred.
+    """
+    result = Decimal(0)
+    exact = _market_context()
+    try:
+        source = iter(values)
+    except TypeError as exc:
+        raise ValueError("INVALID_MARKET_AMOUNTS") from exc
+    for count, value in enumerate(source, 1):
+        if count > MAX_STREAM_EVENTS:
+            raise ValueError("MARKET_AMOUNT_LIMIT")
+        result = exact.add(result, _market_amount(value))
+    return _market_amount(result)
+
+
+def wall_notional(price: Decimal, size: Decimal) -> Decimal:
+    """Exact bounded notional; book membership/lifetime stay caller-owned."""
+    _orderflow_decimal(_positive_finite_decimal(price))
+    _orderflow_decimal(_positive_finite_decimal(size, zero_allowed=True))
+    return _market_context().multiply(price, size)
+
+
+def minute_volume_update(volume, quote_volume, buy_volume, sell_volume,
+                         bucket_volume, price, size, side):
+    """Pure five-total minute/profile update; DTO/time/OHLC remain caller-owned.
+
+    Returns (volume, quote_volume, buy_volume, sell_volume, bucket_volume).
+    Buy/1 and Sell/2 aliases are classified; other bounded strings are unknown.
+    All operands are checked before any result is returned; no inputs mutate.
+    """
+    if type(side) is not str or len(side) > 16:
+        raise ValueError("INVALID_MARKET_SIDE")
+    prior = (volume, quote_volume, buy_volume, sell_volume, bucket_volume)
+    for value in prior:
+        _positive_finite_decimal(_market_amount(value), zero_allowed=True)
+    amount = wall_notional(price, size)
+    side = side.lower()
+    return (exact_sum((volume, size)), exact_sum((quote_volume, amount)),
+            exact_sum((buy_volume, size)) if side in ("buy", "1") else buy_volume,
+            exact_sum((sell_volume, size)) if side in ("sell", "2") else sell_volume,
+            exact_sum((bucket_volume, size)))
+
+
+def footprint_cell_update(buy, sell, quantity, taker_side):
+    """Exact executed-volume cell update; counters/provenance stay caller-owned."""
+    for value in (buy, sell):
+        _positive_finite_decimal(_market_amount(value), zero_allowed=True)
+    _orderflow_decimal(_positive_finite_decimal(quantity, zero_allowed=True))
+    if taker_side not in ("Buy", "Sell"):
+        raise ValueError("invalid taker side")
+    return (exact_sum((buy, quantity)), sell) if taker_side == "Buy" else (buy, exact_sum((sell, quantity)))
+
+
 def executed_volume_delta(buy: Decimal, sell: Decimal) -> Decimal:
-    """Pure signed taker delta; does not classify trade side or trust continuity."""
-    _positive_finite_decimal(buy, zero_allowed=True)
-    _positive_finite_decimal(sell, zero_allowed=True)
-    return buy - sell
+    """Exact signed taker delta; does not classify side or trust continuity."""
+    for value in (buy, sell):
+        _positive_finite_decimal(_market_amount(value), zero_allowed=True)
+    return exact_sum((buy, sell.copy_negate()))
+
+
+def tick_distance(price, level_price, tick_size, *, ratio_precision=28):
+    """Absolute tick distance, finite 28-digit HALF_EVEN ratio policy."""
+    for value in (price, level_price, tick_size):
+        _orderflow_decimal(_positive_finite_decimal(value))
+    gap = _market_context().subtract(price, level_price).copy_abs()
+    return _market_ratio(gap, tick_size, ratio_precision)
+
+
+def within_tick_distance(price, level_price, tick_size, proximity_ticks):
+    """Exact proximity predicate; a rounded display ratio cannot admit data."""
+    for value in (price, level_price, tick_size):
+        _orderflow_decimal(_positive_finite_decimal(value))
+    _orderflow_decimal(_positive_finite_decimal(proximity_ticks, zero_allowed=True))
+    exact = _market_context()
+    return exact.subtract(price, level_price).copy_abs() <= exact.multiply(tick_size, proximity_ticks)
+
+
+def book_summary_metrics(bids, asks, tick):
+    """Pure bounded book arithmetic; caller must qualify sequence/source.
+
+    Returns (best_bid, best_ask, spread, bid_notional, ask_notional).
+    Missing sides have None best price/spread; crossed books are refused.
+    """
+    _orderflow_decimal(_positive_finite_decimal(tick))
+    if any(type(side) is not dict or len(side) > MAX_STREAM_BUCKETS for side in (bids, asks)):
+        raise ValueError("INVALID_BOOK_LEVELS")
+    amounts = []
+    for side in (bids, asks):
+        amounts.append(exact_sum(wall_notional(price, size) for price, size in side.items()))
+    bid, ask = max(bids, default=None), min(asks, default=None)
+    if bid is not None and ask is not None and bid >= ask:
+        raise ValueError("CROSSED_BOOK")
+    spread = _market_context().subtract(ask, bid) if bid is not None and ask is not None else None
+    return bid, ask, spread, *amounts
 
 
 def tape_velocity_metrics(events, level_price: Decimal, tick_size: Decimal,
                           window_ms: int, proximity_ticks: Decimal, now_ms: int,
-                          *, observed_price: Decimal | None = None):
-    """Pure Meta TapeVelocity arithmetic; event ordering and gaps remain caller-owned."""
-    _positive_finite_decimal(level_price)
-    _positive_finite_decimal(tick_size)
-    _positive_finite_decimal(proximity_ticks, zero_allowed=True)
-    if type(window_ms) is not int or window_ms <= 0 or type(now_ms) is not int or now_ms < 0:
+                          *, observed_price: Decimal | None = None, ratio_precision=28):
+    """Exact tape quantities; rates/distances use 28-digit HALF_EVEN ratios."""
+    for value in (level_price, tick_size):
+        _orderflow_decimal(_positive_finite_decimal(value))
+    _orderflow_decimal(_positive_finite_decimal(proximity_ticks, zero_allowed=True))
+    if (type(window_ms) is not int or not 0 < window_ms <= 2**63-1
+            or type(now_ms) is not int or not 0 <= now_ms <= 2**63-1):
         raise ValueError("invalid tape window")
-    if not isinstance(events, (tuple, list)):
+    if not isinstance(events, (tuple, list)) or len(events) > MAX_STREAM_EVENTS:
         raise ValueError("invalid tape events")
     buys = sells = Decimal(0)
     count = 0
+    exact = _market_context()
     for timestamp_ms, price, quantity, side in events:
         if type(timestamp_ms) is not int or timestamp_ms < now_ms-window_ms or timestamp_ms > now_ms:
             raise ValueError("invalid tape timestamp")
-        _positive_finite_decimal(price)
-        _positive_finite_decimal(quantity, zero_allowed=True)
+        amount = wall_notional(price, quantity)
         if side not in ("Buy", "Sell"):
             raise ValueError("invalid tape side")
-        if abs(price-level_price)/tick_size <= proximity_ticks:
+        # Compare exact quantities, never a rounded distance at a boundary.
+        if within_tick_distance(price, level_price, tick_size, proximity_ticks):
             count += 1
-            amount = price * quantity
             if side == "Buy":
-                buys += amount
+                buys = exact_sum((buys, amount))
             else:
-                sells += amount
-    seconds = Decimal(window_ms)/Decimal(1000)
-    distance = None
-    if observed_price is not None:
-        _positive_finite_decimal(observed_price)
-        distance = abs(observed_price-level_price)/tick_size
-    return (Decimal(count)/seconds, (buys+sells)/seconds, buys, sells, distance)
+                sells = exact_sum((sells, amount))
+    seconds = exact.divide(Decimal(window_ms), Decimal(1000))
+    distance = None if observed_price is None else tick_distance(observed_price, level_price, tick_size, ratio_precision=ratio_precision)
+    return (_market_ratio(Decimal(count), seconds, ratio_precision),
+            _market_ratio(exact_sum((buys, sells)), seconds, ratio_precision), buys, sells, distance)
 
 
-def wall_notional(price: Decimal, size: Decimal) -> Decimal:
-    """Source-owned wall arithmetic; book membership and lifetime stay with observer."""
-    _positive_finite_decimal(price)
-    _positive_finite_decimal(size, zero_allowed=True)
-    return price*size
-
-
-def flow_window_metrics(events, now_ms: int, window_seconds: int):
-    """Pure Meta RollingFlow metrics. Input: (time_ms, notional, side) tuples."""
-    if type(now_ms) is not int or type(window_seconds) is not int or window_seconds <= 0:
+def flow_window_metrics(events, now_ms: int, window_seconds: int, *, ratio_precision=28):
+    """Pure exact RollingFlow metrics. Input: (time_ms, notional, side)."""
+    if (type(now_ms) is not int or not 0 <= now_ms <= 2**63-1
+            or type(window_seconds) is not int or not 0 < window_seconds <= 2**63-1):
         raise ValueError("invalid flow window")
-    if not isinstance(events, (tuple, list)):
+    if not isinstance(events, (tuple, list)) or len(events) > MAX_STREAM_EVENTS:
         raise ValueError("invalid flow events")
     buys = sells = total = Decimal(0)
     count = 0
     for timestamp_ms, notional, side in events:
-        if type(timestamp_ms) is not int:
-            raise ValueError("invalid flow timestamp")
-        _positive_finite_decimal(notional, zero_allowed=True)
+        if type(timestamp_ms) is not int or timestamp_ms < 0 or type(side) is not str:
+            raise ValueError("invalid flow event")
+        _positive_finite_decimal(_market_amount(notional), zero_allowed=True)
         if not 0 <= now_ms-timestamp_ms <= window_seconds*1000:
             continue
         count += 1
-        total += notional
+        total = exact_sum((total, notional))
         if side in ("buy", "1"):
-            buys += notional
+            buys = exact_sum((buys, notional))
         elif side in ("sell", "2"):
-            sells += notional
+            sells = exact_sum((sells, notional))
     return {"turnover_usd": total, "trades": count, "buy_usd": buys,
-            "sell_usd": sells, "trades_per_second": Decimal(count)/Decimal(window_seconds)}
+            "sell_usd": sells, "trades_per_second": _market_ratio(Decimal(count), Decimal(window_seconds), ratio_precision)}
 
 
-def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers):
-    """Pure Meta RollingFlow.wall_score arithmetic; unknown source stays unverified."""
+def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers, *, ratio_precision=28):
+    """Pure fixed-policy wall ratios; unknown source stays unverified."""
     amount = wall_notional(price, size)
-    if not isinstance(turnovers, dict):
+    if not isinstance(turnovers, dict) or len(turnovers) > MAX_STREAM_BUCKETS:
         raise ValueError("invalid turnovers")
     return {"wall_usd": amount,
-            "ratios": {window: amount/max(Decimal(1), _positive_finite_decimal(total, zero_allowed=True))
+            "ratios": {window: _market_ratio(amount, max(Decimal(1), _positive_finite_decimal(_market_amount(total), zero_allowed=True)), ratio_precision)
                        for window,total in turnovers.items()},
             "observed_turnover": turnovers.copy()}
 

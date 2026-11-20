@@ -15,7 +15,9 @@ from history_statistics import paired_observation_bootstrap, block_observation_b
 from market_profile_math import (price_bucket, volume_profile_poc, executed_volume_delta,
                                  wall_notional, untouched_decimal_levels, untouched_timeframe_levels,
                                  tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios,
-                                 orderflow_volume_metrics, aggregate_orderflow, aggregate_orderflow_stream)
+                                 orderflow_volume_metrics, aggregate_orderflow, aggregate_orderflow_stream,
+                                 exact_sum, minute_volume_update, footprint_cell_update,
+                                 tick_distance, within_tick_distance, book_summary_metrics)
 
 STREAM_ABI = "math.market.orderflow.stream.v1"
 TIMEFRAME_LEVELS_ABI = "math.market.levels.binary64.v1"
@@ -97,7 +99,7 @@ def _compute(item):
         observed = None if args["observed_price"] is None else _decimal(args["observed_price"])
         result = tape_velocity_metrics(decoded, _decimal(args["level_price"]),
                    _decimal(args["tick_size"]), args["window_ms"],
-                   _decimal(args["proximity_ticks"]), args["now_ms"], observed_price=observed)
+                   _decimal(args["proximity_ticks"]), args["now_ms"], observed_price=observed, ratio_precision=96)
         return {"trades_per_second":str(result[0]),"notional_per_second":str(result[1]),
                 "buy_notional":str(result[2]),"sell_notional":str(result[3]),
                 "distance_ticks":None if result[4] is None else str(result[4])}
@@ -110,7 +112,7 @@ def _compute(item):
         for event in events:
             _record(event, {"timestamp_ms", "notional", "side"})
             decoded.append((event["timestamp_ms"], _decimal(event["notional"]), event["side"]))
-        result = flow_window_metrics(decoded, args["now_ms"], args["window_seconds"])
+        result = flow_window_metrics(decoded, args["now_ms"], args["window_seconds"], ratio_precision=96)
         return {key: str(value) if isinstance(value, Decimal) else value
                 for key,value in result.items()}
     if operation == "aggregate_orderflow":
@@ -149,7 +151,7 @@ def _compute(item):
         if not isinstance(amounts, dict) or set(amounts) != {"60", "300", "3600"}:
             raise ValueError("INVALID_TURNOVERS")
         result = wall_turnover_ratios(_decimal(args["price"]), _decimal(args["size"]),
-                   {int(window):_decimal(amount) for window,amount in amounts.items()})
+                   {int(window):_decimal(amount) for window,amount in amounts.items()}, ratio_precision=96)
         return {"wall_usd":str(result["wall_usd"]),
                 "ratios":{str(window):str(value) for window,value in result["ratios"].items()},
                 "observed_turnover":{str(window):str(value)
