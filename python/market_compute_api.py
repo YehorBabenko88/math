@@ -17,7 +17,8 @@ from market_profile_math import (price_bucket, volume_profile_poc, executed_volu
                                  tape_velocity_metrics, flow_window_metrics, wall_turnover_ratios,
                                  orderflow_volume_metrics, aggregate_orderflow, aggregate_orderflow_stream,
                                  exact_sum, minute_volume_update, footprint_cell_update,
-                                 tick_distance, within_tick_distance, book_summary_metrics)
+                                 tick_distance, within_tick_distance, book_summary_metrics,
+                                 historical_aggregate_integrity)
 
 STREAM_ABI = "math.market.orderflow.stream.v1"
 TIMEFRAME_LEVELS_ABI = "math.market.levels.binary64.v1"

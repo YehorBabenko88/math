@@ -6,6 +6,7 @@ Does not ingest market data, run strategies, or assign trading authority.
 from collections.abc import Mapping
 from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_HALF_EVEN
 from math import isfinite
+import math
 
 
 def _positive_finite_decimal(value, *, zero_allowed=False):
@@ -313,6 +314,37 @@ def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers, *, ratio_prec
                        for window,total in turnovers.items()},
             "observed_turnover": turnovers.copy()}
 
+
+def historical_aggregate_integrity(row):
+    """Historical binary64 partition/POC integrity; never source authentication.
+
+    Preserves the source-defined math.isclose default rel_tol=1e-9 and
+    abs_tol=1e-9 quantity checks, plus <=8*max(ulp(a),ulp(b)) price bounds.
+    JSON byte caps, event time and provenance remain consumer-owned.
+    """
+    try:
+        def number(v):return type(v) in (int,float) and math.isfinite(v)
+        def boundary_equal(a,b):return abs(a-b)<=8*max(math.ulp(float(a)),math.ulp(float(b)))
+        values=[row[k] for k in ('open','high','low','close','buy_volume','sell_volume','delta','poc_price')]
+        if not all(number(v) for v in values):return False
+        if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high']:return False
+        if type(row['trade_count']) is not int or row['trade_count']<=0:return False
+        levels=row['levels']
+        if not isinstance(levels,list) or not 0<len(levels)<=10000:return False
+        prices=set();buy=sell=trades=0
+        for x in levels:
+            if not all(number(x[k]) for k in ('price','buy_volume','sell_volume','delta','volume')):return False
+            if x['price'] in prices or not ((x['price']>=row['low'] or boundary_equal(x['price'],row['low'])) and (x['price']<=row['high'] or boundary_equal(x['price'],row['high']))):return False
+            prices.add(x['price'])
+            if min(x['buy_volume'],x['sell_volume'])<0:return False
+            if not math.isclose(x['delta'],x['buy_volume']-x['sell_volume'],abs_tol=1e-9) or not math.isclose(x['volume'],x['buy_volume']+x['sell_volume'],abs_tol=1e-9):return False
+            if any(type(x[k]) is not int or x[k]<0 for k in ('buy_count','sell_count')):return False
+            buy+=x['buy_volume'];sell+=x['sell_volume'];trades+=x['buy_count']+x['sell_count']
+        return (trades==row['trade_count'] and row['poc_price'] in prices and
+                any(x['price']==row['poc_price'] and math.isclose(x['volume'],max(v['volume'] for v in levels),abs_tol=1e-9) for x in levels) and
+                math.isclose(buy,row['buy_volume'],abs_tol=1e-9) and math.isclose(sell,row['sell_volume'],abs_tol=1e-9) and
+                math.isclose(buy-sell,row['delta'],abs_tol=1e-9))
+    except (KeyError,TypeError,ValueError,OverflowError):return False
 
 def untouched_decimal_levels(closed_candles):
     """Meta core.untouched_levels numeric equivalence on verified CLOSED candles.
