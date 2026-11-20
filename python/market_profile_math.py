@@ -6,6 +6,7 @@ Does not ingest market data, run strategies, or assign trading authority.
 from collections.abc import Mapping
 from decimal import Context, Decimal, Inexact, MAX_EMAX, MIN_EMIN, ROUND_HALF_EVEN
 from math import isfinite
+import math
 
 
 def _positive_finite_decimal(value, *, zero_allowed=False):
@@ -314,6 +315,42 @@ def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers, *, ratio_prec
             "observed_turnover": turnovers.copy()}
 
 
+def historical_aggregate_integrity(row):
+    """Historical binary64 partition/POC integrity; never source authentication.
+
+    Preserves the source-defined math.isclose default rel_tol=1e-9 and
+    abs_tol=1e-9 quantity checks, plus <=8*max(ulp(a),ulp(b)) price bounds.
+    JSON byte caps, event time and provenance remain consumer-owned.
+    """
+    try:
+        def number(v):return type(v) in (int,float) and math.isfinite(v)
+        def boundary_equal(a,b):return abs(a-b)<=8*max(math.ulp(float(a)),math.ulp(float(b)))
+        values=[row[k] for k in ('open','high','low','close','buy_volume','sell_volume','delta','poc_price')]
+        if not all(number(v) for v in values):return False
+        # ULP tolerance applies only inside the strictly positive price domain.
+        # Subnormal rounding must never admit zero/negative market prices.
+        if row['poc_price']<=0:return False
+        if min(row['buy_volume'],row['sell_volume'])<0:return False
+        if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high']:return False
+        if type(row['trade_count']) is not int or row['trade_count']<=0:return False
+        levels=row['levels']
+        if not isinstance(levels,list) or not 0<len(levels)<=10000:return False
+        prices=set();buy=sell=trades=0
+        for x in levels:
+            if not all(number(x[k]) for k in ('price','buy_volume','sell_volume','delta','volume')):return False
+            if x['price']<=0:return False
+            if x['price'] in prices or not ((x['price']>=row['low'] or boundary_equal(x['price'],row['low'])) and (x['price']<=row['high'] or boundary_equal(x['price'],row['high']))):return False
+            prices.add(x['price'])
+            if min(x['buy_volume'],x['sell_volume'],x['volume'])<0:return False
+            if not math.isclose(x['delta'],x['buy_volume']-x['sell_volume'],abs_tol=1e-9) or not math.isclose(x['volume'],x['buy_volume']+x['sell_volume'],abs_tol=1e-9):return False
+            if any(type(x[k]) is not int or x[k]<0 for k in ('buy_count','sell_count')):return False
+            buy+=x['buy_volume'];sell+=x['sell_volume'];trades+=x['buy_count']+x['sell_count']
+        return (trades==row['trade_count'] and row['poc_price'] in prices and
+                any(x['price']==row['poc_price'] and math.isclose(x['volume'],max(v['volume'] for v in levels),abs_tol=1e-9) for x in levels) and
+                math.isclose(buy,row['buy_volume'],abs_tol=1e-9) and math.isclose(sell,row['sell_volume'],abs_tol=1e-9) and
+                math.isclose(buy-sell,row['delta'],abs_tol=1e-9))
+    except (KeyError,TypeError,ValueError,OverflowError):return False
+
 def untouched_decimal_levels(closed_candles):
     """Meta core.untouched_levels numeric equivalence on verified CLOSED candles.
 
@@ -593,31 +630,41 @@ def large_liquidity_levels(bids, asks, level_price: Decimal, tick_size: Decimal,
                            *, min_notional=Decimal("100000"),
                            min_relative=Decimal("5"),
                            max_distance_ticks=Decimal("50")):
-    """Math part of Meta liquidity.large_levels; caller owns book validity/provenance."""
-    _positive_finite_decimal(level_price)
-    _positive_finite_decimal(tick_size)
-    _positive_finite_decimal(min_notional, zero_allowed=True)
-    _positive_finite_decimal(min_relative, zero_allowed=True)
-    _positive_finite_decimal(max_distance_ticks, zero_allowed=True)
+    """Exact bounded liquidity selection; caller owns book validity/provenance.
+
+    Price, size and thresholds use the 128-digit/-1000..1000 market domain.
+    Notionals and median are exact; proximity and relative admission compare
+    exact quantities. Returned distance/relative ratios use 28-digit HALF_EVEN.
+    Sorting uses exact distance, then decreasing exact notional, with stable ties.
+    """
+    for value in (level_price, tick_size):
+        _orderflow_decimal(_positive_finite_decimal(value))
+    for value in (min_notional, min_relative, max_distance_ticks):
+        _orderflow_decimal(_positive_finite_decimal(value, zero_allowed=True))
     if not isinstance(bids, dict) or not isinstance(asks, dict) or len(bids)+len(asks)>4096:
         raise ValueError("INVALID_LIQUIDITY_BOOK")
     entries = []
     for side, levels in (("bid", bids), ("ask", asks)):
         for price, size in levels.items():
-            _positive_finite_decimal(price)
-            _positive_finite_decimal(size, zero_allowed=True)
-            entries.append((side, price, price*size))
+            entries.append((side, price, wall_notional(price, size)))
     amounts = sorted(amount for _,_,amount in entries if amount>0)
     if not amounts:
         return ()
-    mid=len(amounts)//2
-    median=amounts[mid] if len(amounts)%2 else (amounts[mid-1]+amounts[mid])/2
-    if median<=0:
-        return ()
-    results=[]
-    for side,price,amount in entries:
-        distance=abs(price-level_price)/tick_size
-        relative=amount/median
-        if amount>=min_notional and relative>=min_relative and distance<=max_distance_ticks:
-            results.append((side,price,amount,distance,relative))
-    return tuple(sorted(results,key=lambda value:(value[3],-value[2])))
+    exact = _market_context()
+    mid = len(amounts)//2
+    median = amounts[mid] if len(amounts)%2 else exact.divide(
+        exact_sum((amounts[mid-1], amounts[mid])), Decimal(2))
+    # Integer cross-products avoid either rounded division or precision loss
+    # when the median's aligned coefficient spans thousands of digits.
+    median_n, median_d = median.as_integer_ratio()
+    threshold_n, threshold_d = min_relative.as_integer_ratio()
+    results = []
+    for side, price, amount in entries:
+        amount_n, amount_d = amount.as_integer_ratio()
+        if (amount >= min_notional
+                and amount_n*median_d*threshold_d >= median_n*threshold_n*amount_d
+                and within_tick_distance(price, level_price, tick_size, max_distance_ticks)):
+            gap = exact.subtract(price, level_price).copy_abs()
+            value = (side, price, amount, _market_ratio(gap, tick_size), _market_ratio(amount, median))
+            results.append((gap, amount.copy_negate(), value))
+    return tuple(value for _,_,value in sorted(results, key=lambda item: item[:2]))

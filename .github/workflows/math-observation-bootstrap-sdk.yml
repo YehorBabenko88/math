@@ -129,5 +129,6 @@ jobs:
               # the installed wheel: -I excludes checkout/PYTHONPATH imports.
               call([py,'-I','-B',root/'tests/test_orderflow_decimal_context.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_market_analytics_contract.py'],cwd=tmp)
+              call([py,'-I','-B',root/'tests/test_historical_aggregate_integrity.py'],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
               print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
