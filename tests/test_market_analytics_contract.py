@@ -2,7 +2,7 @@
 from decimal import Decimal as D, Inexact, Rounded, localcontext
 import unittest
 from market_profile_math import (minute_volume_update, footprint_cell_update,
-    exact_sum, wall_notional, executed_volume_delta, tick_distance, within_tick_distance,
+    exact_sum, wall_notional, executed_volume_delta, tick_distance, within_tick_distance, volume_profile_poc, price_bucket,
     book_summary_metrics, tape_velocity_metrics, flow_window_metrics,
     wall_turnover_ratios)
 
@@ -60,6 +60,19 @@ class MarketAnalyticsContract(unittest.TestCase):
                 (1,D('1.009'),D('0.00002'),'Buy')],D('1'),D('0.001'),1000,D('9'),1,
                 observed_price=D('1.009'))
             self.assertEqual(got,(D('2'),D('100.90003027'),D('100.90003027'),D('0'),D('9')))
+
+    def test_explicit_half_even_bucket_preserves_data_builder_tie_policy(self):
+        self.assertEqual(price_bucket(D('2.5'),D('1')),D('3'))
+        self.assertEqual(price_bucket(D('2.5'),D('1'),rounding='half_even'),D('2'))
+        self.assertEqual(price_bucket(D('3.5'),D('1'),rounding='half_even'),D('4'))
+        with self.assertRaises(ValueError):price_bucket(D('2.5'),D('1'),rounding='floor')
+
+    def test_first_seen_poc_tie_policy_preserves_original_data_builder(self):
+        profile={D('101'):D('2'),D('100'):D('2')}
+        self.assertEqual(volume_profile_poc(profile),D('100'))
+        self.assertEqual(volume_profile_poc(profile,tie_policy='first_seen'),D('101'))
+        with self.assertRaises(ValueError):volume_profile_poc(profile,close=D('100'),tie_policy='first_seen')
+        with self.assertRaises(ValueError):volume_profile_poc(profile,tie_policy='random')
 
     def test_nonfinite_oversized_and_wrong_side_refuse(self):
         for bad in (D('NaN'),D('Infinity'),D('-1'),D('1e1001'),D('1'*129)):

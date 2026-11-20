@@ -20,13 +20,16 @@ _PRICE_BUCKET_MAX_DIGITS = 128
 _PRICE_BUCKET_MAX_ABS_EXPONENT = 1000
 
 
-def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
-    """Round to a tick with exact HALF_UP semantics and the tick's exponent.
+def price_bucket(price: Decimal, tick: Decimal, *, rounding="half_up") -> Decimal:
+    """Round to a tick exactly, preserving its exponent (default HALF_UP).
 
     Positive finite operands accept up to 128 coefficient digits and an
     exponent from -1000 through 1000. Wider inputs raise ValueError before
-    any integer scaling. The caller's Decimal context is unused.
+    any integer scaling. The caller's Decimal context is unused. Explicit
+    half_even preserves the data-builder tie rule without another kernel.
     """
+    if type(rounding) is not str or rounding not in ("half_up", "half_even"):
+        raise ValueError("unsupported price bucket rounding")
     price_parts = _positive_finite_decimal(price).as_tuple()
     tick_parts = _positive_finite_decimal(tick).as_tuple()
     for parts in (price_parts, tick_parts):
@@ -44,17 +47,20 @@ def price_bucket(price: Decimal, tick: Decimal) -> Decimal:
         denominator *= 10**-shift
 
     ticks, remainder = divmod(numerator, denominator)
-    if 2 * remainder >= denominator:
+    if (2 * remainder > denominator
+            or 2 * remainder == denominator and (rounding == "half_up" or ticks % 2)):
         ticks += 1
     digits = Decimal(ticks * tick_coefficient).as_tuple().digits
     return Decimal((0, digits, tick_parts.exponent))
 
 
-def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None):
-    """Executed-volume POC: Meta Minute ties nearest close; footprint ties lowest price.
+def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None = None, tie_policy=None):
+    """Executed-volume POC: nearest close/lowest price, or explicit first-seen ties.
 
     The Meta Minute (close provided) raises on an empty profile; the footprint\n    (close omitted) returns None. Reject ambiguous non-Decimal quantities.
     """
+    if tie_policy not in (None, "first_seen") or tie_policy is not None and close is not None:
+        raise ValueError("incompatible POC tie policy")
     if not isinstance(profile, dict):
         raise ValueError("volume profile must be a dict")
     if close is not None:
@@ -67,6 +73,8 @@ def volume_profile_poc(profile: dict[Decimal, Decimal], *, close: Decimal | None
         _positive_finite_decimal(price)
         _positive_finite_decimal(volume, zero_allowed=True)
     if close is None:
+        if tie_policy == "first_seen":
+            return max(profile, key=profile.get)
         return min(profile, key=lambda price: (profile[price].copy_negate(), price))
     highest_volume = max(profile.values())
     lower = upper = None
