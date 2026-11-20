@@ -49,6 +49,55 @@ class HistoricalAggregateIntegrityTests(unittest.TestCase):
             candidate=deepcopy(sample);candidate['poc_price']=candidate['levels'][0]['price']=price
             with self.subTest(price=price):self.assertEqual(historical_aggregate_integrity(candidate),want)
 
+    @staticmethod
+    def zero_quantity_row():
+        return dict(open=1.0,high=1.0,low=1.0,close=1.0,buy_volume=0.0,sell_volume=0.0,delta=0.0,
+            trade_count=1,poc_price=1.0,levels=[dict(price=1.0,buy_volume=0.0,sell_volume=0.0,
+            delta=0.0,volume=0.0,buy_count=1,sell_count=0)])
+
+    def test_entire_price_domain_matrix(self):
+        for owner,field in [(None,x) for x in ('open','high','low','close','poc_price')]+[(0,'price')]:
+            for invalid in (0.0,-0.0,-5e-324,-1.0,float('nan'),float('inf'),float('-inf'),True,False):
+                sample=self.zero_quantity_row()
+                target=sample if owner is None else sample['levels'][owner];target[field]=invalid
+                with self.subTest(field=field,invalid=invalid):self.assertFalse(historical_aggregate_integrity(sample))
+
+    def test_entire_unsigned_quantity_domain_matrix(self):
+        for owner,field in [(None,'buy_volume'),(None,'sell_volume'),(0,'buy_volume'),(0,'sell_volume'),(0,'volume')]:
+            for value,want in ((-1.0,False),(-1e-12,False),(-5e-324,False),(float('nan'),False),
+                               (float('inf'),False),(float('-inf'),False),(True,False),(False,False),
+                               (0.0,True),(-0.0,True),(5e-324,True),(0.5e-9,True)):
+                sample=self.zero_quantity_row()
+                target=sample if owner is None else sample['levels'][owner];target[field]=value
+                with self.subTest(owner=owner,field=field,value=value):
+                    self.assertEqual(historical_aggregate_integrity(sample),want)
+
+    def test_signed_delta_domain_retains_negative_and_zero_values(self):
+        sample=self.zero_quantity_row()
+        sample.update(sell_volume=1.0,delta=-1.0)
+        sample['levels'][0].update(sell_volume=1.0,delta=-1.0,volume=1.0,buy_count=0,sell_count=1)
+        self.assertTrue(historical_aggregate_integrity(sample))
+        for owner in (None,0):
+            for value,want in ((-5e-324,True),(0.0,True),(-0.0,True),(5e-324,True),
+                               (float('nan'),False),(float('inf'),False),(float('-inf'),False),(True,False),(False,False)):
+                candidate=self.zero_quantity_row()
+                target=candidate if owner is None else candidate['levels'][owner];target['delta']=value
+                with self.subTest(owner=owner,value=value):self.assertEqual(historical_aggregate_integrity(candidate),want)
+
+    def test_count_domain_is_integer_and_not_bool(self):
+        for value in (True,False,0,-1,1.0,-0.0,5e-324,float('nan'),float('inf')):
+            sample=self.zero_quantity_row();sample['trade_count']=value
+            with self.subTest(field='trade_count',value=value):self.assertFalse(historical_aggregate_integrity(sample))
+        for field in ('buy_count','sell_count'):
+            for value in (True,False,-1,1.0,-0.0,5e-324,float('nan'),float('inf')):
+                sample=self.zero_quantity_row();sample['levels'][0][field]=value
+                with self.subTest(field=field,value=value):self.assertFalse(historical_aggregate_integrity(sample))
+            for value in (0,1,2):
+                sample=self.zero_quantity_row();cell=sample['levels'][0]
+                cell['buy_count']=cell['sell_count']=1;cell[field]=value
+                sample['trade_count']=cell['buy_count']+cell['sell_count']
+                with self.subTest(field=field,value=value):self.assertTrue(historical_aggregate_integrity(sample))
+
     def test_immutable_original_source_parity_supplements_hand_oracles(self):
         source=(Path(__file__).parent/'fixtures/historical_integrity_fa09e688.py.txt').read_bytes()
         self.assertEqual(hashlib.sha256(source).hexdigest(),'0f417cef63f103f347a0e0b90deba650888af86922862f6f464f35dcc265657b')
@@ -59,7 +108,11 @@ class HistoricalAggregateIntegrityTests(unittest.TestCase):
             for field in ('delta','buy_volume','sell_volume','poc_price','trade_count'):
                 candidate=row();candidate[field]+=offset
                 with self.subTest(offset=offset,field=field):
-                    self.assertEqual(historical_aggregate_integrity(candidate),original(candidate))
+                    if min(candidate['buy_volume'],candidate['sell_volume'])<0:
+                        self.assertTrue(original(candidate),'historical invalid-domain loophole')
+                        self.assertFalse(historical_aggregate_integrity(candidate))
+                    else:
+                        self.assertEqual(historical_aggregate_integrity(candidate),original(candidate))
         for invalid in (float('nan'),float('inf'),True):
             candidate=row();candidate['levels'][1]['volume']=invalid
             self.assertEqual(historical_aggregate_integrity(candidate),original(candidate))

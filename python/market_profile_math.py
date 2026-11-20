@@ -330,6 +330,7 @@ def historical_aggregate_integrity(row):
         # ULP tolerance applies only inside the strictly positive price domain.
         # Subnormal rounding must never admit zero/negative market prices.
         if row['poc_price']<=0:return False
+        if min(row['buy_volume'],row['sell_volume'])<0:return False
         if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high']:return False
         if type(row['trade_count']) is not int or row['trade_count']<=0:return False
         levels=row['levels']
@@ -340,7 +341,7 @@ def historical_aggregate_integrity(row):
             if x['price']<=0:return False
             if x['price'] in prices or not ((x['price']>=row['low'] or boundary_equal(x['price'],row['low'])) and (x['price']<=row['high'] or boundary_equal(x['price'],row['high']))):return False
             prices.add(x['price'])
-            if min(x['buy_volume'],x['sell_volume'])<0:return False
+            if min(x['buy_volume'],x['sell_volume'],x['volume'])<0:return False
             if not math.isclose(x['delta'],x['buy_volume']-x['sell_volume'],abs_tol=1e-9) or not math.isclose(x['volume'],x['buy_volume']+x['sell_volume'],abs_tol=1e-9):return False
             if any(type(x[k]) is not int or x[k]<0 for k in ('buy_count','sell_count')):return False
             buy+=x['buy_volume'];sell+=x['sell_volume'];trades+=x['buy_count']+x['sell_count']
