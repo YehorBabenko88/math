@@ -1,0 +1,54 @@
+{
+  "schema": "math.history-window.artifact.v1",
+  "source_runtime_commit": "db25b6550b00410b8266ae18f9af43c415cb5d9d",
+  "parent": "a5868944bf1bae813403a32b22d329c1da6f8238",
+  "wheel_sha256": "0de5ea0e482ccc1fd23d541af62b9d4f0d81a493c51656d638efdb3814f1ee6e",
+  "kernel_prefix": {
+    "bytes": 55759,
+    "sha256": "c1cecb584a25900e6e69482dd0134fda1cb87f729cf891005a03edd6ffce51b4",
+    "preserved": true
+  },
+  "source_tests": {
+    "python": [
+      "3.11",
+      "3.12"
+    ],
+    "cases": 118
+  },
+  "isolated_wheel_tests": {
+    "python": [
+      "3.11",
+      "3.12"
+    ],
+    "cases": 95,
+    "old_module_absent": true,
+    "metadata_distribution": "unified-math-kernels",
+    "fresh_cli_cache": true,
+    "cache_empty_pre_post": true
+  },
+  "raw_git_modules": {
+    "market_math.py": {
+      "sha256": "1bb87beb427b2c74201091cb5f2633e028f2cb027dd1cdb4efa4f347bf971084",
+      "raw_git_identical": true
+    },
+    "market_compute_api.py": {
+      "sha256": "5f7c28df44441f6be4712e27c1d9971fd0d0d3e5372851b70fd91449265756c6",
+      "raw_git_identical": true
+    },
+    "history_statistics.py": {
+      "sha256": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b",
+      "raw_git_identical": true
+    }
+  },
+  "excluded_wheel_fixtures": [
+    "test_market_math_namespace",
+    "test_math_sdk_ownership",
+    "test_history_statistics_overflow",
+    "test_observation_bootstrap_api"
+  ],
+  "exclusion_reason": "Source packaging/ownership or test fixtures inserting checkout python path; all118 remain source-qualified. Initial110-case artifact run failed post-origin assertion and was not accepted.",
+  "native": "NOT_RUN",
+  "production": "NO_GO",
+  "execution_authority": false,
+  "trading_authorized": false
+}
