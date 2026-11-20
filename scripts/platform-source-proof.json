@@ -2898,6 +2898,7 @@
     "tests/adminit-loader-facts.windows.mjs",
     "tests/adminit-worker-trace.cross.mjs",
     "tests/adminit-loader-events.windows.mjs",
-    "tests/agent7-replay-research.test.mjs"
+    "tests/agent7-replay-research.test.mjs",
+    "tests/math-trading-ownership.test.mjs"
   ]
 }
