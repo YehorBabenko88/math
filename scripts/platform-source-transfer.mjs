@@ -14,6 +14,16 @@ const EXCLUSIVE_RETIRED=["src/confidential-collector/oidc-client.mjs","src/confi
 export const loadHistoricalInventory=()=>json('scripts/platform-test-inventory.json');
 export const loadTransferLedger=()=>json('scripts/platform-source-transfers.json');
 export function verifyTransferLedger(current,historical,transfer){
+ // Bind the actual supplied object before deriving any current/moved identity.
+ // A disk hash alone does not authenticate a separately supplied object.
+ const historicalBytes=readFileSync('scripts/platform-test-inventory.json');
+ const baselineEntry=execFileSync('git',['--no-replace-objects','ls-tree',SOURCE_BASE,'--','scripts/platform-test-inventory.json'],{encoding:'utf8',windowsHide:true}).trim();
+ const match=/^100644 blob ([a-f0-9]{40})\tscripts\/platform-test-inventory\.json$/.exec(baselineEntry);
+ assert.ok(match,'Immutable historical ledger must exist in the exact b3 tree');
+ assert.equal(createHash('sha1').update(Buffer.concat([Buffer.from('blob '+historicalBytes.length+'\0'),historicalBytes])).digest('hex'),match[1],'Historical raw ledger changed from b3');
+ const boundHistorical=JSON.parse(historicalBytes);
+ assert.deepEqual(historical,boundHistorical,'Provided historical object differs from exact b3 ledger');
+ historical=boundHistorical;
  assert.equal(current.schema,'math.current-platform-case-inventory.v2');
  assert.equal(transfer.schema,'math.root-ci-event-transfer.v1');
  for(const item of [current,transfer]){assert.equal(item.source_base,SOURCE_BASE);assert.equal(item.Root_tool,ROOT_TOOL);assert.equal(item.historical_inventory_sha256,digest(readFileSync('scripts/platform-test-inventory.json')));}

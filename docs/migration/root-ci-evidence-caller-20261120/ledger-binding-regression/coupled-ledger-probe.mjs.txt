@@ -1,0 +1,10 @@
+import {pathToFileURL} from 'node:url';
+const root=process.argv[2];const api=await import(pathToFileURL(root+'/scripts/platform-source-transfer.mjs'));
+const fs=await import('node:fs');
+const historical=api.loadHistoricalInventory();const transfer=api.loadTransferLedger();const current=JSON.parse(fs.readFileSync(root+'/scripts/platform-current-inventory.json','utf8'));
+api.verifyTransferLedger(current,historical,transfer);
+const old=historical.tests.find(x=>!transfer.events.some(e=>JSON.stringify(e.original)===JSON.stringify(x)));const match=current.tests.find(x=>JSON.stringify(x)===JSON.stringify(old));
+if(!match)throw Error('probe fixture mismatch');
+old.name='SUBSTITUTED_ORIGINAL_CASE_WITH_SAME_COUNTS';match.name=old.name;
+let accepted=false;try{api.verifyTransferLedger(current,historical,transfer);accepted=true;}catch(e){console.log('REFUSED',e.message);}
+console.log(JSON.stringify({accepted_same_count_historical_substitution:accepted,historical:historical.tests.length,current:current.tests.length,moved:transfer.events.length}));

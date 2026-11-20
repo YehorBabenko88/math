@@ -22,3 +22,4 @@ package-lock.json -text
 # Historical baseline ledgers are immutable byte custody, not current PASS.
 /scripts/platform-test-inventory.json -text
 /scripts/platform-source-proof.json -text
+/docs/migration/root-ci-evidence-caller-20261120/ledger-binding-regression/*.txt -text
