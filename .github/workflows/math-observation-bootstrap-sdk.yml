@@ -137,6 +137,7 @@ jobs:
               call([py,'-I','-B',root/'tests/test_market_math_namespace.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_causal_paper_math.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_paper_quote_book_domain.py'],cwd=tmp)
+              call([py,'-I','-B',root/'tests/test_paper_quote_funding_domain.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_orderflow_decimal_context.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_market_analytics_contract.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_historical_aggregate_integrity.py'],cwd=tmp)
