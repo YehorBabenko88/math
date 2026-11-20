@@ -1,5 +1,6 @@
 // One authoritative, unfiltered inventory; no shell expansion or optional DB/PDF skips.
 import {spawn,spawnSync} from 'node:child_process';
+import {createEventCapture} from './ci-stream-evidence.mjs';
 import {readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -64,7 +65,7 @@ let mainStage='ARGUMENTS';
 async function main(){
  if(process.argv.length!==2)throw Error('Full CI accepts no test selectors or filters');
  if(/--test(?:\b|[-=])/.test(process.env.NODE_OPTIONS??''))throw Error('Test filters are forbidden');
- mainStage='LOAD_INVENTORY';const {readFileSync,writeFileSync,mkdirSync}=await import('node:fs');
+ mainStage='LOAD_INVENTORY';const {readFileSync,writeFileSync,mkdirSync,appendFileSync}=await import('node:fs');
  const {execFileSync}=await import('node:child_process');
  const {loadInventory,verifySourceProof,expectedFor,validateEvents,parseEventEvidence,inventoryDigest,sha256}=await import('./platform-coverage.mjs');
  mainStage='LOAD_INVENTORY';const inventory=loadInventory();mainStage='SOURCE_PROOF';const proof=verifySourceProof();mainStage='PLATFORM_PREREQUISITES';const platform=process.platform==='win32'?'windows':process.platform;
@@ -88,10 +89,11 @@ async function main(){
   }
  }
  mainStage='LOAD_INVENTORY';const expected=expectedFor(inventory,platform);const files=[...new Set(expected.map(x=>x.destination))].sort();
- const env={...process.env};delete env.NODE_TEST_CONTEXT;
- mainStage='TEST_RUN';const output=[];let code,signal;
- await new Promise((done,reject)=>{const child=spawn(process.execPath,['--test','--test-concurrency=4','--test-timeout=120000','--test-reporter=./scripts/platform-test-reporter.mjs',...files],{env,windowsHide:true,stdio:['ignore','pipe','inherit']});child.stdout.on('data',chunk=>output.push(chunk));child.once('error',reject);child.once('close',(c,s)=>{code=c;signal=s;done();});});
- mainStage='EVIDENCE_WRITE';const eventsRaw=Buffer.concat(output).toString('utf8');mkdirSync('platform-evidence',{recursive:true});writeFileSync('platform-evidence/events.ndjson',eventsRaw);
+ const env={...process.env,MATH_CI_PROGRESS_DIAGNOSTICS:'SOURCE_ONLY_BOUNDED:'+process.pid};delete env.NODE_TEST_CONTEXT;
+ mainStage='TEST_RUN';mkdirSync('platform-evidence',{recursive:true});writeFileSync('platform-evidence/events.ndjson','');writeFileSync('platform-evidence/progress.ndjson','');
+ const capture=createEventCapture({append:chunk=>appendFileSync('platform-evidence/events.ndjson',chunk)});let code,signal;
+ await new Promise((done,reject)=>{const child=spawn(process.execPath,['--test','--test-concurrency=4','--test-timeout=120000','--test-reporter=./scripts/platform-test-reporter.mjs',...files],{env,windowsHide:true,stdio:['ignore','pipe','inherit']});child.stdout.on('data',chunk=>capture.chunk(chunk));child.once('error',reject);child.once('close',(c,s)=>{code=c;signal=s;done();});});
+ mainStage='EVIDENCE_WRITE';const eventsRaw=capture.finish();
  mainStage='EVENT_PARSE';const {events,summary,success}=parseEventEvidence(eventsRaw,inventory);let ok=false;
  mainStage='EVENT_VALIDATION';try{validateEvents(events,expected);if(code!==0||signal||!success||summary.tests!==expected.length||summary.pass!==expected.length||['fail','cancelled','skipped','todo'].some(x=>summary[x]!==0))throw Error('Strict terminal suite failed');ok=true;}catch{for(const line of terminalFailureAnnotations(events,expected))console.error(line);console.error(failureAnnotation(mainStage));}
  mainStage='SOURCE_RECEIPT';const git=(...args)=>execFileSync('git',['--no-replace-objects',...args],{encoding:'utf8'}).trim();const head=git('rev-parse','HEAD'),tree=git('rev-parse','HEAD^{tree}');

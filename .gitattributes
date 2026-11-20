@@ -7,3 +7,9 @@ package-lock.json -text
 
 # Immutable historical source oracle: its pinned raw bytes are test evidence.
 /tests/fixtures/historical_integrity_fa09e688.py.txt -text
+
+# SDK raw numerical prefixes are compared to immutable Git bytes on every OS.
+/python/market_math.py text eol=lf
+/python/market_compute_api.py text eol=lf
+/python/history_statistics.py text eol=lf
+/pyproject.toml text eol=lf

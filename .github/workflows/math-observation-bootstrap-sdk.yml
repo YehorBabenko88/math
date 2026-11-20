@@ -18,6 +18,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -25,9 +31,17 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Raw checkout and source/sdist/wheel refusal controls
+        run: python -B -m unittest discover -s tests -p test_math_sdk_raw_bytes.py -v
       - name: Exact-head pure observation API and refusal cases
         run: python -B -m unittest discover -s tests -p test_observation_bootstrap_api.py -v
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
         with:
           repository: YehorBabenko88/Terminan
           ref: d129840274f6a0faa1591a0ac3a5b92cc0bb5d88
@@ -42,8 +56,10 @@ jobs:
       - name: Build and install standalone Math SDK from exact committed source
         shell: python {0}
         run: |
-          import hashlib, os, pathlib, subprocess, tempfile, venv, zipfile
+          import hashlib, os, pathlib, subprocess, sys, tempfile, venv, zipfile
           root=pathlib.Path.cwd()
+          sys.path.insert(0,str(root/'scripts'))
+          from math_sdk_source_bytes import verify_wheel,verify_sdist,require_checkout,materialize
           names=['pyproject.toml','python/market_compute_api.py',
                  'python/market_math.py','python/history_statistics.py']
           def call(args,**kwargs):
@@ -51,16 +67,12 @@ jobs:
           with tempfile.TemporaryDirectory(prefix='math-observations-') as home:
               tmp=pathlib.Path(home)
               source=tmp/'source'
+              committed_files={};current_files={}
               for name in names:
-                  destination=source/name
-                  destination.parent.mkdir(parents=True,exist_ok=True)
-                  committed=subprocess.check_output(
-                      ['git','--no-replace-objects','-C',str(root),
-                       'show','HEAD:'+name],timeout=15)
-                  current=(root/name).read_bytes()
-                  if current not in (committed,committed.replace(b'\n',b'\r\n')):
-                      raise RuntimeError('MATH_OBSERVATION_SOURCE_CHANGED:'+name)
-                  destination.write_bytes(committed)
+                  committed_files[name]=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','HEAD:'+name],timeout=15)
+                  current_files[name]=(root/name).read_bytes()
+              require_checkout(committed_files,current_files)
+              materialize(committed_files,source)
               # Use the same pinned builder on Linux and Windows; never
               # silently change metadata or skip the Python 3.11 job.
               builder=tmp/'builder'
@@ -86,6 +98,12 @@ jobs:
                       module=pathlib.PurePosixPath(name).name
                       if wheel.read(module)!=(source/name).read_bytes():
                           raise RuntimeError('MATH_WHEEL_SOURCE_MISMATCH:'+module)
+              verify_wheel(files[0],committed_files)
+              sdists=tmp/'sdists';sdists.mkdir()
+              call([build_python,'-I','-B','-c','from setuptools.build_meta import build_sdist;import sys;build_sdist(sys.argv[1])',sdists],cwd=source,env=env)
+              archives=list(sdists.glob('*.tar.gz'))
+              if len(archives)!=1:raise RuntimeError('MATH_SDK_SDIST_COUNT')
+              verify_sdist(archives[0],committed_files)
               installed=tmp/'installed'
               venv.EnvBuilder(with_pip=True).create(installed)
               py=installed/executable

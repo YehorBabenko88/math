@@ -60,6 +60,8 @@ jobs:
         run: node scripts/verify-sql-bytes.mjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: 'python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r scripts/book-ingestion-requirements.txt'
+      - name: Bounded event/progress streaming controls (fake callbacks only)
+        run: node --test tests/math-ci-stream-evidence.unit.mjs
       - name: Complete Linux-owned and cross-platform suite (zero skips or todo)
         run: node scripts/test-full-ci.mjs
       - name: Record exact source and dependency provenance
