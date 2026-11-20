@@ -1115,3 +1115,34 @@ def history_window_ms(start_ms,end_ms,*,cadence_minutes):
     first=((start_ms+step-1)//step)*step
     last=(end_ms//step)*step
     return (first,last) if first<=last else None
+
+
+def candle_ohlcv_turnover_valid(open,high,low,close,volume,*,turnover):
+    """Six-field Decimal domain predicate using the shared OHLCV predicate.
+
+    Turnover is required, finite, nonnegative and bounded by the same128digit
+    coefficient/exponent+/-4096 policy. No source/coverage/trade grant is made.
+    Existing five-field consumers retain their distinct still-active contract.
+    """
+    if not candle_ohlcv_valid(open,high,low,close,volume):return False
+    try:_policy_decimal(turnover,nonnegative=True)
+    except ValueError:return False
+    return True
+
+
+def query_minute_grid_ms(start_ms,end_ms,*,event_cut_ms=None):
+    """Bounded half-open whole-minute cells for a declared synthetic query.
+
+    Reuse the inclusive history kernel's literal UTC domain. This stricter
+    request rejects empty/reversed/off-grid intervals; at most1440 cells is a
+    query resource budget, never an exchange coverage or readiness statement.
+    Optional cut need not be aligned, but must be a literal UTC int>=end.
+    No source, capability, event availability or trading authority is assigned.
+    """
+    window=history_window_ms(start_ms,end_ms,cadence_minutes=1)
+    if window is None or start_ms>=end_ms or window!=(start_ms,end_ms):
+        raise ValueError('QUERY_WHOLE_MINUTE_RANGE_REQUIRED')
+    if (end_ms-start_ms)//60000>1440:raise ValueError('QUERY_MINUTE_CELL_BUDGET')
+    if event_cut_ms is not None and history_window_ms(end_ms,event_cut_ms,cadence_minutes=1) is None:
+        raise ValueError('QUERY_EVENT_CUT_PRECEDES_END')
+    return tuple((point,point+60000) for point in range(start_ms,end_ms,60000))
