@@ -4,3 +4,6 @@
 package-lock.json -text
 /scripts/runtime-smoke/* -text
 /.gitattributes -text
+
+# Immutable historical source oracle: its pinned raw bytes are test evidence.
+/tests/fixtures/historical_integrity_fa09e688.py.txt -text
