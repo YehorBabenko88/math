@@ -145,4 +145,31 @@ class ExtremeReservationDomainTests(unittest.TestCase):
        self.assertEqual(actual.drawdown_exceeded,expected)
        self.assertFalse(any(ctx.flags.values()))
 
+
+class ExactInputDomainOrderingTests(unittest.TestCase):
+ def test_decimal_book_spread_does_not_collapse_to_binary64_equality(self):
+  bid='10000000000.00000001';ask='10000000000.00000002'
+  self.assertTrue(paper_input_numeric_integrity('orderbook_snapshot',{'best_bid':bid,'best_ask':ask}))
+  self.assertFalse(paper_input_numeric_integrity('orderbook_snapshot',{'best_bid':ask,'best_ask':bid}))
+  self.assertFalse(paper_input_numeric_integrity('orderbook_snapshot',{'best_bid':bid,'best_ask':bid}))
+
+ def test_exact_ohlc_above_below_equal_and_parent_literal(self):
+  base=dict(open='10000000000.0000000002',high='10000000000.0000000001',low='10000000000',close='10000000000',buy_volume='1',sell_volume='1',delta='0',cvd='0',aggressor_imbalance='0',range='0.0000000001',buy_count=1,sell_count=1,trade_count=2)
+  for field,values in (('open',(('10000000000.0000000002',False),('10000000000.0000000001',True),('10000000000.00000000005',True))),('close',(('9999999999.9999999999',False),('10000000000',True),('10000000000.0000000001',True)))):
+   for value,expected in values:
+    row=base.copy();row['open']=base['high'];row[field]=value
+    self.assertEqual(paper_input_numeric_integrity('trade_tape_250ms',row),expected)
+  for precision in (1,2,7,28):
+   with localcontext() as ctx:
+    ctx.prec=precision
+    for signal in ctx.traps:ctx.traps[signal]=True
+    self.assertFalse(paper_input_numeric_integrity('trade_tape_250ms',base))
+    self.assertTrue(paper_input_numeric_integrity('orderbook_snapshot',{'best_bid':'10000000000.00000001','best_ask':'10000000000.00000002'}))
+    self.assertFalse(any(ctx.flags.values()))
+
+ def test_ohlc_domain_precedes_approximate_consistency(self):
+  row=PaperInputNumericTests().tape()
+  row.update(open='3.00000000000000000001',high='3',low='1',close='2',range='2')
+  self.assertFalse(paper_input_numeric_integrity('trade_tape_250ms',row))
+
 if __name__=='__main__':unittest.main()
