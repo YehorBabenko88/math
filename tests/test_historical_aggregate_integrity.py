@@ -6,7 +6,7 @@ import hashlib
 import json
 import math
 import unittest
-from market_profile_math import historical_aggregate_integrity
+from market_math import historical_aggregate_integrity
 
 
 def row():

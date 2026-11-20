@@ -5,7 +5,7 @@ Can run unchanged against the installed wheel with Python -I.
 from decimal import Decimal as D, Inexact, Rounded, ROUND_UP, localcontext
 import unittest
 
-from market_profile_math import aggregate_orderflow_stream, orderflow_volume_metrics
+from market_math import aggregate_orderflow_stream, orderflow_volume_metrics
 
 
 class OrderflowDecimalContext(unittest.TestCase):

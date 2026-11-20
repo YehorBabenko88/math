@@ -54,7 +54,7 @@ jobs:
         run: |
           import hashlib, os, pathlib, subprocess, sys, tempfile, venv, zipfile
           root=pathlib.Path.cwd()
-          names=['pyproject.toml','python/market_profile_math.py','python/market_compute_api.py','python/history_statistics.py']
+          names=['pyproject.toml','python/market_math.py','python/market_compute_api.py','python/history_statistics.py']
           def call(args,**kwargs):
               return subprocess.check_output([str(a) for a in args],timeout=120,**kwargs)
           with tempfile.TemporaryDirectory(prefix='math-package-') as tmp:
@@ -80,12 +80,17 @@ jobs:
               if len(wheels)!=1:raise RuntimeError('MATH_PACKAGE_WHEEL_COUNT')
               with zipfile.ZipFile(wheels[0]) as archive:
                   members=set(archive.namelist())
-                  if not {'market_compute_api.py','market_profile_math.py','history_statistics.py'}<=members:
+                  if 'market_profile_math.py' in members:raise RuntimeError('RETIRED_MATH_MODULE_IN_WHEEL')
+                  if not {'market_compute_api.py','market_math.py','history_statistics.py'}<=members:
                       raise RuntimeError('MATH_PACKAGE_MODULES_MISSING')
               env_dir=tmp/'venv';venv.EnvBuilder(with_pip=True,clear=True).create(env_dir)
               py=env_dir/python_path
               call([py,'-m','pip','install','--no-index','--no-deps',wheels[0]],cwd=tmp)
-              program=("from market_compute_api import compute_batch;"
+              program=("import importlib.util,importlib.metadata as metadata,pathlib;"
+                       "import market_math as canonical;"
+                       "assert importlib.util.find_spec('market_profile_math') is None;"
+                       "assert pathlib.Path(canonical.__file__).resolve()==pathlib.Path(metadata.distribution('unified-math-kernels').locate_file('market_math.py')).resolve();"
+                       "from market_compute_api import compute_batch;"
                        "q={'schema':'math.market.compute.v1','execution_authority':False,"
                        "'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,"
                        "'units':{'price':'quote/base','volume':'base'}},"

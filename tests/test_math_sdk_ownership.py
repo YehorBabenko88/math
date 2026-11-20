@@ -15,7 +15,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SDK_MODULES = ("market_compute_api", "market_profile_math", "history_statistics")
+SDK_MODULES = ("market_compute_api", "market_math", "history_statistics")
 DISALLOWED_IMPORT_ROOTS = frozenset({
     "bybit", "grid", "terminan", "strattester", "meta_analyse",
     "psycopg", "sqlite3", "websockets", "requests", "httpx",

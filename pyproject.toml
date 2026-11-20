@@ -11,7 +11,7 @@ dependencies = []
 
 [tool.setuptools]
 package-dir = {"" = "python"}
-py-modules = ["market_compute_api", "market_profile_math", "history_statistics"]
+py-modules = ["market_compute_api", "market_math", "history_statistics"]
 
 [tool.setuptools.exclude-package-data]
 "*" = ["*.pyc"]

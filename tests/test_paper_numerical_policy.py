@@ -1,7 +1,7 @@
 """Literal hand-oracles for the existing paper engine's28HALF_EVEN policy."""
 from decimal import Decimal as D,localcontext
 import unittest
-from market_profile_math import (adverse_execution_price,paper_position_size,paper_entry_fee,paper_stop_price,paper_entry_side,paper_fill_metrics)
+from market_math import (adverse_execution_price,paper_position_size,paper_entry_fee,paper_stop_price,paper_entry_side,paper_fill_metrics)
 
 class PaperNumericalPolicyTests(unittest.TestCase):
  def test_literal_fill_fee_and_slippage_vectors_all_hostile_contexts(self):

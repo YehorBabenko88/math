@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("math_owned_statistics", ROOT / "python/history_statistics.py")
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
-PROFILE_SPEC = importlib.util.spec_from_file_location("math_owned_market_profile", ROOT / "python/market_profile_math.py")
+PROFILE_SPEC = importlib.util.spec_from_file_location("math_owned_market_math", ROOT / "python/market_math.py")
 PROFILE = importlib.util.module_from_spec(PROFILE_SPEC)
 PROFILE_SPEC.loader.exec_module(PROFILE)
 
@@ -625,7 +625,7 @@ class BoundedStreamingOrderflowContract(unittest.TestCase):
         sys.path.insert(0, str(ROOT / "python"))
         try:
             from market_compute_api import STREAM_ABI, aggregate_orderflow_stream
-            from market_profile_math import aggregate_orderflow
+            from market_math import aggregate_orderflow
             return STREAM_ABI, aggregate_orderflow_stream, aggregate_orderflow
         finally:
             sys.path.pop(0)
