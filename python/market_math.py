@@ -920,7 +920,7 @@ def paper_reservation_metrics(cash,peak,reserved,bid,ask,notional,fee_bps,max_re
     _causal_decimal(max_drawdown,Decimal(0),Decimal(1));_orderflow_decimal(_policy_decimal(max_spread_bps,nonnegative=True))
     c=_market_context();collateral=c.multiply(notional,c.add(Decimal(1),c.divide(fee_bps,Decimal(10000))))
     spread_n=c.multiply(c.subtract(ask,bid),Decimal(10000));available=c.subtract(cash,reserved)
-    return ReservationMetrics(collateral,_market_ratio(spread_n,bid),_ratio_compare(spread_n,bid,max_spread_bps)>0,c.add(reserved,collateral)>max_reserved,available<collateral,c.subtract(available,collateral)<c.multiply(peak,c.subtract(Decimal(1),max_drawdown)))
+    return ReservationMetrics(collateral,_market_ratio(spread_n,bid),_ratio_compare(spread_n,bid,max_spread_bps)>0,c.add(reserved,collateral)>max_reserved,available<collateral,_ratio_compare(c.add(c.subtract(peak,available),collateral),peak,max_drawdown)>0)
 
 def book_tape_research_metrics(close,buy,sell,past):
     """Exact v2 feature/vote predicates; first-seen POC, display6/8 HALF_EVEN.

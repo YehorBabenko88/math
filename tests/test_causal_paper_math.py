@@ -128,4 +128,21 @@ class ExactReservationOracleTests(unittest.TestCase):
    self.assertEqual(actual.cash_insufficient,available<collateral)
    self.assertEqual(actual.drawdown_exceeded,available-collateral<F(peak)*(1-F(drawdown)))
 
+
+class ExtremeReservationDomainTests(unittest.TestCase):
+ def test_drawdown_fraction_oracle_for_entire_declared_amount_domain(self):
+  from fractions import Fraction as F
+  for digits,exponent in ((4001,-2000),(4263,-2000),(4001,-1900)):
+   peak=D((0,(1,)+(0,)*(digits-2)+(1,),exponent))
+   for cash in (peak,D(1)):
+    for drawdown in (D('1e-1000'),D(0),D(1)):
+     for precision in (2,28):
+      with localcontext() as ctx:
+       ctx.prec=precision
+       for signal in ctx.traps:ctx.traps[signal]=True
+       actual=paper_reservation_metrics(cash,peak,D(0),D(100),D(100),D(1),D(0),peak,drawdown,D(0))
+       expected=F(cash)-1<F(peak)*(1-F(drawdown))
+       self.assertEqual(actual.drawdown_exceeded,expected)
+       self.assertFalse(any(ctx.flags.values()))
+
 if __name__=='__main__':unittest.main()
