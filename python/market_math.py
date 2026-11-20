@@ -1172,6 +1172,6 @@ def finite_nonnegative_number_valid(value):
     This validates legacy JSON numeric shape, not financial exactness, source
     authenticity, fee/risk policy, or permission to execute any operation.
     """
-    if type(value) not in (int,float):return False
+    if type(value) is not int and type(value) is not float:return False
     try:return _paper_binary64(value)>=0
     except ValueError:return False

@@ -16,7 +16,14 @@ class FiniteNonnegativeTests(unittest.TestCase):
    def __float__(self):raise AssertionError('SUBCLASS_FLOAT')
   class Int(int):
    def bit_length(self):raise AssertionError('SUBCLASS_BITS')
-  for value in (None,True,False,'1',Decimal('1'),Decimal('sNaN'),Hostile(),Float(1),Int(1),[],{}):self.assertIs(self.f(value),False)
+  class HostileMeta(type):
+   def __eq__(cls,other):raise AssertionError('UNTRUSTED_TYPE_EQUALITY')
+  class MetaValue(metaclass=HostileMeta):pass
+  class EqualMeta(type):
+   def __eq__(cls,other):return True
+  class EqualValue(metaclass=EqualMeta):
+   def __float__(self):raise AssertionError('UNTRUSTED_METACLASS_COERCION')
+  for value in (None,True,False,'1',Decimal('1'),Decimal('sNaN'),Hostile(),Float(1),Int(1),MetaValue(),EqualValue(),[],{}):self.assertIs(self.f(value),False)
  def test_integer_representation_bound_and_float_overflow_fail_closed(self):
   for value in (2**1024-1,2**1024,-2**1024,1<<1000000):self.assertIs(self.f(value),False)
   self.assertIs(self.f(2**1023),True)
