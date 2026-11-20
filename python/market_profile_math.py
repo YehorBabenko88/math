@@ -694,3 +694,80 @@ def decimal_epoch_units(seconds, precision):
     coefficient=int(Decimal((0,parts.digits,0)))
     shift=parts.exponent+precision
     return coefficient*10**shift if shift>=0 else coefficient//10**-shift
+
+
+def _policy_decimal(value, *, positive=False, nonnegative=False):
+    if type(value) is not Decimal or not value.is_finite():raise ValueError('PAPER_DECIMAL_DOMAIN')
+    parts=value.as_tuple()
+    if len(parts.digits)>128 or abs(parts.exponent)>4096:raise ValueError('PAPER_DECIMAL_DOMAIN')
+    if positive and value<=0 or nonnegative and value<0:raise ValueError('PAPER_DECIMAL_DOMAIN')
+    return value
+
+def _paper_context():
+    # Preserve each old default-context intermediate explicitly, without caller traps.
+    return Context(prec=28,rounding=ROUND_HALF_EVEN,Emin=MIN_EMIN,Emax=MAX_EMAX,traps=[])
+
+def _paper_side(side):
+    if type(side) is not str or side not in ('long','short'):raise ValueError('INVALID_PAPER_SIDE')
+
+def adverse_execution_price(price,side,bps,entry):
+    """Pure adverse annotation arithmetic:28HALF_EVEN at each legacy step.
+
+    All paper helpers accept finite Decimal operands <=128 coefficient digits,
+    exponent +/-4096 (including derived position sizes), never caller context.
+    No fills, state, signals, timestamps or execution authority are created.
+    """
+    _policy_decimal(price,positive=True);_policy_decimal(bps,nonnegative=True);_paper_side(side)
+    if type(entry) is not bool or bps>=10000:raise ValueError('INVALID_PAPER_SLIPPAGE')
+    c=_paper_context();fraction=c.divide(bps,Decimal(10000))
+    adverse_up=(side=='long')==entry
+    factor=c.add(Decimal(1),fraction) if adverse_up else c.subtract(Decimal(1),fraction)
+    return c.multiply(price,factor)
+
+def paper_position_size(notional,entry):
+    _policy_decimal(notional,positive=True);_policy_decimal(entry,positive=True)
+    return _paper_context().divide(notional,entry)
+
+def paper_entry_fee(notional,rate):
+    _policy_decimal(notional,positive=True);_policy_decimal(rate,nonnegative=True)
+    if rate>=1:raise ValueError('INVALID_PAPER_FEE')
+    return _paper_context().multiply(notional,rate)
+
+def paper_stop_price(entry,side,stop_pct):
+    """Preserves legacy nonnegative stop_pct, including signed stops above100%."""
+    _policy_decimal(entry,positive=True);_policy_decimal(stop_pct,nonnegative=True);_paper_side(side)
+    c=_paper_context();factor=c.subtract(Decimal(1),stop_pct) if side=='long' else c.add(Decimal(1),stop_pct)
+    return c.multiply(entry,factor)
+
+def paper_entry_side(price,poc,threshold):
+    """Legacy inclusive short-first28digit threshold policy, not source trust."""
+    _policy_decimal(price,positive=True);_policy_decimal(poc,positive=True);_policy_decimal(threshold,nonnegative=True)
+    c=_paper_context()
+    if price>=c.multiply(poc,c.add(Decimal(1),threshold)):return 'short'
+    if price<=c.multiply(poc,c.subtract(Decimal(1),threshold)):return 'long'
+    return None
+
+def paper_fill_metrics(side,entry,exit,size,entry_fee,fee_rate):
+    """Pure (gross,total_fees,net) using old sequential28digit intermediates."""
+    _paper_side(side)
+    for value in (entry,exit,size):_policy_decimal(value,positive=True)
+    _policy_decimal(entry_fee,nonnegative=True);_policy_decimal(fee_rate,nonnegative=True)
+    if fee_rate>=1:raise ValueError('INVALID_PAPER_FEE')
+    c=_paper_context();difference=c.subtract(exit,entry) if side=='long' else c.subtract(entry,exit)
+    gross=c.multiply(difference,size)
+    exit_fee=c.multiply(c.multiply(size,exit),fee_rate)
+    return gross,c.add(entry_fee,exit_fee),c.subtract(c.subtract(gross,entry_fee),exit_fee)
+
+
+def candle_ohlcv_valid(open,high,low,close,volume):
+    """Pure Decimal OHLCV domain predicate; no source/coverage authentication.
+
+    Finite Decimal prices must be strictly positive, volume nonnegative and
+    OHLC ordered. Bounded128digit coefficients/exponent+/-4096; caller context
+    unused. Identity, event time, completeness and provenance stay external.
+    """
+    try:
+        for value in (open,high,low,close):_policy_decimal(value,positive=True)
+        _policy_decimal(volume,nonnegative=True)
+    except ValueError:return False
+    return low<=min(open,close)<=max(open,close)<=high
