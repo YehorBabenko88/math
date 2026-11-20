@@ -50,3 +50,10 @@ class PaperNumericalPolicyTests(unittest.TestCase):
   import market_compute_api as api
   self.assertIs(api.paper_fill_metrics,paper_fill_metrics)
   self.assertEqual(paper_position_size(D('1e-1000'),D('1e1000')),D('1e-2000'))
+
+class PaperOutputDomainTests(unittest.TestCase):
+ def test_derived_outputs_outside_supported_domain_refuse_before_controller_commit(self):
+  for call in (lambda:paper_position_size(D('1e4096'),D('1e-4096')),lambda:paper_entry_fee(D('1e-4096'),D('1e-4096')),lambda:paper_stop_price(D('1e4096'),'short',D('1e4096')),lambda:paper_fill_metrics('long',D(1),D('1e4096'),D('1e4096'),D(0),D(0))):
+   with self.assertRaises(ValueError):call()
+ def test_old_rounded_slippage_fraction_one_is_rejected(self):
+  with self.assertRaises(ValueError):adverse_execution_price(D(100),'short',D('9999.9999999999999999999999999'),True)
