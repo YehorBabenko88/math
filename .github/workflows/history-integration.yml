@@ -19,6 +19,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -30,16 +36,30 @@ jobs:
         with:
           node-version: '24'
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
         with:
           repository: YehorBabenko88/bybit-cluster-grid
           ref: bf9f108b6777085d6725675eac778d61ec55f42b
           path: reference-grid
           persist-credentials: false
+      - name: Raw checkout and source/sdist/wheel refusal controls
+        run: python -B -m unittest discover -s tests -p test_math_sdk_raw_bytes.py -v
       - name: Exact-head synthetic checks
         run: python scripts/history_ci.py tests 'test_history*.py'
         env:
           GRID_REFERENCE: ${{ github.workspace }}/reference-grid
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
         with:
           repository: YehorBabenko88/meta_analyse
           ref: f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1
@@ -54,17 +74,19 @@ jobs:
         run: |
           import hashlib, os, pathlib, subprocess, sys, tempfile, venv, zipfile
           root=pathlib.Path.cwd()
+          sys.path.insert(0,str(root/'scripts'))
+          from math_sdk_source_bytes import verify_wheel,verify_sdist,require_checkout,materialize
           names=['pyproject.toml','python/market_math.py','python/market_compute_api.py','python/history_statistics.py']
           def call(args,**kwargs):
               return subprocess.check_output([str(a) for a in args],timeout=120,**kwargs)
           with tempfile.TemporaryDirectory(prefix='math-package-') as tmp:
               tmp=pathlib.Path(tmp);source=tmp/'source';source.mkdir()
+              committed_files={};current_files={}
               for name in names:
-                  src=root/name;dst=source/name;dst.parent.mkdir(parents=True,exist_ok=True)
-                  data=src.read_bytes();oid=call(['git','--no-replace-objects','-C',root,'show','HEAD:'+name])
-                  if data!=oid and data!=oid.replace(b'\n',b'\r\n'):
-                      raise RuntimeError('MATH_PACKAGE_SOURCE_MISMATCH:'+name)
-                  dst.write_bytes(oid)
+                  committed_files[name]=call(['git','--no-replace-objects','-C',root,'show','HEAD:'+name])
+                  current_files[name]=(root/name).read_bytes()
+              require_checkout(committed_files,current_files)
+              materialize(committed_files,source)
               # Python 3.12 virtual environments ship without setuptools.
               builder=tmp/'builder'
               venv.EnvBuilder(with_pip=True).create(builder)
@@ -83,6 +105,12 @@ jobs:
                   if 'market_profile_math.py' in members:raise RuntimeError('RETIRED_MATH_MODULE_IN_WHEEL')
                   if not {'market_compute_api.py','market_math.py','history_statistics.py'}<=members:
                       raise RuntimeError('MATH_PACKAGE_MODULES_MISSING')
+              verify_wheel(wheels[0],committed_files)
+              sdists=tmp/'sdists';sdists.mkdir()
+              call([build_python,'-I','-B','-c','from setuptools.build_meta import build_sdist;import sys;build_sdist(sys.argv[1])',sdists],cwd=source,env=build_env)
+              archives=list(sdists.glob('*.tar.gz'))
+              if len(archives)!=1:raise RuntimeError('MATH_SDK_SDIST_COUNT')
+              verify_sdist(archives[0],committed_files)
               env_dir=tmp/'venv';venv.EnvBuilder(with_pip=True,clear=True).create(env_dir)
               py=env_dir/python_path
               call([py,'-m','pip','install','--no-index','--no-deps',wheels[0]],cwd=tmp)

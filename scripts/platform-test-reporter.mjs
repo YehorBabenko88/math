@@ -1,15 +1,18 @@
 import {relative} from 'node:path';
 import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
+import {readFileSync,appendFileSync,writeFileSync} from 'node:fs';
+import {createCaseProgress} from './ci-stream-evidence.mjs';
 import {publicWorkerEntry,publicEntryCapturedAfterTermination,publicWorkerBoundary,publicWorkerReportCode,publicTraceStep,publicWorkerPhase,publicErrorCode,publicFailureType,fixtureCode,publicDiagnosticPhase} from './math-module-diagnostics.mjs';
 const inventory=JSON.parse(readFileSync(new URL('./platform-test-inventory.json',import.meta.url),'utf8'));
 const trustedHealthIds=new Set(inventory.tests.filter(x=>x.file==='tests/math-engine-module-health.test.mjs'&&x.destination===x.file).map(x=>createHash('sha256').update(JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).digest('hex')));
 // Machine evidence uses actual node:test events; summaries never replace terminal identities.
 export default async function* (source) {
+ const progress=process.env.MATH_CI_PROGRESS_DIAGNOSTICS==='SOURCE_ONLY_BOUNDED' ? createCaseProgress({expected:inventory.tests,append:line=>appendFileSync('platform-evidence/progress.ndjson',line),snapshot:state=>writeFileSync('platform-evidence/progress-state.json',state)}) : {start(){},terminal(){}};
  const stack=new Map(),occurrences=new Map(),locations=new Map(),fixtureNotices=new Map();
  for await(const {type,data} of source){
   if(type==='test:start'){
    const file=data.file??data.entryFile;const names=stack.get(file)??[];names[data.nesting]=data.name;names.length=data.nesting+1;stack.set(file,names);
+   if(typeof file==='string')progress.start({file:relative(process.cwd(),file).replaceAll('\\','/'),parent:data.classname??data.details?.classname??(data.nesting?names.slice(0,data.nesting).join(' > '):null),name:data.name});
   }
   if(type==='test:pass'||type==='test:fail'){
    const file=data.file??data.entryFile;const names=stack.get(file)??[];
@@ -18,6 +21,7 @@ export default async function* (source) {
    const occurrence=(occurrences.get(base)??0)+1;occurrences.set(base,occurrence);
    const id=createHash('sha256').update(JSON.stringify([path,parent,data.name,occurrence])).digest('hex');
    locations.set(JSON.stringify([file,data.line,data.column,data.nesting]),{id,failed:type==='test:fail'});
+   progress.terminal({file:path,parent,name:data.name});
    yield JSON.stringify({type:'terminal',file:path,name:data.name,parent,nesting:data.nesting,line:data.line,column:data.column,status:data.skip?'skip':data.todo?'todo':type==='test:pass'?'pass':data.details?.error?.failureType==='cancelledByParent'?'cancelled':'fail',...(type==='test:fail'?{diagnostic_worker_entry:publicWorkerEntry(data.details?.error),diagnostic_entry_captured_after_termination:publicEntryCapturedAfterTermination(data.details?.error),diagnostic_worker_boundary:publicWorkerBoundary(data.details?.error),diagnostic_code:publicErrorCode(data.details?.error),diagnostic_type:publicFailureType(data.details?.error),diagnostic_worker_report_code:publicWorkerReportCode(data.details?.error),diagnostic_trace_step:publicTraceStep(data.details?.error),diagnostic_worker_phase:publicWorkerPhase(data.details?.error),diagnostic_phase:publicDiagnosticPhase(data.details?.error)}:{})})+'\n';
   }
   if(type==='test:diagnostic'&&data.file&&relative(process.cwd(),data.file).replaceAll('\\','/')==='tests/math-engine-module-health.test.mjs'){
