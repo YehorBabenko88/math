@@ -7,7 +7,7 @@ const inventory=JSON.parse(readFileSync(new URL('./platform-test-inventory.json'
 const trustedHealthIds=new Set(inventory.tests.filter(x=>x.file==='tests/math-engine-module-health.test.mjs'&&x.destination===x.file).map(x=>createHash('sha256').update(JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).digest('hex')));
 // Machine evidence uses actual node:test events; summaries never replace terminal identities.
 export default async function* (source) {
- const progress=process.env.MATH_CI_PROGRESS_DIAGNOSTICS==='SOURCE_ONLY_BOUNDED' ? createCaseProgress({expected:inventory.tests,append:line=>appendFileSync('platform-evidence/progress.ndjson',line),snapshot:state=>writeFileSync('platform-evidence/progress-state.json',state)}) : {start(){},terminal(){}};
+ const progress=process.env.MATH_CI_PROGRESS_DIAGNOSTICS==='SOURCE_ONLY_BOUNDED:'+process.ppid ? createCaseProgress({expected:inventory.tests,append:line=>appendFileSync('platform-evidence/progress.ndjson',line),snapshot:state=>writeFileSync('platform-evidence/progress-state.json',state)}) : {start(){},terminal(){}};
  const stack=new Map(),occurrences=new Map(),locations=new Map(),fixtureNotices=new Map();
  for await(const {type,data} of source){
   if(type==='test:start'){

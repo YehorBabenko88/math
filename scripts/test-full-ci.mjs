@@ -89,7 +89,7 @@ async function main(){
   }
  }
  mainStage='LOAD_INVENTORY';const expected=expectedFor(inventory,platform);const files=[...new Set(expected.map(x=>x.destination))].sort();
- const env={...process.env,MATH_CI_PROGRESS_DIAGNOSTICS:'SOURCE_ONLY_BOUNDED'};delete env.NODE_TEST_CONTEXT;
+ const env={...process.env,MATH_CI_PROGRESS_DIAGNOSTICS:'SOURCE_ONLY_BOUNDED:'+process.pid};delete env.NODE_TEST_CONTEXT;
  mainStage='TEST_RUN';mkdirSync('platform-evidence',{recursive:true});writeFileSync('platform-evidence/events.ndjson','');writeFileSync('platform-evidence/progress.ndjson','');
  const capture=createEventCapture({append:chunk=>appendFileSync('platform-evidence/events.ndjson',chunk)});let code,signal;
  await new Promise((done,reject)=>{const child=spawn(process.execPath,['--test','--test-concurrency=4','--test-timeout=120000','--test-reporter=./scripts/platform-test-reporter.mjs',...files],{env,windowsHide:true,stdio:['ignore','pipe','inherit']});child.stdout.on('data',chunk=>capture.chunk(chunk));child.once('error',reject);child.once('close',(c,s)=>{code=c;signal=s;done();});});
