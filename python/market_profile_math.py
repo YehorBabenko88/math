@@ -630,31 +630,41 @@ def large_liquidity_levels(bids, asks, level_price: Decimal, tick_size: Decimal,
                            *, min_notional=Decimal("100000"),
                            min_relative=Decimal("5"),
                            max_distance_ticks=Decimal("50")):
-    """Math part of Meta liquidity.large_levels; caller owns book validity/provenance."""
-    _positive_finite_decimal(level_price)
-    _positive_finite_decimal(tick_size)
-    _positive_finite_decimal(min_notional, zero_allowed=True)
-    _positive_finite_decimal(min_relative, zero_allowed=True)
-    _positive_finite_decimal(max_distance_ticks, zero_allowed=True)
+    """Exact bounded liquidity selection; caller owns book validity/provenance.
+
+    Price, size and thresholds use the 128-digit/-1000..1000 market domain.
+    Notionals and median are exact; proximity and relative admission compare
+    exact quantities. Returned distance/relative ratios use 28-digit HALF_EVEN.
+    Sorting uses exact distance, then decreasing exact notional, with stable ties.
+    """
+    for value in (level_price, tick_size):
+        _orderflow_decimal(_positive_finite_decimal(value))
+    for value in (min_notional, min_relative, max_distance_ticks):
+        _orderflow_decimal(_positive_finite_decimal(value, zero_allowed=True))
     if not isinstance(bids, dict) or not isinstance(asks, dict) or len(bids)+len(asks)>4096:
         raise ValueError("INVALID_LIQUIDITY_BOOK")
     entries = []
     for side, levels in (("bid", bids), ("ask", asks)):
         for price, size in levels.items():
-            _positive_finite_decimal(price)
-            _positive_finite_decimal(size, zero_allowed=True)
-            entries.append((side, price, price*size))
+            entries.append((side, price, wall_notional(price, size)))
     amounts = sorted(amount for _,_,amount in entries if amount>0)
     if not amounts:
         return ()
-    mid=len(amounts)//2
-    median=amounts[mid] if len(amounts)%2 else (amounts[mid-1]+amounts[mid])/2
-    if median<=0:
-        return ()
-    results=[]
-    for side,price,amount in entries:
-        distance=abs(price-level_price)/tick_size
-        relative=amount/median
-        if amount>=min_notional and relative>=min_relative and distance<=max_distance_ticks:
-            results.append((side,price,amount,distance,relative))
-    return tuple(sorted(results,key=lambda value:(value[3],-value[2])))
+    exact = _market_context()
+    mid = len(amounts)//2
+    median = amounts[mid] if len(amounts)%2 else exact.divide(
+        exact_sum((amounts[mid-1], amounts[mid])), Decimal(2))
+    # Integer cross-products avoid either rounded division or precision loss
+    # when the median's aligned coefficient spans thousands of digits.
+    median_n, median_d = median.as_integer_ratio()
+    threshold_n, threshold_d = min_relative.as_integer_ratio()
+    results = []
+    for side, price, amount in entries:
+        amount_n, amount_d = amount.as_integer_ratio()
+        if (amount >= min_notional
+                and amount_n*median_d*threshold_d >= median_n*threshold_n*amount_d
+                and within_tick_distance(price, level_price, tick_size, max_distance_ticks)):
+            gap = exact.subtract(price, level_price).copy_abs()
+            value = (side, price, amount, _market_ratio(gap, tick_size), _market_ratio(amount, median))
+            results.append((gap, amount.copy_negate(), value))
+    return tuple(value for _,_,value in sorted(results, key=lambda item: item[:2]))
