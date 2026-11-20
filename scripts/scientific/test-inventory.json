@@ -30,5 +30,6 @@
   "tests/knowledge-one-shot-verifier.test.mjs",
   "tests/knowledge-verification-request.test.mjs",
   "tests/scientific-runner.test.mjs",
-  "tests/scientific-composition.test.mjs"
+  "tests/scientific-composition.test.mjs",
+  "tests/math-trading-ownership.test.mjs"
 ]

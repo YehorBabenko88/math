@@ -32,7 +32,12 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  assert.equal(inv.tests.filter(x=>!x.added&&x.platform==='cross').length,3);
  const healthFile='tests/math-engine-module-health.test.mjs',diagnosticFile='tests/math-module-diagnostics.cross.mjs',checkoutFile='tests/windows-checkout-bytes.cross.mjs',bootstrapFile='tests/adminit-bootstrap-diagnostics.cross.mjs',childStatusFile='tests/adminit-bootstrap-child-status.cross.mjs';
  const agent7File='tests/agent7-replay-research.test.mjs';const agent7Cross=inv.tests.filter(x=>x.file===agent7File);assert.equal(agent7Cross.length,8);assert.ok(agent7Cross.every(x=>x.added===true&&x.platform==='cross'));
- const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==agent7File&&x.file!==healthFile&&x.file!==diagnosticFile&&x.file!==checkoutFile&&x.file!==bootstrapFile&&x.file!==childStatusFile&&x.file!==workerTraceFile&&x.file!==loaderDiagnosticsFile);
+ const ownershipFile='tests/math-trading-ownership.test.mjs';
+ const ownership=inv.tests.filter(x=>x.file===ownershipFile);
+ assert.deepEqual(ownership.map(({name,parent,occurrence,platform,added,destination})=>({name,parent,occurrence,platform,added,destination})),[
+  {name:'Stage9 Math research request refuses PnL, strategy execution and paper positions',parent:null,occurrence:1,platform:'cross',added:true,destination:ownershipFile}
+ ]);
+ const scientificCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==ownershipFile&&x.file!==agent7File&&x.file!==healthFile&&x.file!==diagnosticFile&&x.file!==checkoutFile&&x.file!==bootstrapFile&&x.file!==childStatusFile&&x.file!==workerTraceFile&&x.file!==loaderDiagnosticsFile);
  assert.equal(scientificCross.length,44);
  assert.equal(sha256(JSON.stringify(scientificCross.map(x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence])).sort())),'dc2b3096a5a960fe4ed11b22456ebf744e48b995ad0e67f113049dc875c7561e','Original 44 scientific cross-platform identities unchanged');
  const healthCross=inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===healthFile);
@@ -46,7 +51,7 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  for(const entry of checkoutCross){assert.equal(entry.destination,checkoutFile);assert.equal(entry.parent,null);assert.equal(entry.occurrence,1);}
  assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===bootstrapFile).length,1);
  assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file===childStatusFile).length,1);
- assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==agent7File).length,62+4);assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,62+4+agent7Cross.length);
+ assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross'&&x.file!==agent7File).length,62+4+ownership.length);assert.equal(inv.tests.filter(x=>x.added&&x.platform==='cross').length,62+4+ownership.length+agent7Cross.length);
  assert.equal(inv.tests.filter(x=>x.added&&x.file===loaderFactsFile&&x.platform==='windows').length,2);
  assert.equal(inv.tests.filter(x=>x.added&&x.file===workerTraceFile&&x.platform==='cross').length,3);
  assert.equal(inv.tests.filter(x=>x.added&&x.file===loaderDiagnosticsFile&&x.platform==='cross').length,1);
