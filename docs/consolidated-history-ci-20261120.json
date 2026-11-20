@@ -1,0 +1,77 @@
+{
+  "schema": "math.consolidated-history-ci.v1",
+  "runtime_commit": "447c8affd288f7b20b678bf5bf9812312feeb3a4",
+  "ci_base": "8122da04a1c2a71e52481baddb7d5b5d7fd489f2",
+  "cherry_sources": [
+    "db25b6550b00410b8266ae18f9af43c415cb5d9d",
+    "e352b98ff619064a9affba35bc9ad08e1ec7fe5b"
+  ],
+  "prior_reviews": "HISTORICAL_CONTEXT_NOT_ENCLOSING_HEAD_PASS",
+  "new_source_checks": {
+    "python": [
+      "3.11",
+      "3.12"
+    ],
+    "numerical_cases": 118,
+    "raw_ci_cases": 4,
+    "fresh_cli_cache": true,
+    "empty_cache_pre_post": true
+  },
+  "new_artifact_checks": {
+    "python": [
+      "3.11",
+      "3.12"
+    ],
+    "cases": 95,
+    "metadata": "unified-math-kernels0.1.0",
+    "old_namespace_absent": true,
+    "fresh_cli_cache": true,
+    "empty_cache_pre_post": true
+  },
+  "node_fake_controls": 5,
+  "archives": {
+    "source": true,
+    "wheel": {
+      "market_math.py": "1bb87beb427b2c74201091cb5f2633e028f2cb027dd1cdb4efa4f347bf971084",
+      "market_compute_api.py": "5f7c28df44441f6be4712e27c1d9971fd0d0d3e5372851b70fd91449265756c6",
+      "history_statistics.py": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b"
+    },
+    "sdist": {
+      "pyproject.toml": "321aefdadeac9e53ec39dbdded86228466984065ed59bc594d487fe0d26b4ebd",
+      "python/history_statistics.py": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b",
+      "python/market_compute_api.py": "5f7c28df44441f6be4712e27c1d9971fd0d0d3e5372851b70fd91449265756c6",
+      "python/market_math.py": "1bb87beb427b2c74201091cb5f2633e028f2cb027dd1cdb4efa4f347bf971084"
+    },
+    "wheel_sha256": "0de5ea0e482ccc1fd23d541af62b9d4f0d81a493c51656d638efdb3814f1ee6e",
+    "sdist_sha256": "32fefe0abdbc5713e7051f87e60f122387c38cbe7a78d0aff4bfbbb50c593030"
+  },
+  "source_modules": {
+    "pyproject.toml": {
+      "sha256": "321aefdadeac9e53ec39dbdded86228466984065ed59bc594d487fe0d26b4ebd",
+      "exact_history136": true
+    },
+    "python/market_math.py": {
+      "sha256": "1bb87beb427b2c74201091cb5f2633e028f2cb027dd1cdb4efa4f347bf971084",
+      "exact_history136": true
+    },
+    "python/market_compute_api.py": {
+      "sha256": "5f7c28df44441f6be4712e27c1d9971fd0d0d3e5372851b70fd91449265756c6",
+      "exact_history136": true
+    },
+    "python/history_statistics.py": {
+      "sha256": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b",
+      "exact_history136": true
+    }
+  },
+  "base_a586_prefix": {
+    "bytes": 55759,
+    "sha256": "c1cecb584a25900e6e69482dd0134fda1cb87f729cf891005a03edd6ffce51b4",
+    "preserved": true
+  },
+  "hosted": "REQUIRED_NOT_RUN_LOCALLY",
+  "specific_node24_pg16": "NO_SUCCESS_CLAIM_AFTER_PREVIOUS_TIMEOUT",
+  "native": "NOT_RUN",
+  "production": "NO_GO",
+  "execution_authority": false,
+  "trading_authorized": false
+}
