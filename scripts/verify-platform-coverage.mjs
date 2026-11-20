@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,readdirSync,lstatSync,writeFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {loadInventory,sha256,validateCoverage,cells} from './platform-coverage.mjs';
+import {loadInventory,validateCoverage,cells,verifySourceProof,heldRootCoverage} from './platform-coverage.mjs';
 const directory=process.argv[2];assert.equal(process.argv.length,3,'Exact artifact directory required');
 const root=resolve(directory);assert.deepEqual(readdirSync(root).sort(),cells.map(x=>'platform-'+x).sort(),'Exact six artifact directories');
 function find(path,name){const matches=[];for(const item of readdirSync(path,{withFileTypes:true})){const file=join(path,item.name);assert.equal(lstatSync(file).isSymbolicLink(),false);if(item.isDirectory())matches.push(...find(file,name));else if(item.name===name)matches.push(file);}return matches;}
@@ -15,5 +15,6 @@ for(const cell of cells){
  receipts.push(receipt);
 }
 const git=(...args)=>execFileSync('git',['--no-replace-objects',...args],{encoding:'utf8'}).trim();
-const result=validateCoverage(receipts,{inventory:loadInventory(),head:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sourceProofSha:sha256(JSON.stringify(JSON.parse(readFileSync('scripts/platform-source-proof.json','utf8'))))});
-writeFileSync('mandatory-platform-coverage.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+const result=validateCoverage(receipts,{inventory:loadInventory(),head:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sourceProofSha:verifySourceProof().sha});
+const rootCoverage=heldRootCoverage();const full={ok:false,status:'HELD',releaseStatus:'NO_GO',mathScopedCoverage:result,transferredRootCoverage:rootCoverage};
+writeFileSync('mandatory-platform-coverage.json',JSON.stringify(full,null,2)+'\n');console.error('FULL_PLATFORM_COVERAGE_HELD:ROOT_FOUR_CELL_RECEIPTS_NOT_AVAILABLE');process.exitCode=1;

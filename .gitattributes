@@ -16,3 +16,9 @@ package-lock.json -text
 
 # Immutable pre-transfer caller inputs; preserve exact Git bytes.
 /docs/migration/root-ci-evidence-caller-20261120/raw/*.txt -text
+/docs/migration/root-ci-evidence-caller-20261120/historical-platform/raw/*.txt -text
+/docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/*.txt -text
+
+# Historical baseline ledgers are immutable byte custody, not current PASS.
+/scripts/platform-test-inventory.json -text
+/scripts/platform-source-proof.json -text

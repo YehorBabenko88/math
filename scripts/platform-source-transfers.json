@@ -1,0 +1,860 @@
+{
+  "schema": "math.root-ci-event-transfer.v1",
+  "source_base": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+  "Root_tool": "82bf1578c5e36bafd76615661fbb3fe4e22dca55",
+  "historical_inventory_sha256": "98259f05797ecfece7ba82dbd0688ad2d352546e539250a620328e701a4a66ae",
+  "original_declaration_roles": 26,
+  "Root_hosted_declaration_roles": 20,
+  "Root_hosted_event_ids": 31,
+  "generated_additional_top_level_event_ids": 11,
+  "parented_transferred_events": 0,
+  "Root_static_loader_event_ids": 3,
+  "Math_caller_roles": 3,
+  "coverage": "HELD",
+  "release_status": "NO_GO",
+  "retired_files": [
+    {
+      "source": "src/confidential-collector/oidc-client.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "76605bfb44894ccd5607f9e40df82a156a437717",
+      "sha256": "90d0c2b13d83567c28c9589de71c4084ee4d52a5ff69bde3cb99b374cf5c466c",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/src__confidential-collector__oidc-client.mjs.txt"
+    },
+    {
+      "source": "src/confidential-collector/context.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "9de793004e34a748bfaf3bcab9bffe2832888cf2",
+      "sha256": "cc2fbb7c2787ec6dd8f455b271ee5e452edb432e9e70338c8a75b0d3ea498d6d",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/src__confidential-collector__context.mjs.txt"
+    },
+    {
+      "source": "src/confidential-collector/session.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "935ae44708e1e0cbe4ea71da87a8846140b255a5",
+      "sha256": "ae881ef698d38c6a80c508692da4c13b80f542f2f629f484bb6ec2b7b9d2ca79",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/src__confidential-collector__session.mjs.txt"
+    },
+    {
+      "source": "src/confidential-collector/synthetic-bundle.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "1f978eb728a4ff43b2777a4dd52f0e0e3ff5bdde",
+      "sha256": "d7e585f586b17ef6597027bb3341b3661106681065382d909d05717bcddf312b",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/src__confidential-collector__synthetic-bundle.mjs.txt"
+    },
+    {
+      "source": "src/confidential-collector/public-schema.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "a87f31cebda53a64e19d674d37eb94ec29290bb1",
+      "sha256": "bba208c5922cc58bc622ffab843179d85b0c43601e87c82b2d33e8901af4b14e",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/src__confidential-collector__public-schema.mjs.txt"
+    },
+    {
+      "source": "src/confidential-collector/worker.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "217d72a6e5e9b1a47a74272a374b7644459b771d",
+      "sha256": "7d1c97bd7f32ee02364dbf8b4d6fd4f52f205086235544eee674134a6bbe86e0",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/src__confidential-collector__worker.mjs.txt"
+    },
+    {
+      "source": "scripts/confidential-qualification/hosted.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "31de96e48d295fed7aed9e9e6e19318fd1be0e74",
+      "sha256": "8f4b7eda0885a798ec3e702b11919ee08da4a0175d9399d0228747f3847543ae",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/scripts__confidential-qualification__hosted.mjs.txt"
+    },
+    {
+      "source": ".github/workflows/confidential-collector.yml",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "a4a65f2a8d471c988c5577d396013e2af66bc179",
+      "sha256": "92217d6b0767c2e768748fb56de2d372495873566b28aaff8f6c97518a11feaa",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/.github__workflows__confidential-collector.yml.txt"
+    },
+    {
+      "source": "tests/confidential-collector-context.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "4aa734ebed6a5145d58f724ee513e8011bb518b2",
+      "sha256": "713b02a7c32f8d80a7434f0da285a41c376296070ac5a8314b414c66cd9fc451",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-collector-context.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-collector-oidc.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "33812b88e02ce126419894411de172a831c5517d",
+      "sha256": "68619221da4917dccbb3a72009dae3ed27fa8257ed7ef39bece2ab5d31b244b5",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-collector-oidc.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-pr64-blocked-projection.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "388ad4af7209487f5009cd464fe2a96ecf153847",
+      "sha256": "4a9a1d1dd6d50004e1c136bca39a4cfa569f61e618a089addc9436196f56895d",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-pr64-blocked-projection.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-public-privacy.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "11fd8f13fc772f3ca67552cb26d0845ba45b3a3c",
+      "sha256": "63cd50215cd22565d12e183169538df841a4784992ba6faf025897bdbfaf65d9",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-public-privacy.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-receipt-schema.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "db213a7ca4d0a11658263eb541b05c81d67d1eb5",
+      "sha256": "11418c840d1add1af7fd7ca8997264e21435c00d409dd60a50aa559cb3c90478",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-receipt-schema.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-stage-codes.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "43fde760fa49c94869b45c03020f2f7ce84a3b9f",
+      "sha256": "e3f6a3e171402c0ae50b6285aa3e70a540dcddb6e83c83a2df4237d34ff6f690",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-stage-codes.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-synthetic-bundle.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "b233c3db9467e88943ad90d3b6c1e3dc9308f83e",
+      "sha256": "02225cd2fa6eaac5c2fb6130ac438bf2248ef35563e560d84f2dd21f6f379c1c",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-synthetic-bundle.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-synthetic-session.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "2c3cd8ea68ce4b9f1a163e265f98d664258c6253",
+      "sha256": "51c04b559a8ea95479bec3f596206fee6126b89cbb5243b2440bf0f75b0a5076",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-synthetic-session.test.mjs.txt"
+    },
+    {
+      "source": "tests/confidential-pinned-loader.test.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "88729964b026a21e9caf37eee948adc68515e6b6",
+      "sha256": "8cd3159bca31f4f770258ff1c2ed3f98713e8442396be59d193bdbc918d2606a",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__confidential-pinned-loader.test.mjs.txt"
+    },
+    {
+      "source": "tests/fixtures/confidential-collector/context.mjs",
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "blob_oid": "4c5d5e30472c05fe9a2b1fac887703dc90db4c0e",
+      "sha256": "30464410ed27d987d2a1b12c5619dfabbd2deb6cdd69f787eeb4cf28db7b3e45",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/tests__fixtures__confidential-collector__context.mjs.txt"
+    }
+  ],
+  "events": [
+    {
+      "original": {
+        "file": "tests/confidential-collector-context.test.mjs",
+        "name": "live preflight uses independent API objects, a single current job and approved subject forms",
+        "parent": null,
+        "line": 2,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-collector-context.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-collector-context.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-collector-oidc.test.mjs",
+        "name": "collector requires signed reusable-workflow immutable pin in addition to full workload checks",
+        "parent": null,
+        "line": 2,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-collector-oidc.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-collector-oidc.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-collector-oidc.test.mjs",
+        "name": "OIDC request never sends runtime credential to an unapproved origin or redirects",
+        "parent": null,
+        "line": 3,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-collector-oidc.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-collector-oidc.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-pinned-loader.test.mjs",
+        "name": "pinned workflow contains complete immutable blob map and no candidate checkout",
+        "parent": null,
+        "line": 2,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-pinned-loader.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/inert_loader.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-pinned-loader.test.mjs",
+        "name": "Worker has minimal environment, ciphertext-only request and fixed summary logging",
+        "parent": null,
+        "line": 3,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-pinned-loader.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/inert_loader.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-pinned-loader.test.mjs",
+        "name": "embedded collector source remains inside YAML literal block after map regeneration",
+        "parent": null,
+        "line": 5,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-pinned-loader.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/inert_loader.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-pr64-blocked-projection.test.mjs",
+        "name": "PR64 failure-only public projection remains blocked and non-authoritative",
+        "parent": null,
+        "line": 13,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-pr64-blocked-projection.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-pr64-blocked-projection.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-pr64-blocked-projection.test.mjs",
+        "name": "PR64 collector failure code is fixed, not arbitrary error text",
+        "parent": null,
+        "line": 24,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-pr64-blocked-projection.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-pr64-blocked-projection.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-pr64-blocked-projection.test.mjs",
+        "name": "public failure cannot be mistaken for success evidence",
+        "parent": null,
+        "line": 30,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-pr64-blocked-projection.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-pr64-blocked-projection.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-public-privacy.test.mjs",
+        "name": "public artifact whitelist rejects raw extensions, altered gates and arbitrary blocked messages",
+        "parent": null,
+        "line": 3,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-public-privacy.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-public-privacy.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-public-privacy.test.mjs",
+        "name": "public summary requires separate REST head/base and workflow source identities",
+        "parent": null,
+        "line": 4,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-public-privacy.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-public-privacy.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-receipt-schema.test.mjs",
+        "name": "synthetic receipt also rejects signed authority extensions",
+        "parent": null,
+        "line": 2,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-receipt-schema.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-receipt-schema.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-stage-codes.test.mjs",
+        "name": "failure stage is fixed, public-safe and never reflects input",
+        "parent": null,
+        "line": 4,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-stage-codes.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-stage-codes.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-stage-codes.test.mjs",
+        "name": "collector preserves inner fixed authorization failure code without exposing claims",
+        "parent": null,
+        "line": 11,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-stage-codes.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-stage-codes.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "builds a narrow deterministic synthetic archive and returns only frozen public metadata",
+        "parent": null,
+        "line": 12,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects wrong expected sourceHead",
+        "parent": null,
+        "line": 24,
+        "column": 41,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects wrong expected sourceTree",
+        "parent": null,
+        "line": 24,
+        "column": 41,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects wrong expected runId",
+        "parent": null,
+        "line": 24,
+        "column": 41,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects wrong expected attempt",
+        "parent": null,
+        "line": 24,
+        "column": 41,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects wrong expected jobId",
+        "parent": null,
+        "line": 24,
+        "column": 41,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects invalid context and malformed canary without echoing it",
+        "parent": null,
+        "line": 27,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects damaged ZIP even when outer digest is recomputed",
+        "parent": null,
+        "line": 32,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects manifest missing context in a valid ZIP",
+        "parent": null,
+        "line": 66,
+        "column": 3,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects manifest extra unsigned field in a valid ZIP",
+        "parent": null,
+        "line": 66,
+        "column": 3,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects manifest missing inventory entry in a valid ZIP",
+        "parent": null,
+        "line": 66,
+        "column": 3,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects manifest extra inventory entry in a valid ZIP",
+        "parent": null,
+        "line": 66,
+        "column": 3,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects manifest wrong inventory hash in a valid ZIP",
+        "parent": null,
+        "line": 66,
+        "column": 3,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects manifest wrong inventory size in a valid ZIP",
+        "parent": null,
+        "line": 66,
+        "column": 3,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects opaque extra payload fields even with its manifest updated",
+        "parent": null,
+        "line": 71,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-bundle.test.mjs",
+        "name": "rejects changed pinned package even with a valid ZIP and new outer hash",
+        "parent": null,
+        "line": 75,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-bundle.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-session.test.mjs",
+        "name": "synthetic encrypted session validates real-shaped issuer proof, rejects replay/mismatches and never grants native acceptance",
+        "parent": null,
+        "line": 3,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-session.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-session.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-session.test.mjs",
+        "name": "signed synthetic receipt cannot self-assert operational authority",
+        "parent": null,
+        "line": 5,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-session.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-session.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-session.test.mjs",
+        "name": "independently pinned synthetic receipt identity rejects stale run/job and digest",
+        "parent": null,
+        "line": 16,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-session.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-session.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    },
+    {
+      "original": {
+        "file": "tests/confidential-synthetic-session.test.mjs",
+        "name": "verified synthetic receipt is frozen against post-verification mutation",
+        "parent": null,
+        "line": 30,
+        "column": 1,
+        "platform": "linux",
+        "occurrence": 1,
+        "destination": "tests/confidential-synthetic-session.test.mjs"
+      },
+      "target": "tools/ci_evidence/tests/hosted/confidential-synthetic-session.test.mjs",
+      "required_cells": [
+        "linux-22-16",
+        "linux-22-18",
+        "linux-24-16",
+        "linux-24-18"
+      ],
+      "status": "HELD_REQUIRED_ORIGINAL_PLATFORM_PROOF",
+      "source_only_mapping_is_execution": false
+    }
+  ],
+  "reason": "Root R1 one Node24 hosted job is not evidence for original four Linux matrix cells; no positive runtime receipts are synthesized."
+}

@@ -48,7 +48,7 @@
     }
   ],
   "Root_original24_raw_custody": "YehorBabenko88/unified-system@82bf1578c5e36bafd76615661fbb3fe4e22dca55:tools/ci_evidence/provenance/input-custody.json",
-  "old_Math_collector_retirement": "HELD_UNTIL_PARENT_CALLER_REVIEW",
+  "old_Math_collector_retirement": "EXCLUSIVE_18_REMOVED_AFTER_PARENT_CALLER_REVIEW; ROOT_34_RUNTIME_COVERAGE_HELD",
   "nonexclusive_receiver_holds": [
     {
       "source": "src/evidence-receiver/strict.mjs",
@@ -69,5 +69,17 @@
     }
   ],
   "native_oidc_signature_sqlite": "NOT_RUN",
-  "production": "NO_GO"
+  "production": "NO_GO",
+  "current_Math_terminal_event_ids": 1201,
+  "historical_inventory_terminal_event_ids": 1234,
+  "historical_source_test_files": 188,
+  "historical_destination_archives": 195,
+  "transferred_Root_terminal_events": 34,
+  "Root_hosted_terminal_events": 31,
+  "required_Root_cells": [
+    "linux-22-16",
+    "linux-22-18",
+    "linux-24-16",
+    "linux-24-18"
+  ]
 }

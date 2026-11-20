@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {readFileSync,readdirSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {relative,resolve} from 'node:path';
+import {loadCurrentInventory,historicalDestination,verifyCurrentSourceFiles,sourceProofDigest} from './platform-source-transfer.mjs';
+export {loadHistoricalInventory,loadTransferLedger,verifyTransferLedger,heldRootCoverage} from './platform-source-transfer.mjs';
 export const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
-export const loadInventory=()=>JSON.parse(readFileSync('scripts/platform-test-inventory.json','utf8'));
+export const loadInventory=loadCurrentInventory;
 export const cells=['linux-22-16','linux-22-18','linux-24-16','linux-24-18','windows-22','windows-24'];
 export const inventoryDigest=inventory=>sha256(JSON.stringify(inventory));
 export function verifySourceProof(proof=JSON.parse(readFileSync('scripts/platform-source-proof.json','utf8')),{read=path=>readFileSync(path)}={}){
@@ -13,12 +15,10 @@ export function verifySourceProof(proof=JSON.parse(readFileSync('scripts/platfor
  const blobs=git('ls-tree','-r',proof.baselineCommit,'tests').split('\n').filter(x=>x.endsWith('.test.mjs')).map(line=>{const [,blob,path]=/^100644 blob ([a-f0-9]{40})\t(.+)$/.exec(line)??[];assert.ok(blob&&path);return {path,blob};});assert.deepEqual(proof.testFiles.map(({path,blob})=>({path,blob})),blobs,'Original Git blob inventory');
  assert.equal(proof.testFiles.length,188,'All original test files required');
  assert.deepEqual(Object.keys(proof.recipes).sort(),proof.testFiles.map(x=>x.path).sort());
- for(const [path,hash] of Object.entries(proof.destinations))assert.equal(sha256(read(path)),hash,'Original source/assertion bytes changed: '+path);
- for(const source of proof.testFiles){const restored=Buffer.concat(proof.recipes[source.path].map(piece=>read(piece.path).subarray(piece.start,piece.end)));assert.equal(createHash('sha1').update(Buffer.from('blob '+restored.length+'\0')).update(restored).digest('hex'),source.blob,'Reconstructed original Git blob');assert.equal(restored.length,source.bytes,source.path);assert.equal(sha256(restored),source.sha256,'Original source reconstruction: '+source.path);}
- const discover=directory=>readdirSync(directory,{withFileTypes:true}).flatMap(entry=>{const path=directory+'/'+entry.name;return entry.isDirectory()?discover(path):/\.(?:test|windows|cross)\.mjs$/.test(entry.name)?[path]:[];});
- const actual=discover('tests').sort();
- assert.deepEqual(actual,[...Object.keys(proof.destinations),...proof.addedFiles].sort(),'Exact source test-file inventory required');
- return {files:proof.testFiles.length,sha:sha256(JSON.stringify(proof))};
+ for(const [path,hash] of Object.entries(proof.destinations))assert.equal(sha256(historicalDestination(path,read)),hash,'Historical source/assertion custody changed: '+path);
+ for(const source of proof.testFiles){const restored=Buffer.concat(proof.recipes[source.path].map(piece=>historicalDestination(piece.path,read).subarray(piece.start,piece.end)));assert.equal(createHash('sha1').update(Buffer.from('blob '+restored.length+'\0')).update(restored).digest('hex'),source.blob,'Reconstructed original Git blob');assert.equal(restored.length,source.bytes,source.path);assert.equal(sha256(restored),source.sha256,'Original source reconstruction: '+source.path);}
+ const current=verifyCurrentSourceFiles({read});
+ return {files:proof.testFiles.length,currentFiles:Object.keys(current.files).length,scope:'HISTORICAL_CUSTODY_AND_CURRENT_SOURCE_ONLY',sha:sourceProofDigest(proof,current)};
 }
 export function expectedFor(inventory,platform){assert.ok(['linux','windows'].includes(platform));return inventory.tests.filter(x=>x.platform===platform||x.platform==='cross');}
 const key=x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence]);
@@ -49,7 +49,7 @@ export function validateCoverage(receipts,{inventory=loadInventory(),head,tree,r
   for(const event of events)union.add(key(event));
  }
  assert.deepEqual([...union].sort(),inventory.tests.map(key).sort(),'Unique source identity union');
- return {ok:true,cells:cells.length,uniqueTests:union.size,head,tree,runId,attempt};
+ return {ok:true,scope:'CURRENT_MATH_SIX_AXES_ONLY_NOT_TRANSFERRED_ROOT_COVERAGE',cells:cells.length,uniqueTests:union.size,head,tree,runId,attempt};
 }
 export function logicalFile(file,inventory){const path=relative(process.cwd(),resolve(file)).replaceAll('\\','/');const originals=[...new Set(inventory.tests.filter(x=>x.destination===path).map(x=>x.file))];assert.equal(originals.length,1,'Unknown/ambiguous actual source file '+path);return originals[0];}
 

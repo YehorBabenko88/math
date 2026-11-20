@@ -5,11 +5,7 @@ on:
   pull_request:
     paths:
       - 'src/evidence-receiver/**'
-      - 'src/confidential-collector/**'
-      - 'scripts/confidential-qualification/**'
       - 'tests/confidential-*.test.mjs'
-      - 'tests/fixtures/confidential-collector/**'
-      - '.github/workflows/confidential-collector.yml'
       - '.github/workflows/confidential-synthetic-e2e.yml'
       - 'tests/evidence-receiver*.test.mjs'
       - 'tests/qa-obsolete-queued-inventory.test.mjs'
@@ -34,6 +30,12 @@ jobs:
         node: ['22', '24']
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
         with:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020

@@ -2,11 +2,10 @@ name: Synthetic Confidential Hosted Qualification
 on:
   pull_request:
     paths:
-      - 'src/evidence-receiver/**'
-      - 'src/confidential-collector/**'
-      - 'scripts/confidential-qualification/**'
       - 'tests/confidential-*.test.mjs'
-      - '.github/workflows/confidential-collector.yml'
+      - 'docs/migration/root-ci-evidence-caller-20261120/**'
+      - 'scripts/platform-current-inventory.json'
+      - 'scripts/platform-source-transfers.json'
       - '.github/workflows/confidential-synthetic-e2e.yml'
 permissions:
   contents: read

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {loadInventory,validateEvents,validateCoverage,verifySourceProof,sha256} from '../scripts/platform-coverage.mjs';
+import {loadInventory,loadHistoricalInventory,loadTransferLedger,verifyTransferLedger,heldRootCoverage,validateEvents,validateCoverage,verifySourceProof,sha256} from '../scripts/platform-coverage.mjs';
 
 const identity={file:'tests/example.test.mjs',name:'original',parent:null,occurrence:1,platform:'linux'};
 const terminal={file:'tests/example.test.mjs',name:'original',parent:null,status:'pass'};
@@ -18,7 +18,11 @@ test('platform identity rejects skip todo failed cancelled and fabricated summar
 });
 test('platform inventory preserves baseline1147 identities repeated titles nested children and cross3',()=>{
  const developer=JSON.parse(readFileSync('package.json','utf8'));assert.equal(developer.scripts.test,'node --test tests/*.test.mjs tests/*.windows.mjs tests/*.cross.mjs');
- const inv=loadInventory();assert.equal(inv.tests.filter(x=>!x.added).length,1147);
+ const inv=loadHistoricalInventory();assert.equal(inv.tests.filter(x=>!x.added).length,1147);
+ const current=loadInventory(),transfer=loadTransferLedger();assert.equal(current.tests.length,1201);assert.equal(transfer.events.length,34);assert.equal(heldRootCoverage().status,'HELD');assert.equal(heldRootCoverage().releaseStatus,'NO_GO');
+ assert.doesNotThrow(()=>verifyTransferLedger(current,inv,transfer));
+ for(const change of [x=>x.events.pop(),x=>x.events[0].required_cells.pop(),x=>x.events[0].status='PASS',x=>x.coverage='PASS',x=>x.Root_tool='0'.repeat(40),x=>x.events[0].original=inv.tests.find(t=>t.file==='tests/adapter-registry.test.mjs'),x=>x.retired_files[0].source='src/evidence-receiver/strict.mjs',x=>x.retired_files[0].blob_oid='0'.repeat(40)]){const altered=structuredClone(transfer);change(altered);assert.throws(()=>verifyTransferLedger(current,inv,altered));}
+ const missing=structuredClone(current);missing.tests.pop();assert.throws(()=>verifyTransferLedger(missing,inv,transfer));
  assert.equal(inv.tests.filter(x=>!x.added&&x.parent).length,12);
  const loaderEventsFile='tests/adminit-loader-events.windows.mjs';
  const loaderFactsFile='tests/adminit-loader-facts.windows.mjs',workerTraceFile='tests/adminit-worker-trace.cross.mjs',loaderDiagnosticsFile='tests/adminit-loader-diagnostics.cross.mjs';

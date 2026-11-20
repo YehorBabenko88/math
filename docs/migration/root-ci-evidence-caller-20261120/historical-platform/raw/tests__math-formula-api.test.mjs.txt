@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {evaluateFormulaDocument} from '../src/math-formula-api.mjs';
+const doc=()=>({schema:'math.formula.v1',execution_authority:false,values:[1,2,3],formula:'sin(x)+x^2',inputUnit:'dimensionless',outputUnit:'dimensionless'});
+test('central math evaluates safe formulas',()=>{const r=evaluateFormulaDocument(doc());assert.equal(r.values.length,3);assert.ok(Math.abs(r.values[0]-(Math.sin(1)+1))<1e-12);assert.equal(r.trading_authorized,false)});
+test('arbitrary code, mismatched units and undocumented knowledge fail closed',()=>{assert.throws(()=>evaluateFormulaDocument({...doc(),formula:'process.exit(1)'}));assert.throws(()=>evaluateFormulaDocument({...doc(),inputUnit:'USDT'}));assert.throws(()=>evaluateFormulaDocument({...doc(),knowledge:{title:'unverified'}}));assert.throws(()=>evaluateFormulaDocument({...doc(),values:[NaN]}));});
