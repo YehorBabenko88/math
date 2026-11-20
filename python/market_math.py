@@ -1078,3 +1078,19 @@ def rank_volatile_symbols(rows, *, min_turnover=Decimal('1000000')):
         ranked.append((score,turnover,symbol))
     ranked.sort(reverse=True)
     return tuple(symbol for score,turnover,symbol in ranked)
+
+
+def exact_scaled_integer(value,scale):
+    """Exact bounded unit conversion, never rounding/flooring a fraction.
+
+    Exact finite Decimal,<=128 coefficient digits, exponent +/-1000;
+    literal int scale1..86400000; exact integral result0..2**53-1.
+    Numeric signed zero is zero. Source/time/positivity policy stays external.
+    No caller precision, traps or flags participate in integer arithmetic.
+    """
+    if type(scale) is not int or not 1<=scale<=86400000:raise ValueError('EXACT_INTEGER_SCALE_DOMAIN')
+    _causal_decimal(value,Decimal(0),Decimal(2**53-1))
+    numerator,denominator=value.as_integer_ratio()
+    result,remainder=divmod(numerator*scale,denominator)
+    if remainder or not 0<=result<=2**53-1:raise ValueError('EXACT_SCALED_INTEGER_REQUIRED')
+    return result
