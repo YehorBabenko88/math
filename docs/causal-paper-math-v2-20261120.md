@@ -21,3 +21,9 @@ paper_input_numeric_integrity(kind,payload): numeric-only predicate for trade_ta
 ## Qualification boundary
 
 Reviewed pure numerical suites only. Local native/service/provider/HTTP/Postgres/Consul tests are NOT_RUN. Existing historical kernels remain byte-preserved. Hosted wheel workflow adds the same causal literal/domain/context regressions against installed wheel on Windows/Linux Python3.11/3.12; hosted success is not assumed.
+
+## Independent review correction
+
+The original 9de5f8c candidate rejected valid wide market amounts when multiplying peak by (1-max_drawdown): that exact product can need5001 digits, beyond the4300-digit sum context. The correction compares (peak-available+collateral)/peak > max_drawdown by integer cross-products. It neither widens global contexts nor rounds admission thresholds. Independent Fraction regressions cover36 combinations of4001/4263-digit amounts, exponents -2000/-1900, zero/tiny/unit drawdown, positive/nearzero cash and hostile caller contexts. Original9de remains historical candidate evidence, not acceptance of this valid-domain edge.
+
+Exact Decimal ordering also precedes conversion for BOOK bid<ask and TAPE OHLC envelopes. Independent regressions reproduce binary64 collapse: valid tiny BOOK spreads previously refused; invalid tiny OHLC-envelope violations previously passed. Only declared TAPE delta/range/imbalance consistency remains legacy approximate binary64.

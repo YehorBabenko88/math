@@ -920,7 +920,7 @@ def paper_reservation_metrics(cash,peak,reserved,bid,ask,notional,fee_bps,max_re
     _causal_decimal(max_drawdown,Decimal(0),Decimal(1));_orderflow_decimal(_policy_decimal(max_spread_bps,nonnegative=True))
     c=_market_context();collateral=c.multiply(notional,c.add(Decimal(1),c.divide(fee_bps,Decimal(10000))))
     spread_n=c.multiply(c.subtract(ask,bid),Decimal(10000));available=c.subtract(cash,reserved)
-    return ReservationMetrics(collateral,_market_ratio(spread_n,bid),_ratio_compare(spread_n,bid,max_spread_bps)>0,c.add(reserved,collateral)>max_reserved,available<collateral,c.subtract(available,collateral)<c.multiply(peak,c.subtract(Decimal(1),max_drawdown)))
+    return ReservationMetrics(collateral,_market_ratio(spread_n,bid),_ratio_compare(spread_n,bid,max_spread_bps)>0,c.add(reserved,collateral)>max_reserved,available<collateral,_ratio_compare(c.add(c.subtract(peak,available),collateral),peak,max_drawdown)>0)
 
 def book_tape_research_metrics(close,buy,sell,past):
     """Exact v2 feature/vote predicates; first-seen POC, display6/8 HALF_EVEN.
@@ -956,7 +956,7 @@ def book_tape_research_metrics(close,buy,sell,past):
     def rounded(n,d,places):return display.quantize(display.divide(n,d),Decimal((0,(1,),-places)))
     return BookTapeMetrics(rounded(relative_n,total,6),rounded(delta,volume,6),rounded(width,previous,8),poc,rounded(c.subtract(close,poc),close,8),effort,confirmation,long,short,trend_long,trend_short,lv,sv,signal)
 
-def _paper_input_number(value,low,high):
+def _paper_input_decimal(value,low,high):
     if type(value) not in (str,int,float):raise ValueError('INVALID_INPUT_NUMBER')
     if type(value) is str:
         if not 0<len(value)<=128 or _numeric_re.fullmatch(r'-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?',value) is None:raise ValueError('INVALID_INPUT_NUMBER')
@@ -965,7 +965,10 @@ def _paper_input_number(value,low,high):
     try:exact=Decimal(str(value),context=Context(traps=[InvalidOperation]))
     except InvalidOperation as exc:raise ValueError('INVALID_INPUT_NUMBER') from exc
     if not exact.is_finite() or not low<=exact<=high:raise ValueError('INVALID_INPUT_NUMBER')
-    return float(exact)
+    return exact
+
+def _paper_input_number(value,low,high):
+    return float(_paper_input_decimal(value,low,high))
 
 def paper_input_numeric_integrity(kind,payload):
     """Numeric-only v2 input predicate; no source, clock or availability grant.
@@ -987,11 +990,14 @@ def paper_input_numeric_integrity(kind,payload):
             _paper_input_number(payload['aggressor_imbalance'],Decimal(-1),Decimal(1))
             counts=[payload[key] for key in ('buy_count','sell_count','trade_count')]
             if any(type(v) is not int or not 0<=v<=2**53-1 for v in counts) or counts[2]<1 or counts[0]+counts[1]!=counts[2]:return False
+            prices=[_paper_input_decimal(payload[key],Decimal(0),bound) for key in ('open','high','low','close')]
+            eo,eh,el,ec=prices
+            if not el<=min(eo,ec)<=max(eo,ec)<=eh:return False
             o,h,l,cl=(values[k] for k in ('open','high','low','close'));buy=values['buy_volume'];sell=values['sell_volume'];total=buy+sell
             if not l<=min(o,cl)<=max(o,cl)<=h or total<=0:return False
             return all(math.isclose(a,b,rel_tol=1e-9,abs_tol=1e-9) for a,b in ((values['delta'],buy-sell),(values['range'],h-l),(values['aggressor_imbalance'],(buy-sell)/total)))
         if kind=='orderbook_snapshot':
-            bid=_paper_input_number(payload['best_bid'],minimum,bound);ask=_paper_input_number(payload['best_ask'],minimum,bound)
+            bid=_paper_input_decimal(payload['best_bid'],minimum,bound);ask=_paper_input_decimal(payload['best_ask'],minimum,bound)
             return bid<ask
         if kind=='derivatives_ticker':
             fields=('funding_rate','funding_interval_hour','next_funding_time')
