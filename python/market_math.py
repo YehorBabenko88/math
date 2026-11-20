@@ -1034,3 +1034,47 @@ def paper_quote_funding_valid(mark,rate):
         _causal_decimal(rate,Decimal(-1),Decimal(1))
     except ValueError:return False
     return True
+
+
+def rank_volatile_symbols(rows, *, min_turnover=Decimal('1000000')):
+    """Full-universe exact volatility ranking; no age/status/count selection.
+
+    Source Meta b1a4 exchange.top_volatile: abs(last/prev-1), descending
+    (score, turnover, symbol). Rational comparison removes ambient rounding.
+    Version2 refuses an entire malformed/duplicate refresh instead of silently
+    skipping malformed rows. Valid nonpositive prices/subthreshold turnovers
+    remain ineligible. Exact list/tuple<=4096 and closed four-field exact dicts;
+    ASCII uppercase alphanumeric USDT symbols2..30 chars; Decimal or decimal
+    string numbers<=256 chars,128 coefficient digits, exponent +/-4096.
+    min_turnover is exact nonnegative Decimal. No source/execution authority.
+    """
+    from fractions import Fraction
+    import re
+    def number(value):
+        if type(value) is str:
+            if not 1<=len(value)<=256 or re.fullmatch(r'[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?',value) is None:
+                raise ValueError('INVALID_RANKING_NUMBER')
+            try:value=Decimal(value,context=Context())
+            except InvalidOperation as exc:raise ValueError('INVALID_RANKING_NUMBER') from exc
+        if type(value) is not Decimal or not value.is_finite():raise ValueError('INVALID_RANKING_NUMBER')
+        parts=value.as_tuple()
+        if len(parts.digits)>128 or not -4096<=parts.exponent<=4096:raise ValueError('RANKING_NUMBER_DOMAIN')
+        return value
+    if type(min_turnover) is not Decimal:raise ValueError('RANKING_MINIMUM_DECIMAL_REQUIRED')
+    minimum=number(min_turnover)
+    if minimum<0:raise ValueError('NEGATIVE_RANKING_MINIMUM')
+    if type(rows) not in (list,tuple) or len(rows)>4096:raise ValueError('RANKING_ROWS_DOMAIN')
+    fields=('symbol','turnover24h','lastPrice','prevPrice24h');seen=set();ranked=[]
+    for row in rows:
+        if type(row) is not dict or len(row)!=4:raise ValueError('RANKING_ROW_FIELDS')
+        if any(type(key) is not str or key not in fields for key in row):raise ValueError('RANKING_ROW_FIELDS')
+        symbol=row['symbol']
+        if type(symbol) is not str or not 2<=len(symbol)<=30 or (re.fullmatch(r'[A-Z0-9]+',symbol) is None or not symbol.endswith('USDT')):raise ValueError('RANKING_SYMBOL_DOMAIN')
+        if symbol in seen:raise ValueError('DUPLICATE_RANKING_SYMBOL')
+        seen.add(symbol)
+        turnover,last,previous=(number(row[key]) for key in fields[1:])
+        if turnover<minimum or last<=0 or previous<=0:continue
+        score=abs(Fraction(last)/Fraction(previous)-1)
+        ranked.append((score,turnover,symbol))
+    ranked.sort(reverse=True)
+    return tuple(symbol for score,turnover,symbol in ranked)
