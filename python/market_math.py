@@ -1020,3 +1020,17 @@ def paper_quote_book_valid(bid,ask):
         for value in (bid,ask):_causal_decimal(value,Decimal('1e-12'),Decimal('1e12'))
     except ValueError:return False
     return bid<=ask
+
+
+def paper_quote_funding_valid(mark,rate):
+    """Pure funding-row domain; selection/clocks/completeness stay external.
+
+    Validate every supplied row before controller state changes, including rows
+    outside a selected holding interval. Finite exact Decimal mark1e-12..1e12,
+    rate-1..1; no rounding, schedule inference or source/execution authority.
+    """
+    try:
+        _causal_decimal(mark,Decimal('1e-12'),Decimal('1e12'))
+        _causal_decimal(rate,Decimal(-1),Decimal(1))
+    except ValueError:return False
+    return True
