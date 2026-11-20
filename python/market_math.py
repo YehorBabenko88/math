@@ -808,3 +808,196 @@ def paper_equity_update(equity,peak,min_eq,max_dd,net):
     new_peak=max(peak,updated);new_min=min(min_eq,updated)
     drawdown=_paper_binary64(new_peak-updated)
     return updated,new_peak,new_min,max(max_dd,drawdown)
+
+
+# Causal paper v2: numerical values only; no journal, schedule or authority.
+from typing import NamedTuple
+import re as _numeric_re
+
+class QuoteMetrics(NamedTuple):
+    entry_price: Decimal
+    exit_price: Decimal
+    qty: Decimal
+    signed_qty: Decimal
+    gross_raw: Decimal
+    gross_fill: Decimal
+    slippage: Decimal
+    fees: Decimal
+    funding: Decimal
+    net: Decimal
+
+class AccountBalances(NamedTuple):
+    cash: Decimal
+    peak: Decimal
+    reserved: Decimal
+    available_cash: Decimal
+
+class ReservationMetrics(NamedTuple):
+    collateral: Decimal
+    spread_bps: Decimal
+    spread_exceeded: bool
+    reservation_exceeded: bool
+    cash_insufficient: bool
+    drawdown_exceeded: bool
+
+class BookTapeMetrics(NamedTuple):
+    relative_volume: Decimal
+    delta_ratio: Decimal
+    base_width_fraction: Decimal
+    proxy_poc: Decimal
+    proxy_poc_distance: Decimal
+    effort_anomaly: bool
+    volume_confirmation: bool
+    breakout_long: bool
+    breakout_short: bool
+    trend_long: bool
+    trend_short: bool
+    long_votes: int
+    short_votes: int
+    signal: int
+
+def _causal_decimal(value, low, high):
+    _orderflow_decimal(_policy_decimal(value))
+    if not low<=value<=high:raise ValueError('CAUSAL_NUMERIC_DOMAIN')
+    return value
+
+def _causal_sequence(values, maximum=20000):
+    if type(values) not in (list,tuple) or len(values)>maximum:raise ValueError('CAUSAL_BATCH_DOMAIN')
+    return values
+
+def _ratio_compare(numerator,denominator,threshold):
+    if denominator<=0:raise ValueError('INVALID_RATIO')
+    n,d=numerator.as_integer_ratio();a,b=denominator.as_integer_ratio();t,u=threshold.as_integer_ratio()
+    difference=n*b*u-t*a*d
+    return (difference>0)-(difference<0)
+
+def paper_quote_metrics(side,raw_entry,raw_exit,notional,fee_bps,slippage_bps,funding_events):
+    """V2 fixed28 HALF_EVEN intermediates; selected funding events are caller-owned.
+
+    No binary64 parity claim. Fee order is qty*(entry+exit)*bps/10000.
+    Numeric events are bounded to128; this does not verify their chronology.
+    """
+    _paper_side(side)
+    for value in (raw_entry,raw_exit):_causal_decimal(value,Decimal('1e-12'),Decimal('1e12'))
+    _causal_decimal(notional,Decimal('1e-9'),Decimal('1e12'))
+    for value in (fee_bps,slippage_bps):_causal_decimal(value,Decimal(0),Decimal(1000))
+    events=_causal_sequence(funding_events,128)
+    for item in events:
+        if type(item) not in (tuple,list) or len(item)!=2:raise ValueError('INVALID_FUNDING_EVENT')
+        _causal_decimal(item[0],Decimal('1e-12'),Decimal('1e12'));_causal_decimal(item[1],Decimal(-1),Decimal(1))
+    c=_paper_context();entry=adverse_execution_price(raw_entry,side,slippage_bps,True);exit=adverse_execution_price(raw_exit,side,slippage_bps,False)
+    qty=paper_position_size(notional,entry);signed=qty if side=='long' else qty.copy_negate()
+    raw=c.multiply(signed,c.subtract(raw_exit,raw_entry));fill=c.multiply(signed,c.subtract(exit,entry));slip=c.subtract(raw,fill)
+    fee=c.divide(c.multiply(c.multiply(qty,c.add(entry,exit)),fee_bps),Decimal(10000));funding=Decimal(0)
+    for mark,rate in events:funding=c.add(funding,c.multiply(c.multiply(signed,mark),rate))
+    net=c.subtract(c.subtract(c.subtract(raw,slip),fee),funding)
+    result=QuoteMetrics(entry,exit,qty,signed,raw,fill,slip,fee,funding,net)
+    for value in result[2:]:
+        if value.copy_abs()>Decimal('1e15'):raise ValueError('CAUSAL_RESULT_DOMAIN')
+    return result
+
+def paper_account_balances(initial_cash,settled_pnls,pending_pnls,collaterals):
+    """Exact sums; ordered settled realizations affect peak, pending values do not."""
+    _market_amount(initial_cash)
+    if initial_cash<=0:raise ValueError('INVALID_INITIAL_CASH')
+    for rows in (settled_pnls,pending_pnls,collaterals):
+        _causal_sequence(rows)
+        for value in rows:_market_amount(value)
+    if any(value<0 for value in collaterals):raise ValueError('NEGATIVE_COLLATERAL')
+    c=_market_context();cash=peak=initial_cash
+    for value in settled_pnls:
+        cash=c.add(cash,value);peak=max(peak,cash)
+    cash=c.add(cash,exact_sum(pending_pnls));reserved=exact_sum(collaterals)
+    return AccountBalances(cash,peak,reserved,c.subtract(cash,reserved))
+
+def paper_reservation_metrics(cash,peak,reserved,bid,ask,notional,fee_bps,max_reserved,max_drawdown,max_spread_bps):
+    """Exact admission predicates; spread display alone is rounded28 HALF_EVEN."""
+    for value in (cash,peak,reserved,max_reserved):_market_amount(value)
+    if peak<=0 or reserved<0 or max_reserved<0:raise ValueError('INVALID_RESERVATION')
+    for value in (bid,ask):_causal_decimal(value,Decimal('1e-12'),Decimal('1e12'))
+    if bid>ask:raise ValueError('CROSSED_BOOK')
+    _causal_decimal(notional,Decimal('1e-9'),Decimal('1e12'));_causal_decimal(fee_bps,Decimal(0),Decimal(1000))
+    _causal_decimal(max_drawdown,Decimal(0),Decimal(1));_orderflow_decimal(_policy_decimal(max_spread_bps,nonnegative=True))
+    c=_market_context();collateral=c.multiply(notional,c.add(Decimal(1),c.divide(fee_bps,Decimal(10000))))
+    spread_n=c.multiply(c.subtract(ask,bid),Decimal(10000));available=c.subtract(cash,reserved)
+    return ReservationMetrics(collateral,_market_ratio(spread_n,bid),_ratio_compare(spread_n,bid,max_spread_bps)>0,c.add(reserved,collateral)>max_reserved,available<collateral,c.subtract(available,collateral)<c.multiply(peak,c.subtract(Decimal(1),max_drawdown)))
+
+def book_tape_research_metrics(close,buy,sell,past):
+    """Exact v2 feature/vote predicates; first-seen POC, display6/8 HALF_EVEN.
+
+    History timing/warmup/provenance remain external. Numeric past4..4096.
+    """
+    for value in (close,):_orderflow_decimal(_policy_decimal(value,positive=True))
+    for value in (buy,sell):_orderflow_decimal(_policy_decimal(value,nonnegative=True))
+    _causal_sequence(past,4096)
+    if len(past)<4:raise ValueError('INSUFFICIENT_NUMERIC_HISTORY')
+    for row in past:
+        if type(row) not in (list,tuple) or len(row)!=2:raise ValueError('INVALID_NUMERIC_HISTORY')
+        _orderflow_decimal(_policy_decimal(row[0],positive=True));_orderflow_decimal(_policy_decimal(row[1],nonnegative=True))
+    c=_market_context();volume=c.add(buy,sell);delta=c.subtract(buy,sell);total=exact_sum([v for _,v in past])
+    if volume<=0 or total<=0:raise ValueError('EMPTY_NUMERIC_VOLUME')
+    relative_n=c.multiply(volume,Decimal(len(past)));previous=past[-1][0];prices=[p for p,_ in past];base=prices[-5:]
+    width=c.subtract(max(base),min(base));direction=(close>previous)-(close<previous)
+    rel12=_ratio_compare(relative_n,total,Decimal('1.2'))>=0
+    effort=_ratio_compare(relative_n,total,Decimal('1.8'))>=0 and _ratio_compare(c.subtract(close,previous).copy_abs(),previous,Decimal('.0002'))<0
+    directional=delta if direction==1 else delta.copy_negate() if direction==-1 else Decimal(0)
+    confirmation=rel12 and _ratio_compare(directional,volume,Decimal('.2'))>=0
+    narrow=_ratio_compare(width,previous,Decimal('.004'))<=0
+    long=close>max(base) and narrow and rel12 and _ratio_compare(delta,volume,Decimal('.15'))>0
+    short=close<min(base) and narrow and rel12 and _ratio_compare(delta,volume,Decimal('-.15'))<0
+    profile={}
+    for price,amount in past:profile[price]=c.add(profile.get(price,Decimal(0)),amount)
+    poc=volume_profile_poc(profile,tie_policy='first_seen')
+    tail=prices[-4:]+[close];up=sum(b>a for a,b in zip(tail,tail[1:]));down=sum(b<a for a,b in zip(tail,tail[1:]))
+    trend_long=up>=3 and close>max(prices);trend_short=down>=3 and close<min(prices)
+    lv=int(long)+int(trend_long)+int(confirmation and direction==1);sv=int(short)+int(trend_short)+int(confirmation and direction==-1)
+    signal=1 if lv>=2 and sv==0 and not effort else -1 if sv>=2 and lv==0 and not effort else 0
+    display=Context(prec=4300,rounding=ROUND_HALF_EVEN,Emin=MIN_EMIN,Emax=MAX_EMAX,traps=[])
+    def rounded(n,d,places):return display.quantize(display.divide(n,d),Decimal((0,(1,),-places)))
+    return BookTapeMetrics(rounded(relative_n,total,6),rounded(delta,volume,6),rounded(width,previous,8),poc,rounded(c.subtract(close,poc),close,8),effort,confirmation,long,short,trend_long,trend_short,lv,sv,signal)
+
+def _paper_input_number(value,low,high):
+    if type(value) not in (str,int,float):raise ValueError('INVALID_INPUT_NUMBER')
+    if type(value) is str:
+        if not 0<len(value)<=128 or _numeric_re.fullmatch(r'-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?',value) is None:raise ValueError('INVALID_INPUT_NUMBER')
+    if type(value) is int and value.bit_length()>101:raise ValueError('INVALID_INPUT_NUMBER')
+    if type(value) is float and not math.isfinite(value):raise ValueError('INVALID_INPUT_NUMBER')
+    try:exact=Decimal(str(value),context=Context(traps=[InvalidOperation]))
+    except InvalidOperation as exc:raise ValueError('INVALID_INPUT_NUMBER') from exc
+    if not exact.is_finite() or not low<=exact<=high:raise ValueError('INVALID_INPUT_NUMBER')
+    return float(exact)
+
+def paper_input_numeric_integrity(kind,payload):
+    """Numeric-only v2 input predicate; no source, clock or availability grant.
+
+    Domains precede legacy binary64 isclose(rel=abs=1e-9). Signed zero is
+    numeric zero; negative tiny unsigned strings refuse before float underflow.
+    Present-null funding is valid unknown data, never known funding proof.
+    """
+    if type(kind) is not str or type(payload) is not dict or len(payload)>64:return False
+    bound=Decimal('1e15');minimum=Decimal('1e-15')
+    try:
+        if kind=='trade_tape_250ms':
+            fields=('open','high','low','close','buy_volume','sell_volume','delta','cvd','range','aggressor_imbalance')
+            values={key:_paper_input_number(payload[key],bound.copy_negate(),bound) for key in fields}
+            for key in ('open','high','low','close'):
+                _paper_input_number(payload[key],Decimal(0),bound)
+                if values[key]<=0:return False
+            for key in ('buy_volume','sell_volume','range'):_paper_input_number(payload[key],Decimal(0),bound)
+            _paper_input_number(payload['aggressor_imbalance'],Decimal(-1),Decimal(1))
+            counts=[payload[key] for key in ('buy_count','sell_count','trade_count')]
+            if any(type(v) is not int or not 0<=v<=2**53-1 for v in counts) or counts[2]<1 or counts[0]+counts[1]!=counts[2]:return False
+            o,h,l,cl=(values[k] for k in ('open','high','low','close'));buy=values['buy_volume'];sell=values['sell_volume'];total=buy+sell
+            if not l<=min(o,cl)<=max(o,cl)<=h or total<=0:return False
+            return all(math.isclose(a,b,rel_tol=1e-9,abs_tol=1e-9) for a,b in ((values['delta'],buy-sell),(values['range'],h-l),(values['aggressor_imbalance'],(buy-sell)/total)))
+        if kind=='orderbook_snapshot':
+            bid=_paper_input_number(payload['best_bid'],minimum,bound);ask=_paper_input_number(payload['best_ask'],minimum,bound)
+            return bid<ask
+        if kind=='derivatives_ticker':
+            fields=('funding_rate','funding_interval_hour','next_funding_time')
+            if not any(key in payload for key in fields):return False
+            for key in fields:
+                if key in payload and payload[key] is not None:_paper_input_number(payload[key],Decimal(-1) if key=='funding_rate' else minimum,Decimal(1) if key=='funding_rate' else Decimal('253402300799999'))
+            return True
+        return False
+    except (KeyError,ValueError,TypeError,OverflowError,InvalidOperation):return False

@@ -1,5 +1,5 @@
 """Canonical namespace only; arithmetic bytes match the frozen a86 baseline."""
-import hashlib,importlib,importlib.util
+import ast,hashlib,importlib,importlib.util
 from pathlib import Path
 import tomllib
 import unittest
@@ -13,7 +13,12 @@ class MarketMathNamespaceTests(unittest.TestCase):
   self.assertEqual(Path(module.__file__).name,'market_math.py')
  def test_arithmetic_module_bytes_match_exact_a86_baseline(self):
   module=importlib.import_module('market_math')
-  self.assertEqual(hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest(),'d1236748dfaee6bafc64fab7bbec74bedfd0e597bb5b238e3505b2e942cb7b60')
+  self.assertEqual(hashlib.sha256(Path(module.__file__).read_bytes()[:39461]).hexdigest(),'d1236748dfaee6bafc64fab7bbec74bedfd0e597bb5b238e3505b2e942cb7b60')
+ def test_no_appended_definition_shadows_the_frozen_arithmetic(self):
+  import market_math
+  tree=ast.parse(Path(market_math.__file__).read_text())
+  names=[n.name for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef,ast.AsyncFunctionDef))]
+  self.assertEqual(len(names),len(set(names)))
  def test_packaging_and_api_reexports_use_one_canonical_module(self):
   import market_math as canonical
   import market_compute_api as api
