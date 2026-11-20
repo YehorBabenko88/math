@@ -1207,6 +1207,7 @@ def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_du
             value=row[field]
             if type(value) is not int and type(value) is not float:raise ValueError('VOLATILITY_LITERAL_NUMBER_REQUIRED')
             number=_paper_binary64(value)
+            if type(value) is int and int(number)!=value:raise ValueError('VOLATILITY_INTEGER_NOT_EXACT_BINARY64')
             if number<0 or field not in ('volume','turnover') and number==0:raise ValueError('VOLATILITY_NUMBER_DOMAIN')
             values.append(number)
         open_,high,low,close,volume,turnover=values

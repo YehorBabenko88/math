@@ -48,3 +48,13 @@ class CausalVolatilityTests(unittest.TestCase):
   self.assertEqual(calls,[])
  def test_empty_short_prefix_validated_without_synthetic_output(self):
   self.assertEqual(self.call([]),());self.assertEqual(self.call([bar()]),())
+ def test_lossy_integer_conversion_cannot_hide_invalid_ohlc(self):
+  n=2**53
+  invalid=dict(bar(),open=n+1,high=n,low=n,close=n)
+  with self.assertRaises(ValueError):self.call([invalid,dict(invalid,event_start_ms=60)])
+  for field in ('open','high','low','close','volume','turnover'):
+   with self.subTest(field=field):
+    row=dict(bar(),**{field:n+1})
+    with self.assertRaises(ValueError):self.call([row,dict(row,event_start_ms=60)])
+  exact=dict(bar(),open=2**54,high=2**54,low=2**54,close=2**54)
+  self.assertEqual(self.call([exact,dict(exact,event_start_ms=60)])[0][2:6],(0.0,0.0,0.0,0.0))
