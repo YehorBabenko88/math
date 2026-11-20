@@ -81,13 +81,26 @@ with tempfile.TemporaryDirectory(prefix='inert-volatility-ci-') as home:
         for name in ns['SDK']+(ns['TEST_MODULE'],):
             path=test if name==ns['TEST_MODULE'] else sdk/(name+'.py')
             spec=types.SimpleNamespace(origin=str(path),loader=importlib.machinery.SourceFileLoader(name,str(path)))
-            shape[name]=types.SimpleNamespace(__file__=str(path),__spec__=spec,__cached__=importlib.util.cache_from_source(str(path)))
+            shape[name]=types.SimpleNamespace(__file__=str(path),__spec__=spec,__loader__=spec.loader,__cached__=importlib.util.cache_from_source(str(path)))
         ns['sys']=fake(mapping_cache,modules=shape);ns['loaded_origins'](sdk,test,mapping_cache);controls+=1
         module=shape[ns['SDK'][0]]
         for field,value,code in [('__file__',str(test),'VOLATILITY_MODULE_ORIGIN_MISMATCH'),('__cached__',str(root/'unapproved.pyc'),'VOLATILITY_CACHED_ORIGIN_MISMATCH')]:
             old_value=getattr(module,field);setattr(module,field,value);denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),code);setattr(module,field,old_value);controls+=1
         old_origin=module.__spec__.origin;module.__spec__.origin=str(test);denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_MODULE_ORIGIN_MISMATCH');module.__spec__.origin=old_origin;controls+=1
-        shape['market_math.extra']=module;denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_UNAPPROVED_MODULE');del shape['market_math.extra'];controls+=1
+        shape['market_math.extra']=module;denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_EXACT_MODULE_ROSTER_REQUIRED');del shape['market_math.extra'];controls+=1
+        for name in tuple(shape):
+            item=shape.pop(name);denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_EXACT_MODULE_ROSTER_REQUIRED');shape[name]=item;controls+=1
+        item=shape[ns['SDK'][0]];original_loader=item.__spec__.loader
+        # Keep both reflected loader aliases consistent: the loader's actual path/name must still bind.
+        for wrong in (importlib.machinery.SourceFileLoader(ns['SDK'][0],str(test)),importlib.machinery.SourceFileLoader('wrong_name',str(sdk/(ns['SDK'][0]+'.py')))):
+            item.__spec__.loader=wrong;item.__loader__=wrong
+            denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_SOURCE_LOADER_MISMATCH');controls+=1
+        item.__spec__.loader=original_loader;item.__loader__=importlib.machinery.SourceFileLoader(ns['SDK'][0],str(sdk/(ns['SDK'][0]+'.py')))
+        denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_SOURCE_LOADER_MISMATCH');controls+=1
+        class ForeignLoader(importlib.machinery.SourceFileLoader):pass
+        item.__spec__.loader=ForeignLoader(ns['SDK'][0],str(sdk/(ns['SDK'][0]+'.py')));item.__loader__=item.__spec__.loader
+        denied(lambda:ns['loaded_origins'](sdk,test,mapping_cache),'VOLATILITY_SOURCE_LOADER_MISMATCH');controls+=1
+        item.__spec__.loader=original_loader;item.__loader__=original_loader
         assert not list(mapping_cache.iterdir())
     finally:real.pycache_prefix=original_prefix;ns['sys']=real
     good=types.SimpleNamespace(wasSuccessful=lambda:True,testsRun=9,skipped=[],expectedFailures=[],unexpectedSuccesses=[]);assert ns['accepted'](good);controls+=1

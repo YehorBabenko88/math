@@ -124,13 +124,15 @@ jobs:
                   return records
               def loaded_origins(sdk,test,cache):
                   expected={name:sdk/(name+'.py') for name in SDK};expected[TEST_MODULE]=test
-                  for name,module in tuple(sys.modules.items()):
-                      if not owned(name):continue
-                      need(name in expected,'VOLATILITY_UNAPPROVED_MODULE')
+                  need({name for name in sys.modules if owned(name)}==set(expected),'VOLATILITY_EXACT_MODULE_ROSTER_REQUIRED')
+                  for name,path in expected.items():
+                      module=sys.modules[name]
                       declared_source=pathlib.Path(module.__file__)
                       need(declared_source.is_absolute(),'VOLATILITY_MODULE_ORIGIN_MISMATCH')
                       source=declared_source.resolve(strict=True)
-                      need(source==expected[name].resolve(strict=True) and module.__spec__ is not None and pathlib.Path(module.__spec__.origin).resolve(strict=True)==source and isinstance(module.__spec__.loader,importlib.machinery.SourceFileLoader),'VOLATILITY_MODULE_ORIGIN_MISMATCH')
+                      need(source==path.resolve(strict=True) and module.__spec__ is not None and pathlib.Path(module.__spec__.origin).resolve(strict=True)==source,'VOLATILITY_MODULE_ORIGIN_MISMATCH')
+                      loader=module.__spec__.loader
+                      need(type(loader) is importlib.machinery.SourceFileLoader and getattr(module,'__loader__',None) is loader and type(loader.name) is str and loader.name==name and type(loader.path) is str and pathlib.Path(loader.path).is_absolute() and pathlib.Path(loader.path).resolve(strict=True)==source,'VOLATILITY_SOURCE_LOADER_MISMATCH')
                       calculated=pathlib.Path(importlib.util.cache_from_source(str(declared_source)))
                       need(pathlib.Path(module.__cached__)==calculated and calculated.is_relative_to(cache),'VOLATILITY_CACHED_ORIGIN_MISMATCH')
               def accepted(result):
