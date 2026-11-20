@@ -18,7 +18,10 @@ from market_profile_math import (price_bucket, volume_profile_poc, executed_volu
                                  orderflow_volume_metrics, aggregate_orderflow, aggregate_orderflow_stream,
                                  exact_sum, minute_volume_update, footprint_cell_update,
                                  tick_distance, within_tick_distance, book_summary_metrics,
-                                 historical_aggregate_integrity, decimal_epoch_units)
+                                 historical_aggregate_integrity, decimal_epoch_units,
+                                 adverse_execution_price, paper_position_size, paper_entry_fee,
+                                 paper_stop_price, paper_entry_side, paper_fill_metrics, candle_ohlcv_valid,
+                                 paper_scale_value, paper_size_multiplier, paper_net_pnl, paper_equity_update)
 
 STREAM_ABI = "math.market.orderflow.stream.v1"
 TIMEFRAME_LEVELS_ABI = "math.market.levels.binary64.v1"

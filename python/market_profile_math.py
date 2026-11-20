@@ -694,3 +694,117 @@ def decimal_epoch_units(seconds, precision):
     coefficient=int(Decimal((0,parts.digits,0)))
     shift=parts.exponent+precision
     return coefficient*10**shift if shift>=0 else coefficient//10**-shift
+
+
+def _policy_decimal(value, *, positive=False, nonnegative=False):
+    if type(value) is not Decimal or not value.is_finite():raise ValueError('PAPER_DECIMAL_DOMAIN')
+    parts=value.as_tuple()
+    if len(parts.digits)>128 or abs(parts.exponent)>4096:raise ValueError('PAPER_DECIMAL_DOMAIN')
+    if positive and value<=0 or nonnegative and value<0:raise ValueError('PAPER_DECIMAL_DOMAIN')
+    return value
+
+def _paper_context():
+    # Preserve each old default-context intermediate explicitly, without caller traps.
+    return Context(prec=28,rounding=ROUND_HALF_EVEN,Emin=MIN_EMIN,Emax=MAX_EMAX,traps=[])
+
+def _paper_side(side):
+    if type(side) is not str or side not in ('long','short'):raise ValueError('INVALID_PAPER_SIDE')
+
+def adverse_execution_price(price,side,bps,entry):
+    """Pure adverse annotation arithmetic:28HALF_EVEN at each legacy step.
+
+    All paper helpers accept finite Decimal operands <=128 coefficient digits,
+    exponent +/-4096 (including derived position sizes), never caller context.
+    No fills, state, signals, timestamps or execution authority are created.
+    """
+    _policy_decimal(price,positive=True);_policy_decimal(bps,nonnegative=True);_paper_side(side)
+    if type(entry) is not bool or bps>=10000:raise ValueError('INVALID_PAPER_SLIPPAGE')
+    c=_paper_context();fraction=c.divide(bps,Decimal(10000))
+    if fraction>=1:raise ValueError('INVALID_PAPER_SLIPPAGE')
+    adverse_up=(side=='long')==entry
+    factor=c.add(Decimal(1),fraction) if adverse_up else c.subtract(Decimal(1),fraction)
+    return _policy_decimal(c.multiply(price,factor),positive=True)
+
+def paper_position_size(notional,entry):
+    _policy_decimal(notional,positive=True);_policy_decimal(entry,positive=True)
+    return _policy_decimal(_paper_context().divide(notional,entry),positive=True)
+
+def paper_entry_fee(notional,rate):
+    _policy_decimal(notional,positive=True);_policy_decimal(rate,nonnegative=True)
+    if rate>=1:raise ValueError('INVALID_PAPER_FEE')
+    return _policy_decimal(_paper_context().multiply(notional,rate),nonnegative=True)
+
+def paper_stop_price(entry,side,stop_pct):
+    """Preserves legacy nonnegative stop_pct, including signed stops above100%."""
+    _policy_decimal(entry,positive=True);_policy_decimal(stop_pct,nonnegative=True);_paper_side(side)
+    c=_paper_context();factor=c.subtract(Decimal(1),stop_pct) if side=='long' else c.add(Decimal(1),stop_pct)
+    return _policy_decimal(c.multiply(entry,factor))
+
+def paper_entry_side(price,poc,threshold):
+    """Legacy inclusive short-first28digit threshold policy, not source trust."""
+    _policy_decimal(price,positive=True);_policy_decimal(poc,positive=True);_policy_decimal(threshold,nonnegative=True)
+    c=_paper_context()
+    if price>=c.multiply(poc,c.add(Decimal(1),threshold)):return 'short'
+    if price<=c.multiply(poc,c.subtract(Decimal(1),threshold)):return 'long'
+    return None
+
+def paper_fill_metrics(side,entry,exit,size,entry_fee,fee_rate):
+    """Pure (gross,total_fees,net) using old sequential28digit intermediates."""
+    _paper_side(side)
+    for value in (entry,exit,size):_policy_decimal(value,positive=True)
+    _policy_decimal(entry_fee,nonnegative=True);_policy_decimal(fee_rate,nonnegative=True)
+    if fee_rate>=1:raise ValueError('INVALID_PAPER_FEE')
+    c=_paper_context();difference=c.subtract(exit,entry) if side=='long' else c.subtract(entry,exit)
+    gross=c.multiply(difference,size)
+    exit_fee=c.multiply(c.multiply(size,exit),fee_rate)
+    return tuple(_policy_decimal(value) for value in (gross,c.add(entry_fee,exit_fee),c.subtract(c.subtract(gross,entry_fee),exit_fee)))
+
+
+def candle_ohlcv_valid(open,high,low,close,volume):
+    """Pure Decimal OHLCV domain predicate; no source/coverage authentication.
+
+    Finite Decimal prices must be strictly positive, volume nonnegative and
+    OHLC ordered. Bounded128digit coefficients/exponent+/-4096; caller context
+    unused. Identity, event time, completeness and provenance stay external.
+    """
+    try:
+        for value in (open,high,low,close):_policy_decimal(value,positive=True)
+        _policy_decimal(volume,nonnegative=True)
+    except ValueError:return False
+    return low<=min(open,close)<=max(open,close)<=high
+
+
+def _paper_binary64(value):
+    """Bounded legacy numeric conversion, with ambiguous booleans refused."""
+    if type(value) not in (int,float,Decimal,str):raise ValueError('PAPER_BINARY64_DOMAIN')
+    if type(value) is str and len(value)>256:raise ValueError('PAPER_BINARY64_DOMAIN')
+    if type(value) is int and value.bit_length()>1024:raise ValueError('PAPER_BINARY64_DOMAIN')
+    if type(value) is Decimal:_policy_decimal(value)
+    try:result=float(value)
+    except (ValueError,TypeError,OverflowError) as exc:raise ValueError('PAPER_BINARY64_DOMAIN') from exc
+    if not math.isfinite(result):raise ValueError('PAPER_BINARY64_DOMAIN')
+    return result
+
+def paper_scale_value(value,size):
+    """Pure legacy binary64 product; sizing mode/state remain caller-owned."""
+    return _paper_binary64(_paper_binary64(value)*_paper_binary64(size))
+
+def paper_size_multiplier(base,factor,step,cap):
+    """Pure min(cap,base*factor**step); no sizing mode or loss-streak state."""
+    base,factor,cap=map(_paper_binary64,(base,factor,cap))
+    if type(step) is not int or not 0<=step<=1000000:raise ValueError('INVALID_PAPER_EXPONENT')
+    try:return _paper_binary64(min(cap,base*factor**step))
+    except OverflowError as exc:raise ValueError('PAPER_EXPONENT_OVERFLOW') from exc
+
+def paper_net_pnl(pnl,fees,slippage):
+    """Pure legacy sequential binary64 subtraction, not a trade ledger."""
+    pnl,fees,slippage=map(_paper_binary64,(pnl,fees,slippage))
+    return _paper_binary64((pnl-fees)-slippage)
+
+def paper_equity_update(equity,peak,min_eq,max_dd,net):
+    """Pure four-number update; account/ruin/portfolio policies stay external."""
+    equity,peak,min_eq,max_dd,net=map(_paper_binary64,(equity,peak,min_eq,max_dd,net))
+    updated=_paper_binary64(equity+net)
+    new_peak=max(peak,updated);new_min=min(min_eq,updated)
+    drawdown=_paper_binary64(new_peak-updated)
+    return updated,new_peak,new_min,max(max_dd,drawdown)
