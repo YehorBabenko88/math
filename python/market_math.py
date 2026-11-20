@@ -1094,3 +1094,24 @@ def exact_scaled_integer(value,scale):
     result,remainder=divmod(numerator*scale,denominator)
     if remainder or not 0<=result<=2**53-1:raise ValueError('EXACT_SCALED_INTEGER_REQUIRED')
     return result
+
+
+def history_window_ms(start_ms,end_ms,*,cadence_minutes):
+    """Inclusive UTC-ms sampling grid, without metadata/readiness authority.
+
+    Exact nonbool ints: times0..253402300799999, cadence1..2**53-1 minutes.
+    Bounds are representation budgets, not provider/exchange cadence policy.
+    Return ceil(start)/floor(end) grid points or None for an empty/reversed
+    interval; an aligned singleton (including epoch0) remains nonempty.
+    Integer-only arithmetic leaves every Decimal context/trap/flag untouched.
+    """
+    maximum=253402300799999
+    if type(start_ms) is not int or type(end_ms) is not int or not 0<=start_ms<=maximum or not 0<=end_ms<=maximum:
+        raise ValueError('HISTORY_WINDOW_UTC_MS_DOMAIN')
+    if type(cadence_minutes) is not int or not 1<=cadence_minutes<=2**53-1:
+        raise ValueError('HISTORY_WINDOW_CADENCE_DOMAIN')
+    if end_ms<start_ms:return None
+    step=cadence_minutes*60000
+    first=((start_ms+step-1)//step)*step
+    last=(end_ms//step)*step
+    return (first,last) if first<=last else None
