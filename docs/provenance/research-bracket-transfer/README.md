@@ -5,3 +5,5 @@ Math owns the original Data scalp risk geometry. `research_bracket_prices` prese
 The admitted input domain is exact literal int/float, finite, nonnegative and lossless in binary64, with positive entry. Source and wheel CI use the existing shared strict runner with the closed14-case research_brackets roster. The old Data consumer source is retained until the four strategy generators migrate to Terminan; no original role is deducted here.
 
 `ResearchBracketPrices.as_decimal()` presents finite literal binary64 fields using their shortest decimal spellings. It does not recover precision or admit executable prices; fabricated records and subclasses refuse before callbacks. Decimal context flags and traps remain unchanged.
+
+`research_expansion_side` owns the original binary64 candle-body threshold and direction calculation. It retains inclusive equality and the original zero-body/zero-threshold short classification; callers own explicit availability and strategy policy. Derived overflow refuses.

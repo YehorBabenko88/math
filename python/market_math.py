@@ -1442,3 +1442,23 @@ def research_bracket_prices(entry_price,atr_fraction,side,*,reward_risk=1.5,stop
     stop=entry-distance if side=='long' else entry+distance
     target=entry+distance*reward if side=='long' else entry-distance*reward
     return ResearchBracketPrices(_paper_binary64(stop),_paper_binary64(target))
+
+
+def research_expansion_side(open_price,close_price,atr_fraction,*,min_body_atr=.5):
+    """Original binary64 candle-body threshold; direction policy, not an order.
+
+    No availability is inferred. Equality passes the original threshold; a zero
+    body with zero threshold retains its original short-side classification.
+    Callers provide separately validated clocks and research observations.
+    """
+    for value in (open_price,close_price,atr_fraction,min_body_atr):
+        if not lossless_nonnegative_binary64_valid(value):
+            raise ValueError('RESEARCH_BODY_NUMBER_DOMAIN')
+    if open_price==0 or close_price==0:
+        raise ValueError('RESEARCH_BODY_POSITIVE_PRICE_REQUIRED')
+    opening=_paper_binary64(open_price);closing=_paper_binary64(close_price)
+    atr=_paper_binary64(atr_fraction);minimum=_paper_binary64(min_body_atr)
+    body=_paper_binary64(closing-opening)
+    threshold=_paper_binary64(closing*atr*minimum)
+    if abs(body)<threshold:return None
+    return 'long' if body>0 else 'short'
