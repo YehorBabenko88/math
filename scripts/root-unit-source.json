@@ -1,9 +1,9 @@
 {
   "schema": "math.root-unit-custody-source.v1",
   "repository": "YehorBabenko88/unified-system",
-  "commit": "878c4d0910977c742d25193b35b5c678ab6dbe7b",
+  "commit": "802e78640adc0af6f1c5e04b37fa0f41b70b6a45",
   "files": {
-    "tools/ci_evidence_role_matrix/contract.mjs": "102bf2daf538aea0ec3d5cb17f22aea30e2d1595ab42faf720f8982623fe419f",
+    "tools/ci_evidence_role_matrix/contract.mjs": "e5cfdefcd581e9ca572f55578dcf7c2eb77121a87dcb50cf0bb0a096e49dc2dc",
     "tools/ci_evidence_role_matrix/aggregate.mjs": "9ac181eae838f79837a960a091aa7fa14e2f5dbd5324fda313abdc7668eb17ff",
     "tools/ci_evidence_role_matrix/artifact_custody.mjs": "578064c2cdec153497cbd6cafc6d372a154c266d8c1db37155801ff472c50301",
     "tools/ci_evidence_role_matrix/artifact_zip.mjs": "73bf0170a1d84329b34ed59c2669186a60867ee8dee66ad6683b617087afc15f",
@@ -12,6 +12,6 @@
     "tools/ci_evidence/github_identity.mjs": "71e7fc45cad9846ec8f6750c073616b56796b44151c43de99682b22d36dcfb99",
     "tools/ci_evidence/diagnostics.mjs": "ed9238d1f92bda2296aaa41c24b984d4647417f657573b9e0179309213f2a075",
     "tools/ci_evidence/strict.mjs": "0728aae4211c32bf0a7f19e91d91a36ebf190a2a95282e716864640e58fc37c8",
-    ".github/workflows/ci-evidence-role-matrix.yml": "884c1e11bb9e4eaee50c865d5f299071a2eea2066a4a45d910b5091ff638f540"
+    ".github/workflows/ci-evidence-role-matrix.yml": "beb3d12a8d8ba2cf0aa0c24a24099fb8bc428d45df8b7dcdd3f0c5ca5fbeb62f"
   }
 }

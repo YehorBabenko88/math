@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-const pin='878c4d0910977c742d25193b35b5c678ab6dbe7b',roleSource='4ba390b8e12070499d54b12e5609c683c00607ee';
+const pin='802e78640adc0af6f1c5e04b37fa0f41b70b6a45',roleSource='4ba390b8e12070499d54b12e5609c683c00607ee';
 const cells=['linux-22-16','linux-22-18','linux-24-16','linux-24-18'];
 const oid=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x),digest=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x),id=x=>typeof x==='string'&&/^[1-9][0-9]{0,19}$/.test(x);
 export function validateTestedSource(c){

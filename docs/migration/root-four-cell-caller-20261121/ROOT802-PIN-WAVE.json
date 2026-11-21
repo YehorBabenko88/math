@@ -1,0 +1,83 @@
+{
+  "schema": "math.root-unit-source-pin-wave.v1",
+  "base": "03cb90154da720a9f44e5ee576692da2897e99ea",
+  "previous_root": "878c4d0910977c742d25193b35b5c678ab6dbe7b",
+  "current_root": "802e78640adc0af6f1c5e04b37fa0f41b70b6a45",
+  "closure": [
+    {
+      "path": "tools/ci_evidence_role_matrix/contract.mjs",
+      "old_sha256": "102bf2daf538aea0ec3d5cb17f22aea30e2d1595ab42faf720f8982623fe419f",
+      "sha256": "e5cfdefcd581e9ca572f55578dcf7c2eb77121a87dcb50cf0bb0a096e49dc2dc",
+      "bytes": 14859
+    },
+    {
+      "path": "tools/ci_evidence_role_matrix/aggregate.mjs",
+      "old_sha256": "9ac181eae838f79837a960a091aa7fa14e2f5dbd5324fda313abdc7668eb17ff",
+      "sha256": "9ac181eae838f79837a960a091aa7fa14e2f5dbd5324fda313abdc7668eb17ff",
+      "bytes": 6521
+    },
+    {
+      "path": "tools/ci_evidence_role_matrix/artifact_custody.mjs",
+      "old_sha256": "578064c2cdec153497cbd6cafc6d372a154c266d8c1db37155801ff472c50301",
+      "sha256": "578064c2cdec153497cbd6cafc6d372a154c266d8c1db37155801ff472c50301",
+      "bytes": 5453
+    },
+    {
+      "path": "tools/ci_evidence_role_matrix/artifact_zip.mjs",
+      "old_sha256": "73bf0170a1d84329b34ed59c2669186a60867ee8dee66ad6683b617087afc15f",
+      "sha256": "73bf0170a1d84329b34ed59c2669186a60867ee8dee66ad6683b617087afc15f",
+      "bytes": 3573
+    },
+    {
+      "path": "tools/ci_evidence_role_matrix/role-plan.json",
+      "old_sha256": "ae8caf3476fd98336b578cf1f9b772b1e69883867af9b77e86f4e50cb33c0fde",
+      "sha256": "ae8caf3476fd98336b578cf1f9b772b1e69883867af9b77e86f4e50cb33c0fde",
+      "bytes": 23787
+    },
+    {
+      "path": "tools/ci_evidence/http_body.mjs",
+      "old_sha256": "cab089a1aaac6ef495279acb4967943750604461f9e4711b06cd0a64922c4d91",
+      "sha256": "cab089a1aaac6ef495279acb4967943750604461f9e4711b06cd0a64922c4d91",
+      "bytes": 3093
+    },
+    {
+      "path": "tools/ci_evidence/github_identity.mjs",
+      "old_sha256": "71e7fc45cad9846ec8f6750c073616b56796b44151c43de99682b22d36dcfb99",
+      "sha256": "71e7fc45cad9846ec8f6750c073616b56796b44151c43de99682b22d36dcfb99",
+      "bytes": 7770
+    },
+    {
+      "path": "tools/ci_evidence/diagnostics.mjs",
+      "old_sha256": "ed9238d1f92bda2296aaa41c24b984d4647417f657573b9e0179309213f2a075",
+      "sha256": "ed9238d1f92bda2296aaa41c24b984d4647417f657573b9e0179309213f2a075",
+      "bytes": 2023
+    },
+    {
+      "path": "tools/ci_evidence/strict.mjs",
+      "old_sha256": "0728aae4211c32bf0a7f19e91d91a36ebf190a2a95282e716864640e58fc37c8",
+      "sha256": "0728aae4211c32bf0a7f19e91d91a36ebf190a2a95282e716864640e58fc37c8",
+      "bytes": 3180
+    },
+    {
+      "path": ".github/workflows/ci-evidence-role-matrix.yml",
+      "old_sha256": "884c1e11bb9e4eaee50c865d5f299071a2eea2066a4a45d910b5091ff638f540",
+      "sha256": "beb3d12a8d8ba2cf0aa0c24a24099fb8bc428d45df8b7dcdd3f0c5ca5fbeb62f",
+      "bytes": 15776
+    }
+  ],
+  "SDK": "RAW_E99_UNCHANGED_NO_REBUILD_NO_APPLICATION_COHORT_REPIN",
+  "original_test_files": 188,
+  "historical_test_events": 1234,
+  "current_math_test_events": 1201,
+  "transferred_root_roles": 34,
+  "root_role_source": "4ba390b8e12070499d54b12e5609c683c00607ee",
+  "root_role_inputs": 32,
+  "collector": "ONE_JOB_RAW_UNCHANGED_ROLE4ba",
+  "previous_03_hosted": "EACH_PUSH_PR_TWO_PASS_TWO_FAIL_QUEUED_RUN_ACTIVE_JOB_PRESERVED",
+  "change": "CI_SOURCE_PIN_AND_TWO_HASH_CASCADES_ONLY",
+  "old_pins": "05f_AND878_EXPLICIT_NEGATIVES_RETAINED",
+  "qualification": "NEW_HEAD_HOSTED_REQUIRED_NO_UNCHANGED_RERUN",
+  "source_authentication": "NOT_EVALUATED",
+  "native": "NOT_QUALIFIED",
+  "release": "NO_GO"
+}
