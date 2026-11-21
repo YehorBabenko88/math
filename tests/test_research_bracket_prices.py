@@ -63,3 +63,24 @@ class ResearchBracketPricesTests(unittest.TestCase):
   self.assertEqual(result._fields,('stop_loss','take_profit'))
   with self.assertRaises(AttributeError):result.stop_loss=0
   self.assertTrue(all(type(x) is float for x in result))
+
+ def test_decimal_presentation_preserves_signed_geometry_and_context(self):
+  with localcontext() as context:
+   context.prec=2;context.Emax=2;context.Emin=-2
+   for signal in context.traps:context.traps[signal]=True
+   for signal in context.flags:context.flags[signal]=True
+   before=(dict(context.flags),dict(context.traps),context.prec,context.Emax,context.Emin)
+   self.assertEqual(self.api()(100,0,'long').as_decimal(),(Decimal('99.95'),Decimal('100.075')))
+   self.assertEqual(self.api()(100,2,'short').as_decimal(),(Decimal('250.0'),Decimal('-125.0')))
+   self.assertEqual((dict(context.flags),dict(context.traps),context.prec,context.Emax,context.Emin),before)
+ def test_decimal_presentation_refuses_fabricated_records_before_callbacks(self):
+  class Foreign:
+   def __str__(self):raise AssertionError('FOREIGN_STR')
+  class Float(float):
+   def __str__(self):raise AssertionError('FOREIGN_FLOAT_STR')
+  class Record(kernels.ResearchBracketPrices):
+   def __iter__(self):raise AssertionError('FOREIGN_ITER')
+  for value in (True,1,Decimal('1'),'1',Foreign(),Float(1),float('nan'),float('inf')):
+   with self.assertRaises(ValueError):kernels.ResearchBracketPrices(value,2.).as_decimal()
+   with self.assertRaises(ValueError):kernels.ResearchBracketPrices(1.,value).as_decimal()
+  with self.assertRaises(ValueError):Record(1.,2.).as_decimal()

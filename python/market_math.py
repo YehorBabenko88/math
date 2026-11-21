@@ -1404,6 +1404,21 @@ class ResearchBracketPrices(NamedTuple):
     stop_loss: float
     take_profit: float
 
+    def as_decimal(self):
+        """Decimal presentation of finite binary64 thresholds, not price admission.
+
+        Uses each float's shortest decimal spelling, preserving signed results.
+        No precision recovery, rounding policy, context mutation or executable
+        order validation is implied. Fabricated/subclass records refuse before
+        foreign conversion callbacks can run.
+        """
+        if type(self) is not ResearchBracketPrices:
+            raise ValueError('RESEARCH_BRACKET_LITERAL_RECORD_REQUIRED')
+        if (type(self.stop_loss) is not float or type(self.take_profit) is not float
+                or not isfinite(self.stop_loss) or not isfinite(self.take_profit)):
+            raise ValueError('RESEARCH_BRACKET_FINITE_FLOAT_FIELDS_REQUIRED')
+        return Decimal(str(self.stop_loss)),Decimal(str(self.take_profit))
+
 
 def research_bracket_prices(entry_price,atr_fraction,side,*,reward_risk=1.5,stop_atr=.75):
     """Pure legacy binary64 research geometry, never executable order admission.

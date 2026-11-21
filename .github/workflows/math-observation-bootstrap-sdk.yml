@@ -92,7 +92,7 @@ jobs:
               import hashlib,importlib,importlib.util,importlib.machinery,json,pathlib,stat,sys,unittest
               SDK=('market_math','market_compute_api','history_statistics')
               TEST_MODULE='math_numeric_ci_tests'
-              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA'),'research_brackets':(14,'test_research_bracket_prices.py','MATH_RESEARCH_BRACKETS')}
+              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA'),'research_brackets':(16,'test_research_bracket_prices.py','MATH_RESEARCH_BRACKETS')}
               FORBIDDEN=('market_profile_math','market_data','terminan','grid','strattester','meta_analyse')
               def need(value,code):
                   if not value:raise RuntimeError(code)
