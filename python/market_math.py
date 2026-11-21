@@ -1247,3 +1247,140 @@ def causal_volatility_metrics(candles,*,window=20,percentile_lookback=252,bar_du
             out.append((stamp,prefix_available,*metrics,regime));atr_history.append(atr_fraction)
     except (ValueError,OverflowError,ZeroDivisionError) as exc:raise ValueError('VOLATILITY_DERIVED_DOMAIN') from exc
     return tuple(out)
+
+
+# Binary64 scientific value-area transfer. Existing Decimal profile arithmetic
+# remains canonical; only POC comparison reuses it after legacy float accumulation.
+from typing import NamedTuple as _ValueAreaNamedTuple
+
+class ValueAreaMetrics(_ValueAreaNamedTuple):
+    poc: int | float
+    value_area_high: int | float
+    value_area_low: int | float
+    value_area_width: int | float
+    decision_ms: int
+    available_at_ms: int
+    basis: str
+
+def _value_area_clock(value):
+    if type(value) is not int or not 0<=value<=253402300799999:
+        raise ValueError('VALUE_AREA_LITERAL_UTC_MS_REQUIRED')
+    return value
+
+def _value_area_number(value,*,positive=False):
+    if type(value) is not int and type(value) is not float:
+        raise ValueError('VALUE_AREA_LITERAL_BINARY64_REQUIRED')
+    if not finite_nonnegative_number_valid(value):
+        raise ValueError('VALUE_AREA_NUMBER_DOMAIN')
+    number=_paper_binary64(value)
+    if type(value) is int and int(number)!=value:
+        raise ValueError('VALUE_AREA_INTEGER_NOT_EXACT_BINARY64')
+    if positive and number==0:raise ValueError('VALUE_AREA_POSITIVE_PRICE_REQUIRED')
+    # Preserve the original literal key/arithmetic type. In particular, integer
+    # price keys and all-integer typical-price addition must not round early.
+    return value
+
+def _value_area_points(rows,*,candles):
+    if (type(rows) is not list and type(rows) is not tuple) or len(rows)>4096:
+        raise ValueError('VALUE_AREA_ROW_BUDGET')
+    fields=(('event_start_ms','event_end_ms','available_at_ms','high','low','close','volume')
+            if candles else ('event_ms','available_at_ms','price','volume'))
+    snapshot=tuple(rows);out=[]
+    for row in snapshot:
+        if (type(row) is not dict or len(row)!=len(fields)
+                or any(type(key) is not str or key not in fields for key in row)):
+            raise ValueError('VALUE_AREA_CLOSED_FIELDS_REQUIRED')
+        values=tuple(row[key] for key in fields)
+        if candles:
+            start,end,available,high,low,close,volume=values
+            _value_area_clock(start);_value_area_clock(end);_value_area_clock(available)
+            if not start<end<=available:raise ValueError('VALUE_AREA_CANDLE_CLOCK_ORDER')
+            for number in (high,low,close):_value_area_number(number,positive=True)
+            _value_area_number(volume)
+            if not low<=close<=high:raise ValueError('VALUE_AREA_CANDLE_PRICE_ORDER')
+            try:price=(high+low+close)/3
+            except (OverflowError,ValueError,ZeroDivisionError):
+                raise ValueError('VALUE_AREA_TYPICAL_PRICE_DOMAIN') from None
+            _value_area_number(price,positive=True)
+            out.append((start,available,price,volume))
+        else:
+            event,available,price,volume=values
+            _value_area_clock(event);_value_area_clock(available)
+            if available<event:raise ValueError('VALUE_AREA_TRADE_CLOCK_ORDER')
+            _value_area_number(price,positive=True);_value_area_number(volume)
+            out.append((event,available,price,volume))
+    return tuple(out)
+
+def _value_area_bins(points):
+    """One binary64 accumulation routine, also preflighting future-only totals."""
+    volume={}
+    try:
+        for _,_,price,quantity in points:
+            combined=volume.get(price,0.0)+quantity
+            if not finite_nonnegative_number_valid(combined):
+                raise ValueError('VALUE_AREA_AGGREGATE_DOMAIN')
+            volume[price]=combined
+        total=sum(volume.values())
+        if not finite_nonnegative_number_valid(total):
+            raise ValueError('VALUE_AREA_TOTAL_DOMAIN')
+    except (OverflowError,ValueError):
+        raise ValueError('VALUE_AREA_DERIVED_DOMAIN') from None
+    return volume,total
+
+def _value_area_metrics(rows,*,decision_ms,candles):
+    decision=_value_area_clock(decision_ms)
+    points=_value_area_points(rows,candles=candles)
+    # A closed input batch must be numerically valid even when its later rows
+    # are not yet eligible. No malformed future row or aggregate is ignored.
+    all_bins,all_total=_value_area_bins(points)
+    eligible=tuple(point for point in points if point[0]<=decision and point[1]<=decision)
+    if not eligible:raise ValueError('VALUE_AREA_NO_ELIGIBLE_OBSERVATIONS')
+    volume,total=(all_bins,all_total) if len(eligible)==len(points) else _value_area_bins(eligible)
+    # str of each admitted finite binary64 value round-trips and preserves its
+    # total ordering. Exact-binary64 integer input keys lie on that same grid.
+    # Thus this comparison-only Decimal projection preserves volume/price ties.
+    # It does NOT change accumulation, target, ranked ties or typical arithmetic.
+    compared={};original={}
+    for price,quantity in volume.items():
+        key=Decimal(str(price))
+        if key in compared:raise ValueError('VALUE_AREA_POC_KEY_COLLISION')
+        compared[key]=Decimal(str(quantity));original[key]=price
+    poc=original[volume_profile_poc(compared)]
+    target=total*.70;accumulated=0;selected=[]
+    for price in sorted(volume,key=volume.get,reverse=True):
+        selected.append(price);accumulated+=volume[price]
+        if not finite_nonnegative_number_valid(accumulated):
+            raise ValueError('VALUE_AREA_DERIVED_DOMAIN')
+        if accumulated>=target:break
+    low=min(selected);high=max(selected);width=high-low
+    if not finite_nonnegative_number_valid(width):raise ValueError('VALUE_AREA_DERIVED_DOMAIN')
+    return ValueAreaMetrics(poc,high,low,width,decision,max(point[1] for point in eligible),
+                            'CANDLE_TYPICAL_PRICE_PROXY' if candles else 'EXECUTED_TRADE_PRICE_BINS')
+
+def trade_value_area_metrics(rows,*,decision_ms):
+    """Frozen causal scientific trade bins; no source, coverage or trade grant.
+
+    Closed rows require event_ms, available_at_ms, price and volume. Both clocks
+    are explicit literal UTC milliseconds; availability may never precede event.
+    At most4096 rows, finite nonnegative literal int/float values, positive
+    prices and exactly representable integer inputs. All rows and all-row totals
+    are preflighted, including future rows. Eligible order/insertion is retained.
+    Lowest-price POC ties reuse the Decimal POC selector after binary64 sums.
+    Ranked70% value area intentionally uses stable first-seen ties, as the
+    original scientific model did; it need not contain a tied lowest-price POC.
+    decision_ms is a request cutoff, not an inferred availability observation.
+    available_at_ms is the max caller-declared clock actually consumed.
+    """
+    return _value_area_metrics(rows,decision_ms=decision_ms,candles=False)
+
+def candle_proxy_value_area_metrics(rows,*,decision_ms):
+    """Frozen candle-typical-price approximation; never trade-price distribution.
+
+    Closed rows require event_start_ms,event_end_ms,available_at_ms,high,low,
+    close,volume. End>start and availability>=end must be declared explicitly.
+    No bar duration, end, close clock or source availability is reconstructed.
+    Uses exactly the original native (high+low+close)/3 expression, float volume
+    accumulation and stable ranked70% policy, with the trade kernel's strict
+    bounds/refusal rules. This numeric record is not source authentication.
+    """
+    return _value_area_metrics(rows,decision_ms=decision_ms,candles=True)
