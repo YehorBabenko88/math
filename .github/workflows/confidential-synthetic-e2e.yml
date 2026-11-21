@@ -18,6 +18,6 @@ jobs:
       contents: read
       actions: read
       id-token: write
-    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-collector.yml@82bf1578c5e36bafd76615661fbb3fe4e22dca55
+    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-collector.yml@4ba390b8e12070499d54b12e5609c683c00607ee
     with:
-      collector-sha: 82bf1578c5e36bafd76615661fbb3fe4e22dca55
+      collector-sha: 4ba390b8e12070499d54b12e5609c683c00607ee
