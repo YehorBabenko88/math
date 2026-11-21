@@ -1,6 +1,6 @@
 import{readFileSync,lstatSync,realpathSync,openSync,fstatSync,readSync,closeSync,constants,mkdtempSync,mkdirSync,writeFileSync}from'node:fs';
 import{resolve,dirname,join}from'node:path';import{tmpdir}from'node:os';import{createHash}from'node:crypto';import{pathToFileURL}from'node:url';
-const pin='fc2faec457ef2e676fa38d11f906a26f9bc51bb3';
+const pin='05f48fc01cecb49cbbf5331168c9a301e5a55825';
 const need=x=>{if(!x)throw Error('ROOT_UNIT_SOURCE_REFUSED');};
 function ordinary(path){for(let p=path;;p=dirname(p)){const s=lstatSync(p);need(s.isDirectory()&&!s.isSymbolicLink());if(dirname(p)===p)break;}}
 function rawOwned(path){const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);try{const a=fstatSync(fd,{bigint:true});need(a.isFile()&&a.nlink===1n&&a.size>0n&&a.size<=131072n);const data=Buffer.alloc(Number(a.size)+1),count=readSync(fd,data,0,data.length,0);const b=fstatSync(fd,{bigint:true}),n=lstatSync(path,{bigint:true});need(count===Number(a.size)&&n.isFile()&&!n.isSymbolicLink()&&b.nlink===1n&&n.nlink===1n&&['dev','ino','size','mtimeNs','ctimeNs'].every(k=>a[k]===b[k]&&b[k]===n[k]));return data.subarray(0,count);}finally{closeSync(fd);}}

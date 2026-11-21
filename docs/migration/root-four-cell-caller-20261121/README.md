@@ -1,6 +1,6 @@
 # Six Math plus four Root unit cells
 
-Root matrix caller and artifact-custody source are pinned to published fc2faec457ef2e676fa38d11f906a26f9bc51bb3. The collector remains the separate one-job caller from thin candidate 556d25728c09db954563581a75cad2325826bf7f, pinned to RBravo 4ba390b8e12070499d54b12e5609c683c00607ee.
+Root matrix caller and artifact-custody source are pinned to published 05f48fc01cecb49cbbf5331168c9a301e5a55825. The collector remains the separate one-job caller from thin candidate 556d25728c09db954563581a75cad2325826bf7f, pinned to RBravo 4ba390b8e12070499d54b12e5609c683c00607ee.
 
 The full coverage job waits for six Math cells and four Root cells in its own workflow run. Six Math receipts still bind the actual tested commit and tree. For pull requests that commit must have ordered parents [event base SHA, event head SHA]; Root receipts bind run.head_sha and the actual PR head, not the synthetic tested merge. Root-owned custody reads current REST metadata before and after downloading all four official artifacts, verifies archive digests and the exact original 34 roles per cell.
 
