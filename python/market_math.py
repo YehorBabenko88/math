@@ -1398,3 +1398,32 @@ def lossless_nonnegative_binary64_valid(value):
     try:_value_area_number(value)
     except ValueError:return False
     return True
+
+
+class ResearchBracketPrices(NamedTuple):
+    stop_loss: float
+    take_profit: float
+
+
+def research_bracket_prices(entry_price,atr_fraction,side,*,reward_risk=1.5,stop_atr=.75):
+    """Pure legacy binary64 research geometry, never executable order admission.
+
+    Preserves Data research's exact multiplication/max/addition order and its
+    minimum0.0005 entry fraction. Inputs are literal, finite, nonnegative and
+    lossless in binary64; entry must be positive. Signed algebraic output
+    thresholds are retained, including stops/targets below zero. A caller must
+    separately admit execution prices, ticks, risk, data clocks and authority.
+    No rounding, coercive strings, IO, simulation state or permission is added.
+    """
+    if type(side) is not str or side not in ('long','short'):
+        raise ValueError('RESEARCH_BRACKET_SIDE_REQUIRED')
+    for value in (entry_price,atr_fraction,reward_risk,stop_atr):
+        if not lossless_nonnegative_binary64_valid(value):
+            raise ValueError('RESEARCH_BRACKET_NUMBER_DOMAIN')
+    if entry_price==0:raise ValueError('RESEARCH_BRACKET_POSITIVE_ENTRY_REQUIRED')
+    entry=_paper_binary64(entry_price);atr=_paper_binary64(atr_fraction)
+    reward=_paper_binary64(reward_risk);multiplier=_paper_binary64(stop_atr)
+    distance=max(entry*max(atr,.0005)*multiplier,entry*.0005)
+    stop=entry-distance if side=='long' else entry+distance
+    target=entry+distance*reward if side=='long' else entry-distance*reward
+    return ResearchBracketPrices(_paper_binary64(stop),_paper_binary64(target))
