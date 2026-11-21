@@ -79,17 +79,20 @@ jobs:
                   current_files[name]=(root/name).read_bytes()
               require_checkout(committed_files,current_files)
               materialize(committed_files,source)
-              test_name='tests/test_causal_volatility.py'
-              test_bytes=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','HEAD:'+test_name],timeout=15)
-              if (root/test_name).read_bytes()!=test_bytes:raise RuntimeError('VOLATILITY_TEST_RAW_CHECKOUT_MISMATCH')
-              test_home=tmp/'causal-volatility-test';test_home.mkdir()
-              volatility_test=test_home/'test_causal_volatility.py';volatility_test.write_bytes(test_bytes)
-              volatility_bindings=tmp/'causal-volatility-bindings.json'
-              volatility_bindings.write_text(json.dumps({'sdk':{pathlib.PurePosixPath(name).name:hashlib.sha256(raw).hexdigest() for name,raw in committed_files.items() if name.startswith('python/')},'test_sha256':hashlib.sha256(test_bytes).hexdigest()},sort_keys=True),encoding='utf-8')
+              numeric_cases=[]
+              for case,test_name in (('volatility','tests/test_causal_volatility.py'),('value_area','tests/test_value_area_metrics.py')):
+                  test_bytes=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','HEAD:'+test_name],timeout=15)
+                  if (root/test_name).read_bytes()!=test_bytes:raise RuntimeError('NUMERIC_TEST_RAW_CHECKOUT_MISMATCH')
+                  test_home=tmp/(case+'-test');test_home.mkdir()
+                  numeric_test=test_home/pathlib.PurePosixPath(test_name).name;numeric_test.write_bytes(test_bytes)
+                  numeric_bindings=tmp/(case+'-bindings.json')
+                  numeric_bindings.write_text(json.dumps({'sdk':{pathlib.PurePosixPath(name).name:hashlib.sha256(raw).hexdigest() for name,raw in committed_files.items() if name.startswith('python/')},'test_sha256':hashlib.sha256(test_bytes).hexdigest(),'case':case},sort_keys=True),encoding='utf-8')
+                  numeric_cases.append((case,numeric_test,numeric_bindings))
               volatility_program=textwrap.dedent(r'''
               import hashlib,importlib,importlib.util,importlib.machinery,json,pathlib,stat,sys,unittest
               SDK=('market_math','market_compute_api','history_statistics')
-              TEST_MODULE='math_causal_volatility_ci_tests'
+              TEST_MODULE='math_numeric_ci_tests'
+              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA')}
               FORBIDDEN=('market_profile_math','market_data','terminan','grid','strattester','meta_analyse')
               def need(value,code):
                   if not value:raise RuntimeError(code)
@@ -135,8 +138,8 @@ jobs:
                       need(type(loader) is importlib.machinery.SourceFileLoader and getattr(module,'__loader__',None) is loader and type(loader.name) is str and loader.name==name and type(loader.path) is str and pathlib.Path(loader.path).is_absolute() and pathlib.Path(loader.path).resolve(strict=True)==source,'VOLATILITY_SOURCE_LOADER_MISMATCH')
                       calculated=pathlib.Path(importlib.util.cache_from_source(str(declared_source)))
                       need(pathlib.Path(module.__cached__)==calculated and calculated.is_relative_to(cache),'VOLATILITY_CACHED_ORIGIN_MISMATCH')
-              def accepted(result):
-                  return result.wasSuccessful() and result.testsRun==11 and not result.skipped and not result.expectedFailures and not result.unexpectedSuccesses
+              def accepted(result,case_count):
+                  return result.wasSuccessful() and result.testsRun==case_count and not result.skipped and not result.expectedFailures and not result.unexpectedSuccesses
               def main():
                   need(len(sys.argv)==8,'VOLATILITY_FIXED_ARGUMENTS_REQUIRED')
                   sdk,test,bindings,cache,container,checkout=map(pathlib.Path,sys.argv[1:7]);mode=sys.argv[7]
@@ -144,7 +147,9 @@ jobs:
                   ordinary_directory(sdk);ordinary_directory(test.parent)
                   identity=claim_cache(cache,sdk,container,checkout,test)
                   manifest=json.loads(bindings.read_text(encoding='utf-8'))
-                  need(type(manifest) is dict and set(manifest)=={'sdk','test_sha256'} and type(manifest['sdk']) is dict and set(manifest['sdk'])=={name+'.py' for name in SDK},'VOLATILITY_EXACT_BINDINGS_REQUIRED')
+                  need(type(manifest) is dict and set(manifest)=={'sdk','test_sha256','case'} and type(manifest['sdk']) is dict and set(manifest['sdk'])=={name+'.py' for name in SDK},'VOLATILITY_EXACT_BINDINGS_REQUIRED')
+                  case=manifest['case'];need(type(case) is str and case in CASES,'NUMERIC_CLOSED_CASE_REQUIRED')
+                  case_count,test_name,label=CASES[case];need(test.name==test_name,'NUMERIC_CASE_TEST_BINDING_REQUIRED')
                   paths={name+'.py':sdk/(name+'.py') for name in SDK};paths['test']=test
                   expected=dict(manifest['sdk']);expected['test']=manifest['test_sha256']
                   before=snapshot(paths,expected);cache_unchanged(cache,identity)
@@ -157,15 +162,17 @@ jobs:
                   module=importlib.util.module_from_spec(spec);sys.modules[TEST_MODULE]=module;spec.loader.exec_module(module)
                   loaded_origins(sdk,test,cache);cache_unchanged(cache,identity)
                   suite=unittest.defaultTestLoader.loadTestsFromModule(module)
-                  need(suite.countTestCases()==11,'VOLATILITY_EXACT_ELEVEN_CASES_REQUIRED')
+                  need(suite.countTestCases()==case_count,'NUMERIC_EXACT_CASE_ROSTER_REQUIRED')
                   result=unittest.TextTestRunner(verbosity=2).run(suite)
                   need(snapshot(paths,expected)==before,'VOLATILITY_INPUT_IDENTITY_CHANGED')
                   loaded_origins(sdk,test,cache);cache_unchanged(cache,identity)
-                  need(accepted(result),'VOLATILITY_NONPASS_CASE')
-                  print('MATH_CAUSAL_VOLATILITY_'+mode.upper()+'=11_PASS;SCOPE_PURE_NUMERIC_ONLY')
+                  need(accepted(result,case_count),'VOLATILITY_NONPASS_CASE')
+                  print(label+'_'+mode.upper()+'='+str(case_count)+'_PASS;SCOPE_PURE_NUMERIC_ONLY')
               main()
               ''')
-              call([sys.executable,'-I','-S','-B','-X','pycache_prefix='+str(tmp/'volatility-source-cache'),'-c',volatility_program,source/'python',volatility_test,volatility_bindings,tmp/'volatility-source-cache',source,root,'source'],cwd=tmp)
+              for case,numeric_test,numeric_bindings in numeric_cases:
+                  cache=tmp/(case+'-source-cache')
+                  call([sys.executable,'-I','-S','-B','-X','pycache_prefix='+str(cache),'-c',volatility_program,source/'python',numeric_test,numeric_bindings,cache,source,root,'source'],cwd=tmp)
               # Use the same pinned builder on Linux and Windows; never
               # silently change metadata or skip the Python 3.11 job.
               builder=tmp/'builder'
@@ -258,6 +265,8 @@ jobs:
               call([py,'-I','-B',root/'tests/test_finite_nonnegative_number.py'],cwd=tmp)
               # -S on3.11 resets venv sys.prefix: derive this venv's actual purelib explicitly.
               purelib=installed/('Lib/site-packages' if os.name=='nt' else 'lib/python'+str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'/site-packages')
-              call([py,'-I','-S','-B','-X','pycache_prefix='+str(tmp/'volatility-wheel-cache'),'-c',volatility_program,purelib,volatility_test,volatility_bindings,tmp/'volatility-wheel-cache',installed,root,'wheel'],cwd=tmp)
+              for case,numeric_test,numeric_bindings in numeric_cases:
+                  cache=tmp/(case+'-wheel-cache')
+                  call([py,'-I','-S','-B','-X','pycache_prefix='+str(cache),'-c',volatility_program,purelib,numeric_test,numeric_bindings,cache,installed,root,'wheel'],cwd=tmp)
               print('MATH_OBSERVATION_WHEEL_INSTALLED=PASS')
               print('MATH_OBSERVATION_WHEEL_SHA256='+hashlib.sha256(files[0].read_bytes()).hexdigest())
