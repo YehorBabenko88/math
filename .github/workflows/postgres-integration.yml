@@ -142,12 +142,12 @@ jobs:
           retention-days: 30
   root-transferred-unit-roles:
     if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
-    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-role-matrix.yml@05f48fc01cecb49cbbf5331168c9a301e5a55825
+    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-role-matrix.yml@878c4d0910977c742d25193b35b5c678ab6dbe7b
     permissions:
       contents: read
       actions: read
     with:
-      matrix-sha: 05f48fc01cecb49cbbf5331168c9a301e5a55825
+      matrix-sha: 878c4d0910977c742d25193b35b5c678ab6dbe7b
   full-ci-coverage:
     name: Full CI coverage
     permissions:
@@ -185,7 +185,7 @@ jobs:
           GIT_CONFIG_VALUE_0: 'false'
         with:
           repository: YehorBabenko88/unified-system
-          ref: 05f48fc01cecb49cbbf5331168c9a301e5a55825
+          ref: 878c4d0910977c742d25193b35b5c678ab6dbe7b
           path: ${{ steps.root_unit_source.outputs.path }}
           persist-credentials: false
           fetch-depth: 1
