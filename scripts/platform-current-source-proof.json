@@ -98,7 +98,7 @@
     "tests/book-scenes.test.mjs": "3766f7cc8723f5e1392c2a0357e6be561a98ca4d657f301f5e581b0d0a0704f2",
     "tests/book-shared-contract.test.mjs": "f3937f9d7652cef49bb8ba92a7f3cf257babe2f0e85fcceb81d72d1239145024",
     "tests/book-sqlite-text.test.mjs": "1477147ac480d658dc80e7e81f1f085b3df9d15fbb5a0a2f6743b67592ee414a",
-    "tests/bounded-experiment.test.mjs": "fdabbf929e7053503796a4049e3081a65b6c7e209912aeeb579bdb7f36ba6fb5",
+    "tests/bounded-experiment.test.mjs": "2ec0fc8d16c61ef0ef18f7f9e1a51fc22d9611c19277c89078135588bb3313f5",
     "tests/causal-feature-screen.test.mjs": "9d46755b5a6ef157e5f14c1208acf40fe07cd3fba9c63cc05fc01011b42004e3",
     "tests/ci-coverage.test.mjs": "e6e9bb786c941f92258d35cb77be7524ddc3385f3c2f16ecee4550038f31681f",
     "tests/ci-postgres-isolation.test.mjs": "2cc288f136ad8ab87e19d999ea4caebb5499e66080a83d3418dda6516aab42d2",
