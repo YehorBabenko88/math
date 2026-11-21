@@ -133,3 +133,40 @@ class ValueAreaTests(unittest.TestCase):
   m=self.api();a=m.trade_value_area_metrics([self.trade(1,100,1),self.trade(2,100.,1)],decision_ms=10)
   b=m.trade_value_area_metrics([self.trade(1,100.,1),self.trade(2,100,1)],decision_ms=10)
   self.assertEqual(a.poc,b.poc);self.assertIs(type(a.poc),int);self.assertIs(type(b.poc),float)
+
+ def test_lossless_public_predicate_reuses_core_and_keeps_old_shape_policy(self):
+  import market_math as m
+  self.assertTrue(hasattr(m,'lossless_nonnegative_binary64_valid'),'lossless numeric predicate missing')
+  self.assertTrue(m.lossless_nonnegative_binary64_valid(2**54))
+  self.assertFalse(m.lossless_nonnegative_binary64_valid(2**53+1))
+  self.assertTrue(m.finite_nonnegative_number_valid(2**53+1))
+  self.assertTrue(m.lossless_nonnegative_binary64_valid(2**1023))
+  self.assertFalse(m.lossless_nonnegative_binary64_valid(2**1024))
+  self.assertFalse(m.lossless_nonnegative_binary64_valid(10**10000))
+  self.assertTrue(m.lossless_nonnegative_binary64_valid(-0.))
+  actual=m._value_area_number;calls=[]
+  def record(value,**kwargs):calls.append(value);return actual(value,**kwargs)
+  m._value_area_number=record
+  try:self.assertTrue(m.lossless_nonnegative_binary64_valid(100))
+  finally:m._value_area_number=actual
+  self.assertEqual(calls,[100])
+ def test_lossless_public_predicate_strict_types_and_decimal_flags(self):
+  import market_math as m
+  self.assertTrue(hasattr(m,'lossless_nonnegative_binary64_valid'),'lossless numeric predicate missing')
+  class I(int):pass
+  calls=[]
+  class Meta(type):
+   def __eq__(self,other):calls.append('eq');raise AssertionError('METACLASS_CALLBACK')
+   def __hash__(self):calls.append('hash');raise AssertionError('METACLASS_CALLBACK')
+  class Bad(metaclass=Meta):pass
+  for bad in (True,I(1),Bad(),Decimal(1),'1',None,float('nan'),float('inf'),-1.,-1):
+   self.assertFalse(m.lossless_nonnegative_binary64_valid(bad))
+  self.assertEqual(calls,[])
+  for precision in (1,7,28):
+   with localcontext() as context:
+    context.prec=precision;context.Emax=2;context.Emin=-2
+    for signal in context.traps:context.traps[signal]=True
+    context.clear_flags();before=(dict(context.flags),dict(context.traps),context.prec,context.Emax,context.Emin)
+    self.assertTrue(m.lossless_nonnegative_binary64_valid(2**54))
+    self.assertFalse(m.lossless_nonnegative_binary64_valid(2**53+1))
+    self.assertEqual((dict(context.flags),dict(context.traps),context.prec,context.Emax,context.Emin),before)

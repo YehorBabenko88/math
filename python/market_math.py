@@ -1384,3 +1384,17 @@ def candle_proxy_value_area_metrics(rows,*,decision_ms):
     bounds/refusal rules. This numeric record is not source authentication.
     """
     return _value_area_metrics(rows,decision_ms=decision_ms,candles=True)
+
+
+def lossless_nonnegative_binary64_valid(value):
+    """Literal finite nonnegative int/float with exact integer roundtrip.
+
+    Reuse the profile numerical-domain core. This stricter predicate leaves
+    finite_nonnegative_number_valid's existing legacy JSON-shape policy intact.
+    Booleans, subclasses, strings and Decimal values are not converted; huge
+    integers refuse through the same bounded binary64 conversion. No financial,
+    source, execution or availability policy is granted by a true result.
+    """
+    try:_value_area_number(value)
+    except ValueError:return False
+    return True
