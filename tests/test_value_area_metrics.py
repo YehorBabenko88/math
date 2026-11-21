@@ -170,3 +170,11 @@ class ValueAreaTests(unittest.TestCase):
     self.assertTrue(m.lossless_nonnegative_binary64_valid(2**54))
     self.assertFalse(m.lossless_nonnegative_binary64_valid(2**53+1))
     self.assertEqual((dict(context.flags),dict(context.traps),context.prec,context.Emax,context.Emin),before)
+
+ def test_derived_integer_width_requires_lossless_binary64_without_rounding(self):
+  m=self.api()
+  with self.assertRaises(ValueError):
+   m.trade_value_area_metrics([self.trade(1,2**54,1),self.trade(2,1,1)],decision_ms=10)
+  x=m.trade_value_area_metrics([self.trade(1,2**54,1),self.trade(2,2**54-2,1)],decision_ms=10)
+  self.assertEqual(x.value_area_width,2);self.assertIs(type(x.value_area_width),int)
+  self.assertEqual((x.poc,x.value_area_low,x.value_area_high),(2**54-2,2**54-2,2**54))

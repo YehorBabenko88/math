@@ -1353,7 +1353,7 @@ def _value_area_metrics(rows,*,decision_ms,candles):
             raise ValueError('VALUE_AREA_DERIVED_DOMAIN')
         if accumulated>=target:break
     low=min(selected);high=max(selected);width=high-low
-    if not finite_nonnegative_number_valid(width):raise ValueError('VALUE_AREA_DERIVED_DOMAIN')
+    _value_area_number(width)
     return ValueAreaMetrics(poc,high,low,width,decision,max(point[1] for point in eligible),
                             'CANDLE_TYPICAL_PRICE_PROXY' if candles else 'EXECUTED_TRADE_PRICE_BINS')
 
