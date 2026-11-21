@@ -1,0 +1,78 @@
+{
+  "schema": "math.scientific.graph.v2",
+  "mode": "HISTORICAL_RESEARCH",
+  "execution_authority": false,
+  "asOf": 3,
+  "nodes": [
+    {
+      "id": "s",
+      "kind": "source",
+      "type": "series",
+      "values": [
+        1,
+        2,
+        3
+      ],
+      "timestamps": [
+        1,
+        2,
+        3
+      ],
+      "availableAt": [
+        1,
+        2,
+        3
+      ],
+      "unit": "dimensionless",
+      "provenance": {
+        "sourceId": "synthetic-example",
+        "version": "v1",
+        "sha256": "e4d8f0ee32f61a244bb87e6ffc75c8f86d8288114286722ab214e354194a725c"
+      }
+    },
+    {
+      "id": "twice",
+      "kind": "formula",
+      "expression": "x*2",
+      "outputUnit": "dimensionless"
+    },
+    {
+      "id": "square",
+      "kind": "formula",
+      "expression": "x^2+1",
+      "outputUnit": "dimensionless"
+    }
+  ],
+  "edges": [
+    {
+      "from": {
+        "node": "s",
+        "port": "value"
+      },
+      "to": {
+        "node": "twice",
+        "port": "x"
+      }
+    },
+    {
+      "from": {
+        "node": "twice",
+        "port": "value"
+      },
+      "to": {
+        "node": "square",
+        "port": "x"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "node": "twice",
+      "port": "value"
+    },
+    {
+      "node": "square",
+      "port": "value"
+    }
+  ]
+}

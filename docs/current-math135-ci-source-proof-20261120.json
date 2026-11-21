@@ -1,0 +1,82 @@
+{
+  "schema": "math.current-sdk-ci-source-repair.v1",
+  "base": "a5868944bf1bae813403a32b22d329c1da6f8238",
+  "code_commit": "3a5a94b17ed54ac6a0a3dbb0fbbb1207e014e815",
+  "kernels_unchanged": true,
+  "raw_checkout_proof": {
+    "commit": "3a5a94b17ed54ac6a0a3dbb0fbbb1207e014e815",
+    "forced_autocrlf": true,
+    "forced_core_eol": "crlf",
+    "source_files": {
+      "pyproject.toml": {
+        "raw_git_identical": true,
+        "baseline_unchanged": true,
+        "sha256": "321aefdadeac9e53ec39dbdded86228466984065ed59bc594d487fe0d26b4ebd"
+      },
+      "python/market_math.py": {
+        "raw_git_identical": true,
+        "baseline_unchanged": true,
+        "sha256": "c1cecb584a25900e6e69482dd0134fda1cb87f729cf891005a03edd6ffce51b4"
+      },
+      "python/market_compute_api.py": {
+        "raw_git_identical": true,
+        "baseline_unchanged": true,
+        "sha256": "36bf4cbbcd58fc500b9b24c5ca90cd789e661817f61d0808707a12c43962f2ca"
+      },
+      "python/history_statistics.py": {
+        "raw_git_identical": true,
+        "baseline_unchanged": true,
+        "sha256": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b"
+      }
+    },
+    "kernels_unchanged_from_a586": true
+  },
+  "raw_archives": {
+    "source": true,
+    "wheel": {
+      "market_math.py": "c1cecb584a25900e6e69482dd0134fda1cb87f729cf891005a03edd6ffce51b4",
+      "market_compute_api.py": "36bf4cbbcd58fc500b9b24c5ca90cd789e661817f61d0808707a12c43962f2ca",
+      "history_statistics.py": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b"
+    },
+    "sdist": {
+      "pyproject.toml": "321aefdadeac9e53ec39dbdded86228466984065ed59bc594d487fe0d26b4ebd",
+      "python/history_statistics.py": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b",
+      "python/market_compute_api.py": "36bf4cbbcd58fc500b9b24c5ca90cd789e661817f61d0808707a12c43962f2ca",
+      "python/market_math.py": "c1cecb584a25900e6e69482dd0134fda1cb87f729cf891005a03edd6ffce51b4"
+    },
+    "wheel_sha256": "cb2548b074a85d3607a72f7a6594c6fb51e7a3c6687d6b8f282a7e3f23884897",
+    "sdist_sha256": "56df6b8f8b6861ba8796b48b8105db991df19892083e623c7d0be3ed6283d25c"
+  },
+  "baseline_tests": {
+    "python": [
+      "3.11",
+      "3.12"
+    ],
+    "cases": 4,
+    "unchanged_literal_sha256": "d1236748dfaee6bafc64fab7bbec74bedfd0e597bb5b238e3505b2e942cb7b60"
+  },
+  "raw_controls": {
+    "python": [
+      "3.11",
+      "3.12"
+    ],
+    "cases": 4
+  },
+  "node_fake_stream_controls": 5,
+  "semantic_compilation": {
+    "python": 4,
+    "node": 4
+  },
+  "incomplete_platform": {
+    "run": 44742719275,
+    "job": 136310135230,
+    "cell": "linux-24-16",
+    "conclusion": "CANCELLED_TIMEOUT_20M_NOT_PASS",
+    "cause_of_stalled_test": "UNKNOWN_NO_PARTIAL_EVENTS_WERE_PERSISTED",
+    "required": "NEW_HEAD_HOSTED_COMPLETION_OR_ACTIONABLE_PROGRESS"
+  },
+  "native": "NOT_RUN",
+  "production": "NO_GO",
+  "execution_authority": false,
+  "trading_authorized": false
+}

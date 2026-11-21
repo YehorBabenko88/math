@@ -1,0 +1,3 @@
+import {test,expect} from '@playwright/test';
+test('torus experiment round trip is visible',async({page})=>{await page.goto('/');await expect(page.locator('#torusStatus')).toContainText('series-to-torus');await expect(page.locator('#torusStatus')).toContainText('RMSE');await page.locator('#torusSteps').fill('0');await page.locator('#torusRun').click();await expect(page.locator('#torusStatus')).toContainText('Ошибка сохранения массы')});
+test('torus CSV mode requires uploaded data',async({page})=>{await page.goto('/');await page.locator('#torusSource').selectOption('csv');await page.locator('#torusRun').click();await expect(page.locator('#torusStatus')).toContainText('Сначала загрузите CSV')});

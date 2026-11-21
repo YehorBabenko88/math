@@ -1,0 +1,7 @@
+# Exact scaled integer conversion
+
+Public exact_scaled_integer(value, scale)->int is a pure direct SDK operation. Exact finite Decimal only,128 coefficient digits maximum, exponent-1000..1000; scale literal int1..86400000. Numeric negative zero is zero. Exact mathematical value*scale must be integral and within0..2**53-1; otherwise ValueError. No fractional truncation, epoch floor or rounded intermediate. Integer numerator/denominator scaling and divmod leave caller precision/traps/flags unchanged. Values above the output maximum may be rejected before scaling because scale>=1; source-clock and stricter-positive policies belong to consumers.
+
+Terminan needs source funding_interval_hour*3600000 and next_funding_time*1 conversions. Example.125 hours=>450000ms;1.5 at scale1 refuses. This API does not validate freshness, funding completeness, clock synchronization, provider identity, schedule or execution permission. No dummy financial calculation/private helper is required.
+
+Five new tests first failed for missing API.108 scoped source tests and93 isolated wheel tests pass eachPython3.11/3.12. Independent Fraction matrix covers820 cases, plus literal clock/boundary/type/encoding/context probes. Source and artifact tests deny sockets/process/system/ctypes/SQL. Entire parent212 market_math prefix54968bytes preserved; all3 wheel modules match source. ArtifactSHA256 cb2548b074a85d3607a72f7a6594c6fb51e7a3c6687d6b8f282a7e3f23884897. Full JS/provider/native/hosted qualification NOT_RUN; releaseNO_GO.

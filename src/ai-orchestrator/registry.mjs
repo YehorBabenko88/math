@@ -1,0 +1,51 @@
+// Owner-operated SQLite receipt registry; offline prototype only.
+// Atomic UNIQUE(task_id, attempt) rejects duplicates across restarts and processes.
+// No executor authentication, proof checking or publication authority.
+import {DatabaseSync} from 'node:sqlite';
+const id=/^[-a-zA-Z0-9_]{1,80}$/,hex=/^[0-9a-f]{64}$/;
+export function openReceiptRegistry(filename){
+ if(typeof filename!=='string'||filename.length===0)throw Error('INVALID_DATABASE_PATH');
+ const db=new DatabaseSync(filename,{timeout:5000});
+ try{
+  db.exec('PRAGMA busy_timeout=5000');
+  db.exec('BEGIN IMMEDIATE');
+  try {
+  db.exec(`CREATE TABLE IF NOT EXISTS ai_receipt_registry (
+ task_id TEXT NOT NULL,
+ attempt INTEGER NOT NULL CHECK(attempt BETWEEN 1 AND 2),
+ receipt_hash TEXT NOT NULL CHECK(length(receipt_hash)=64),
+ PRIMARY KEY(task_id,attempt)
+);`);
+  // Validate actual SQLite metadata, not formatting of CREATE TABLE SQL.
+  const table=db.prepare("SELECT type,sql FROM sqlite_master WHERE name='ai_receipt_registry'").get();
+  const columns=db.prepare("PRAGMA table_info('ai_receipt_registry')").all();
+  const expected=[['task_id','TEXT',1,1],['attempt','INTEGER',1,2],['receipt_hash','TEXT',1,0]];
+  const columnShape=columns.length===expected.length&&columns.every((col,i)=>
+   col.name===expected[i][0]&&col.type.toUpperCase()===expected[i][1]&&
+   col.notnull===expected[i][2]&&col.pk===expected[i][3]);
+  const indexes=db.prepare("PRAGMA index_list('ai_receipt_registry')").all();
+  const pkIndexes=indexes.filter(x=>x.origin==='pk'&&x.unique===1&&x.partial===0);
+  const pkShape=pkIndexes.length===1&&db.prepare('PRAGMA index_info('+JSON.stringify(pkIndexes[0]?.name??'')+')').all()
+   .map(x=>x.name).join(',')==='task_id,attempt';
+  const objects=db.prepare("SELECT type FROM sqlite_master WHERE tbl_name='ai_receipt_registry' AND type IN ('trigger','view')").all();
+  if(table?.type!=='table'||!columnShape||!pkShape||objects.length!==0)throw Error('INVALID_REGISTRY_SCHEMA');
+  db.exec('COMMIT');
+  } catch (error) {
+   if(db.isTransaction)db.exec('ROLLBACK');
+   throw error;
+  }
+  return Object.freeze({
+   register({taskId,attempt,receiptHash}={}){
+    if(typeof taskId!=='string'||!id.test(taskId)||!Number.isSafeInteger(attempt)||attempt<1||attempt>2||typeof receiptHash!=='string'||!hex.test(receiptHash))throw Error('INVALID_REGISTRATION');
+    try{
+     db.prepare('INSERT INTO ai_receipt_registry(task_id,attempt,receipt_hash) VALUES(?,?,?)').run(taskId,attempt,receiptHash);
+    }catch(e){
+     if(e?.code==='ERR_SQLITE_ERROR'&&/UNIQUE constraint failed/.test(e.message))throw Error('REPLAY_DETECTED');
+     throw e;
+    }
+    return Object.freeze({taskId,attempt,status:'REGISTERED_UNATTESTED'});
+   },
+   close(){db.close();}
+  });
+ }catch(e){db.close();throw e;}
+}

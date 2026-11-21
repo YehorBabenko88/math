@@ -1,0 +1,34 @@
+{
+  "schema": "math.synthetic-evidence-hashes.v1",
+  "scope": "BOUNDED_FAKE_NATIVE_ONLY_NOT_PHYSICAL",
+  "files": [
+    {
+      "name": "red.tap",
+      "sha256": "bc3835d47d1aa76390452b950beaba77d628ba496c3e7fd69f9c15d7117ff3bb"
+    },
+    {
+      "name": "contract-green.tap",
+      "sha256": "def19163c73af4ed23de7214652517dee3e6132b8f2cd1998b6d7dc3917b67b4"
+    },
+    {
+      "name": "exact-green.tap",
+      "sha256": "d04756b5ae13243fe2841c0f97bfc1222d01a3b6e052ff300e555151176bce6a"
+    },
+    {
+      "name": "mutation-stage-swap.tap",
+      "sha256": "37ca2b183a5be4885d88908bc94ae4990c31d8296c0b6954219422d93a839ecf"
+    },
+    {
+      "name": "mutation-close-category.tap",
+      "sha256": "9f7334776d6778b586be00338957acab05ce67484ae1cfd86710a5e2df951a0c"
+    },
+    {
+      "name": "node22.tap",
+      "sha256": "c39b5188dad2107e91542b2229bdff49d65469dc9577526dec3732b70035f91f"
+    },
+    {
+      "name": "node24.tap",
+      "sha256": "801c542aa78c8968dc93280613eae09931dec2a551e135d3e6a3a5a1d39d4c84"
+    }
+  ]
+}

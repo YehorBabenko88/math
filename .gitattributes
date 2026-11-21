@@ -1,0 +1,25 @@
+# Preserve migration and dependency artifact blob bytes without normalization.
+/sql/**/*.sql -text
+/sql/*.sql -text
+package-lock.json -text
+/scripts/runtime-smoke/* -text
+/.gitattributes -text
+
+# Immutable historical source oracle: its pinned raw bytes are test evidence.
+/tests/fixtures/historical_integrity_fa09e688.py.txt -text
+
+# SDK raw numerical prefixes are compared to immutable Git bytes on every OS.
+/python/market_math.py text eol=lf
+/python/market_compute_api.py text eol=lf
+/python/history_statistics.py text eol=lf
+/pyproject.toml text eol=lf
+
+# Immutable pre-transfer caller inputs; preserve exact Git bytes.
+/docs/migration/root-ci-evidence-caller-20261120/raw/*.txt -text
+/docs/migration/root-ci-evidence-caller-20261120/historical-platform/raw/*.txt -text
+/docs/migration/root-ci-evidence-caller-20261120/exclusive-retirement/raw/*.txt -text
+
+# Historical baseline ledgers are immutable byte custody, not current PASS.
+/scripts/platform-test-inventory.json -text
+/scripts/platform-source-proof.json -text
+/docs/migration/root-ci-evidence-caller-20261120/ledger-binding-regression/*.txt -text

@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {embedSeriesOnTorus,recoverSeriesFromTorus,diffuseTorusSignal,compareSignal} from '../src/torus-series.mjs';
+const series=Array.from({length:120},(_,i)=>Math.sin(i*.13)+.005*i);
+test('torus embedding retains exact index correspondence and invertible values',()=>{const e=embedSeriesOnTorus(series);assert.equal(e.points.length,series.length);const restored=recoverSeriesFromTorus(e);assert.ok(restored.every((v,i)=>Math.abs(v-series[i])<1e-10));assert.ok(e.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.z)))});
+test('circular diffusion conserves sum and smooths a spike',()=>{const x=Array(60).fill(0);x[0]=10;const y=diffuseTorusSignal(x,{steps:100});assert.ok(Math.abs(y.reduce((a,b)=>a+b,0)-10)<1e-9);assert.ok(y[0]<10);assert.ok(y.every(v=>v>=0))});
+test('returns transformed values to original time indices',()=>{const e=embedSeriesOnTorus(series),smooth=diffuseTorusSignal(e.points.map(p=>p.value));const y=recoverSeriesFromTorus(e,{values:smooth});assert.equal(y.length,series.length);assert.ok(Number.isFinite(compareSignal(series,y).rmse))});
+test('rejects degenerate and unstable settings',()=>{assert.throws(()=>embedSeriesOnTorus(Array(20).fill(1)));assert.throws(()=>diffuseTorusSignal(series,{alpha:.6}))});

@@ -1,0 +1,30 @@
+{
+  "schema": "math.numerical-test-evidence-hashes.v1",
+  "scope": "BOUNDED_NODE_NUMERICAL_TESTS_NOT_FORMAL_PROOF",
+  "files": [
+    {
+      "name": "one-iteration-repro.json",
+      "sha256": "b8e93fc95aeec66cfeb8c4607c535aebb31bdd718bed4ce9cfc4bfbf65bb7aee"
+    },
+    {
+      "name": "red.tap",
+      "sha256": "cf61d20ef9fa5d689bbc366e3f2f01568a9ccec09cc82129c1c9cb9ecc717271"
+    },
+    {
+      "name": "green.tap",
+      "sha256": "3f144c6851af455efb65cac7864d6a18ecd7b74d169fea314ef3f1fea343e16f"
+    },
+    {
+      "name": "conditioning-probes.jsonl",
+      "sha256": "f128d3faf4a3db2cf1f420f4295d2c470c625413cfff5f7178d00debb6c526df"
+    },
+    {
+      "name": "node22.tap",
+      "sha256": "a902cd05c52135b6d851e79b4708f5245d4e00bfbc9e67af2be435797213694f"
+    },
+    {
+      "name": "node24.tap",
+      "sha256": "971bdc1be89bdd7df94962d92de235ca445d0fda5dbfec0ca1e1b4d87110157a"
+    }
+  ]
+}

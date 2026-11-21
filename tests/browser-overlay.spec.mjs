@@ -1,0 +1,3 @@
+import {test,expect} from '@playwright/test';
+test('cross-domain laboratory renders and changes model',async({page})=>{await page.goto('/');await expect(page.locator('#overlayStatus')).toContainText('500 точек');await page.locator('#overlayModel').selectOption('logistic');await page.locator('#overlayRun').click();await expect(page.locator('#overlayStatus')).toContainText('a[n+1]');});
+test('CSV mode requires uploaded data',async({page})=>{await page.goto('/');await page.locator('#overlaySource').selectOption('csv');await page.locator('#overlayRun').click();await expect(page.locator('#overlayStatus')).toContainText('Сначала загрузите CSV');});

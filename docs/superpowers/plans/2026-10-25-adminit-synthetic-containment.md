@@ -1,0 +1,11 @@
+# ADMINIT synthetic containment plan
+
+Base280096ab24ce4f32cdaf17bd4a928f66f4f2dbda. Existing NativeHarness.cs/hosted-only guard and WindowsJobContainment.cs remain immutable.
+
+Design: fixed C#5/.NET Framework synthetic EXE compiled using hosted Windows PowerShell5.1 Add-Type, no SDK. Independent supervisor owns an outer kill-on-close Job Object and launches a fixed owner suspended, assigns before resume, enforces deadline. Owner creates fixed root/leaf fixtures in nested jobs; observers capture process handles/creation identities before termination. Tests: normal descendant cleanup, timeout, owner crash, assignment failure, cleanup failure. Sanitize child environment. No shell, network, service, database, arbitrary executable or argument interface.
+
+Hosted runner may be elevated. A separate hosted-only bootstrap creates a restricted caller token and lowers integrity for the fixed supervisor, without enabling privileges or changing persistent policy. Native suite requires actual non-elevated Medium token. Failure to launch/prove this is BLOCKED, never PASS or an elevation fallback. Existing hosted-only harness remains untouched.
+
+Package: source SHA/tree, fixed file inventory and SHA256. Read-only verifier checks expected out-of-band manifest hash/source, exact inventory, no symlink/hardlink, canonical lab path and owner/DACL restrictions. Local execution gate remains CLOSED until already-configured ADMINIT isolation conditions are supplied and independently mapped to verifiable criteria. A Job Object is not a file/network sandbox. User explicitly said conditions will follow. No system/security configuration changes, no ADMINIT access, Q01 G1 remains BLOCKED.
+
+Steps: (1) RED static/package policy tests; implement fail-closed verifier/guards. (2) C# fixture+hosted medium bootstrap; compile only locally, native only disposable hosted. (3) workflow package/native evidence with deadlines, per-case PASS/FAIL/BLOCKED/PID/handle/creation time and digest. (4) negative fixtures, recheck unchanged source blobs, report exact SHA/tree and pending hosted evidence; Draft PR. Future ADMINIT commands are verify-only until native pass and isolation review; never invoke physical runner.

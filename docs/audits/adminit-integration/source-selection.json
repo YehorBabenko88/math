@@ -1,0 +1,100 @@
+{
+  "base": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+  "mergedCheckpoint": "b767e7debf6ef61127e63f7359365606a426ebef",
+  "excluded": [
+    {
+      "pr": 37,
+      "reason": "withdrawn P1, no sentinel code/test patch integrated"
+    }
+  ],
+  "rows": [
+    {
+      "pr": 33,
+      "sourceHead": "a075beee5802515710d481bec431a57c43afb6eb",
+      "sourceTree": "4b1ab43133fd7d113e81f874a9fc599b8d2e0d9f",
+      "correction": null,
+      "observedCurrentHead": "a91549aff9019be7dbb8b2cd7a0398c4ee34cfe4",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 34,
+      "sourceHead": "e64fe5ece410af1ef3f1d60465e3febe3adc5df5",
+      "sourceTree": "f49de0392cf45ae62813d6de07544de2f7888b1e",
+      "correction": "c8c070249ac3327c5a4dd2fadf17c08f8775433c",
+      "observedCurrentHead": "e64fe5ece410af1ef3f1d60465e3febe3adc5df5",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 35,
+      "sourceHead": "4cc48933c502c29e135990028008f7aae5644407",
+      "sourceTree": "339092689d0d5e0164d142c9e3471f9effcf08c7",
+      "correction": null,
+      "observedCurrentHead": "4cc48933c502c29e135990028008f7aae5644407",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 36,
+      "sourceHead": "42b930cd1c34ccf9023e7ca2c8a1d30ec08a6523",
+      "sourceTree": "b10c331a107213f3aafdf28d920170319f13b5fd",
+      "correction": "f8b4f2646144b354619a0324e9ba5858ed2e8232",
+      "observedCurrentHead": "42b930cd1c34ccf9023e7ca2c8a1d30ec08a6523",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 38,
+      "sourceHead": "530fd472bc95d50e3e01baf11ae51b8fac8a77d3",
+      "sourceTree": "7244fea181340e6ef6bf663b2a605466eea1067b",
+      "correction": "4418bf542ee3853db013749aecfa2d4ba2dcec87",
+      "observedCurrentHead": "530fd472bc95d50e3e01baf11ae51b8fac8a77d3",
+      "scope": "tests retained; flawed auto-ID change restored safely"
+    },
+    {
+      "pr": 39,
+      "sourceHead": "8cdf0aa89c18a1ef23c9653528db8fa1506b3418",
+      "sourceTree": "51ccbca8ddf712f7879cb9a77dedeb4f200f0c21",
+      "correction": null,
+      "observedCurrentHead": "8cdf0aa89c18a1ef23c9653528db8fa1506b3418",
+      "scope": "historical correction only"
+    },
+    {
+      "pr": 40,
+      "sourceHead": "8ec4d1e2fe14ba917c715bf6e44465ea31dd50e7",
+      "sourceTree": "3fb15a3a081ad03ccc7f9ac5e9dd6c6e820a7bd1",
+      "correction": null,
+      "observedCurrentHead": "8ec4d1e2fe14ba917c715bf6e44465ea31dd50e7",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 41,
+      "sourceHead": "280096ab24ce4f32cdaf17bd4a928f66f4f2dbda",
+      "sourceTree": "c3723dcf4541ffad8b0aa9ceca54b4946f1114db",
+      "correction": null,
+      "observedCurrentHead": "280096ab24ce4f32cdaf17bd4a928f66f4f2dbda",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 42,
+      "sourceHead": "ab8b8099189e599ed61c7e7891c66e3585cc0fbd",
+      "sourceTree": "87e4a599f682f0efb09f3cd41b5ce72c7d0bb263",
+      "correction": null,
+      "observedCurrentHead": "ab8b8099189e599ed61c7e7891c66e3585cc0fbd",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 43,
+      "sourceHead": "d30eab8eb9b89fe8da018dcd136125714029b072",
+      "sourceTree": "e3434e78f20ade69456c5b24f12772029c5e8baf",
+      "correction": null,
+      "observedCurrentHead": "d30eab8eb9b89fe8da018dcd136125714029b072",
+      "scope": "audited bounded integration"
+    },
+    {
+      "pr": 44,
+      "sourceHead": "e72d7f1e438d3d8873eacad8fdfc6dd78553d7be",
+      "sourceTree": "724134b6c61b34c54ef72e4119b5966148f48659",
+      "correction": null,
+      "observedCurrentHead": "e72d7f1e438d3d8873eacad8fdfc6dd78553d7be",
+      "scope": "audited bounded integration"
+    }
+  ]
+}

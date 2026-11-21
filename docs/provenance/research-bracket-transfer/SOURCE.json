@@ -1,0 +1,18 @@
+{
+  "schema": "math.research-bracket-transfer.v1",
+  "source_repository": "YehorBabenko88/strattester",
+  "source_head": "622e99dcd169d471279b5d38204d29a01eaf8647",
+  "path": "strattester/research/scalp_entries.py",
+  "blob": "533904ce3b28f5d9d69f5bfc72efda168f6674ee",
+  "bytes": 5468,
+  "sha256": "fcc39f27efe6730eaa85329dcab6160b838c0b2229e8a1ec58443f582218b24b",
+  "original_function": "_risk",
+  "canonical": "market_math.research_bracket_prices",
+  "policy": "ORIGINAL_BINARY64_MAX_MULTIPLY_ADD_ORDER;MINIMUM_ENTRY_FRACTION_0.0005;SIGNED_ALGEBRAIC_THRESHOLDS_NOT_ORDER_ADMISSION",
+  "domain": "LITERAL_FINITE_LOSSLESS_NONNEGATIVE_BINARY64_INPUTS;POSITIVE_ENTRY;FINITE_SIGNED_OUTPUTS",
+  "source_retirement": "HELD_OLD_SCALP_CONSUMERS_NOT_MIGRATED",
+  "original_role_deduction": 0,
+  "execution_authority": false,
+  "source_authentication": "NOT_EVALUATED",
+  "production": "NO_GO"
+}

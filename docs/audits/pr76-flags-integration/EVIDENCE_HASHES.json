@@ -1,0 +1,30 @@
+[
+  {
+    "file": "admin-red.tap",
+    "sha256": "4d97d74677e471fe8c22923cf9b547cf22630c0fd080b89e2521d88314d02dd4"
+  },
+  {
+    "file": "admin-green.tap",
+    "sha256": "9f639180050ce79a13bbdbb7423701e31456fa5e887ae5ed70493078c2efdb58"
+  },
+  {
+    "file": "exact-0x80-red.tap",
+    "sha256": "03c52520ea780127d511a44a8d81dfa40db07731f76b8cc629e72355313d70d7"
+  },
+  {
+    "file": "exact-0x80-green.tap",
+    "sha256": "109654cb3d5d4752cc040511b90652340fd925199701e029ba381b98b6657cf0"
+  },
+  {
+    "file": "faults-green.tap",
+    "sha256": "d15814580388f86e684bc3a74ef7ac61dc457e43fa47fd37084444777678f99e"
+  },
+  {
+    "file": "final-node22.tap",
+    "sha256": "5b1a4981df50df9fbe4855fac3a3bf719be03a289e75565a395f4219f58c096f"
+  },
+  {
+    "file": "final-node24.tap",
+    "sha256": "f92ad1896ff37ce1406029ce4b0359f375c956423a9d7ccec6e9710d94a48a45"
+  }
+]

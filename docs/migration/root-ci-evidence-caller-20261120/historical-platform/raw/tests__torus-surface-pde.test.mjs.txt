@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {torusGrid,torusSurfaceMass,torusSurfaceStep,torusInitialField} from '../src/torus-surface-pde.mjs';
+test('2D torus diffusion conserves area-weighted mass',()=>{const g=torusGrid(),x=torusInitialField(g),m=torusSurfaceMass(g,x);let y=x;for(let i=0;i<100;i++)y=torusSurfaceStep(g,y);assert.ok(Math.abs(torusSurfaceMass(g,y)-m)<1e-9);assert.ok(y.every(v=>v>=0&&Number.isFinite(v)))});
+test('constant field is a stationary solution',()=>{const g=torusGrid({nu:20,nv:12}),x=new Float64Array(g.nu*g.nv).fill(3);const y=torusSurfaceStep(g,x);assert.ok(y.every(v=>Math.abs(v-3)<1e-12))});
+test('invalid geometry and unstable steps rejected',()=>{assert.throws(()=>torusGrid({R:1,r:2}));const g=torusGrid();assert.throws(()=>torusSurfaceStep(g,torusInitialField(g),{dt:10}))});

@@ -1,0 +1,93 @@
+// Public diagnostic metadata only; never a readiness assertion or evidence waiver.
+const errorCodes=new Set(['ERR_TEST_FAILURE','ERR_ASSERTION','EPERM','EBUSY','EACCES','ENOENT','ETIMEDOUT','ECONNREFUSED','ECONNRESET','EADDRINUSE','ERR_UNSUPPORTED_ESM_URL_SCHEME','ERR_MODULE_NOT_FOUND','ERR_UNKNOWN_FILE_EXTENSION']);
+const failureTypes=new Map([['hookFailed','HOOK_FAILED'],['testCodeFailure','TEST_CODE_FAILURE'],['cancelledByParent','CANCELLED_BY_PARENT'],['subtestsFailed','SUBTESTS_FAILED'],['testTimeoutFailure','TIMEOUT']]);
+const startupCodes=new Set(['CHILD_READY','CHILD_EXIT_ZERO_WITHOUT_READY','CHILD_ENGINE_REJECTED','CHILD_IMPORT_SCHEME_REJECTED','CHILD_MODULE_NOT_FOUND','CHILD_ADDRESS_IN_USE','CHILD_EXIT_ONE_OTHER','CHILD_EXIT_OTHER','CHILD_NO_EXIT_CODE','STARTUP_DEADLINE','LAUNCH_NOT_FOUND','LAUNCH_ACCESS_DENIED','LAUNCH_ERROR_OTHER']);
+for(const code of ['FIXTURE_SETUP_COMPLETE','FIXTURE_SETUP_FAILED','FIXTURE_GIT_FAILURE'])startupCodes.add(code);
+const sourcePhases=new Set(['SOURCE_IDENTITY','LOCAL_METADATA','GIT_IDENTITY','RAW_BYTES','UNTRACKED','NUMERICAL','IMPORT']);
+const comparisonPhases=new Set(['DIAG_CHILD_STATUS','DIAG_CHILD_EXIT_ZERO','DIAG_CHILD_EXIT_OTHER','DIAG_CHILD_TIMEOUT','DIAG_CHILD_SIGNAL','DIAG_CHILD_LAUNCH_ERROR','DIAG_CHILD_IMPORT_SCHEME','DIAG_EVIDENCE_PARSE','DIAG_TERMINAL_FIELDS','DIAG_FILE_IDENTITY','DIAG_NOTICE_FORWARDING','DIAG_PRIVACY','DIAG_PRIVATE_IPC']);
+const preflightCodes=new Set(['NONE','POLICY','ROOT','RUNTIME','SOURCE','WORKER','WORKER_TIMEOUT','WORKER_LAUNCH','WORKER_SIGNAL','WORKER_STDERR','WORKER_OUTPUT','WORKER_EXIT','REPARSE','TYPES','PARSER','COMPILE','CLEANUP']);
+for(const phase of ['SETUP','STDERR','JSON','AUTHORITY','NEGATIVE_TREE','NEGATIVE_RUNTIME','NEGATIVE_SOURCE','CLEANUP_POLICY','CLEANUP_SOURCE'])comparisonPhases.add('DIAG_PREFLIGHT_'+phase);
+for(const code of [...preflightCodes,'OTHER'])comparisonPhases.add('DIAG_PREFLIGHT_VALID_'+code);
+for(const phase of sourcePhases)startupCodes.add('PHASE_'+phase);
+function ownValue(object,key){try{const descriptor=Object.getOwnPropertyDescriptor(object,key);return descriptor&&Object.hasOwn(descriptor,'value')?descriptor.value:undefined;}catch{return undefined;}}
+export function publicErrorCode(error){
+ let result='UNCLASSIFIED';
+ for(let depth=0;depth<4&&error&&typeof error==='object';depth++){
+  const code=ownValue(error,'code');if(errorCodes.has(code))result=code;
+  error=ownValue(error,'cause');
+ }
+ return result;
+}
+export const publicFailureType=value=>failureTypes.get(value&&typeof value==='object'?ownValue(value,'failureType'):value)??'UNCLASSIFIED';
+export const admittedErrorCode=value=>errorCodes.has(value)?value:'UNCLASSIFIED';
+export const admittedFailureType=value=>[...failureTypes.values()].includes(value)?value:'UNCLASSIFIED';
+export function startupCode(result,error=null){
+ if(error){const message=ownValue(error,'message'),code=ownValue(error,'code');if(message==='bounded startup deadline')return 'STARTUP_DEADLINE';if(code==='ENOENT')return 'LAUNCH_NOT_FOUND';if(code==='EACCES')return 'LAUNCH_ACCESS_DENIED';return 'LAUNCH_ERROR_OTHER';}
+ const port=ownValue(result,'port'),code=ownValue(result,'code');
+ if(Number.isSafeInteger(port)&&port>0)return 'CHILD_READY';
+ if(code===0)return 'CHILD_EXIT_ZERO_WITHOUT_READY';
+ if(code===1){
+  const stderr=ownValue(result,'stderr'),text=typeof stderr==='string'?stderr.slice(0,4096):'';
+  if(text.trim()==='MATH_ENGINE_STARTUP_REJECTED')return 'CHILD_ENGINE_REJECTED';
+  if(/^[A-Za-z]*Error \[ERR_UNSUPPORTED_ESM_URL_SCHEME\]:/m.test(text))return 'CHILD_IMPORT_SCHEME_REJECTED';
+  if(/^[A-Za-z]*Error \[ERR_MODULE_NOT_FOUND\]:/m.test(text))return 'CHILD_MODULE_NOT_FOUND';
+  if(/^Error: listen EADDRINUSE:/m.test(text))return 'CHILD_ADDRESS_IN_USE';
+  return 'CHILD_EXIT_ONE_OTHER';
+ }
+ return Number.isInteger(code)?'CHILD_EXIT_OTHER':'CHILD_NO_EXIT_CODE';
+}
+export function fixtureCode(message){
+ if(typeof message!=='string'||message.length>96)return null;
+ const match=message.match(/^MATH_MODULE_FIXTURE code=([A-Z0-9_]+)$/);
+ return match&&startupCodes.has(match[1])?match[1]:null;
+}
+
+export function phaseCode(message){
+ try{
+  if(!message||typeof message!=='object'||Object.keys(message).sort().join(',')!=='authority,phase,schema')return null;
+  const phase=ownValue(message,'phase');
+  return ownValue(message,'schema')==='math.fixture.phase.v1'&&ownValue(message,'authority')===false&&sourcePhases.has(phase)?'PHASE_'+phase:null;
+ }catch{return null;}
+}
+export const admittedDiagnosticPhase=value=>comparisonPhases.has(value)?value:'UNCLASSIFIED';
+export function publicDiagnosticPhase(error){
+ for(let depth=0;depth<4&&error&&typeof error==='object';depth++){
+  const phase=ownValue(error,'publicDiagnosticPhase');if(comparisonPhases.has(phase))return phase;
+  error=ownValue(error,'cause');
+ }
+ return 'UNCLASSIFIED';
+}
+
+export function childDiagnosticPhase(result){
+ const error=ownValue(result,'error');
+ if(error)return publicErrorCode(error)==='ETIMEDOUT'?'DIAG_CHILD_TIMEOUT':'DIAG_CHILD_LAUNCH_ERROR';
+ if(ownValue(result,'signal'))return 'DIAG_CHILD_SIGNAL';
+ const status=ownValue(result,'status');
+ if(status===0)return 'DIAG_CHILD_EXIT_ZERO';
+ if(startupCode({code:status,stderr:ownValue(result,'stderr')})==='CHILD_IMPORT_SCHEME_REJECTED')return 'DIAG_CHILD_IMPORT_SCHEME';
+ return status===1?'DIAG_CHILD_STATUS':'DIAG_CHILD_EXIT_OTHER';
+}
+
+export function preflightDiagnosticPhase(report){
+ const code=report&&typeof report==='object'?ownValue(report,'code'):undefined;
+ return 'DIAG_PREFLIGHT_VALID_'+(preflightCodes.has(code)?code:'OTHER');
+}
+
+export function publicWorkerPhase(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const phase=ownValue(error,'publicWorkerPhase');if(['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(phase))return phase;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+export const admittedWorkerPhase=value=>['NO_MARKER','RUNTIME','REPARSE','TYPES','PARSER','COMPILE','EXIT','UNAVAILABLE'].includes(value)?value:'UNAVAILABLE';
+
+const traceSteps=new Set(['SETUP','LAUNCH','WAIT_COMPILE','KILL','WAIT_EXIT','RETAINED_PHASE','STDOUT','STDERR','CLEANUP','ENTRY_SCRIPT_PROBE','ENTRY_NONCE_PROBE']);
+export const admittedTraceStep=value=>traceSteps.has(value)?value:'UNAVAILABLE';
+export function publicTraceStep(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const step=ownValue(error,'publicTraceStep');if(traceSteps.has(step))return step;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+
+const workerReportCodes=new Set(['RUNTIME','REPARSE','TYPES','PARSER','COMPILE']);
+export const admittedWorkerReportCode=value=>workerReportCodes.has(value)?value:'UNAVAILABLE';
+export function publicWorkerReportCode(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const code=ownValue(error,'publicWorkerReportCode');if(workerReportCodes.has(code))return code;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+
+// Fixed pre-cleanup facts only: process state, exit class, output presence, canonical scratch.
+export function publicWorkerBoundary(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerBoundary');if(typeof value==='string'&&/^(RUNNING|EXITED|UNAVAILABLE):(NONE|ZERO|NONZERO|DLL_INITIALIZATION_FAILED|DLL_NOT_FOUND|INVALID_IMAGE_FORMAT|SIGNAL):[01]:[01]:[01U]$/.test(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+
+const entryStates=new Set(['NO_ENTRY_MARKER','SCRIPT_ENTERED','PAYLOAD_VERIFIED','JSON_PARSED','RUNTIME_TRACE_RETURNED','UNAVAILABLE']);
+export const admittedWorkerEntry=value=>entryStates.has(value)?value:'UNAVAILABLE';
+export function publicWorkerEntry(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){const value=ownValue(error,'publicWorkerEntry');if(entryStates.has(value))return value;error=ownValue(error,'cause');}return 'UNAVAILABLE';}
+export function publicEntryCapturedAfterTermination(error){for(let depth=0;depth<4&&error&&typeof error==='object';depth++){if(ownValue(error,'publicEntryCapturedAfterTermination')===true)return true;error=ownValue(error,'cause');}return false;}

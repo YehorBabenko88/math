@@ -1,0 +1,50 @@
+name: Confidential Evidence Receiver Contracts
+on:
+  push:
+    branches: [feat/pr56-confidential-evidence-receiver]
+  pull_request:
+    paths:
+      - 'src/evidence-receiver/**'
+      - 'tests/confidential-*.test.mjs'
+      - '.github/workflows/confidential-synthetic-e2e.yml'
+      - 'tests/evidence-receiver*.test.mjs'
+      - 'tests/qa-obsolete-queued-inventory.test.mjs'
+      - 'tests/qa-current-ci-snapshot.test.mjs'
+      - 'docs/audits/pr57-followup/**'
+      - 'docs/audits/pr56-receiver/obsolete-queued-inventory.json'
+      - 'tests/fixtures/evidence-receiver/**'
+      - 'tests/adminit-bootstrap-watchdog*'
+      - '.github/workflows/confidential-evidence-receiver.yml'
+permissions:
+  contents: read
+jobs:
+  receiver-contracts:
+    runs-on: ${{ matrix.os }}
+    env:
+      NODE_NO_WARNINGS: '1' # Suppress Node PID warnings only; errors/exit codes remain enforced.
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Normal receiver contracts (other branches)
+        if: github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard'
+        run: node --test tests/evidence-receiver.test.mjs tests/evidence-receiver-bundle.test.mjs tests/evidence-receiver-journal.test.mjs tests/evidence-receiver-oidc.test.mjs tests/evidence-receiver-source-shape.test.mjs tests/evidence-receiver-seal.test.mjs tests/evidence-receiver-strict.test.mjs tests/evidence-receiver-zip.test.mjs tests/adminit-bootstrap-watchdog.test.mjs tests/qa-obsolete-queued-inventory.test.mjs tests/qa-current-ci-snapshot.test.mjs tests/confidential-caller.test.mjs tests/confidential-workflow-scope.test.mjs tests/confidential-root-caller.test.mjs
+      - name: Scoped walk-forward contracts (Node only)
+        if: github.head_ref == 'fix/walk-forward-forecast-guard' || github.ref == 'refs/heads/fix/walk-forward-forecast-guard'
+        run: node --test tests/walk-forward-guard.test.mjs tests/walk-forward.test.mjs tests/model-fitting.test.mjs tests/roots-diagnostics.test.mjs tests/math.test.mjs tests/confidential-workflow-scope.test.mjs tests/confidential-caller.test.mjs tests/confidential-root-caller.test.mjs
+      # No id-token permission, secret, receiver endpoint, key provisioning or raw upload.

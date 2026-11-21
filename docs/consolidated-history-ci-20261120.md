@@ -1,0 +1,7 @@
+# Consolidated future history SDK plus current CI-byte repair
+
+Graph: Math1378122da04a1c2a71e52481baddb7d5b5d7fd489f2 + exacthistory136 runtimecommitdb25b6550b00410b8266ae18f9af43c415cb5d9d +itsdocs e352b98ff619064a9affba35bc9ad08e1ec7fe5b. Frozen135/136/137 unchanged; no currentRootcohort repin. ThreeSDKmodules andpyproject exactlymatch136, witha58655759byteprefix preserved andsinglehistory_window_ms definition.
+
+Newenclosingcandidate runs:118 numericalsource+4rawCI controls eachPython3.11/3.12;95isolatedwheelcases eachPython3.11/3.12;5in-processNodefakeCIcontrols. Bothsource/artifact use-I-S-B-X fresh externalcache, metadata/raworigins/oldnamespaceabsence andemptycachepre/post. Offline actualsdist+wheel matchnewGit4/3members; wheelSHA0de5ea0e482ccc1fd23d541af62b9d4f0d81a493c51656d638efdb3814f1ee6e. Previous136/137reviews remainhistoricalcontext; thesearefreshcandidate-specificruns, notinheritedPASS.
+
+CIincludesLFcheckout/rawmaterialization andboundedstreamingdiagnostics forpreviousNode24/PG16timeout. Allplatformaxes/counts/timeouts/authoritativevalidators remainmandatory. NewHEAD hostedmatrix success oractionableprogress stillrequired; no localfullsuite/PG/provider/native/installer. NO_GO/executionfalse/tradingfalse. Evidencework/qa-math-consolidated-history-ci. Datafutureplanner maypinthisisolatedcandidate afterindependentreview; current135 remainsfrozen.

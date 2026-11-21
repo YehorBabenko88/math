@@ -1,0 +1,23 @@
+name: Synthetic Confidential Hosted Qualification
+on:
+  pull_request:
+    paths:
+      - 'tests/confidential-*.test.mjs'
+      - 'docs/migration/root-ci-evidence-caller-20261120/**'
+      - 'scripts/platform-current-inventory.json'
+      - 'scripts/platform-source-transfers.json'
+      - '.github/workflows/confidential-synthetic-e2e.yml'
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+jobs:
+  qualification:
+    if: github.head_ref != 'fix/walk-forward-forecast-guard' && github.repository == 'YehorBabenko88/math' && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-collector.yml@4ba390b8e12070499d54b12e5609c683c00607ee
+    with:
+      collector-sha: 4ba390b8e12070499d54b12e5609c683c00607ee
