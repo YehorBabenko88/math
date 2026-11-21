@@ -60,6 +60,8 @@ jobs:
         run: node scripts/verify-sql-bytes.mjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: 'python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r scripts/book-ingestion-requirements.txt'
+      - name: Root unit coverage refusal controls (inert only)
+        run: node --permission --allow-fs-read=* tests/root-unit-coverage.unit.mjs
       - name: Bounded event/progress streaming controls (fake callbacks only)
         run: node --test tests/math-ci-stream-evidence.unit.mjs
       - name: Complete Linux-owned and cross-platform suite (zero skips or todo)
@@ -138,10 +140,21 @@ jobs:
             release-provenance.json
           if-no-files-found: error
           retention-days: 30
+  root-transferred-unit-roles:
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
+    uses: YehorBabenko88/unified-system/.github/workflows/ci-evidence-role-matrix.yml@fc2faec457ef2e676fa38d11f906a26f9bc51bb3
+    permissions:
+      contents: read
+      actions: read
+    with:
+      matrix-sha: fc2faec457ef2e676fa38d11f906a26f9bc51bb3
   full-ci-coverage:
     name: Full CI coverage
+    permissions:
+      contents: read
+      actions: read
     if: ${{ (always()) && github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
-    needs: [postgres-integration, windows-platform]
+    needs: [postgres-integration, windows-platform, root-transferred-unit-roles]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -153,6 +166,32 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - name: Prepare private pinned Root unit source
+        id: root_unit_source
+        run: |
+          node --input-type=module <<'ROOT_UNIT_SOURCE'
+          import{mkdtempSync,lstatSync,appendFileSync,realpathSync}from'node:fs';import{join,basename,dirname,isAbsolute}from'node:path';
+          if(process.platform!=='linux'||process.env.GITHUB_ACTIONS!=='true'||process.env.RUNNER_ENVIRONMENT!=='github-hosted'||process.env.GITHUB_REPOSITORY!=='YehorBabenko88/math'||['NODE_OPTIONS','NODE_PATH','NODE_DEBUG','NODE_DEBUG_NATIVE'].some(k=>process.env[k]))throw Error('ROOT_UNIT_SOURCE_REFUSED');
+          const workspace=realpathSync(process.env.GITHUB_WORKSPACE);for(let p=workspace;;p=dirname(p)){const s=lstatSync(p);if(!s.isDirectory()||s.isSymbolicLink())throw Error('ROOT_UNIT_SOURCE_REFUSED');if(dirname(p)===p)break;}
+          if(!isAbsolute(process.env.GITHUB_OUTPUT)||/[\r\n\0]/.test(workspace+process.env.GITHUB_OUTPUT))throw Error('ROOT_UNIT_SOURCE_REFUSED');
+          const parent=mkdtempSync(join(workspace,'.root-unit-source-'));
+          if((lstatSync(parent).mode&0o077)!==0)throw Error('ROOT_UNIT_SOURCE_REFUSED');
+          appendFileSync(process.env.GITHUB_OUTPUT,'path='+basename(parent)+'/root\nabsolute='+join(parent,'root')+'\n');
+          ROOT_UNIT_SOURCE
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          repository: YehorBabenko88/unified-system
+          ref: fc2faec457ef2e676fa38d11f906a26f9bc51bb3
+          path: ${{ steps.root_unit_source.outputs.path }}
+          persist-credentials: false
+          fetch-depth: 1
+          set-safe-directory: false
+          submodules: false
+          lfs: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           pattern: platform-*
@@ -165,11 +204,18 @@ jobs:
       - name: Require Windows cells and verify actual identity union
         env:
           WINDOWS_RESULT: ${{ needs.windows-platform.result }}
+          ROOT_MATRIX_RESULT: ${{ needs.root-transferred-unit-roles.result }}
+          ROOT_UNIT_CHECKOUT: ${{ steps.root_unit_source.outputs.absolute }}
+          ROOT_WORKLOAD_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          ROOT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          ROOT_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          ROOT_UNIT_API_TOKEN: ${{ github.token }}
         run: |
           test "$WINDOWS_RESULT" = success
           node scripts/verify-platform-coverage.mjs mandatory-platform-artifacts
 
       - name: Upload independently verified identity union
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: mandatory-platform-coverage-${{ github.run_id }}-${{ github.run_attempt }}
