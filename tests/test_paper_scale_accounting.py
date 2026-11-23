@@ -107,3 +107,9 @@ class PaperScaleTests(unittest.TestCase):
  def test_typed_result_immutable_and_means_are_descriptive(self):
   R,f=self.api();a=f('long',(R('ENTRY',D(100),D(1)),R('EXIT',D(110),D('.5')),R('ENTRY',D(200),D(1))),D(0));self.assertEqual(a.entry_mean,D(150));self.assertEqual(a.exit_mean,D(110));self.assertNotEqual(a.current_entry_price,a.entry_mean)
   with self.assertRaises(AttributeError):a.remaining_cost=D(0)
+
+ def test_single_entry_execution_basis_remains_exact_after_partial_exit(self):
+  R,f=self.api();entry=m.paper_scale_entry_metrics('long',D(99),D(100),D(1),D(0));q=m.paper_scale_target_quantity(entry.quantity,entry.quantity,D('.5'));events=(R('ENTRY',entry.price,entry.quantity),)
+  before=f('long',events,D(0));after=f('long',events+(R('EXIT',D(101),q),),D(0))
+  self.assertEqual(before.current_entry_price,D(99));self.assertEqual(after.current_entry_price,D(99));self.assertNotEqual(after.current_entry_price,Context(prec=28,traps=[]).divide(after.remaining_cost,after.remaining_quantity));self.assertEqual(after.remaining_cost,D('49.99999999999999999999999999'));self.assertEqual(after.gross_pnl,D('1.01010101010101010101010100'))
+  late=f('long',events+(R('EXIT',D(101),q),R('ENTRY',D(198),after.remaining_quantity)),D(0));self.assertEqual(late.current_entry_price,D('148.5'));self.assertEqual(late.gross_pnl,after.gross_pnl)

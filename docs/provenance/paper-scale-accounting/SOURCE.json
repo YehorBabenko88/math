@@ -22,7 +22,7 @@
     "PaperScaleEvent",
     "PaperScaleState"
   ],
-  "marketMathSha256": "722fe7b1c3858c0947f5dfcfe18efdde4a4923327299444cd4b10d041bc8bae2",
+  "marketMathSha256": "459ba0df58d89e8e69254f6b8ba8710103488aaee82a6c86fcb7b5502e003264",
   "oldMarketMathWholePrefixSha256": "42c0d8aa241eb9ed1e7f9126a91d1cfdfaffc8d9460162ec3bb5fd0a08ed960e",
   "historyStatisticsV7ShaUnchanged": "eef7dd8c252e68783d60b6236a437942df99995fae714a9fa0ca117b58e54cef",
   "rawPricePolicy": "EXISTING_PAPER_PLAIN_DECIMAL_128_DIGITS_EXPONENT_ABS4096",
@@ -43,11 +43,14 @@
     "plannedTargetsCaller": 16,
     "events": 64
   },
-  "newMandatorySDKCases": 24,
+  "newMandatorySDKCases": 25,
   "old10GroupsPreserved": true,
   "sourceAuthentication": false,
   "executionAuthority": false,
   "tradingAuthorized": false,
   "remainingDeclaredObligations": 516,
-  "legacyRetirement": 0
+  "legacyRetirement": 0,
+  "rejectedPrototype": "11744e3f843de3ef292635277057e91d21c6f86e",
+  "currentEntryPrice": "FIRST_ENTRY_EXACT_PRICE;PARTIAL_EXIT_UNCHANGED;LATER_ENTRY_EXACT_REMAINING_QTY_TIMES_PRIOR_BASIS_PLUS_EXACT_NEW_PRICE_TIMES_QTY_THEN_PRIVATE28_DIVIDE;FULL_CLOSE_NONE",
+  "currentEntryPriceVsCost": "EXECUTION_BASIS_SEPARATE_FROM_ROUNDED_REMAINING_COST_RATIO"
 }

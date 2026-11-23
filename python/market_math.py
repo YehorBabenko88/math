@@ -1675,6 +1675,14 @@ def paper_scale_target_quantity(remaining,opened,fraction):
     if quantity>=opened:raise ValueError('SCALE_TARGET_ROUNDING_COLLAPSE')
     return min(remaining,quantity)
 
+def _scale_basis_notional(price,quantity):
+    # The basis pool uses exact products, separate from rounded fee/ledger values.
+    # Existing fixed precision traps refuse products outside its exact resource
+    # budget; no global summation or input policy is widened.
+    try:value=_market_context().multiply(price,quantity)
+    except Inexact as exc:raise ValueError('SCALE_EXACT_BASIS_BUDGET') from exc
+    return _scale_amount(value,positive=True)
+
 def paper_scale_accounting(side,events,fee_rate):
     """PAPER_SCALE_ACCOUNTING_V1; no scheduling, simulation or market inference.
 
@@ -1688,6 +1696,10 @@ def paper_scale_accounting(side,events,fee_rate):
     Partial exits allocate the smaller quantity side with a28-digit cost share;
     the other cost side is the exact complement. Full closure releases every
     remaining cost unit. Later entries never rebase a previous realization.
+    The current execution-entry basis is unchanged on partial exits. A later
+    entry weights the prior basis and new price by their exact remaining/new
+    quantities, then divides in private28 arithmetic. It is separate from the
+    rounded ledger cost ratio, which may contain allocation dust.
     Open-state net includes charged fees and realized gross, no unrealized mark.
     """
     if (type(events) is not tuple and type(events) is not list) or len(events)>64:
@@ -1704,7 +1716,7 @@ def paper_scale_accounting(side,events,fee_rate):
             raise ValueError('SCALE_CLOSED_EVENT_KIND_REQUIRED')
         _policy_decimal(price,positive=True);_scale_amount(quantity,positive=True)
     c=_paper_context();zero=Decimal(0)
-    remaining=cost=zero;closed=False
+    remaining=cost=zero;basis=None;closed=False
     entry_quantities=[];exit_quantities=[];entry_values=[];exit_values=[]
     entry_fees=[];exit_fees=[];realized=[]
     for kind,price,quantity in captured:
@@ -1714,12 +1726,18 @@ def paper_scale_accounting(side,events,fee_rate):
         value=_scale_amount(c.multiply(price,quantity),positive=True)
         fee=_scale_amount(paper_entry_fee(value,fee_rate),nonnegative=True)
         if kind=='ENTRY':
-            remaining=exact_sum((remaining,quantity));cost=exact_sum((cost,value))
+            new_remaining=exact_sum((remaining,quantity))
+            if remaining==0:basis=price
+            else:
+                basis_value=exact_sum((_scale_basis_notional(basis,remaining),
+                                       _scale_basis_notional(price,quantity)))
+                basis=_policy_decimal(c.divide(basis_value,new_remaining),positive=True)
+            remaining=new_remaining;cost=exact_sum((cost,value))
             entry_quantities.append(quantity);entry_values.append(value);entry_fees.append(fee)
         else:
             after=exact_sum((remaining,quantity.copy_negate()))
             if quantity==remaining:
-                released=cost;retained=zero;closed=True
+                released=cost;retained=zero;basis=None;closed=True
             else:
                 exit_smaller=quantity<=after
                 small_quantity=quantity if exit_smaller else after
@@ -1738,6 +1756,6 @@ def paper_scale_accounting(side,events,fee_rate):
     fees=exact_sum((entry_fee,exit_fee));net=exact_sum((gross,fees.copy_negate()))
     def mean(value,quantity):
         return _policy_decimal(c.divide(value,quantity),positive=True) if quantity>0 else None
-    return PaperScaleState(remaining,cost,mean(cost,remaining),opened,exited,
+    return PaperScaleState(remaining,cost,basis,opened,exited,
         entry_total,exit_total,mean(entry_total,opened),mean(exit_total,exited),
         gross,entry_fee,exit_fee,fees,net,closed)
