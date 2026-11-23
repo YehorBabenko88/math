@@ -45,6 +45,6 @@
   "domain": "Literal finite lossless nonnegative high/low geometry; strict ties; no executable price admission",
   "clocks": "No implicit clocks; half-open dependency indices only. Terminan must bind all actual declared dependency availability.",
   "retiredRoles": 0,
-  "remainingLegacyFiles": 516,
-  "release": "NO_GO"
+  "release": "NO_GO",
+  "remainingDeclaredLegacyTestFunctions": 516
 }
