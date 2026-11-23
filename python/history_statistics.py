@@ -120,11 +120,25 @@ class NumericFoldSummary(NamedTuple):
 
     @property
     def profitable_fraction(self):
-        return self.profitable / self.folds if self.folds else 0.0
+        folds, profitable, _ = _screen_fold_counts(self)
+        return profitable / folds if folds else 0.0
 
     @property
     def losing_fraction(self):
-        return self.losing / self.folds if self.folds else 0.0
+        folds, _, losing = _screen_fold_counts(self)
+        return losing / folds if folds else 0.0
+
+
+def _screen_fold_counts(record):
+    # A public NamedTuple may be manually fabricated: validate before arithmetic.
+    if type(record) is not NumericFoldSummary:
+        raise ValueError('SCREENING_EXACT_FOLD_SUMMARY_REQUIRED')
+    folds, profitable, losing = record.folds, record.profitable, record.losing
+    if type(folds) is not int or type(profitable) is not int or type(losing) is not int:
+        raise ValueError('SCREENING_LITERAL_FOLD_COUNTS_REQUIRED')
+    if not 0 <= folds <= 128 or not 0 <= profitable <= folds or not 0 <= losing <= folds:
+        raise ValueError('SCREENING_FOLD_COUNT_BOUNDS')
+    return folds, profitable, losing
 
 class IIDMeanInterval(NamedTuple):
     lower: float

@@ -11,3 +11,5 @@ The additive executed_notional_consistent predicate only checks finite nonnegati
 Verification: 25 new cases; reviewed full source 255 and wheel 232 on Python 3.11/3.12; seven strict CI groups replayed in source and wheel modes on both runtimes. No native, SourceFence, network, SQL, thread launch or installation. No legacy obligation retired.
 
 The unpublished prototype 10510bd was rejected after hostile metaclass equality callbacks were demonstrated on twelve admission paths. All new public admission uses identity checks for exact types; existing older APIs remain byte unchanged. NumericFoldSummary exposes Math-owned profitable_fraction and losing_fraction without changing the tuple shape.
+
+The unpublished bd7d07d prototype was also rejected because manually fabricated fold-summary fields could execute division callbacks. Both fraction getters now require exact NumericFoldSummary self and exact bounded integer counts before reading arithmetic operands. Generated summaries retain the same fractions. Both rejected RED witnesses are preserved outside the source tree.

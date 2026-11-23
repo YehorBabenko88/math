@@ -109,5 +109,15 @@ class ScreeningNumericTests(unittest.TestCase):
    with self.subTest(case=name),self.assertRaises(ValueError):call()
   for name,values in [('notional_turnover',(bad,1)),('notional_volume',(1,bad))]:
    with self.subTest(case=name):self.assertIs(m.executed_notional_consistent(*values),False)
+  class EvilCount:
+   def __truediv__(self,other):raise AssertionError('foreign division callback')
+   def __rtruediv__(self,other):raise AssertionError('foreign reverse division callback')
+   def __lt__(self,other):raise AssertionError('foreign count comparison callback')
+   def __le__(self,other):raise AssertionError('foreign count comparison callback')
+  summary=self.api('NumericFoldSummary')
+  for property_name in ('profitable_fraction','losing_fraction'):
+   getter=getattr(summary,property_name).fget
+   for label,record in [('foreign_self',bad),('foreign_folds',summary(EvilCount(),0,0,0,0.,None,0,0,0)),('foreign_profit',summary(1,0,EvilCount(),0,0.,None,0,0,0)),('foreign_loss',summary(1,0,0,EvilCount(),0.,None,0,0,0)),('bool_folds',summary(True,0,0,0,0.,None,0,0,0)),('bool_profit',summary(1,0,True,0,0.,None,0,0,0)),('bool_loss',summary(1,0,0,True,0.,None,0,0,0)),('negative_folds',summary(-1,0,0,0,0.,None,0,0,0)),('too_many_folds',summary(129,0,0,0,0.,None,0,0,0)),('profit_exceeds',summary(1,0,2,0,0.,None,0,0,0)),('loss_exceeds',summary(1,0,0,2,0.,None,0,0,0)),('negative_profit',summary(1,0,-1,0,0.,None,0,0,0)),('negative_loss',summary(1,0,0,-1,0.,None,0,0,0))]:
+    with self.subTest(property=property_name,case=label),self.assertRaises(ValueError):getter(record)
   self.assertEqual(calls,[])
 if __name__=='__main__':unittest.main()

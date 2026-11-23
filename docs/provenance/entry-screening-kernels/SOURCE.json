@@ -53,5 +53,7 @@
   "corrected_new_type_admission": "IDENTITY_ONLY_NO_FOREIGN_METACLASS_CALLBACKS",
   "new_cases": 25,
   "full_pure_source_cases": 255,
-  "full_wheel_cases": 232
+  "full_wheel_cases": 232,
+  "rejected_fraction_prototype": "bd7d07d9e41b54ec220c6c92b6a11987b1bd3d29",
+  "fraction_properties": "Exact NumericFoldSummary self, exact int counts, 0<=counts<=folds<=128 before arithmetic"
 }
