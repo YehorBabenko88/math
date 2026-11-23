@@ -1559,7 +1559,7 @@ def executed_notional_consistent(turnover, volume):
             return False
         if turnover < 0 or volume < 0:
             return False
-    elif type(turnover) in (int, float) and type(volume) in (int, float):
+    elif (type(turnover) is int or type(turnover) is float) and (type(volume) is int or type(volume) is float):
         if not lossless_nonnegative_binary64_valid(turnover) or not lossless_nonnegative_binary64_valid(volume):
             return False
     else:

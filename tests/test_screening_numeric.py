@@ -34,9 +34,9 @@ class ScreeningNumericTests(unittest.TestCase):
   with self.assertRaises(AttributeError):r.mean=0
  def test_fold_default_threshold_equality_and_counts(self):
   r=self.folds((self.row(20,0.,1.05),self.row(20,.1,1.05),self.row(20,-.1,1.2)))
-  self.assertEqual((r.folds,r.samples,r.profitable,r.losing),(3,60,1,1))
+  self.assertEqual((r.folds,r.samples,r.profitable,r.losing),(3,60,1,1));self.assertTrue(hasattr(r,'profitable_fraction'),'missing Math fold ratios');self.assertEqual((r.profitable_fraction,r.losing_fraction),(1/3,1/3))
  def test_fold_unweighted_not_pooled(self):
-  r=self.folds((self.row(1,10.,2.),self.row(100,0.,1.)));self.assertEqual(r.mean_expectancy,5.)
+  r=self.folds((self.row(1,10.,2.),self.row(100,0.,1.)));self.assertEqual(r.mean_expectancy,5.);self.assertEqual((r.profitable_fraction,r.losing_fraction),(.5,0.))
  def test_fold_explicit_thresholds_are_numeric_only(self):
   r=self.folds((self.row(1,-1.,.8),),min_expectancy=-2.,min_profit_factor=.8)
   self.assertEqual((r.profitable,r.losing),(1,1))
@@ -50,7 +50,7 @@ class ScreeningNumericTests(unittest.TestCase):
   row=self.api('NumericFoldObservation')(4,2.,self.api('ProfitFactorObservation')('NO_LOSSES',None));r=self.folds((row,))
   self.assertIsNone(r.mean_profit_factor);self.assertEqual((r.no_loss_factors,r.profitable,r.losing),(1,1,0))
  def test_fold_empty_has_no_factor_mean(self):
-  r=self.folds(());self.assertEqual((r.folds,r.samples,r.mean_expectancy),(0,0,0.));self.assertIsNone(r.mean_profit_factor)
+  r=self.folds(());self.assertEqual((r.folds,r.samples,r.mean_expectancy),(0,0,0.));self.assertIsNone(r.mean_profit_factor);self.assertEqual((r.profitable_fraction,r.losing_fraction),(0.,0.))
  def test_fold_exact_rows_tags_and_policy_only(self):
   for row in ({'samples':1},self.api('NumericFoldObservation')(1,1.,self.api('ProfitFactorObservation')('FINITE',float('inf'))),self.api('NumericFoldObservation')(1,1.,self.api('ProfitFactorObservation')('NO_LOSSES',0)),self.api('NumericFoldObservation')(1,1.,self.api('ProfitFactorObservation')('ALIEN',None))):
    with self.assertRaises(ValueError):self.folds((row,))
@@ -96,4 +96,18 @@ class ScreeningNumericTests(unittest.TestCase):
     ctx.clear_flags();before=dict(ctx.flags)
     for a,b,want in [('0','-0',True),('1E+999999','1E-999999',True),('5','0',False),('0','5',False),('-1','1',False),('sNaN','1',False),('NaN','1',False),('Infinity','1',False)]:self.assertIs(fn(Decimal(a),Decimal(b)),want)
     self.assertEqual(dict(ctx.flags),before)
+ def test_foreign_metaclass_never_runs_through_public_numeric_or_batch_admission(self):
+  import market_math as m
+  calls=[]
+  class HostileMeta(type):
+   def __eq__(cls,other):calls.append('eq');raise AssertionError('foreign metaclass callback')
+   def __ne__(cls,other):calls.append('ne');raise AssertionError('foreign metaclass callback')
+  class Foreign(metaclass=HostileMeta):pass
+  bad=Foreign()
+  cases=(('sample_batch',lambda:self.sample(bad)),('sample_number',lambda:self.sample((bad,))),('fold_batch',lambda:self.folds(bad)),('fold_expectancy',lambda:self.folds((self.api('NumericFoldObservation')(1,bad,self.api('ProfitFactorObservation')('FINITE',1.)),))),('fold_factor',lambda:self.folds((self.api('NumericFoldObservation')(1,1.,self.api('ProfitFactorObservation')('FINITE',bad)),))),('fold_threshold',lambda:self.folds((),min_expectancy=bad)),('fold_factor_threshold',lambda:self.folds((),min_profit_factor=bad)),('iid_batch',lambda:self.boot(bad)),('iid_number',lambda:self.boot((bad,))),('iid_confidence',lambda:self.boot((1.,),confidence=bad)))
+  for name,call in cases:
+   with self.subTest(case=name),self.assertRaises(ValueError):call()
+  for name,values in [('notional_turnover',(bad,1)),('notional_volume',(1,bad))]:
+   with self.subTest(case=name):self.assertIs(m.executed_notional_consistent(*values),False)
+  self.assertEqual(calls,[])
 if __name__=='__main__':unittest.main()

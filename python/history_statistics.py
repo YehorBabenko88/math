@@ -118,13 +118,21 @@ class NumericFoldSummary(NamedTuple):
     excluded_factors: int
     no_loss_factors: int
 
+    @property
+    def profitable_fraction(self):
+        return self.profitable / self.folds if self.folds else 0.0
+
+    @property
+    def losing_fraction(self):
+        return self.losing / self.folds if self.folds else 0.0
+
 class IIDMeanInterval(NamedTuple):
     lower: float
     mean: float
     upper: float
 
 def _screen_number(value):
-    if type(value) not in (int, float):
+    if type(value) is not int and type(value) is not float:
         raise ValueError('SCREENING_LITERAL_BINARY64_REQUIRED')
     try:
         number = float(value)
@@ -135,7 +143,7 @@ def _screen_number(value):
     return number
 
 def _screen_values(values, maximum=4096):
-    if type(values) not in (tuple, list) or len(values) > maximum:
+    if (type(values) is not tuple and type(values) is not list) or len(values) > maximum:
         raise ValueError('SCREENING_BOUNDED_LITERAL_SEQUENCE_REQUIRED')
     return tuple(_screen_number(value) for value in values)
 
@@ -172,7 +180,7 @@ def numeric_fold_summary(rows, *, min_expectancy=0.0, min_profit_factor=1.05,
     never a fabricated zero. Legacy >=1e100 exclusion requires its named policy.
     Status, reason codes, fold selection and acceptance remain caller policy.
     """
-    if type(rows) not in (tuple, list) or len(rows) > 128:
+    if (type(rows) is not tuple and type(rows) is not list) or len(rows) > 128:
         raise ValueError('SCREENING_FOLD_LIMIT')
     minimum_e = _screen_number(min_expectancy)
     minimum_pf = _screen_number(min_profit_factor)

@@ -48,5 +48,10 @@
   "promotion_or_trade_objects": false,
   "notional_zero_predicate": "Finite literal binary64-domain pair using existing lossless validation OR plain finite Decimal pair; disallow mixed presentations; sign/zero identity only; not quote quantity/OHLC/authenticity proof",
   "legacy_test_retirement": 0,
-  "remaining_declared_test_function_obligations": 516
+  "remaining_declared_test_function_obligations": 516,
+  "rejected_unpublished_prototype": "10510bd26f28e9742f887ecdef03d691aa945b1f",
+  "corrected_new_type_admission": "IDENTITY_ONLY_NO_FOREIGN_METACLASS_CALLBACKS",
+  "new_cases": 25,
+  "full_pure_source_cases": 255,
+  "full_wheel_cases": 232
 }
