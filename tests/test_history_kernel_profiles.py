@@ -17,7 +17,7 @@ class KernelProfileContract(unittest.TestCase):
   # Accept only exact committed LF or whole-file checkout CRLF; no other filter transformation.
   if hashlib.sha256(committed).hexdigest()!=SOURCE_SHA or (raw!=committed and raw!=committed.replace(b'\n',b'\r\n')):raise SetupStageError('PROPOSED_ACTUAL_SOURCE_PIN')
   raw=committed
-  tree=ast.parse(raw);names={'KERNELS','ORIGINAL_KERNEL_SHA256','FINITE_STATISTICS_SHA256','UNIFIED_STATISTICS_SHA256','SIZING_PATH','STATISTICS_PATH','RESEARCH_PROFILE','RESEARCH_STATISTICS_SHA256','PROFILES'};optional={'EXTENDED_RESEARCH_PROFILE','EXTENDED_STATISTICS_SHA256','RESEARCH_PROFILES','TRADE_RESEARCH_PROFILE','TRADE_STATISTICS_SHA256'};constants={}
+  tree=ast.parse(raw);names={'KERNELS','ORIGINAL_KERNEL_SHA256','FINITE_STATISTICS_SHA256','UNIFIED_STATISTICS_SHA256','SIZING_PATH','STATISTICS_PATH','RESEARCH_PROFILE','RESEARCH_STATISTICS_SHA256','PROFILES'};optional={'EXTENDED_RESEARCH_PROFILE','EXTENDED_STATISTICS_SHA256','RESEARCH_PROFILES','TRADE_RESEARCH_PROFILE','TRADE_STATISTICS_SHA256','PERMUTATION_RESEARCH_PROFILE','PERMUTATION_STATISTICS_SHA256'};constants={}
   for node in tree.body:
    if isinstance(node,ast.Assign) and len(node.targets)==1 and isinstance(node.targets[0],ast.Name) and node.targets[0].id in names|optional:
     name=node.targets[0].id
@@ -32,9 +32,11 @@ class KernelProfileContract(unittest.TestCase):
   paths=['python/'+n for n in constants['KERNELS']];self.original={p:blob(ORIGINAL,p) for p in paths};self.finite={p:blob(FINITE,p) for p in paths};self.unified={p:blob(UNIFIED,p) for p in paths}
   self.research={p:blob(OBSERVATION,p) for p in paths if p!=constants['SIZING_PATH']}
   self.extended={p:blob('420290fa9a3d918903673d86d714feb5d9492aca',p) for p in paths if p!=constants['SIZING_PATH']}
-  self.rich={p:blob('HEAD',p) for p in paths if p!=constants['SIZING_PATH']}
+  self.rich={p:blob('00189c8551ac64e455f2e18150ebd89544981d55',p) for p in paths if p!=constants['SIZING_PATH']}
+  self.permutation={p:blob('HEAD',p) for p in paths if p!=constants['SIZING_PATH']}
   fixtures=ROOT/'tests/fixtures/history-kernel-profiles'
   if (fixtures/'statistics-e3.py.txt').read_bytes()!=self.research['python/history_statistics.py'] or (fixtures/'statistics-420.py.txt').read_bytes()!=self.extended['python/history_statistics.py']:raise SetupStageError('IMMUTABLE_HISTORICAL_STATISTICS_FIXTURE')
+  if (fixtures/'statistics-001.py.txt').read_bytes()!=self.rich['python/history_statistics.py']:raise SetupStageError('IMMUTABLE_V6_STATISTICS_FIXTURE')
   changed=[p for p in paths if self.original[p]!=self.finite[p]]
   if changed!=['python/history_statistics.py']:raise SetupStageError('EXACT_SINGLE_FINITE_FIXTURE_CALIBRATION')
  def test_original_profile_keeps_all_seven_byte_parity(self):
@@ -131,3 +133,18 @@ class KernelProfileContract(unittest.TestCase):
    with self.assertRaises(ValueError):self.validate(profile,self.original,self.rich)
   for data in (self.research,self.extended,{**self.rich,'python/history_statistics.py':self.rich['python/history_statistics.py']+b'\n'},{**self.rich,'python/history_sizing.py':self.original['python/history_sizing.py']}):
    with self.assertRaises(ValueError):self.validate('research-statistics-v6',self.original,data)
+
+ def test_permutation_v7_binds_actual_new_source_and_keeps_old_v6(self):
+  result=self.validate('research-statistics-v7',self.original,self.permutation)
+  self.assertEqual(result['comparison_mode'],'PINNED_PERMUTATION_DRAWDOWN_PROFILE_NOT_ORIGINAL_BYTE_PARITY')
+  self.assertEqual(result['changed_kernel_paths'],['python/history_sizing.py','python/history_statistics.py'])
+  self.assertEqual(result['semantic_equivalence'],'NOT_CLAIMED_BY_SOURCE_PROFILE')
+  self.assertEqual(result['numerical_qualification'],'SEPARATE_REQUIRED')
+  self.assertEqual(self.validate('research-statistics-v6',self.original,self.rich)['comparison_mode'],'PINNED_DECLARED_TRADE_PROFILE_NOT_ORIGINAL_BYTE_PARITY')
+ def test_permutation_v7_refuses_all_old_mutated_and_sizing_sources(self):
+  for data in (self.research,self.extended,self.rich,{**self.permutation,'python/history_statistics.py':self.permutation['python/history_statistics.py']+b'\n'},{**self.permutation,'python/history_sizing.py':self.original['python/history_sizing.py']}):
+   with self.assertRaises(ValueError):self.validate('research-statistics-v7',self.original,data)
+  for profile in ('observation-bootstrap-v4','research-statistics-v5','research-statistics-v6'):
+   with self.assertRaises(ValueError):self.validate(profile,self.original,self.permutation)
+ def test_permutation_workflow_explicit_v7(self):
+  self.assertIn('python scripts/history/parity.py --kernel-profile research-statistics-v7',(ROOT/'.github/workflows/history-integration.yml').read_text(encoding='utf-8'))

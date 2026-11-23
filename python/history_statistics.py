@@ -306,6 +306,22 @@ def project_decimal_observations(values):
         out.append(number)
     return tuple(out)
 
+def _ordered_equity_summary(values):
+    """Ordered binary64 equity, drawdown and loss streak for admitted values."""
+    equity=peak=drawdown=0.0
+    streak=maximum_streak=0
+    for value in values:
+        equity=equity+value
+        if not math.isfinite(equity):raise ValueError('PROFIT_LOSS_NONFINITE_EQUITY')
+        peak=max(peak,equity)
+        distance=peak-equity
+        if not math.isfinite(distance):raise ValueError('PROFIT_LOSS_NONFINITE_DRAWDOWN')
+        drawdown=max(drawdown,distance)
+        if value<0:
+            streak+=1;maximum_streak=max(maximum_streak,streak)
+        else:streak=0
+    return drawdown,maximum_streak
+
 def numeric_profit_loss_summary(values):
     """ORDERED_BINARY64_V1 arithmetic for declared signed outcome values.
 
@@ -323,18 +339,7 @@ def numeric_profit_loss_summary(values):
         factor=ProfitFactorObservation('FINITE',ratio)
     elif profit>0:factor=ProfitFactorObservation('NO_LOSSES',None)
     else:factor=ProfitFactorObservation('FINITE',0.0)
-    equity=peak=drawdown=0.0
-    streak=maximum_streak=0
-    for value in values:
-        equity=equity+value
-        if not math.isfinite(equity):raise ValueError('PROFIT_LOSS_NONFINITE_EQUITY')
-        peak=max(peak,equity)
-        distance=peak-equity
-        if not math.isfinite(distance):raise ValueError('PROFIT_LOSS_NONFINITE_DRAWDOWN')
-        drawdown=max(drawdown,distance)
-        if value<0:
-            streak+=1;maximum_streak=max(maximum_streak,streak)
-        else:streak=0
+    drawdown,maximum_streak=_ordered_equity_summary(values)
     return NumericProfitLossSummary(numeric,profit,loss,factor,drawdown,maximum_streak)
 
 class NumericTradeObservation(NamedTuple):
@@ -400,3 +405,30 @@ def numeric_trade_summary(observations):
         metadata.append(NumericOptionalSummary(summary.count,summary.total,
                                                summary.mean if summary.count else None))
     return NumericTradeSummary(net,gross.total,fees.total,*metadata)
+
+def permutation_drawdowns(values, *, runs=1000, seed=0):
+    """Seeded permutation maximum drawdowns over caller-declared outcomes.
+
+    A fresh original-order list is shuffled for every run by a private RNG.
+    Ordered binary64 equity/peak arithmetic matches the admitted legacy model.
+    <=4096 plain finite lossless values, <=1000 runs, <=1000000 value visits.
+    This is a conditional record-order model, not a market, stationarity,
+    risk-of-ruin, accounting, source authenticity or trading authority claim.
+    Derived nonfinite equity/drawdown aborts the entire result.
+    """
+    if (type(values) is not list and type(values) is not tuple) or not 1<=len(values)<=4096:
+        raise ValueError('PERMUTATION_BOUNDED_NONEMPTY_LITERAL_SEQUENCE_REQUIRED')
+    captured=tuple(values)
+    if (type(runs) is not int or not 1<=runs<=1000 or
+            type(seed) is not int or not 0<=seed<=2**31-1 or
+            len(captured)*runs>1000000):
+        raise ValueError('PERMUTATION_BUDGET_OR_POLICY')
+    admitted=tuple(_screen_number(value) for value in captured)
+    rng=random.Random(seed)
+    out=[]
+    for _ in range(runs):
+        path=list(admitted)
+        rng.shuffle(path)
+        drawdown,_=_ordered_equity_summary(path)
+        out.append(drawdown)
+    return tuple(out)
