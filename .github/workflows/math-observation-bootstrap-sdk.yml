@@ -80,7 +80,7 @@ jobs:
               require_checkout(committed_files,current_files)
               materialize(committed_files,source)
               numeric_cases=[]
-              for case,test_name in (('volatility','tests/test_causal_volatility.py'),('value_area','tests/test_value_area_metrics.py'),('research_brackets','tests/test_research_bracket_prices.py'),('research_expansion','tests/test_research_expansion_side.py'),('price_structure','tests/test_price_structure_patterns.py'),('entry_numeric','tests/test_entry_numeric_policy.py')):
+              for case,test_name in (('volatility','tests/test_causal_volatility.py'),('value_area','tests/test_value_area_metrics.py'),('research_brackets','tests/test_research_bracket_prices.py'),('research_expansion','tests/test_research_expansion_side.py'),('price_structure','tests/test_price_structure_patterns.py'),('entry_numeric','tests/test_entry_numeric_policy.py'),('screening_numeric','tests/test_screening_numeric.py')):
                   test_bytes=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','HEAD:'+test_name],timeout=15)
                   if (root/test_name).read_bytes()!=test_bytes:raise RuntimeError('NUMERIC_TEST_RAW_CHECKOUT_MISMATCH')
                   test_home=tmp/(case+'-test');test_home.mkdir()
@@ -92,7 +92,7 @@ jobs:
               import hashlib,importlib,importlib.util,importlib.machinery,json,pathlib,stat,sys,unittest
               SDK=('market_math','market_compute_api','history_statistics')
               TEST_MODULE='math_numeric_ci_tests'
-              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA'),'research_brackets':(16,'test_research_bracket_prices.py','MATH_RESEARCH_BRACKETS'),'research_expansion':(9,'test_research_expansion_side.py','MATH_RESEARCH_EXPANSION'),'price_structure':(12,'test_price_structure_patterns.py','MATH_PRICE_STRUCTURE'),'entry_numeric':(17,'test_entry_numeric_policy.py','MATH_ENTRY_NUMERIC')}
+              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA'),'research_brackets':(16,'test_research_bracket_prices.py','MATH_RESEARCH_BRACKETS'),'research_expansion':(9,'test_research_expansion_side.py','MATH_RESEARCH_EXPANSION'),'price_structure':(12,'test_price_structure_patterns.py','MATH_PRICE_STRUCTURE'),'entry_numeric':(17,'test_entry_numeric_policy.py','MATH_ENTRY_NUMERIC'),'screening_numeric':(24,'test_screening_numeric.py','MATH_SCREENING_NUMERIC')}
               FORBIDDEN=('market_profile_math','market_data','terminan','grid','strattester','meta_analyse')
               def need(value,code):
                   if not value:raise RuntimeError(code)

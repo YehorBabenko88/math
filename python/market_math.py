@@ -1543,3 +1543,25 @@ def research_retest_matches(high_price,low_price,close_price,reference_price,sid
     high,low,close,reference,margin=map(_paper_binary64,(high_price,low_price,close_price,reference_price,tolerance))
     boundary=_paper_binary64(reference*(1+margin if side=='long' else 1-margin))
     return (low<=boundary and close>reference) if side=='long' else (high>=boundary and close<reference)
+
+
+def executed_notional_consistent(turnover, volume):
+    """Only finite nonnegative zero/nonzero consistency, never quantity proof.
+
+    Accept either literal int/float binary64-domain values (the existing lossless
+    nonnegative predicate) or two plain finite Decimal presentation values.
+    Decimal and binary64 presentations cannot mix. No conversion, callbacks,
+    arithmetic, OHLC bounds, source authentication or quote-quantity proof is
+    inferred. Decimal comparisons preserve caller context flags and traps.
+    """
+    if type(turnover) is Decimal and type(volume) is Decimal:
+        if not turnover.is_finite() or not volume.is_finite():
+            return False
+        if turnover < 0 or volume < 0:
+            return False
+    elif type(turnover) in (int, float) and type(volume) in (int, float):
+        if not lossless_nonnegative_binary64_valid(turnover) or not lossless_nonnegative_binary64_valid(volume):
+            return False
+    else:
+        return False
+    return (turnover == 0) == (volume == 0)
