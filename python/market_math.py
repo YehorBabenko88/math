@@ -1462,3 +1462,52 @@ def research_expansion_side(open_price,close_price,atr_fraction,*,min_body_atr=.
     threshold=_paper_binary64(closing*atr*minimum)
     if abs(body)<threshold:return None
     return 'long' if body>0 else 'short'
+
+
+class PriceStructurePattern(NamedTuple):
+    index: int
+    kind: int
+    low: int|float
+    high: int|float
+    dependency_start: int
+    dependency_stop: int
+
+
+def price_structure_patterns(ranges,*,left=2,right=2):
+    """Pure strict swing and three-range gap comparisons from research SMC.
+
+    Closed literal rows are (high,low), at most4096. Codes0/1 are strict
+    high/low swings and2/3 upward/downward gaps. Each immutable result includes
+    its complete half-open dependency-index interval so an analysis owner can
+    bind actual declared availability without inferring clocks. Original numeric
+    values and strict tie behavior are preserved. Zero is allowed as geometry,
+    not executable-price admission. No trend, strategy, IO or trust is assigned.
+    """
+    if (type(left) is not int or type(right) is not int
+            or not 1<=left<=64 or not 1<=right<=64):
+        raise ValueError('PRICE_STRUCTURE_LITERAL_WINDOW_REQUIRED')
+    if (type(ranges) is not tuple and type(ranges) is not list) or len(ranges)>4096:
+        raise ValueError('PRICE_STRUCTURE_BOUNDED_LITERAL_ROWS_REQUIRED')
+    rows=[]
+    for row in tuple(ranges):
+        if (type(row) is not tuple and type(row) is not list) or len(row)!=2:
+            raise ValueError('PRICE_STRUCTURE_CLOSED_RANGE_REQUIRED')
+        high,low=row
+        _value_area_number(high);_value_area_number(low)
+        if low>high:raise ValueError('PRICE_STRUCTURE_ORDERED_RANGE_REQUIRED')
+        rows.append((high,low))
+    out=[]
+    for index in range(left,len(rows)-right):
+        high,low=rows[index]
+        neighbors=rows[index-left:index]+rows[index+1:index+1+right]
+        if all(high>row[0] for row in neighbors):
+            out.append(PriceStructurePattern(index,0,high,high,index-left,index+right+1))
+        if all(low<row[1] for row in neighbors):
+            out.append(PriceStructurePattern(index,1,low,low,index-left,index+right+1))
+    for index in range(2,len(rows)):
+        prior_high,prior_low=rows[index-2];high,low=rows[index]
+        if low>prior_high:
+            out.append(PriceStructurePattern(index,2,prior_high,low,index-2,index+1))
+        elif high<prior_low:
+            out.append(PriceStructurePattern(index,3,high,prior_low,index-2,index+1))
+    return tuple(sorted(out,key=lambda item:(item.index,item.kind)))
