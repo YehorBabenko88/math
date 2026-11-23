@@ -30,8 +30,10 @@ EXTENDED_RESEARCH_PROFILE = 'research-statistics-v5'
 EXTENDED_STATISTICS_SHA256 = '1c477f1e3275953a962d3692995d0baf1c5694026b6f2d72fdb6f1c2ac9a04c9'
 TRADE_RESEARCH_PROFILE = 'research-statistics-v6'
 TRADE_STATISTICS_SHA256 = '7757c135972dbabeeca9f16353fc4e93c7b68fd9bd4761b4e21e81faa583e1d7'
-RESEARCH_PROFILES = (RESEARCH_PROFILE, EXTENDED_RESEARCH_PROFILE, TRADE_RESEARCH_PROFILE)
-PROFILES = ('original-v1', 'finite-bootstrap-v2', 'unified-bootstrap-v3', RESEARCH_PROFILE, EXTENDED_RESEARCH_PROFILE, TRADE_RESEARCH_PROFILE)
+PERMUTATION_RESEARCH_PROFILE = 'research-statistics-v7'
+PERMUTATION_STATISTICS_SHA256 = 'eef7dd8c252e68783d60b6236a437942df99995fae714a9fa0ca117b58e54cef'
+RESEARCH_PROFILES = (RESEARCH_PROFILE, EXTENDED_RESEARCH_PROFILE, TRADE_RESEARCH_PROFILE, PERMUTATION_RESEARCH_PROFILE)
+PROFILES = ('original-v1', 'finite-bootstrap-v2', 'unified-bootstrap-v3', RESEARCH_PROFILE, EXTENDED_RESEARCH_PROFILE, TRADE_RESEARCH_PROFILE, PERMUTATION_RESEARCH_PROFILE)
 
 def validate_kernel_profile(profile,original,current):
     paths={'python/'+name for name in KERNELS}
@@ -55,7 +57,7 @@ def validate_kernel_profile(profile,original,current):
         if old_sha!=ORIGINAL_KERNEL_SHA256[path]:
             raise ValueError('HISTORY_REFERENCE_PIN_MISMATCH:'+path)
         if profile in RESEARCH_PROFILES and path == STATISTICS_PATH:
-            expected_statistics = {RESEARCH_PROFILE: RESEARCH_STATISTICS_SHA256, EXTENDED_RESEARCH_PROFILE: EXTENDED_STATISTICS_SHA256, TRADE_RESEARCH_PROFILE: TRADE_STATISTICS_SHA256}[profile]
+            expected_statistics = {RESEARCH_PROFILE: RESEARCH_STATISTICS_SHA256, EXTENDED_RESEARCH_PROFILE: EXTENDED_STATISTICS_SHA256, TRADE_RESEARCH_PROFILE: TRADE_STATISTICS_SHA256, PERMUTATION_RESEARCH_PROFILE: PERMUTATION_STATISTICS_SHA256}[profile]
             if new_sha != expected_statistics:
                 raise ValueError('RESEARCH_KERNEL_PROFILE_PIN_MISMATCH:'+path)
         elif profile in ('finite-bootstrap-v2','unified-bootstrap-v3') and path==STATISTICS_PATH:
@@ -67,7 +69,7 @@ def validate_kernel_profile(profile,original,current):
         hashes[path]=new_sha
         if old==new:preserved[path]=new_sha
         else:changed.append(path)
-    return {'kernel_profile':profile,'comparison_mode':{'original-v1':'ORIGINAL_RAW_BYTE_PARITY','finite-bootstrap-v2':'PINNED_FINITE_PROFILE_NOT_ORIGINAL_BYTE_PARITY','unified-bootstrap-v3':'PINNED_UNIFIED_PROFILE_NOT_ORIGINAL_BYTE_PARITY', RESEARCH_PROFILE:'PINNED_OBSERVATION_PROFILE_NOT_ORIGINAL_BYTE_PARITY', EXTENDED_RESEARCH_PROFILE:'PINNED_RESEARCH_STATISTICS_PROFILE_NOT_ORIGINAL_BYTE_PARITY', TRADE_RESEARCH_PROFILE:'PINNED_DECLARED_TRADE_PROFILE_NOT_ORIGINAL_BYTE_PARITY'}[profile],
+    return {'kernel_profile':profile,'comparison_mode':{'original-v1':'ORIGINAL_RAW_BYTE_PARITY','finite-bootstrap-v2':'PINNED_FINITE_PROFILE_NOT_ORIGINAL_BYTE_PARITY','unified-bootstrap-v3':'PINNED_UNIFIED_PROFILE_NOT_ORIGINAL_BYTE_PARITY', RESEARCH_PROFILE:'PINNED_OBSERVATION_PROFILE_NOT_ORIGINAL_BYTE_PARITY', EXTENDED_RESEARCH_PROFILE:'PINNED_RESEARCH_STATISTICS_PROFILE_NOT_ORIGINAL_BYTE_PARITY', TRADE_RESEARCH_PROFILE:'PINNED_DECLARED_TRADE_PROFILE_NOT_ORIGINAL_BYTE_PARITY', PERMUTATION_RESEARCH_PROFILE:'PINNED_PERMUTATION_DRAWDOWN_PROFILE_NOT_ORIGINAL_BYTE_PARITY'}[profile],
             'current_kernel_sha256':hashes,'preserved_original_kernel_sha256':preserved,'changed_kernel_paths':changed,
             'semantic_equivalence':'NOT_CLAIMED_BY_SOURCE_PROFILE','numerical_qualification':'SEPARATE_REQUIRED'}
 
@@ -112,7 +114,7 @@ def main():
                'scientific_full_result_sha256': hashlib.sha256(after).hexdigest(),
                'status': 'PASS', 'source_authenticity': 'NOT_EVALUATED', 'trading_authorized': False}
     if args.kernel_profile in RESEARCH_PROFILES:
-        schema = {RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v4', EXTENDED_RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v5', TRADE_RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v6'}[args.kernel_profile]
+        schema = {RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v4', EXTENDED_RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v5', TRADE_RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v6', PERMUTATION_RESEARCH_PROFILE: 'math.history.scientific.profile-parity.v7'}[args.kernel_profile]
         receipt.update(schema=schema, **profile)
     elif args.kernel_profile!='original-v1':
         receipt.update(schema='math.history.scientific.profile-parity.v3' if args.kernel_profile=='unified-bootstrap-v3' else 'math.history.scientific.profile-parity.v2',**profile)

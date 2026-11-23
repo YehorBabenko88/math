@@ -4,7 +4,7 @@ Fixtures are exact raw Git source data, not project imports. No native admission
 import ast,hashlib,pathlib,subprocess,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'scripts/history/parity.py'
-SOURCE_SHA='7c2498e696a75e393533640bb5bb1f33de7a5e1f7f4b64ba5cef1c7050e71d55'
+SOURCE_SHA='b1cbee28685c5b38d7e379d257f29ff35fe7e9108daac3baf3057b50542fd3b1'
 ORIGINAL='3a9c542841e160f8b1924f155aaa2d1a676dfd04'
 FINITE='b9c2f24b33285b7b0e06aebc354a9c61a909d204'
 UNIFIED='c12b2b4d177af5ed07ee3ea23854acf646cf06b2'
@@ -91,7 +91,7 @@ class KernelProfileContract(unittest.TestCase):
  def test_workflow_uses_explicit_profile_and_existing_branch_policy(self):
   finite=(ROOT/'.github/workflows/agent7-history-statistics.yml').read_text();history=(ROOT/'.github/workflows/history-integration.yml').read_text();script=SOURCE.read_text()
   for predicate in ("github.head_ref != 'fix/walk-forward-forecast-guard'","github.ref != 'refs/heads/fix/walk-forward-forecast-guard'"):self.assertIn(predicate,finite)
-  self.assertIn('python scripts/history/parity.py --kernel-profile research-statistics-v6',history);self.assertIn("default='original-v1'",script);self.assertIn("'math.history.scientific.profile-parity.v3'",script)
+  self.assertIn('python scripts/history/parity.py --kernel-profile research-statistics-v7',history);self.assertIn("default='original-v1'",script);self.assertIn("'math.history.scientific.profile-parity.v3'",script)
  def test_observation_profile_pins_numeric_kernel_and_requires_sizing_removal(self):
   result=self.validate('observation-bootstrap-v4',self.original,self.research)
   self.assertEqual(result['changed_kernel_paths'],['python/history_sizing.py','python/history_statistics.py'])
