@@ -1582,3 +1582,162 @@ def paper_execution_values_valid(entry, exit, quantity, fees):
     except ValueError:
         return False
     return True
+
+
+# PAPER_SCALE_ACCOUNTING_V1: caller-declared chronological pooled-cost model.
+class PaperScaleEntryMetrics(NamedTuple):
+    price: Decimal
+    quantity: Decimal
+
+class PaperScaleEvent(NamedTuple):
+    kind: str
+    price: Decimal
+    quantity: Decimal
+
+class PaperScaleState(NamedTuple):
+    remaining_quantity: Decimal
+    remaining_cost: Decimal
+    current_entry_price: Decimal | None
+    opened_quantity: Decimal
+    exited_quantity: Decimal
+    entry_value_total: Decimal
+    exit_value_total: Decimal
+    entry_mean: Decimal | None
+    exit_mean: Decimal | None
+    gross_pnl: Decimal
+    entry_fees: Decimal
+    exit_fees: Decimal
+    fees: Decimal
+    net_pnl: Decimal
+    closed: bool
+
+def _scale_amount(value, *, positive=False, nonnegative=False):
+    # Exact type admission precedes the existing accumulated-amount policy.
+    if type(value) is not Decimal or not value.is_finite():
+        raise ValueError('SCALE_PLAIN_FINITE_DECIMAL_REQUIRED')
+    _market_amount(value)
+    if positive and value<=0 or nonnegative and value<0:
+        raise ValueError('SCALE_AMOUNT_SIGN')
+    return value
+
+def _scale_fraction(value):
+    _policy_decimal(value,positive=True)
+    _scale_amount(value,positive=True)
+    if value>1:raise ValueError('SCALE_FRACTION_DOMAIN')
+    return value
+
+def paper_scale_fractions_valid(fractions):
+    """Exact positive Decimal plan fractions, not approximate binary64 weights.
+
+    Exact tuple of1..16 values, each <=128 digits/exponent +/-2000. All
+    declarations are captured before arithmetic. Exact sum must equal one.
+    No units, plan execution, source authenticity or authority is inferred.
+    """
+    if type(fractions) is not tuple or not 1<=len(fractions)<=16:return False
+    captured=tuple(fractions)
+    try:
+        for value in captured:_scale_fraction(value)
+        total=exact_sum(captured)
+    except ValueError:return False
+    return total==Decimal(1)
+
+def paper_scale_entry_metrics(side,raw_entry,notional,fraction,slippage_bps):
+    """Private28 allocation, adverse price and canonical position sizing.
+
+    The old paper_scale_value binary64 API is intentionally not used. Quantity
+    and allocated value additionally obey the existing exact-amount resource
+    budget. Fees are charged separately on actual executed price*quantity.
+    """
+    side,raw_entry,notional,fraction,slippage_bps=(side,raw_entry,notional,fraction,slippage_bps)
+    _paper_side(side);_policy_decimal(raw_entry,positive=True)
+    _policy_decimal(notional,positive=True);_scale_amount(notional,positive=True)
+    _scale_fraction(fraction);_policy_decimal(slippage_bps,nonnegative=True)
+    if slippage_bps>=10000:raise ValueError('INVALID_PAPER_SLIPPAGE')
+    allocated=_scale_amount(_paper_context().multiply(notional,fraction),positive=True)
+    _policy_decimal(allocated,positive=True)
+    price=adverse_execution_price(raw_entry,side,slippage_bps,True)
+    quantity=_scale_amount(paper_position_size(allocated,price),positive=True)
+    return PaperScaleEntryMetrics(price,quantity)
+
+def paper_scale_target_quantity(remaining,opened,fraction):
+    """Earlier targets use a fraction of opened quantity, capped by remaining.
+
+    The caller passes fraction=1 for its final target or EOD closure; that path
+    returns the exact entire remainder. A partial product rounded to the entire
+    opened quantity refuses instead of erasing a positive nominal complement.
+    """
+    remaining,opened,fraction=(remaining,opened,fraction)
+    _scale_amount(remaining,positive=True);_scale_amount(opened,positive=True)
+    _scale_fraction(fraction)
+    if remaining>opened:raise ValueError('SCALE_REMAINING_EXCEEDS_OPENED')
+    if fraction==1:return remaining
+    quantity=_scale_amount(_paper_context().multiply(opened,fraction),positive=True)
+    if quantity>=opened:raise ValueError('SCALE_TARGET_ROUNDING_COLLAPSE')
+    return min(remaining,quantity)
+
+def paper_scale_accounting(side,events,fee_rate):
+    """PAPER_SCALE_ACCOUNTING_V1; no scheduling, simulation or market inference.
+
+    Snapshot all exact typed event leaves before any financial helper. Up to64
+    ENTRY/EXIT records; raw prices use Paper128 digits/exponent +/-4096. Exact
+    quantity/cost/totals use existing4270 digits/exponent +/-2000/adjusted<=2262
+    resource policy. All derived violations refuse atomically. Per-event values
+    and fees use explicit sequential28 rounding; their totals and conservation
+    are exact within that budget, not recovered unrounded accounting.
+
+    Partial exits allocate the smaller quantity side with a28-digit cost share;
+    the other cost side is the exact complement. Full closure releases every
+    remaining cost unit. Later entries never rebase a previous realization.
+    Open-state net includes charged fees and realized gross, no unrealized mark.
+    """
+    if (type(events) is not tuple and type(events) is not list) or len(events)>64:
+        raise ValueError('SCALE_BOUNDED_LITERAL_EVENTS_REQUIRED')
+    captured=tuple(events)
+    for event in captured:
+        if type(event) is not PaperScaleEvent:raise ValueError('SCALE_EXACT_EVENT_REQUIRED')
+    captured=tuple(tuple(event) for event in captured)
+    _paper_side(side);_policy_decimal(fee_rate,nonnegative=True)
+    _scale_amount(fee_rate,nonnegative=True)
+    if fee_rate>=1:raise ValueError('INVALID_PAPER_FEE')
+    for kind,price,quantity in captured:
+        if type(kind) is not str or kind not in ('ENTRY','EXIT'):
+            raise ValueError('SCALE_CLOSED_EVENT_KIND_REQUIRED')
+        _policy_decimal(price,positive=True);_scale_amount(quantity,positive=True)
+    c=_paper_context();zero=Decimal(0)
+    remaining=cost=zero;closed=False
+    entry_quantities=[];exit_quantities=[];entry_values=[];exit_values=[]
+    entry_fees=[];exit_fees=[];realized=[]
+    for kind,price,quantity in captured:
+        if closed:raise ValueError('SCALE_EVENT_AFTER_TERMINAL_CLOSE')
+        if kind=='EXIT' and (remaining<=0 or quantity>remaining):
+            raise ValueError('SCALE_EXIT_EXCEEDS_REMAINING')
+        value=_scale_amount(c.multiply(price,quantity),positive=True)
+        fee=_scale_amount(paper_entry_fee(value,fee_rate),nonnegative=True)
+        if kind=='ENTRY':
+            remaining=exact_sum((remaining,quantity));cost=exact_sum((cost,value))
+            entry_quantities.append(quantity);entry_values.append(value);entry_fees.append(fee)
+        else:
+            after=exact_sum((remaining,quantity.copy_negate()))
+            if quantity==remaining:
+                released=cost;retained=zero;closed=True
+            else:
+                exit_smaller=quantity<=after
+                small_quantity=quantity if exit_smaller else after
+                share=_policy_decimal(c.divide(small_quantity,remaining),positive=True)
+                small_cost=_scale_amount(c.multiply(cost,share),positive=True)
+                if small_cost>=cost:raise ValueError('SCALE_COST_ALLOCATION_COLLAPSE')
+                complement=_scale_amount(exact_sum((cost,small_cost.copy_negate())),positive=True)
+                released,retained=(small_cost,complement) if exit_smaller else (complement,small_cost)
+            gross=exact_sum((value,released.copy_negate())) if side=='long' else exact_sum((released,value.copy_negate()))
+            realized.append(gross);exit_quantities.append(quantity)
+            exit_values.append(value);exit_fees.append(fee)
+            remaining=after;cost=retained
+    opened=exact_sum(entry_quantities);exited=exact_sum(exit_quantities)
+    entry_total=exact_sum(entry_values);exit_total=exact_sum(exit_values)
+    gross=exact_sum(realized);entry_fee=exact_sum(entry_fees);exit_fee=exact_sum(exit_fees)
+    fees=exact_sum((entry_fee,exit_fee));net=exact_sum((gross,fees.copy_negate()))
+    def mean(value,quantity):
+        return _policy_decimal(c.divide(value,quantity),positive=True) if quantity>0 else None
+    return PaperScaleState(remaining,cost,mean(cost,remaining),opened,exited,
+        entry_total,exit_total,mean(entry_total,opened),mean(exit_total,exited),
+        gross,entry_fee,exit_fee,fees,net,closed)

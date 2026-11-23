@@ -1,0 +1,53 @@
+{
+  "schema": "math.paper-scale-accounting.transfer.v1",
+  "model": "PAPER_SCALE_ACCOUNTING_V1",
+  "baseMath": "1b053524a111167760860f06bceae3298476a56c",
+  "legacyData": "104b8474de7870d52921316d345fb5f027d8dbeb",
+  "legacySource": {
+    "path": "strattester/research/execution.py",
+    "sha256": "99c1a3a7907b0481c0f2a4f239fb6808f137834b39fffaf7885ef60f66246832",
+    "archive": "raw/legacy-execution.py.txt",
+    "qualification": "INERT_SOURCE_ONLY_NO_GLOBAL_EQUIVALENCE"
+  },
+  "legacyTestRoles": 3,
+  "legacyTestsQualification": "LATER_ACTUAL_TERM_SOLE_ENGINE_CALLER_PORT_NOT_RUN_BY_MATH_KERNEL",
+  "publicHelpers": [
+    "paper_scale_fractions_valid",
+    "paper_scale_entry_metrics",
+    "paper_scale_target_quantity",
+    "paper_scale_accounting"
+  ],
+  "typedRecords": [
+    "PaperScaleEntryMetrics",
+    "PaperScaleEvent",
+    "PaperScaleState"
+  ],
+  "marketMathSha256": "722fe7b1c3858c0947f5dfcfe18efdde4a4923327299444cd4b10d041bc8bae2",
+  "oldMarketMathWholePrefixSha256": "42c0d8aa241eb9ed1e7f9126a91d1cfdfaffc8d9460162ec3bb5fd0a08ed960e",
+  "historyStatisticsV7ShaUnchanged": "eef7dd8c252e68783d60b6236a437942df99995fae714a9fa0ca117b58e54cef",
+  "rawPricePolicy": "EXISTING_PAPER_PLAIN_DECIMAL_128_DIGITS_EXPONENT_ABS4096",
+  "exactAmountPolicy": "EXISTING_MARKET_AMOUNT_4270_DIGITS_EXPONENT_ABS2000_ADJUSTED_MAX2262",
+  "partialCost": "PRIVATE28_SMALLER_QUANTITY_SIDE_SHARE_THEN_EXACT_COMPLEMENT",
+  "eventValues": "SEQUENTIAL_PRIVATE28_EXECUTED_PRICE_TIMES_QUANTITY",
+  "fees": "EXISTING_PAPER_ENTRY_FEE_ON_ACTUAL_ROUNDED_EVENT_VALUE",
+  "totals": "EXISTING_EXACT_SUM",
+  "means": "PRIVATE28_DESCRIPTIVE_NOT_RETROACTIVE_EXIT_BASIS",
+  "emptyState": "ZERO_VALUES_NONE_MEANS_CLOSED_FALSE",
+  "terminal": "FULL_CLOSE_RELEASES_EXACT_ENTIRE_COST_NO_SUBSEQUENT_REENTRY",
+  "finalTarget": "TERM_CALLER_PASSES_FRACTION1_TO_CLOSE_EXACT_REMAINDER",
+  "targetRoundingCollapse": "PARTIAL_PRODUCT_ROUNDS_TO_ENTIRE_OPENED_REFUSES_ATOMICALLY",
+  "budgetRefusal": "NO_CLAMP_NO_EPSILON_NO_GLOBAL_POLICY_WIDENING",
+  "bounds": {
+    "fractions": 16,
+    "plannedEntryLegsCaller": 16,
+    "plannedTargetsCaller": 16,
+    "events": 64
+  },
+  "newMandatorySDKCases": 24,
+  "old10GroupsPreserved": true,
+  "sourceAuthentication": false,
+  "executionAuthority": false,
+  "tradingAuthorized": false,
+  "remainingDeclaredObligations": 516,
+  "legacyRetirement": 0
+}

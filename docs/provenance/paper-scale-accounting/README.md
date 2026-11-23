@@ -1,0 +1,13 @@
+# Paper scale accounting model
+
+PAPER_SCALE_ACCOUNTING_V1 is a new explicit Decimal model. The four pure helpers and three immutable records own allocation, quantity, pooled remaining cost, per-event fees and summary arithmetic. Term retains scheduling in its sole PaperEngine; Math does not simulate bars, interpret strategy signals, attest sources or grant trading authority.
+
+Snapshot all typed event leaves before financial helpers. Exact fractions sum to one without tolerance. Raw prices use the unchanged Paper128-digit/±4096 policy; quantity/cost/totals use existing exact_sum and accumulated4270-digit/±2000/adjusted2262 limits. Derived scalar values additionally retain their existing Paper policy. Unsupported derived domains refuse the entire result. All caller Decimal flags, traps and RNG remain untouched.
+
+Entry allocation and each actual executed price×quantity are rounded in private28-digit contexts. Fees use paper_entry_fee on that actual rounded event value, not the original planned allocation. Totals conserve those declared rounded values exactly; they do not recover unrounded price×quantity precision. Descriptive means use private28 division. Open-state net is realized gross minus all charged fees, without an unrealized mark.
+
+For partial exits, compute the smaller quantity share in private28 arithmetic and its cost; obtain the larger cost complement by exact_sum. This retains tiny positive remaining cost/quantity. Full exits release the exact entire remaining cost. Later entries change only the remaining pool and cannot rebase prior realizations. Terminal close refuses later events; Term cancels pending entries. No epsilon discards residuals.
+
+Earlier targets use their declared fraction of opened quantity capped by remaining. A partial product rounded to the entire opened quantity refuses instead of silently erasing a nominal complement. The final declared target or EOD passes fraction1 and closes the exact remainder. This is a declared new model, not equivalence to old binary64 approximate fractions, retrospective cost rebasing or1e-12 residual drops. The old binary64 paper_scale_value ABI remains untouched and unused.
+
+The original three scale test roles are retained as inert raw source and will be exercised later through the actual sole Term engine port. No legacy test retirement is claimed;516 obligations remain. RootSDK127/129 pins and all old Math APIs, compute module and statisticsv7 stay unchanged.
