@@ -131,7 +131,7 @@ jobs:
               call([py,'-B','-c',program],cwd=tmp)
               print('Math wheel SHA-256',hashlib.sha256(wheels[0].read_bytes()).hexdigest())
       - name: Explicit pinned consolidated kernel profile and original scientific parity
-        run: python scripts/history/parity.py --kernel-profile observation-bootstrap-v4
+        run: python scripts/history/parity.py --kernel-profile research-statistics-v5
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
