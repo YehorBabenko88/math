@@ -1,0 +1,17 @@
+{
+  "schema": "math.entry-numeric-transfer.v1",
+  "sourceRepository": "YehorBabenko88/strattester",
+  "sourceHead": "622e99dcd169d471279b5d38204d29a01eaf8647",
+  "sourcePath": "strattester/research/scalp_entries.py",
+  "blob": "533904ce3b28f5d9d69f5bfc72efda168f6674ee",
+  "bytes": 5468,
+  "sha256": "fcc39f27efe6730eaa85329dcab6160b838c0b2229e8a1ec58443f582218b24b",
+  "numericMap": {
+    "breakout_retest_volume_entries.touched": "research_retest_matches"
+  },
+  "signedDomain": "lossless_binary64_valid reuses existing nonnegative core; negative zero allowed; no callback/Decimal/string coercion",
+  "policy": "Positive ordered finite lossless prices; original binary64 1±tolerance multiplication and inclusivewick/strictclose; finite signed algebraic threshold is not executable admission",
+  "retiredTestObligations": 0,
+  "remainingDeclaredLegacyTestFunctions": 516,
+  "release": "NO_GO"
+}

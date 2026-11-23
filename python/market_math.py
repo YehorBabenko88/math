@@ -1511,3 +1511,35 @@ def price_structure_patterns(ranges,*,left=2,right=2):
         elif high<prior_low:
             out.append(PriceStructurePattern(index,3,high,prior_low,index-2,index+1))
     return tuple(sorted(out,key=lambda item:(item.index,item.kind)))
+
+
+def lossless_binary64_valid(value):
+    """Literal finite signed int/float with exact integer binary64 roundtrip.
+
+    Reuse the nonnegative numerical-domain core; no string/Decimal/subclass
+    coercion, foreign callbacks, financial policy or source authority is added.
+    """
+    if type(value) is int:
+        if value.bit_length()>1024:return False
+    elif type(value) is not float:return False
+    return lossless_nonnegative_binary64_valid(-value if value<0 else value)
+
+
+def research_retest_matches(high_price,low_price,close_price,reference_price,side,*,tolerance=.0015):
+    """Original binary64 retest boundary comparisons, not executable admission.
+
+    Literal finite lossless positive ordered prices and nonnegative tolerance
+    are required. Preserves reference*(1+tolerance)/(1-tolerance) order and
+    inclusive wick touch with a strict closing cross. Finite algebraic negative
+    short thresholds remain geometry; nonrepresentable boundaries refuse.
+    """
+    if type(side) is not str or side not in ('long','short'):
+        raise ValueError('RESEARCH_RETEST_LITERAL_SIDE_REQUIRED')
+    for value in (high_price,low_price,close_price,reference_price):
+        _value_area_number(value,positive=True)
+    _value_area_number(tolerance)
+    if not low_price<=close_price<=high_price:
+        raise ValueError('RESEARCH_RETEST_ORDERED_PRICES_REQUIRED')
+    high,low,close,reference,margin=map(_paper_binary64,(high_price,low_price,close_price,reference_price,tolerance))
+    boundary=_paper_binary64(reference*(1+margin if side=='long' else 1-margin))
+    return (low<=boundary and close>reference) if side=='long' else (high>=boundary and close<reference)
