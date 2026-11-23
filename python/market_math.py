@@ -1565,3 +1565,20 @@ def executed_notional_consistent(turnover, volume):
     else:
         return False
     return (turnover == 0) == (volume == 0)
+
+def paper_execution_values_valid(entry, exit, quantity, fees):
+    """Validate caller-declared execution values in the Paper Decimal domain.
+
+    Prices and quantity are strictly positive; aggregate fees are nonnegative.
+    Exact plain finite Decimal values only, <=128 coefficient digits and an
+    exponent within +/-4096. No arithmetic, PnL, units, fill, source or authority
+    inference is performed. Invalid declarations return a literal False without
+    coercion or dependence on the caller's Decimal context.
+    """
+    try:
+        for value in (entry, exit, quantity):
+            _policy_decimal(value, positive=True)
+        _policy_decimal(fees, nonnegative=True)
+    except ValueError:
+        return False
+    return True
