@@ -1,0 +1,11 @@
+{
+  "sourceRepository": "YehorBabenko88/strattester",
+  "sourceRevision": "622e99dcd169d471279b5d38204d29a01eaf8647",
+  "sourcePath": "strattester/research/statistics.py",
+  "sourceBlob": "fab928cde9976cf3fd9c9d2811e6b1b29e26cff2",
+  "sourceSha256": "dc5a03194c57d1f0c6151462787b0836490aa157a5b4f1c65988c70e60b6269e",
+  "rawEvidence": "../entry-screening-kernels/raw/statistics.py.txt",
+  "scope": "SIGNED_NUMERIC_CORE_ONLY_NOT_COMPLETE_TRADE_METRICS_OR_EVALUATOR",
+  "baseMath": "9ed369ddd41ae32c4b3a9434f0b29d6dcf51154f",
+  "legacyRemaining": 516
+}

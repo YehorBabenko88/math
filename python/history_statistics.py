@@ -271,3 +271,68 @@ def iid_observation_mean_bootstrap(values, *, runs=1000, seed=17, confidence=.95
             raise ValueError('SCREENING_NONFINITE_QUANTILE')
         return result
     return IIDMeanInterval(quantile(alpha), mean, quantile(1.0 - alpha))
+
+
+class NumericProfitLossSummary(NamedTuple):
+    numeric: NumericSampleSummary
+    gross_profit: float
+    gross_loss: float
+    profit_factor: ProfitFactorObservation
+    max_drawdown: float
+    max_consecutive_losses: int
+
+def project_decimal_observations(values):
+    """Explicit DECIMAL_TO_BINARY64_V1 descriptive projection, not accounting.
+
+    Exact plain finite Decimal inputs only; <=4096 values. Rounding to nearest
+    binary64 is intentional and may lose decimal precision. Nonzero underflow
+    and nonfinite overflow refuse. The caller's Decimal context is untouched.
+    No currency, PnL source, availability or trading authority is inferred.
+    """
+    from decimal import Decimal
+    if (type(values) is not tuple and type(values) is not list) or len(values)>4096:
+        raise ValueError('DECIMAL_PROJECTION_BOUNDED_LITERAL_BATCH_REQUIRED')
+    captured=tuple(values)
+    for value in captured:
+        if type(value) is not Decimal or not value.is_finite():
+            raise ValueError('DECIMAL_PROJECTION_PLAIN_FINITE_DECIMAL_REQUIRED')
+    out=[]
+    for value in captured:
+        try:number=float(value)
+        except (OverflowError,ValueError) as exc:
+            raise ValueError('DECIMAL_PROJECTION_RANGE') from exc
+        if not math.isfinite(number) or number==0.0 and not value.is_zero():
+            raise ValueError('DECIMAL_PROJECTION_NONFINITE_OR_NONZERO_UNDERFLOW')
+        out.append(number)
+    return tuple(out)
+
+def numeric_profit_loss_summary(values):
+    """ORDERED_BINARY64_V1 arithmetic for declared signed outcome values.
+
+    This generic unit-preserving view does not simulate fills, interpret trade
+    objects/metadata, infer currency, or replace exact accounting. NO_LOSSES
+    is explicit rather than a nonfinite infinity. Derived overflow refuses.
+    """
+    values=_screen_values(values)
+    numeric=numeric_sample_summary(values)
+    profit=_ordered_binary64_total(tuple(value for value in values if value>0))
+    loss=-_ordered_binary64_total(tuple(value for value in values if value<0))
+    if loss>0:
+        ratio=profit/loss
+        if not math.isfinite(ratio):raise ValueError('PROFIT_LOSS_NONFINITE_FACTOR')
+        factor=ProfitFactorObservation('FINITE',ratio)
+    elif profit>0:factor=ProfitFactorObservation('NO_LOSSES',None)
+    else:factor=ProfitFactorObservation('FINITE',0.0)
+    equity=peak=drawdown=0.0
+    streak=maximum_streak=0
+    for value in values:
+        equity=equity+value
+        if not math.isfinite(equity):raise ValueError('PROFIT_LOSS_NONFINITE_EQUITY')
+        peak=max(peak,equity)
+        distance=peak-equity
+        if not math.isfinite(distance):raise ValueError('PROFIT_LOSS_NONFINITE_DRAWDOWN')
+        drawdown=max(drawdown,distance)
+        if value<0:
+            streak+=1;maximum_streak=max(maximum_streak,streak)
+        else:streak=0
+    return NumericProfitLossSummary(numeric,profit,loss,factor,drawdown,maximum_streak)
