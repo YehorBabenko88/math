@@ -92,7 +92,7 @@ jobs:
               import hashlib,importlib,importlib.util,importlib.machinery,json,pathlib,stat,sys,unittest
               SDK=('market_math','market_compute_api','history_statistics')
               TEST_MODULE='math_numeric_ci_tests'
-              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA'),'research_brackets':(16,'test_research_bracket_prices.py','MATH_RESEARCH_BRACKETS'),'research_expansion':(9,'test_research_expansion_side.py','MATH_RESEARCH_EXPANSION'),'price_structure':(12,'test_price_structure_patterns.py','MATH_PRICE_STRUCTURE'),'entry_numeric':(17,'test_entry_numeric_policy.py','MATH_ENTRY_NUMERIC'),'screening_numeric':(25,'test_screening_numeric.py','MATH_SCREENING_NUMERIC'),'profit_loss_numeric':(10,'test_profit_loss_numeric.py','MATH_PROFIT_LOSS_NUMERIC')}
+              CASES={'volatility':(11,'test_causal_volatility.py','MATH_CAUSAL_VOLATILITY'),'value_area':(25,'test_value_area_metrics.py','MATH_VALUE_AREA'),'research_brackets':(16,'test_research_bracket_prices.py','MATH_RESEARCH_BRACKETS'),'research_expansion':(9,'test_research_expansion_side.py','MATH_RESEARCH_EXPANSION'),'price_structure':(12,'test_price_structure_patterns.py','MATH_PRICE_STRUCTURE'),'entry_numeric':(17,'test_entry_numeric_policy.py','MATH_ENTRY_NUMERIC'),'screening_numeric':(25,'test_screening_numeric.py','MATH_SCREENING_NUMERIC'),'profit_loss_numeric':(22,'test_profit_loss_numeric.py','MATH_PROFIT_LOSS_NUMERIC')}
               FORBIDDEN=('market_profile_math','market_data','terminan','grid','strattester','meta_analyse')
               def need(value,code):
                   if not value:raise RuntimeError(code)

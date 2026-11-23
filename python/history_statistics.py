@@ -336,3 +336,67 @@ def numeric_profit_loss_summary(values):
             streak+=1;maximum_streak=max(maximum_streak,streak)
         else:streak=0
     return NumericProfitLossSummary(numeric,profit,loss,factor,drawdown,maximum_streak)
+
+class NumericTradeObservation(NamedTuple):
+    gross_pnl: int | float
+    net_pnl: int | float
+    fees: int | float
+    mae: int | float | None = None
+    mfe: int | float | None = None
+    r_multiple: int | float | None = None
+    holding_ms: int | None = None
+
+class NumericOptionalSummary(NamedTuple):
+    count: int
+    total: float
+    mean: float | None
+
+class NumericTradeSummary(NamedTuple):
+    net: NumericProfitLossSummary
+    gross_pnl_total: float
+    fees_total: float
+    mae: NumericOptionalSummary
+    mfe: NumericOptionalSummary
+    r_multiple: NumericOptionalSummary
+    holding_ms: NumericOptionalSummary
+
+def numeric_trade_summary(observations):
+    """Describe <=4096 exact NumericTradeObservation caller declarations.
+
+    ORDERED_BINARY64_V1 preserves order and intentional binary64 rounding,
+    including subnormal mean rounding. Decimal conversion remains explicit.
+    Gross PnL and fees are supplied amounts, independent of the net outcome
+    partitions named gross_profit/gross_loss in NumericProfitLossSummary.
+    Missing metadata has count zero and mean None, never an invented value.
+    No fill, accounting identity, excursion, units or authority is inferred.
+    """
+    if (type(observations) is not list and type(observations) is not tuple) or len(observations)>4096:
+        raise ValueError('TRADE_SUMMARY_BOUNDED_LITERAL_SEQUENCE_REQUIRED')
+    captured=tuple(observations)
+    for row in captured:
+        if type(row) is not NumericTradeObservation:
+            raise ValueError('TRADE_SUMMARY_EXACT_OBSERVATION_REQUIRED')
+    # Detach the entire batch before numeric admission or any numerical helper.
+    captured=tuple(tuple(row) for row in captured)
+    admitted=[]
+    for gross,net,fees,mae,mfe,r_multiple,holding_ms in captured:
+        gross=_screen_number(gross);net=_screen_number(net);fees=_screen_number(fees)
+        if fees<0:raise ValueError('TRADE_SUMMARY_NONNEGATIVE_FEES_REQUIRED')
+        optional=tuple(None if value is None else _screen_number(value)
+                       for value in (mae,mfe,r_multiple))
+        if holding_ms is not None:
+            if type(holding_ms) is not int or not 0<=holding_ms<=2**53-1:
+                raise ValueError('TRADE_SUMMARY_LITERAL_HOLDING_MS_REQUIRED')
+            holding_ms=_screen_number(holding_ms)
+        admitted.append((gross,net,fees,*optional,holding_ms))
+    admitted=tuple(admitted)
+    net=numeric_profit_loss_summary(tuple(row[1] for row in admitted))
+    gross=numeric_sample_summary(tuple(row[0] for row in admitted))
+    fees=numeric_sample_summary(tuple(row[2] for row in admitted))
+    metadata=[]
+    for index in (3,4,5,6):
+        values=tuple(row[index] for row in admitted if row[index] is not None)
+        summary=numeric_sample_summary(values)
+        metadata.append(NumericOptionalSummary(summary.count,summary.total,
+                                               summary.mean if summary.count else None))
+    return NumericTradeSummary(net,gross.total,fees.total,*metadata)
