@@ -1,0 +1,39 @@
+{
+  "schema": "math.permutation-drawdowns.transfer.v1",
+  "baseMath": "00189c8551ac64e455f2e18150ebd89544981d55",
+  "legacy": {
+    "repository": "YehorBabenko88/strattester",
+    "commit": "622e99dcd169d471279b5d38204d29a01eaf8647",
+    "path": "strattester/research/resampling.py",
+    "blob": "3858a98a6bd4272a9632ca74e6fed2dab2838400",
+    "sha256": "795b77b9e68d0265813645d48c277f379d0e1c6e27cbf33524d1a41c4cceef21",
+    "function": "monte_carlo_max_drawdowns",
+    "existingRawArchive": "../entry-screening-kernels/raw/resampling.py.txt"
+  },
+  "API": "permutation_drawdowns(values, *, runs=1000, seed=0)",
+  "output": "immutable tuple of floats in run order",
+  "bounds": {
+    "observations": 4096,
+    "runs": 1000,
+    "seedMin": 0,
+    "seedMax": 2147483647,
+    "valueVisits": 1000000
+  },
+  "admission": "exact nonempty list/tuple, plain finite lossless int/float, full sequence capture before first numeric admission and RNG",
+  "arithmetic": "ORDERED_BINARY64_V1; one shared ordered equity/peak/drawdown/streak helper",
+  "legacyPermutationOrder": "fresh original-order list per private Random(seed).shuffle per run",
+  "derivedOverflow": "atomic ValueError refusal",
+  "newProfile": "research-statistics-v7",
+  "statisticsSha256": "eef7dd8c252e68783d60b6236a437942df99995fae714a9fa0ca117b58e54cef",
+  "historicalProfiles": {
+    "v4": "f0bf8ed71b3fea49062972a79788e6a8d17e6f525cdae55d2fa35b8b282d453b",
+    "v5": "1c477f1e3275953a962d3692995d0baf1c5694026b6f2d72fdb6f1c2ac9a04c9",
+    "v6": "7757c135972dbabeeca9f16353fc4e93c7b68fd9bd4761b4e21e81faa583e1d7"
+  },
+  "newMandatorySDKTests": 14,
+  "priorSDKGroupsPreserved": 8,
+  "legacyRetiredTests": 0,
+  "remainingDeclaredObligations": 516,
+  "executionAuthority": false,
+  "tradingAuthorized": false
+}

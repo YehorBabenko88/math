@@ -14,11 +14,11 @@ No effects, no new dependencies, no source/API changes outside the necessary ker
 Hostile literal subclasses; full snapshot before admission; derived overflow; independent RNG; historical profile custody.
 
 ### Task1: Pure kernel and regression proof
-- [ ] Add legacy exact-seed, policy, callback, snapshot, overflow and global-state tests; run RED bothPython.
-- [ ] Extract the unchanged PnL loop into _ordered_equity_summary; add permutation_drawdowns using fresh list per shuffle.
-- [ ] Run GREEN and old PnL/trade/screening/bootstrap numerical oracles bothPython.
+- [x] Add legacy exact-seed, policy, callback, snapshot, overflow and global-state tests; run RED bothPython.
+- [x] Extract the unchanged PnL loop into _ordered_equity_summary; add permutation_drawdowns using fresh list per shuffle.
+- [x] Run GREEN and old PnL/trade/screening/bootstrap numerical oracles bothPython.
 ### Task2: Source custody and mandatory installed qualification
-- [ ] Add exact001 fixture; bind actual v7 statistics SHA and explicit history workflow. Preserve old17 test method roles with necessary active-workflow expectation update.
-- [ ] Add mandatory permutation group alongside existing8 groups.
-- [ ] Freeze exact Git source, raw export, offline build actual3-file wheel; source/wheel tests bothPython and reviewed pure profile AST against verified immutableGit fixtures.
-- [ ] Save inverse/protected/raw/RECORD receipts and unpublished commit for independent review.
+- [x] Add exact001 fixture; bind actual v7 statistics SHA and explicit history workflow. Preserve old17 test method roles with necessary active-workflow expectation update.
+- [x] Add mandatory permutation group alongside existing8 groups.
+- [x] Freeze exact Git source, raw export, offline build actual3-file wheel; source/wheel tests bothPython and reviewed pure profile AST against verified immutableGit fixtures.
+- [x] Save inverse/protected/raw/RECORD receipts and unpublished commit for independent review.
