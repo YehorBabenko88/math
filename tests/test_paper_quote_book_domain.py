@@ -1,7 +1,15 @@
 """Independent Decimal quote-domain predicates; no quote/source authority."""
 from decimal import Decimal as D,localcontext,Inexact,Rounded
 import hashlib,importlib.util,pathlib,unittest
+from pathlib import Path
 from market_math import paper_quote_book_valid
+def _verified_archival_math_source(current):
+ fixture=Path(__file__).parent/'fixtures/historical_ohlc_transition'
+ helper=Path(__file__).parent/'math_source_transition_custody.py';raw=helper.read_bytes()
+ if hashlib.sha256(raw).hexdigest()!='aa0d833fcd15bf4f4d9b6674011fa6f7efbc38aaefb083d2f5aa5b717d9b243f':raise ValueError('DEV_SOURCE_CUSTODY_HELPER_SEAL')
+ namespace={};exec(compile(raw,str(helper),'exec'),namespace)
+ return namespace['verified_archival_source'](current,(fixture/'market_math_500.py.txt').read_bytes(),(fixture/'transition.json').read_bytes())
+
 class QuoteBookDomainTests(unittest.TestCase):
  def test_literal_positive_locked_crossed_and_exact_narrow_books(self):
   for bid,ask,expected in [('1e-12','1e-12',True),('1e12','1e12',True),('10000000000.0000000001','10000000000.0000000002',True),('10000000000.0000000002','10000000000.0000000001',False),('0.000000000000999999999999','1',False),('1','1000000000000.000000000000001',False),('-0','1',False),('0','1',False)]:
@@ -24,10 +32,10 @@ class QuoteBookDomainTests(unittest.TestCase):
     self.assertIs(paper_quote_book_valid(D('1e-12'),D('1e12')),True)
     self.assertIs(paper_quote_book_valid(D('sNaN'),D(1)),False)
     self.assertEqual(dict(ctx.flags),before)
- def test_existing_d88_kernel_bytes_are_an_immutable_prefix(self):
+ def test_verified_archival_d88_prefix_is_preserved_by_closed_transition(self):
   import market_math
-  raw=pathlib.Path(market_math.__file__).read_bytes()
-  self.assertEqual(hashlib.sha256(raw[:51215]).hexdigest(),'57aa2f9ad056d4773c53a1e05e52781d3390cce4dbaddaef8ed54848723e5843')
+  archival=_verified_archival_math_source(pathlib.Path(market_math.__file__).read_bytes())
+  self.assertEqual(hashlib.sha256(archival[:51215]).hexdigest(),'57aa2f9ad056d4773c53a1e05e52781d3390cce4dbaddaef8ed54848723e5843')
  def test_direct_sdk_capability_metadata_and_canonical_identity(self):
   import market_math as canonical,market_compute_api as api
   self.assertIs(api.paper_quote_book_valid,canonical.paper_quote_book_valid)

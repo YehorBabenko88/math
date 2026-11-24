@@ -27,3 +27,6 @@ package-lock.json -text
 # Exact source-transition oracle and ledger; raw custody, never EOL normalization.
 /tests/fixtures/historical_ohlc_transition/market_math_500.py.txt -text
 /tests/fixtures/historical_ohlc_transition/transition.json -text
+
+# Raw development-only shared source custody loaded by verified bytes.
+/tests/math_source_transition_custody.py -text

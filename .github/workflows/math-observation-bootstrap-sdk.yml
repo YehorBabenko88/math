@@ -51,7 +51,16 @@ jobs:
         run: python -B -m unittest discover -s tests -p test_terminan_math_parity.py -v
       - name: Verify Math SDK contains scientific code only
         run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
-      - name: Canonical Math namespace and exact raw numerical baseline
+      - name: Verify raw development source custody closure
+        shell: python {0}
+        run: |
+          import hashlib,pathlib,subprocess
+          root=pathlib.Path.cwd()
+          bindings={"tests/math_source_transition_custody.py":"aa0d833fcd15bf4f4d9b6674011fa6f7efbc38aaefb083d2f5aa5b717d9b243f","tests/fixtures/historical_ohlc_transition/market_math_500.py.txt":"459ba0df58d89e8e69254f6b8ba8710103488aaee82a6c86fcb7b5502e003264","tests/fixtures/historical_ohlc_transition/transition.json":"7a1b1b4be854660354ff39857a7842f7cf1501f7ed773859e845f3285134d61e"}
+          for name,digest in bindings.items():
+              raw=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','HEAD:'+name],timeout=15)
+              if (root/name).read_bytes()!=raw or hashlib.sha256(raw).hexdigest()!=digest:raise RuntimeError('DEV_SOURCE_CUSTODY_RAW_CHECKOUT_MISMATCH:'+name)
+      - name: Canonical Math namespace and sealed archival source transition
         run: python -B -c "import sys,unittest; sys.path.insert(0,'python'); s=unittest.defaultTestLoader.discover('tests',pattern='test_market_math_namespace.py'); r=unittest.TextTestRunner(verbosity=2).run(s); raise SystemExit(not r.wasSuccessful())"
       - name: Query grid and turnover numerical domains
         run: python -B -c "import sys,unittest; sys.path.insert(0,'python'); s=unittest.defaultTestLoader.discover('tests',pattern='test_query_numeric_kernels.py'); r=unittest.TextTestRunner(verbosity=2).run(s); assert r.testsRun==8 and not r.skipped; raise SystemExit(not r.wasSuccessful())"
@@ -66,6 +75,10 @@ jobs:
           root=pathlib.Path.cwd()
           sys.path.insert(0,str(root/'scripts'))
           from math_sdk_source_bytes import verify_wheel,verify_sdist,require_checkout,materialize
+          def require_dev_source_custody():
+              for name,digest in {"tests/math_source_transition_custody.py":"aa0d833fcd15bf4f4d9b6674011fa6f7efbc38aaefb083d2f5aa5b717d9b243f","tests/fixtures/historical_ohlc_transition/market_math_500.py.txt":"459ba0df58d89e8e69254f6b8ba8710103488aaee82a6c86fcb7b5502e003264","tests/fixtures/historical_ohlc_transition/transition.json":"7a1b1b4be854660354ff39857a7842f7cf1501f7ed773859e845f3285134d61e"}.items():
+                  raw=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','HEAD:'+name],timeout=15)
+                  if (root/name).read_bytes()!=raw or hashlib.sha256(raw).hexdigest()!=digest:raise RuntimeError('DEV_SOURCE_CUSTODY_RAW_CHECKOUT_MISMATCH:'+name)
           names=['pyproject.toml','python/market_compute_api.py',
                  'python/market_math.py','python/history_statistics.py']
           def call(args,**kwargs):
@@ -252,6 +265,9 @@ jobs:
               call([py,'-I','-B','-c',program],cwd=tmp)
               # The same precision/trap/100k distribution tests exercise only
               # the installed wheel: -I excludes checkout/PYTHONPATH imports.
+              # Direct root caller tests use the sealed DEV closure; copied numeric
+              # test homes do not import it. Reverify before installed callers.
+              require_dev_source_custody()
               call([py,'-I','-B',root/'tests/test_market_math_namespace.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_causal_paper_math.py'],cwd=tmp)
               call([py,'-I','-B',root/'tests/test_paper_quote_book_domain.py'],cwd=tmp)

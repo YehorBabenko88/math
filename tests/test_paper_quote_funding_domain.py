@@ -1,7 +1,15 @@
 """Full supplied funding rows require a pure public domain gate."""
 from decimal import Decimal as D,localcontext,Inexact,Rounded
 import hashlib,pathlib,unittest
+from pathlib import Path
 from market_math import paper_quote_funding_valid
+def _verified_archival_math_source(current):
+ fixture=Path(__file__).parent/'fixtures/historical_ohlc_transition'
+ helper=Path(__file__).parent/'math_source_transition_custody.py';raw=helper.read_bytes()
+ if hashlib.sha256(raw).hexdigest()!='aa0d833fcd15bf4f4d9b6674011fa6f7efbc38aaefb083d2f5aa5b717d9b243f':raise ValueError('DEV_SOURCE_CUSTODY_HELPER_SEAL')
+ namespace={};exec(compile(raw,str(helper),'exec'),namespace)
+ return namespace['verified_archival_source'](current,(fixture/'market_math_500.py.txt').read_bytes(),(fixture/'transition.json').read_bytes())
+
 class QuoteFundingDomainTests(unittest.TestCase):
  def test_literal_bounds_signed_rates_and_unknown_mark_refuse(self):
   for mark,rate,expected in [('1e-12','-1',True),('1e12','1',True),('100','-0',True),('0','0',False),('-0','0',False),('0.000000000000999999999','0',False),('1000000000000.0000000001','0',False),('100','1.000000000000000000001',False),('100','-1.000000000000000000001',False)]:
@@ -23,9 +31,10 @@ class QuoteFundingDomainTests(unittest.TestCase):
     self.assertIs(paper_quote_funding_valid(D('1e-12'),D('-1e-1000')),True)
     self.assertIs(paper_quote_funding_valid(D('1e12'),D('sNaN')),False)
     self.assertEqual(dict(context.flags),before)
- def test_entire_book_predicate_baseline_is_byte_preserved(self):
+ def test_verified_archival_book_predicate_prefix_has_exact_seal(self):
   import market_math
-  self.assertEqual(hashlib.sha256(pathlib.Path(market_math.__file__).read_bytes()[:51719]).hexdigest(),'b43c5d98c9a3e7c75682b5a395f16cd80d3e40b3058c8f52bf172812dccac3fe')
+  archival=_verified_archival_math_source(pathlib.Path(market_math.__file__).read_bytes())
+  self.assertEqual(hashlib.sha256(archival[:51719]).hexdigest(),'b43c5d98c9a3e7c75682b5a395f16cd80d3e40b3058c8f52bf172812dccac3fe')
  def test_public_api_identity_and_capability_metadata(self):
   import market_math,market_compute_api
   self.assertIs(market_math.paper_quote_funding_valid,market_compute_api.paper_quote_funding_valid)
