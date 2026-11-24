@@ -23,3 +23,7 @@ package-lock.json -text
 /scripts/platform-test-inventory.json -text
 /scripts/platform-source-proof.json -text
 /docs/migration/root-ci-evidence-caller-20261120/ledger-binding-regression/*.txt -text
+
+# Exact source-transition oracle and ledger; raw custody, never EOL normalization.
+/tests/fixtures/historical_ohlc_transition/market_math_500.py.txt -text
+/tests/fixtures/historical_ohlc_transition/transition.json -text

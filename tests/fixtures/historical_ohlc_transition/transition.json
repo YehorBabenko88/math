@@ -1,0 +1,25 @@
+{
+  "schema": "math.historical-ohlc-directional-volume.source-transition.v1",
+  "base": "50048413605389a024dfef60e98f70126d788671",
+  "implementation": "89401328b21eb6a5ac75b2e6300ae12d05b0638c",
+  "archive": {
+    "path": "market_math_500.py.txt",
+    "bytes": 91150,
+    "sha256": "459ba0df58d89e8e69254f6b8ba8710103488aaee82a6c86fcb7b5502e003264",
+    "archival_prefix_bytes": 39461,
+    "archival_prefix_sha256": "d1236748dfaee6bafc64fab7bbec74bedfd0e597bb5b238e3505b2e942cb7b60"
+  },
+  "helper": {
+    "block": "def historical_ohlc_directional_volume_valid(open,high,low,close,buy_volume,sell_volume):\n    \"\"\"Plain historical int/float OHLC/sign domain; never source authority.\n\n    Preserve binary64-native finite/subnormal values and finite-convertible\n    integers. No Decimal/Paper/lossless policy or foreign coercion is applied.\n    \"\"\"\n    values=(open,high,low,close,buy_volume,sell_volume)\n    if any(type(value) is not int and type(value) is not float for value in values):return False\n    try:\n        if not all(math.isfinite(value) for value in values):return False\n        return 0<low<=min(open,close)<=max(open,close)<=high and min(buy_volume,sell_volume)>=0\n    except (ValueError,OverflowError):return False\n\n\n",
+    "bytes": 715,
+    "sha256": "4b40ebcd307fd9172799600bc3f01a596a6a3a3f4ffb53c5f12cd5db3465397b",
+    "occurrences": 1
+  },
+  "delegate": {
+    "current": "        if not historical_ohlc_directional_volume_valid(*(row[k] for k in ('open','high','low','close','buy_volume','sell_volume'))):return False\n",
+    "archival": "        if min(row['buy_volume'],row['sell_volume'])<0:return False\n        if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high']:return False\n",
+    "occurrences": 1
+  },
+  "authority": false,
+  "release": "NO_GO"
+}
