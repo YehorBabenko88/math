@@ -1,0 +1,45 @@
+{
+  "schema": 2,
+  "base": "cb168925b5aeec0c957137dd94ab72c64f0bd333",
+  "publication": "HASH_ONLY_FORWARD_REDACTION",
+  "retention": "Original byte-exact records retained locally and in original source history; forward redaction cannot erase earlier public Git history. Not independent attestation.",
+  "originalGitBlob": "7093055cfe1f527dcf3161a4bcd96c6c3b54c987",
+  "originalDocumentSha256": "36aa0fb53b4bee5e2c8d10ae2402b4fb3f7777381f5d90c4a311b990b31502cd",
+  "files": [
+    {
+      "path": "baseline-node24.tap",
+      "bytes": 6272,
+      "sha256": "781433406364180b0dc5777db2b4962ae4cd9261b6de551be41b5b326f5df603"
+    },
+    {
+      "path": "fixture-policy-red.tap",
+      "bytes": 2939,
+      "sha256": "587b4a45fa173b632606de20e3e940f8b34bb3bd6ed8c60c323e22fa894998f8"
+    },
+    {
+      "path": "green-node24.tap",
+      "bytes": 4534,
+      "sha256": "7e8bee7c6fe43cf735017319da3069c8113af78a9f52215b207e5d8ef4d4e7a7"
+    },
+    {
+      "path": "green-node22.tap",
+      "bytes": 4530,
+      "sha256": "df6cfffd82b66e0a714a7e2e7f6cc5636e143ff0f472e833a3d41b28b1e2ae09"
+    },
+    {
+      "path": "policy-green-node24.tap",
+      "bytes": 1165,
+      "sha256": "2c487cb0bfaff5440ddbb2f4d213d4e0b98f9d2153c5acacd1711b106f287aeb"
+    },
+    {
+      "path": "policy-green-node22.tap",
+      "bytes": 1166,
+      "sha256": "25bb1c51e66a8713a82dc12e903517cfe119aa92b8627c3b228b7def295c452c"
+    },
+    {
+      "path": "powershell51-node24.tap",
+      "bytes": 4532,
+      "sha256": "a1dc8138a200627bb0782b2409ce2df1563082bddc5ab7f4b8c718ccc645ba51"
+    }
+  ]
+}

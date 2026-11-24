@@ -1,0 +1,59 @@
+{
+  "schema": "math.entry-screening.transfer.v1",
+  "source": {
+    "repository": "YehorBabenko88/strattester",
+    "commit": "622e99dcd169d471279b5d38204d29a01eaf8647"
+  },
+  "raw": [
+    {
+      "path": "strattester/research/resampling.py",
+      "archive": "raw/resampling.py.txt",
+      "sha256": "795b77b9e68d0265813645d48c277f379d0e1c6e27cbf33524d1a41c4cceef21",
+      "blob": "3858a98a6bd4272a9632ca74e6fed2dab2838400"
+    },
+    {
+      "path": "strattester/research/entry_screening.py",
+      "archive": "raw/entry_screening.py.txt",
+      "sha256": "59dad642d23ababafa1dd7ad9dac0c93474613f96f3c8b1f56f9a0866977f51e",
+      "blob": "540971e96734b928b145456f85f5e4e0787974b5"
+    },
+    {
+      "path": "strattester/research/statistics.py",
+      "archive": "raw/statistics.py.txt",
+      "sha256": "dc5a03194c57d1f0c6151462787b0836490aa157a5b4f1c65988c70e60b6269e",
+      "blob": "fab928cde9976cf3fd9c9d2811e6b1b29e26cff2"
+    }
+  ],
+  "numerical_abi": "math.numeric.screening.ordered-binary64.v1",
+  "bootstrap": "IID_WITH_REPLACEMENT_LINEAR_INTERPOLATED_QUANTILE",
+  "arithmetic": "SEQUENTIAL_IEEE754_BINARY64_ADDITION_HOST_INDEPENDENT",
+  "legacy312_difference_cases": 6,
+  "old_paired_block_functions": "BYTE_IDENTICAL_UNCHANGED",
+  "bounds": {
+    "observations": 4096,
+    "folds": 128,
+    "total_fold_samples": 4096,
+    "runs": 1000,
+    "draw_work": 1000000
+  },
+  "factor_policies": [
+    "ALL_FINITE_V1",
+    "LEGACY_LT_1E100_V1"
+  ],
+  "factor_tags": [
+    "FINITE",
+    "NO_LOSSES"
+  ],
+  "empty_eligible_factor_mean": null,
+  "promotion_or_trade_objects": false,
+  "notional_zero_predicate": "Finite literal binary64-domain pair using existing lossless validation OR plain finite Decimal pair; disallow mixed presentations; sign/zero identity only; not quote quantity/OHLC/authenticity proof",
+  "legacy_test_retirement": 0,
+  "remaining_declared_test_function_obligations": 516,
+  "rejected_unpublished_prototype": "10510bd26f28e9742f887ecdef03d691aa945b1f",
+  "corrected_new_type_admission": "IDENTITY_ONLY_NO_FOREIGN_METACLASS_CALLBACKS",
+  "new_cases": 25,
+  "full_pure_source_cases": 255,
+  "full_wheel_cases": 232,
+  "rejected_fraction_prototype": "bd7d07d9e41b54ec220c6c92b6a11987b1bd3d29",
+  "fraction_properties": "Exact NumericFoldSummary self, exact int counts, 0<=counts<=folds<=128 before arithmetic"
+}

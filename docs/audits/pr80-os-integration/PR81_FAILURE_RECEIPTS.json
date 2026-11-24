@@ -1,0 +1,128 @@
+[
+  {
+    "run": 40495271719,
+    "job": 122159026993,
+    "step": [
+      "Validate mandatory CI contract"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "9f63f2d15064827e8595ea1001fdd125bc03f78fd1fabe574b769a64cb35c118"
+  },
+  {
+    "run": 40495271754,
+    "job": 122159027028,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "b1fc3744b44820a378aa6e2b47ddd86c8ff7572e7f1bdcecfcb5e6302bb16ba6"
+  },
+  {
+    "run": 40495271754,
+    "job": 122159027361,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "557d5f699002522d463328fe9fbb475de2040da8175013d1ab3f6f683eb7699f"
+  },
+  {
+    "run": 40495271754,
+    "job": 122159027615,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "682108765e5afb95fdbec3f4972af858d751e9a1c93cdf563a8901f952249458"
+  },
+  {
+    "run": 40495271754,
+    "job": 122159027655,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "8ae3647474abc47e71705d4f89c86ba555b4f888799ca015345938c7aa774f41"
+  },
+  {
+    "run": 40495278970,
+    "job": 122159052049,
+    "step": [
+      "Parse scripts and run synthetic deployment fixtures"
+    ],
+    "reason": "PESTER_HTTP_404",
+    "logSha256": "88c7ee309e4242701e89fa283e7f645f706f50c0e5e592127d8b4f7c0cbfe01b"
+  },
+  {
+    "run": 40495278970,
+    "job": 122159052434,
+    "step": [
+      "Parse scripts and run synthetic deployment fixtures"
+    ],
+    "reason": "PESTER_HTTP_404",
+    "logSha256": "bd8ee19631a4af8c50c602cb709966833e7ed84b41b83b75b609a01b063733a4"
+  },
+  {
+    "run": 40495279087,
+    "job": 122159052772,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "18555997b02d6fe68f45b294001de2e8f211ebe57feb6ebc2b886c953edd1609"
+  },
+  {
+    "run": 40495279087,
+    "job": 122159053102,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "b121ee1c24a7d4442b21b1b70c82442ef873e9a4f39c5b1fdc949156a8e35d2a"
+  },
+  {
+    "run": 40495279087,
+    "job": 122159053122,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "558a979f2d689454dcea1add4fabeb6eb83c60c85c93f77667e2248baed6069f"
+  },
+  {
+    "run": 40495279087,
+    "job": 122159053148,
+    "step": [
+      "Full unfiltered suite (zero skips or todo)"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "9c19836bf667f1c6ec95e2c0e72b710c28999a7f8f4cd74eaab3362af46ede34"
+  },
+  {
+    "run": 40495279157,
+    "job": 122159053671,
+    "step": [
+      "Independent watchdog and fixed native suite under Medium token"
+    ],
+    "reason": "NATIVE_OPAQUE_EXIT2_NOT_QUALIFIED",
+    "logSha256": "3efae0cc739b4e0bdcf3e07bedab929b907de6f09e12284e4d4ec91bffbdde83"
+  },
+  {
+    "run": 40495279314,
+    "job": 122159053183,
+    "step": [
+      "Validate mandatory CI contract"
+    ],
+    "reason": "INHERITED_CI_AGGREGATOR_LITERAL_ASSERTION",
+    "logSha256": "561db79f3dd831fad44da10665067761a704305e2d3b0b5dc1b62c2069143553"
+  },
+  {
+    "run": 40495271798,
+    "job": 122159027358,
+    "step": [
+      "Prepare verified test framework before fixture execution"
+    ],
+    "reason": "PESTER_HTTP_404",
+    "logSha256": "e6eeaee7f6864db34e48a1f2fbba8ca5dd580e9dd6c4f8e74e1bb19d6a48bb18"
+  }
+]

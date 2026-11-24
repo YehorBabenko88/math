@@ -1,0 +1,8 @@
+{
+  "base": "a7af248da5e96222186fe550cea9d5a8386eb0fb",
+  "normalization": "CRLF_TO_LF_ONLY",
+  "legacyRootsUnchanged": true,
+  "legacyRootsSha256": "dd4ab894e24ee6260c4333b2cbf870b14bfdced7ba4a8541078b6f0fd75d8d5c",
+  "existingHelpersUnchanged": true,
+  "helpersSha256": "c20a73fc0dc8f11a85ae09c8da289a05ebd927f9ce993f12e6abb9fb0674a8be"
+}

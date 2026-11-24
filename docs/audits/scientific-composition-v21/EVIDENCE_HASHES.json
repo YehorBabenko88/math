@@ -1,0 +1,31 @@
+{
+  "schema": "math.scientific.composition.local-evidence.v1",
+  "base": "321c4cd94d9ee0aba7a5d709042612f5ad4c5a05",
+  "tests": {
+    "node22": {
+      "pass": 158,
+      "fail": 0,
+      "skip": 0
+    },
+    "node24": {
+      "pass": 158,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "physical": "USER_REPORTED_RECEIPT_NOT_PROVIDED",
+  "newPhysicalExecution": "NOT_RUN",
+  "files": {
+    "private-local/baseline-node24.tap": "bac7a4450d63f455f039b7ba2a13d3b4946390c217ef26a91286899b4c952e6c",
+    "private-local/chain-reproduction.json": "5c25dbbd8a176d26eb53d1790fe7f7e8d493d52581df325fa914dbec9eb120b5",
+    "private-local/legacy-v2-parity.json": "a2ce1fe5f5e1159d68a787c5959d93cd83ba18560c0cd946f0c79fef15556d14",
+    "private-local/node22.tap": "fe63cbc7d10d2aeb99fb3aa886d906cf63a2a67866e9ec49560cd14f103b79b1",
+    "private-local/node24.tap": "3ae86ad99094296c9f35a87386437540871dd23c7b6ddd19aba11c8bb5655585",
+    "private-local/red-composition.tap": "f3f9073b8736cde415898f86c00ad9bb19d5a9665bce98ac490c0814b996483f",
+    "private-local/red-example-source-binding.tap": "b0325343091af234e6f82cc9392180fd5f9f915996219d286c8c0f85f10d9398",
+    "private-local/red-units-http.tap": "a4d2a9b6631274af599cb79196deadf1436bf5580a3c53f142ca95243008a89f",
+    "examples/scientific-composition.v21.json": "c848f900882c08a89fd3b25805568a3b246bd224a709dc0959d3aa86a56c8e46",
+    "EXAMPLE_RESULT.json": "65f629c22e59f1446382b55e29a5bd1ffa3d7432d521876f15d9adeabbc99444",
+    "private-local/red-method-scale-finite.tap": "04c09951730e5f52c6ba452d9125c18097f52ff9a665668b3d1a78406eed7b09"
+  }
+}

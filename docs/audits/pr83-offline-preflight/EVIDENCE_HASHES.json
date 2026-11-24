@@ -1,0 +1,26 @@
+{
+  "schema": "math.synthetic-evidence-hashes.v1",
+  "scope": "OFFLINE_NOT_PHYSICAL",
+  "files": [
+    {
+      "name": "red.tap",
+      "sha256": "639723f2425f6bcd5f42ab7144858d98855b9f90e34f68b799db3f7d89d00298"
+    },
+    {
+      "name": "review-red.tap",
+      "sha256": "6246503d513d61d7820811d8c2ae1653d111e03aa3dca656c3c7d04caad83e88"
+    },
+    {
+      "name": "review-green.tap",
+      "sha256": "c29efaea13a2cbeade8d3ab30fc29b341e63fc673ac887407966c498cbd20ee8"
+    },
+    {
+      "name": "bounded22.tap",
+      "sha256": "e68fce8fe7580e9aed61a79b23b06efb02701fad6386e5142e70793d3d3b76f5"
+    },
+    {
+      "name": "bounded24.tap",
+      "sha256": "92151cb6b205a7884b7658d2fbc48b79708767580957819540595a383d53a114"
+    }
+  ]
+}

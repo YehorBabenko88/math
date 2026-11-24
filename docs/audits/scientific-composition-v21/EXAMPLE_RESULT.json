@@ -1,0 +1,370 @@
+{
+  "kind": "LOCAL_SYNTHETIC_REPRODUCTION",
+  "physical": "NOT_RUN",
+  "schema": "math.scientific.result.v2",
+  "status": "RESEARCH_ONLY",
+  "requestSHA256": "c1a4c039671af217f7441355f53400f017697f0ffc89fbe2ef5f0c92e10d434e",
+  "order": [
+    "s",
+    "twice",
+    "square",
+    "mean",
+    "prior",
+    "overlay",
+    "comparison"
+  ],
+  "outputs": [
+    {
+      "node": "square",
+      "port": "value",
+      "type": "series",
+      "unit": "dimensionless",
+      "values": [
+        5,
+        17,
+        37
+      ],
+      "timestamps": [
+        0,
+        1000,
+        2000
+      ],
+      "availableAt": [
+        0,
+        1000,
+        2000
+      ]
+    },
+    {
+      "node": "overlay",
+      "port": "value",
+      "type": "series",
+      "unit": "dimensionless",
+      "values": [
+        11,
+        27
+      ],
+      "timestamps": [
+        1000,
+        2000
+      ],
+      "availableAt": [
+        1000,
+        2000
+      ]
+    },
+    {
+      "node": "overlay",
+      "port": "reference",
+      "type": "series",
+      "unit": "dimensionless",
+      "values": [
+        5,
+        17
+      ],
+      "timestamps": [
+        1000,
+        2000
+      ],
+      "availableAt": [
+        1000,
+        2000
+      ]
+    },
+    {
+      "node": "comparison",
+      "port": "value",
+      "type": "series",
+      "unit": "dimensionless",
+      "values": [
+        6,
+        10
+      ],
+      "timestamps": [
+        1000,
+        2000
+      ],
+      "availableAt": [
+        1000,
+        2000
+      ]
+    },
+    {
+      "node": "comparison",
+      "port": "mae",
+      "type": "scalar",
+      "unit": "dimensionless",
+      "values": [
+        8
+      ],
+      "timestamps": [
+        2000
+      ],
+      "availableAt": [
+        2000
+      ]
+    },
+    {
+      "node": "comparison",
+      "port": "rmse",
+      "type": "scalar",
+      "unit": "dimensionless",
+      "values": [
+        8.24621125123532
+      ],
+      "timestamps": [
+        2000
+      ],
+      "availableAt": [
+        2000
+      ]
+    }
+  ],
+  "metrics": {
+    "kind": "DESCRIPTIVE_OUTPUT_SUMMARIES",
+    "outputs": [
+      {
+        "node": "square",
+        "port": "value",
+        "unit": "dimensionless",
+        "count": 3,
+        "min": 5,
+        "max": 37,
+        "mean": 19.666666666666668
+      },
+      {
+        "node": "overlay",
+        "port": "value",
+        "unit": "dimensionless",
+        "count": 2,
+        "min": 11,
+        "max": 27,
+        "mean": 19
+      },
+      {
+        "node": "overlay",
+        "port": "reference",
+        "unit": "dimensionless",
+        "count": 2,
+        "min": 5,
+        "max": 17,
+        "mean": 11
+      },
+      {
+        "node": "comparison",
+        "port": "value",
+        "unit": "dimensionless",
+        "count": 2,
+        "min": 6,
+        "max": 10,
+        "mean": 8
+      },
+      {
+        "node": "comparison",
+        "port": "mae",
+        "unit": "dimensionless",
+        "count": 1,
+        "min": 8,
+        "max": 8,
+        "mean": 8
+      },
+      {
+        "node": "comparison",
+        "port": "rmse",
+        "unit": "dimensionless",
+        "count": 1,
+        "min": 8.24621125123532,
+        "max": 8.24621125123532,
+        "mean": 8.24621125123532
+      }
+    ]
+  },
+  "trace": [
+    {
+      "node": "s",
+      "kind": "source",
+      "definitionSHA256": "db1e4beb159881794b32ac7347549342ddf06d211ab5a7da01971b589522f5c7",
+      "dependencies": [],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": {
+        "sourceId": "synthetic-composition",
+        "version": "v1",
+        "sha256": "2b950ebc944ab22c03766b56ac4eb25ea23b9c0c8592cfbe6d652f7e59d01e96"
+      },
+      "knowledge": null,
+      "outputSHA256": "3338021572cee318973d4201fc9f81ee2546c5d1e82e48c29604d049856312be"
+    },
+    {
+      "node": "twice",
+      "kind": "formula",
+      "definitionSHA256": "bef8e7fd870164192a989222177c73a6a135166d1b34f546c077af8e10fe2bac",
+      "dependencies": [
+        {
+          "port": "x",
+          "node": "s",
+          "output": "value",
+          "sha256": "3338021572cee318973d4201fc9f81ee2546c5d1e82e48c29604d049856312be"
+        }
+      ],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": null,
+      "knowledge": null,
+      "outputSHA256": "35b7c9a763506c1ba70142b361823f5075f2277249e7ca6d542e8e490d73660a"
+    },
+    {
+      "node": "square",
+      "kind": "formula",
+      "definitionSHA256": "8889eb7f2e3bc5030193377a31229232c404802670227360ace02337bfa81889",
+      "dependencies": [
+        {
+          "port": "x",
+          "node": "twice",
+          "output": "value",
+          "sha256": "35b7c9a763506c1ba70142b361823f5075f2277249e7ca6d542e8e490d73660a"
+        }
+      ],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": null,
+      "knowledge": null,
+      "outputSHA256": "99f27f268adb5f737bdf4d2f3f640fabedbde5cd9354e868adad1f7fbcf00a7c"
+    },
+    {
+      "node": "mean",
+      "kind": "rolling-mean",
+      "definitionSHA256": "6f1e4376524c7f3879f3196c7916596e1217f899bd255904d8a704d014ae7313",
+      "dependencies": [
+        {
+          "port": "x",
+          "node": "square",
+          "output": "value",
+          "sha256": "99f27f268adb5f737bdf4d2f3f640fabedbde5cd9354e868adad1f7fbcf00a7c"
+        }
+      ],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": null,
+      "knowledge": null,
+      "outputSHA256": "520778678995f5ea34c4bb52fff734ea850da3738850b70609c0844093ca3adc"
+    },
+    {
+      "node": "prior",
+      "kind": "lag",
+      "definitionSHA256": "294df320c04e8652695ca0523891af087c4dc4a091a3c80b34c1515a3f95d6e3",
+      "dependencies": [
+        {
+          "port": "x",
+          "node": "square",
+          "output": "value",
+          "sha256": "99f27f268adb5f737bdf4d2f3f640fabedbde5cd9354e868adad1f7fbcf00a7c"
+        }
+      ],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": null,
+      "knowledge": null,
+      "outputSHA256": "ef6513db8712f32a16a8509469f69e33352e099a7547e439441b8d6fb2829465"
+    },
+    {
+      "node": "overlay",
+      "kind": "overlay",
+      "definitionSHA256": "99de964b19f17df0eab65b2ecd6ce18957abd3720244ade71c93514840eec799",
+      "dependencies": [
+        {
+          "port": "a",
+          "node": "mean",
+          "output": "value",
+          "sha256": "520778678995f5ea34c4bb52fff734ea850da3738850b70609c0844093ca3adc"
+        },
+        {
+          "port": "b",
+          "node": "prior",
+          "output": "value",
+          "sha256": "ef6513db8712f32a16a8509469f69e33352e099a7547e439441b8d6fb2829465"
+        }
+      ],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": null,
+      "knowledge": null,
+      "outputSHA256": "520778678995f5ea34c4bb52fff734ea850da3738850b70609c0844093ca3adc",
+      "portOutputs": [
+        {
+          "port": "value",
+          "type": "series",
+          "unit": "dimensionless",
+          "sha256": "520778678995f5ea34c4bb52fff734ea850da3738850b70609c0844093ca3adc"
+        },
+        {
+          "port": "reference",
+          "type": "series",
+          "unit": "dimensionless",
+          "sha256": "8ef6e4f7ddeca0ec3e3a8eb6d77fedd2f0fa464155d0d5bb4f3a0bf289b71914"
+        }
+      ]
+    },
+    {
+      "node": "comparison",
+      "kind": "compare",
+      "definitionSHA256": "0613bda782757b4f9dd715d9a02d3254b3657ebf1a9f8616fafce84dccf899eb",
+      "dependencies": [
+        {
+          "port": "a",
+          "node": "overlay",
+          "output": "value",
+          "sha256": "520778678995f5ea34c4bb52fff734ea850da3738850b70609c0844093ca3adc"
+        },
+        {
+          "port": "b",
+          "node": "overlay",
+          "output": "reference",
+          "sha256": "8ef6e4f7ddeca0ec3e3a8eb6d77fedd2f0fa464155d0d5bb4f3a0bf289b71914"
+        }
+      ],
+      "unit": "dimensionless",
+      "type": "series",
+      "provenance": null,
+      "knowledge": null,
+      "outputSHA256": "7111585086067809f67e92ae56618535de6c96cebf1073c0e94812273336458f",
+      "portOutputs": [
+        {
+          "port": "value",
+          "type": "series",
+          "unit": "dimensionless",
+          "sha256": "7111585086067809f67e92ae56618535de6c96cebf1073c0e94812273336458f"
+        },
+        {
+          "port": "absolute",
+          "type": "series",
+          "unit": "dimensionless",
+          "sha256": "7111585086067809f67e92ae56618535de6c96cebf1073c0e94812273336458f"
+        },
+        {
+          "port": "rmse",
+          "type": "scalar",
+          "unit": "dimensionless",
+          "sha256": "5e2ee38b49ac594d9bfea874b7f1f0b3889b26cb80160bd6519cc4184c134586"
+        },
+        {
+          "port": "mae",
+          "type": "scalar",
+          "unit": "dimensionless",
+          "sha256": "6d44447fed672471d1469a2301928542b7af4ba75ff08ea5fd3b5346c781c8ce"
+        },
+        {
+          "port": "bias",
+          "type": "scalar",
+          "unit": "dimensionless",
+          "sha256": "6d44447fed672471d1469a2301928542b7af4ba75ff08ea5fd3b5346c781c8ce"
+        }
+      ]
+    }
+  ],
+  "source": "CALLER_SUPPLIED_UNATTESTED",
+  "mathematicallyVerified": false,
+  "execution_authority": false,
+  "trading_authorized": false,
+  "training_authorized": false
+}

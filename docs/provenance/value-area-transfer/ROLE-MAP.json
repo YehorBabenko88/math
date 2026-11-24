@@ -1,0 +1,36 @@
+{
+  "roles": [
+    {
+      "original": "tests/research/test_volume_profile.py::test_trade_profile_labels_true_trade_mode",
+      "canonical": "tests/test_value_area_metrics.py::ValueAreaTests::test_original_trade_profile_labels_executed_trade_basis",
+      "preserved": [
+        "executed trade price basis",
+        "poc100",
+        "request cutoff10"
+      ],
+      "clock_mapping": "known_at requestcut→decision_ms; available_at_ms independently max explicit selected clocks"
+    },
+    {
+      "original": "tests/research/test_volume_profile.py::test_proxy_profile_is_explicitly_approximate",
+      "canonical": "tests/test_value_area_metrics.py::ValueAreaTests::test_original_proxy_profile_is_explicitly_approximate",
+      "preserved": [
+        "explicit candle typical-price approximation, never trade distribution"
+      ]
+    },
+    {
+      "original": "tests/research/test_volume_profile.py::test_future_trades_do_not_change_frozen_profile",
+      "canonical": "tests/test_value_area_metrics.py::ValueAreaTests::test_original_future_trades_do_not_change_frozen_profile",
+      "preserved": [
+        "future qualified observations excluded and complete frozen result unchanged"
+      ]
+    }
+  ],
+  "basis_map": {
+    "TRADE_POC": "EXECUTED_TRADE_PRICE_BINS",
+    "POC_PROXY": "CANDLE_TYPICAL_PRICE_PROXY"
+  },
+  "no_alias": true,
+  "no_Data_removal": true,
+  "clock_policy": "required callerdeclared available_at_ms; candles explicit end>start andavailable>=end; never nominalbar inference",
+  "numeric_policy": "preserve literal keytypes/originalPythonbinary64accumulation/nativecandleaddition/stableranked70%insertionties; reuse DecimalPOC comparisononly/lowestties; no Decimalarithmeticconversion"
+}

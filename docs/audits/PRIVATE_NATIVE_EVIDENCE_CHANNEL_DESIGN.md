@@ -1,0 +1,24 @@
+# Private native evidence channel — design only, CLOSED
+
+No trusted private transport, reviewer identity trust anchor, keys, durable private store or authorization policy is configured by this change. No endpoint is contacted. No tokens/keys are added. Hosted native independentAcceptance remains BLOCKED_PRIVATE_EVIDENCE_REQUIRED; physical Execute and G1 remain closed.
+
+## Required boundary
+
+1. An independently administered receiver must authenticate GitHub workload identity with exact repository, immutable source/event identity, workflow path and revision, run ID/attempt and numeric job identity. A source-level environment boolean, repository variable, manually typed approval or producer JSON is not authentication. Fork/untrusted candidate code must not obtain receiver secrets; separate trusted collection code and least privilege are prerequisites.
+2. Approved receiver encryption identity and review principals must be distributed out of band. Encrypt an immutable raw bundle before any transport to the PUBLIC artifact service; transport must be confidential and access controlled. Public GitHub artifacts or Actions stdout are NOT the private channel. Do not implement encryption with hardcoded keys or write credentials to Git/logs. No automatic network transfer exists here.
+3. Raw native results, SID/ACL/PID/FILETIME/handle witnesses, bootstrap streams, full inventory and package/build identity must be captured before ephemeral runner destruction. Bound inventory/bytes and retain privately with chain of custody. Current code intentionally withholds raw uploads; after ephemeral deletion, digest-only receipts cannot reconstruct them. Such runs remain permanently unqualified if no independent private copy exists.
+4. Receiver verifies fresh nonce, expiry, exact run attempt, producing job and allowed source relation using provider evidence. PR synthetic merge and feature HEAD are distinct: verify parents/tree and never substitute one for the other. Enforce replay protection, encryption authenticity, API/download/member digests and ZIP/path limits before opening a fresh isolated review workspace. Candidate filenames/metadata are untrusted. Producer self-reports/digests alone do not attest execution.
+5. Independent reviewer verifies five fixed native cases, distinct forced owner-watchdog BLOCKED outcome, actual suspended assignment, measured Medium token/ACL facts, job drain and all owned handle signals. Bootstrap/PowerShell forced expiry and effective filesystem/network isolation are separate missing qualifications; owner-level test does not prove them.
+6. Reviewer emits a signed, strictly allowlisted public projection containing source/tree/repository/workflow/run/attempt/job/artifact identity, bundle digest, scoped conclusions, explicit NOT_RUN/BLOCKED and reviewer provenance. No raw identities, arbitrary filenames, stderr, nested opaque/base64 payloads or free-form stacks. The signer must be independently authenticated; possession of an unqualified signature is insufficient.
+7. Receiver acceptance is independently tested against tampering, wrong source/tree/job/attempt, stale/replayed receipts, unauthorized principals, key rotation/revocation, transport interruption and partial bundles. Only then can a new exact-source hosted run be proposed. Do not rerun queued originals or reinterpret old receipts as newly accepted evidence.
+
+## Current enforcement
+
+- ADMINIT raw report and bootstrap stdout/stderr are files on the disposable runner, not public logs/uploads. Public uploads are bounded package/source metadata and a digest-only receipt; these are not runtime acceptance.
+- Q01 worker timeline includes real PIDs; it is verified locally but public upload now uses a digest-only receipt. Legacy hosted-native raw reports/streams are also withheld. Original hosted-only fixture guards are unchanged.
+- Public receipt utility returns rawEvidencePublished=false and BLOCKED_PRIVATE_EVIDENCE_REQUIRED; no raw names or payload values are copied. It supplies byte-identity metadata only, not atomic snapshot, origin attestation or a trusted transport.
+- Local schema validation explicitly reports PRODUCER_LOCAL_SCHEMA_ONLY and independentAcceptance=BLOCKED_PRIVATE_EVIDENCE_REQUIRED. A schema PASS does not qualify native acceptance.
+- The current tracked-documents policy is separate. It does not scan all runtime logs, binaries/images/ZIPs or erase Git history. Future exceptions and package contents still require private review; no blanket privacy certification.
+- Original PR48/50/51 and other source PRs are unchanged, including their old publication configuration. Their queued runs can still execute old code. This branch does not retroactively redact Git history or artifacts; no original run was cancelled, rerun or silently replaced. Any cancellation/retention decision is a separate operator action.
+
+Q01 OPEN. Physical G1 BLOCKED. Production NO-GO. Book gate CLOSED.

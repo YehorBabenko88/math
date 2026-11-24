@@ -1,0 +1,11 @@
+# Finite bootstrap evidence
+
+Base: 917d99672e37db59835a8ab23b03c99826b12d78. Scope: numerical component only.
+
+Finite paired differences could overflow to infinity and falsely report directional support; summation could overflow before division. The regression baseline has 7 failures and 3 passes. The fix rejects nonfinite differences and uses math.fsum with statistics.mean fallback on OverflowError, preserving subnormal and cancellation behavior. Gross/net/cost/funding interpretation, RNG and inputs are unchanged.
+
+Local Python 3.12.10: ten numerical tests pass without skips. Existing history suite with pinned Grid7a83 dependency: 25 pass without skips. Initial missing-dependency failure is retained in outputs. Fresh isolated workflow block on clean committed source: 10 PASS, zero skips. Four isolated negative clones (cache, shadow, tracked-byte change, replacement ref) each refuse before project test execution, exit 1, zero tests/skips. An initial working-tree guard refusal detected four pre-existing ignored pyc files; retained as evidence, no bypass. Independent static reviewer found no concrete defect; hosted execution remains separate. Hosted Windows/Ubuntu evidence pending. No native, physical, authority, distributed, scientific-validity or profitability acceptance is claimed.
+
+Rollback: revert this isolated four-path change; no database or ledger migrations. Existing proof manifests and historical evidence remain unchanged.
+
+Additional owner-authorized harness fix: existing scientific test child used -I -S without -B, generating ignored bytecode despite parent no-bytecode flags. New actual-child isolated-directory regression RED:3 pass/1 fail. Add -B only to existing child invocation, preserving all existing assertions. Full-suite functional PASS alone does not establish clean inventory; original post-suite guard refusal retained. Fresh ced9a50 clone: 26 PASS, zero skips; exact raw Git bytes/inventory guards before and after both PASS. Independent static review found no defect; regression additionally verifies the exact expected worker rejection stderr to exclude unrelated import failure. Hosted results remain pending.

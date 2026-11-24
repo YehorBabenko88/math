@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {fitLandauMap,serializeExperiment} from '../src/model-fitting.mjs';
+test('causal train/test split and finite metrics',()=>{const x=Array.from({length:120},(_,i)=>Math.sin(i*.2)+.03*i);const r=fitLandauMap(x);assert.equal(r.trainCount,84);assert.equal(r.testCount,36);assert.ok(Number.isFinite(r.metrics.modelRMSE));assert.ok(Number.isFinite(r.metrics.naiveRMSE));assert.equal(r.baseline[0],x[83]);assert.equal(r.actual[0],x[84]);assert.equal(JSON.parse(serializeExperiment(r)).schemaVersion,1)});
+test('test-tail changes do not affect fitted parameters',()=>{const x=Array.from({length:100},(_,i)=>Math.sin(i*.14)+i*.02),y=x.map((v,i)=>i>=70?v+20:v);assert.deepEqual(fitLandauMap(x).parameters,fitLandauMap(y).parameters)});
+test('reject too short and constant train samples',()=>{assert.throws(()=>fitLandauMap([1,2,3]));assert.throws(()=>fitLandauMap(Array(40).fill(2)))});

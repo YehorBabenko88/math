@@ -1,0 +1,788 @@
+{
+  "observedAt": "2026-10-25T14:59:18.721Z",
+  "sourceHead": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+  "scope": "read-only GitHub API metadata, not downloaded artifact or runtime acceptance",
+  "runs": [
+    {
+      "id": 40203818836,
+      "name": "PostgreSQL Integration",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818836",
+      "jobCount": 4,
+      "jobs": [
+        {
+          "id": 121200394894,
+          "name": "Full suite Node 24 / PostgreSQL 18",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200395001,
+          "name": "Full suite Node 22 / PostgreSQL 18",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200395127,
+          "name": "Full suite Node 22 / PostgreSQL 16",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200395140,
+          "name": "Full suite Node 24 / PostgreSQL 16",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818782,
+      "name": "Browser E2E",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818782",
+      "jobCount": 1,
+      "jobs": [
+        {
+          "id": 121200394708,
+          "name": "chromium",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818689,
+      "name": "Book Ingestion Native PDF",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818689",
+      "jobCount": 1,
+      "jobs": [
+        {
+          "id": 121200394287,
+          "name": "native-pdf",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818708,
+      "name": "ADMINIT Synthetic Harness Qualification",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818708",
+      "jobCount": 5,
+      "jobs": [
+        {
+          "id": 121200394397,
+          "name": "contracts (ubuntu-latest, 24)",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394498,
+          "name": "contracts (windows-latest, 22)",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394522,
+          "name": "contracts (windows-latest, 24)",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394554,
+          "name": "contracts (ubuntu-latest, 22)",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394556,
+          "name": "Disposable Windows / Framework / actual Medium token",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818705,
+      "name": "Validate Math Universe",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818705",
+      "jobCount": 1,
+      "jobs": [
+        {
+          "id": 121200394839,
+          "name": "test",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818654,
+      "name": "Q01 Windows Containment Preparation",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818654",
+      "jobCount": 4,
+      "jobs": [
+        {
+          "id": 121200394227,
+          "name": "Native-free contracts / powershell / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394388,
+          "name": "Native-free contracts / pwsh / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394428,
+          "name": "Native-free contracts / pwsh / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394497,
+          "name": "Native-free contracts / powershell / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818686,
+      "name": "Windows Deployment Contracts",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818686",
+      "jobCount": 2,
+      "jobs": [
+        {
+          "id": 121200394251,
+          "name": "Windows contracts / powershell",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394491,
+          "name": "Windows contracts / pwsh",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203818655,
+      "name": "Q01 Queue Reliability",
+      "event": "pull_request",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203818655",
+      "jobCount": 13,
+      "jobs": [
+        {
+          "id": 121200394216,
+          "name": "Q01 Windows laboratory guard contracts",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394377,
+          "name": "Q01 stress / windows-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394422,
+          "name": "Q01 stress / ubuntu-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394439,
+          "name": "Q01 fault / ubuntu-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394469,
+          "name": "Q01 quick / windows-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394479,
+          "name": "Q01 quick / ubuntu-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394487,
+          "name": "Q01 stress / windows-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394526,
+          "name": "Q01 stress / ubuntu-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394527,
+          "name": "Q01 fault / windows-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394547,
+          "name": "Q01 quick / ubuntu-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394553,
+          "name": "Q01 quick / windows-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394559,
+          "name": "Q01 fault / ubuntu-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200394562,
+          "name": "Q01 fault / windows-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790546,
+      "name": "Book Ingestion Native PDF",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790546",
+      "jobCount": 1,
+      "jobs": [
+        {
+          "id": 121200310219,
+          "name": "native-pdf",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790636,
+      "name": "PostgreSQL Integration",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790636",
+      "jobCount": 4,
+      "jobs": [
+        {
+          "id": 121200310658,
+          "name": "Full suite Node 24 / PostgreSQL 18",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310815,
+          "name": "Full suite Node 22 / PostgreSQL 16",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310869,
+          "name": "Full suite Node 22 / PostgreSQL 18",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310882,
+          "name": "Full suite Node 24 / PostgreSQL 16",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790530,
+      "name": "Browser E2E",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790530",
+      "jobCount": 1,
+      "jobs": [
+        {
+          "id": 121200310225,
+          "name": "chromium",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790542,
+      "name": "Validate Math Universe",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790542",
+      "jobCount": 1,
+      "jobs": [
+        {
+          "id": 121200310114,
+          "name": "test",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790586,
+      "name": "Q01 Queue Reliability",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790586",
+      "jobCount": 13,
+      "jobs": [
+        {
+          "id": 121200310354,
+          "name": "Q01 Windows laboratory guard contracts",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310452,
+          "name": "Q01 quick / windows-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310502,
+          "name": "Q01 quick / ubuntu-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310536,
+          "name": "Q01 quick / windows-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310554,
+          "name": "Q01 stress / windows-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310578,
+          "name": "Q01 fault / ubuntu-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310600,
+          "name": "Q01 fault / windows-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310607,
+          "name": "Q01 stress / ubuntu-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310615,
+          "name": "Q01 fault / windows-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310624,
+          "name": "Q01 fault / ubuntu-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310639,
+          "name": "Q01 stress / ubuntu-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310693,
+          "name": "Q01 stress / windows-latest / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310723,
+          "name": "Q01 quick / ubuntu-latest / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790548,
+      "name": "Q01 Windows Containment Preparation",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790548",
+      "jobCount": 4,
+      "jobs": [
+        {
+          "id": 121200310021,
+          "name": "Native-free contracts / powershell / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310139,
+          "name": "Native-free contracts / pwsh / Node 22",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310212,
+          "name": "Native-free contracts / pwsh / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310270,
+          "name": "Native-free contracts / powershell / Node 24",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    },
+    {
+      "id": 40203790581,
+      "name": "Windows Deployment Contracts",
+      "event": "push",
+      "head": "88c4ce4d2880ec9d8dab96573fd37fb08720b2c5",
+      "attempt": 1,
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/YehorBabenko88/math/actions/runs/40203790581",
+      "jobCount": 2,
+      "jobs": [
+        {
+          "id": 121200310244,
+          "name": "Windows contracts / pwsh",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        },
+        {
+          "id": 121200310596,
+          "name": "Windows contracts / powershell",
+          "status": "queued",
+          "conclusion": null,
+          "steps": 0
+        }
+      ],
+      "artifactCount": 0,
+      "artifacts": []
+    }
+  ],
+  "privateMetadataSha256": [
+    {
+      "label": "runs.json",
+      "bytes": 192190,
+      "sha256": "d28bad36b10dc5482c97bc94f3691f83e8c6d4aa11ed88e2482d69a25cb8cfa7"
+    },
+    {
+      "label": "jobs-40203818836.json",
+      "bytes": 3514,
+      "sha256": "3c1c59be80b1d0388fff0c4ecba58c05ea686fc909536a45f6470c99bc1c89d1"
+    },
+    {
+      "label": "artifacts-40203818836.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818782.json",
+      "bytes": 861,
+      "sha256": "b928d98802e0f6f7ab3df9a8795ebb5d79a302202b07eb00539f3530a981dbba"
+    },
+    {
+      "label": "artifacts-40203818782.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818689.json",
+      "bytes": 877,
+      "sha256": "e2216354e4b5f21a37505215d25d1b84a8dd1d0ebe8ad8b5705cfbede947b2b2"
+    },
+    {
+      "label": "artifacts-40203818689.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818708.json",
+      "bytes": 4474,
+      "sha256": "c75bd506973a027b33b71f25882052d5a39da940c15e35740b4591b712e42f9c"
+    },
+    {
+      "label": "artifacts-40203818708.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818705.json",
+      "bytes": 868,
+      "sha256": "f3002389531859cfe1e361675fa4baf9396ee9563678b2a1d64b21d4b4210cb3"
+    },
+    {
+      "label": "artifacts-40203818705.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818654.json",
+      "bytes": 3598,
+      "sha256": "43d501154454aa591a687c6949b9783335be2f00408125d0a413ccf4318e0d9c"
+    },
+    {
+      "label": "artifacts-40203818654.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818686.json",
+      "bytes": 1770,
+      "sha256": "fed1401599a695ecd3bd7d58c3a80502bf741d776e6800ed04853ccc14c7b581"
+    },
+    {
+      "label": "artifacts-40203818686.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203818655.json",
+      "bytes": 11383,
+      "sha256": "5c8a97020d807dcbbbd2331bab9e45b8cd3f79660889761972e81b968f5ee0f6"
+    },
+    {
+      "label": "artifacts-40203818655.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790546.json",
+      "bytes": 877,
+      "sha256": "d5d536d98c01f4a0b906cba666a03dd485dd8db57180986b7247a164908bfc97"
+    },
+    {
+      "label": "artifacts-40203790546.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790636.json",
+      "bytes": 3514,
+      "sha256": "a34383de0f89d3346228d234deda975d731434b463213b0dff8a10015e8566a8"
+    },
+    {
+      "label": "artifacts-40203790636.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790530.json",
+      "bytes": 861,
+      "sha256": "5d449e7868a05269c4a12b591a9ef4101d9e8ef15f6b943c02122f24f98a3c0d"
+    },
+    {
+      "label": "artifacts-40203790530.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790542.json",
+      "bytes": 868,
+      "sha256": "393f92a4417e7365241016d639e893b4563954b18d830e25d972131f20f64372"
+    },
+    {
+      "label": "artifacts-40203790542.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790586.json",
+      "bytes": 11383,
+      "sha256": "4cf5cd4818b55b0a16c98dbf171bb429d4050a812c2072cce3c9af1470abb8cf"
+    },
+    {
+      "label": "artifacts-40203790586.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790548.json",
+      "bytes": 3598,
+      "sha256": "c0d0065d4fa2f0adb9930ce9e63bda6f09c59da4e11a6b35f4c29a2a5e085b78"
+    },
+    {
+      "label": "artifacts-40203790548.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    },
+    {
+      "label": "jobs-40203790581.json",
+      "bytes": 1770,
+      "sha256": "3dc120af9123a4c01d09339c02a132073b15ab7fccd2ad194b001ba187d7404a"
+    },
+    {
+      "label": "artifacts-40203790581.json",
+      "bytes": 32,
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c"
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "kind": "SYNTHETIC_COMPARISON",
+  "physical": "NOT_RUN",
+  "trading": "DISABLED",
+  "results": [
+    {
+      "scenario": "ordinary",
+      "windowSize": 100,
+      "guard": {
+        "maxAbsZ": 2,
+        "maxDeviation": 3
+      },
+      "windows": [
+        {
+          "start": 0,
+          "selected": "LANDAU",
+          "raw": {
+            "modelRMSE": 0.14777928384574585,
+            "naiveRMSE": 0.14780814581491428,
+            "selectedRMSE": 0.14777928384574585
+          },
+          "guarded": {
+            "modelRMSE": 0.14777928384574585,
+            "naiveRMSE": 0.14780814581491428,
+            "selectedRMSE": 0.14777928384574585,
+            "guardedRMSE": 0.14777928384574585
+          },
+          "fallbackCount": 0,
+          "maxAbsZ": 1.4122008000292028,
+          "maxDeviation": 0.02022910067785233
+        },
+        {
+          "start": 100,
+          "selected": "NAIVE",
+          "raw": {
+            "modelRMSE": 0.12776388656551294,
+            "naiveRMSE": 0.1273333111082415,
+            "selectedRMSE": 0.1273333111082415
+          },
+          "guarded": {
+            "modelRMSE": 0.12776388656551294,
+            "naiveRMSE": 0.1273333111082415,
+            "selectedRMSE": 0.1273333111082415,
+            "guardedRMSE": 0.12776388656551294
+          },
+          "fallbackCount": 0,
+          "maxAbsZ": 1.4568906855896837,
+          "maxDeviation": 0.04372149945281478
+        }
+      ]
+    },
+    {
+      "scenario": "ordinary",
+      "windowSize": 200,
+      "guard": {
+        "maxAbsZ": 2,
+        "maxDeviation": 3
+      },
+      "windows": [
+        {
+          "start": 0,
+          "selected": "LANDAU",
+          "raw": {
+            "modelRMSE": 0.13389467879865377,
+            "naiveRMSE": 0.13404403951722677,
+            "selectedRMSE": 0.13389467879865377
+          },
+          "guarded": {
+            "modelRMSE": 0.13389467879865377,
+            "naiveRMSE": 0.13404403951722677,
+            "selectedRMSE": 0.13394047810443177,
+            "guardedRMSE": 0.13394047810443177
+          },
+          "fallbackCount": 1,
+          "maxAbsZ": 1.4443831857076948,
+          "maxDeviation": 0.021386440393555972
+        }
+      ]
+    },
+    {
+      "scenario": "regime-shift",
+      "windowSize": 100,
+      "guard": {
+        "maxAbsZ": 2,
+        "maxDeviation": 3
+      },
+      "windows": [
+        {
+          "start": 0,
+          "selected": "LANDAU",
+          "raw": {
+            "modelRMSE": 0.14777928384574585,
+            "naiveRMSE": 0.14780814581491428,
+            "selectedRMSE": 0.14777928384574585
+          },
+          "guarded": {
+            "modelRMSE": 0.14777928384574585,
+            "naiveRMSE": 0.14780814581491428,
+            "selectedRMSE": 0.14777928384574585,
+            "guardedRMSE": 0.14777928384574585
+          },
+          "fallbackCount": 0,
+          "maxAbsZ": 1.4122008000292028,
+          "maxDeviation": 0.02022910067785233
+        },
+        {
+          "start": 100,
+          "selected": "NAIVE",
+          "raw": {
+            "modelRMSE": 2574.7269534508105,
+            "naiveRMSE": 0.1273333111082409,
+            "selectedRMSE": 0.1273333111082409
+          },
+          "guarded": {
+            "modelRMSE": 2574.7269534508105,
+            "naiveRMSE": 0.1273333111082409,
+            "selectedRMSE": 0.1273333111082409,
+            "guardedRMSE": 0.1273333111082409
+          },
+          "fallbackCount": 20,
+          "maxAbsZ": 58.038570819564455,
+          "maxDeviation": 2764.166990682907
+        }
+      ]
+    },
+    {
+      "scenario": "regime-shift",
+      "windowSize": 200,
+      "guard": {
+        "maxAbsZ": 2,
+        "maxDeviation": 3
+      },
+      "windows": [
+        {
+          "start": 0,
+          "selected": "LANDAU",
+          "raw": {
+            "modelRMSE": 1270.8405603338056,
+            "naiveRMSE": 6.353850851233021,
+            "selectedRMSE": 1270.8405603338056
+          },
+          "guarded": {
+            "modelRMSE": 1270.8405603338056,
+            "naiveRMSE": 6.353850851233021,
+            "selectedRMSE": 6.353981992075871,
+            "guardedRMSE": 6.353981992075871
+          },
+          "fallbackCount": 39,
+          "maxAbsZ": 57.72957061996271,
+          "maxDeviation": 1365.482741273127
+        }
+      ]
+    }
+  ]
+}

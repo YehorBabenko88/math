@@ -1,0 +1,7 @@
+# Permutation drawdowns numerical transfer
+
+The Math-owned API preserves the archived legacy permutation order and ordered binary64 drawdown arithmetic for admitted finite bounded inputs. It uses a private seeded RNG and a fresh original-order list on each run. It shares the existing PnL equity/peak/drawdown/streak kernel; unrelated profit-factor overflow does not restrict the permutation domain.
+
+The old PnL body is reconstructible byte-for-byte by replacing its helper call with the exact extracted loop. Other old statistics functions and numerical ABI are unchanged. Source profiles v4/e3, v5/420 and v6/001 retain actual immutable source fixtures and pin meanings. V7 identifies this new source without claiming source parity or numerical equivalence automatically. The original17 profile methods remain, with only their active workflow assertion updated from v6 to v7; setup detaches v6 from HEAD and binds its001 fixture.
+
+Fourteen mandatory SDK tests cover seeded legacy order, closed types and budgets, global RNG and caller immutability, full preflight/snapshot, atomic overflow, profit-factor independence, and shared PnL kernel use. External scoped replay adds4092 exact legacy seed paths and1370 old001 PnL paths per source/wheel/Python mode. No market model validity, stationarity, risk-of-ruin, accounting identity, source admission, production readiness or trading authority is asserted. Existing516 declared obligations remain; no retirement is claimed.

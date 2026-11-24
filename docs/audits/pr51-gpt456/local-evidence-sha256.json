@@ -1,0 +1,143 @@
+{
+  "scope": "hash-only records; raw local logs retained privately, no independent runtime attestation",
+  "records": [
+    {
+      "label": "pr52-green.tap",
+      "result": "PASS",
+      "bytes": 844,
+      "sha256": "8f9356095f4497f5aa83393c6c0fe9a61af2ef330ad561770b7f0b61d9c1edfa"
+    },
+    {
+      "label": "pr53-syntax-red.txt",
+      "result": "EXPECTED_FAIL",
+      "bytes": 290,
+      "sha256": "f78b454efad7a175345466b9be4f68e3ee88a2ca0b969fe15d68a7adc34b82de"
+    },
+    {
+      "label": "pr53-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 2309,
+      "sha256": "9f2eaa49228bf78f165083ecdd20c2dbdb53b4e3a22e3cf7389b21f3ed324300"
+    },
+    {
+      "label": "pr53-contract-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 8407,
+      "sha256": "7aba954fa57d6c14d559086323af5d800a50af776e7d1ebf3a8476defd2b3da4"
+    },
+    {
+      "label": "pr53-green.tap",
+      "result": "INTERMEDIATE_FAIL_WINDOWS_URL",
+      "bytes": 3747,
+      "sha256": "6c8214e390a6aacc71fb1a8b29d7a35f15c8aef45a29e5aa866f81ccb424441c"
+    },
+    {
+      "label": "pr53-final-green.tap",
+      "result": "PASS",
+      "bytes": 3016,
+      "sha256": "10042cc2e17cb6e76f8d2eb8159e997d398c73d82efcb850adfc5ed845af9f4d"
+    },
+    {
+      "label": "pr54-behavior-red.txt",
+      "result": "EXPECTED_FAIL",
+      "bytes": 632,
+      "sha256": "b6eb304a0d9adbcf1084e7d0840e14a8a5130fe270bbc0182e491140eea0638d"
+    },
+    {
+      "label": "pr54-static-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 35704,
+      "sha256": "b8e4ef8c7416b8d50810383e3939a63f9f441eaca2df64f41fbd9a4637f1a79f"
+    },
+    {
+      "label": "pr54-behavior-green.txt",
+      "result": "PASS",
+      "bytes": 97,
+      "sha256": "ef3988c00e91b68708e49b2ce1b50cda7aadcd4907fae321205e82cdbf724f70"
+    },
+    {
+      "label": "pr54-static-green.tap",
+      "result": "PASS",
+      "bytes": 1932,
+      "sha256": "d11934ef22934c4b32f5b1b6de456204b26ed3f2a65e86335f4d1db6dd7bca5e"
+    },
+    {
+      "label": "pr55-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 59235,
+      "sha256": "609b0de354305ec84e17769e39cabf73487e6806733e3fc09033ef2c7c8b2021"
+    },
+    {
+      "label": "pr55-green.tap",
+      "result": "PASS",
+      "bytes": 1623,
+      "sha256": "98c7d5c55a86cec7f687594b3bf067df3ac603e4da485d333dfc40a6d441fc3c"
+    },
+    {
+      "label": "legacy-runtime-privacy-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 7549,
+      "sha256": "74dad2bbec4122d40511d381595e56421e99048368cb65ae34555fc94e1a1853"
+    },
+    {
+      "label": "receipt-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 3284,
+      "sha256": "e2a9380326002c30f113ecc5424b237812397d1f3230aa0ccbbe9c790e329171"
+    },
+    {
+      "label": "runtime-privacy-green.tap",
+      "result": "PASS",
+      "bytes": 483,
+      "sha256": "9acd9276f87717b3ad90fe76fd107dbece57d80c96cdbc234dc953a14d696124"
+    },
+    {
+      "label": "private-channel-gate-red.tap",
+      "result": "EXPECTED_FAIL",
+      "bytes": 2091,
+      "sha256": "e4512a51437665816b60ca6866b9cdb36f2f9a4a48a000e18e8b22c67d78ef39"
+    },
+    {
+      "label": "private-channel-gate-green.tap",
+      "result": "PASS",
+      "bytes": 959,
+      "sha256": "9e63003b9b3bd6e689e979e184825312beb122e87be0bd79c248735e28116788"
+    },
+    {
+      "label": "final-node22.tap",
+      "result": "PASS_WITH_EXPLICIT_SKIPS",
+      "bytes": 72850,
+      "sha256": "94594b410850d3cde8d75617021ec79a0c7705d99f4f69d7874f88c30129556b"
+    },
+    {
+      "label": "final-node24.tap",
+      "result": "PASS_WITH_EXPLICIT_SKIPS",
+      "bytes": 72825,
+      "sha256": "ccf18fcf61b54e3ca868438757ff07f063bed91fa02563cc48f9f6306dd1a975"
+    },
+    {
+      "label": "ps51-workflow-parser.txt",
+      "result": "PASS",
+      "bytes": 63,
+      "sha256": "b2020283a2da5519e5f1950de4ecd1e7543fa00e45cde32a5d514f1f62a653ba"
+    },
+    {
+      "label": "ps7-workflow-parser.txt",
+      "result": "PASS",
+      "bytes": 63,
+      "sha256": "b2020283a2da5519e5f1950de4ecd1e7543fa00e45cde32a5d514f1f62a653ba"
+    },
+    {
+      "label": "ps51-compile-pure.txt",
+      "result": "PASS",
+      "bytes": 78,
+      "sha256": "b262a3e1c2b7a13fd2ca4601cf96b1296f23e7276b7c167001c0e608646a1872"
+    },
+    {
+      "label": "test-inventory.json",
+      "result": "INVENTORY",
+      "bytes": 2298,
+      "sha256": "8ef1a7b2a1327ad835d2783888edb42144f30e6c54ce8209845ce25c99c9c8e3"
+    }
+  ]
+}

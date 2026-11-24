@@ -1,0 +1,18 @@
+[
+  {
+    "file": "exact-base-red.tap",
+    "sha256": "afd7d33b134b0a8fc37307c18486b19ec2e9782137ac8ff3a66b2f9819890707"
+  },
+  {
+    "file": "cleanup-green.tap",
+    "sha256": "2455d3658585f1efc668fc3ef7c94227a3bd2f88bf925e46caf0942d067f8447"
+  },
+  {
+    "file": "final-node22.tap",
+    "sha256": "43486ccfe3ccab62f1ad050b5742cc3c39c8f8e5dfb4abb286e21e0b45062fd4"
+  },
+  {
+    "file": "final-node24.tap",
+    "sha256": "43723478e66dea679285912c2637abc91bce59bea7f256e6480365bf54f994ed"
+  }
+]

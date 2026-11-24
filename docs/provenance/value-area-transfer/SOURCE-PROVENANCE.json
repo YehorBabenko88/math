@@ -1,0 +1,31 @@
+{
+  "schema": "math.value-area-transfer.raw.v1",
+  "source_data": "84684f20755e6b6bfd00f95acd863302b6f5df59",
+  "math_base": "7ed299b6480b2cb683ee91bd162ed9d76e99aa7f",
+  "old_math_kernel_prefix": {
+    "bytes": 64840,
+    "sha256": "5318b6244b989587923c5ca8d84bfa1d09d7ce5fa28cf97e55f8b1b1459d8ff8"
+  },
+  "original_role_count": 3,
+  "retirement_status": "HELD_UNTIL_ALL_DATA_BOOTSTRAP_CONSUMERS_MIGRATED",
+  "accepted_remaining": 518,
+  "deduction": 0,
+  "members": [
+    {
+      "original": "strattester/research/volume_profile.py",
+      "source_head": "84684f20755e6b6bfd00f95acd863302b6f5df59",
+      "git_blob": "6d74dd706c720c3f801bb88ff886ca9be97235e2",
+      "sha256": "309e6f08b33a0bf5665e622fc9bd5e020cdb2c7bf305114732796d963c14111a",
+      "bytes": 1163,
+      "archive": "raw/strattester__research__volume_profile.py.txt"
+    },
+    {
+      "original": "tests/research/test_volume_profile.py",
+      "source_head": "84684f20755e6b6bfd00f95acd863302b6f5df59",
+      "git_blob": "5df43120683db798d94cd16f8788d945e0650ecd",
+      "sha256": "8491c79f9bf702a614fff797d73d32521016bfce9638ae7cb6614650f6d2c05b",
+      "bytes": 802,
+      "archive": "raw/tests__research__test_volume_profile.py.txt"
+    }
+  ]
+}

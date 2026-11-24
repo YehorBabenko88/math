@@ -1,0 +1,35 @@
+{
+  "schema": "math.synthetic-evidence-hashes.v1",
+  "scope": "FAKE_NATIVE_ONLY_NOT_PHYSICAL",
+  "base": "32f86e24ea33b105f647ac3841f24e3266691bc5",
+  "files": [
+    {
+      "name": "red.tap",
+      "sha256": "94b87e4d2e9757f1514a2b43e84bae49c56e69d8bed365aa5f2b7c1d81ab117b"
+    },
+    {
+      "name": "green.tap",
+      "sha256": "eef13052f34e1b81bc4ceaee53d862c69eb7b360a2cefed8c5ceb404f80328b8"
+    },
+    {
+      "name": "mutation-probe-accepted.tap",
+      "sha256": "345e03b8661dce509f1598611121757998fe4c9cb4a365f657dd097ca84221c4"
+    },
+    {
+      "name": "mutation-length-accepted.tap",
+      "sha256": "d3337bc387e3c7462d71cf2e9c69c694825c6ce8a29cbbc3fbccc0de575c098a"
+    },
+    {
+      "name": "mutation-thread-error-accepted.tap",
+      "sha256": "a5c394675645659315442ac4b438977806d992ea658ad9eb4bca5f95da86f036"
+    },
+    {
+      "name": "node22.tap",
+      "sha256": "e1430ef684e5f289183639c34f771acd23f526e1ffde97ee709dcbf28cd22825"
+    },
+    {
+      "name": "node24.tap",
+      "sha256": "e9ee0adb8fb34115aecab3cc4ad119bd488d46225625a8eaeb2bd4689874b49d"
+    }
+  ]
+}

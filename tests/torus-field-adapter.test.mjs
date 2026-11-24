@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {embedSeriesOnTorus} from '../src/torus-series.mjs';import {depositTorusSeries,sampleTorusField,runTorusFieldExperiment} from '../src/torus-field-adapter.mjs';
+const e=embedSeriesOnTorus(Array.from({length:120},(_,i)=>Math.sin(i*.13)+i*.002));
+test('deposits measured observations on 2D torus and samples finite values',()=>{const d=depositTorusSeries(e);assert.ok(d.coverage>0&&d.coverage<=1);assert.equal(d.field.length,d.grid.nu*d.grid.nv);assert.ok(sampleTorusField(e,d.grid,d.field).every(Number.isFinite))});
+test('surface evolution conserves mass and returns time-indexed series',()=>{const r=runTorusFieldExperiment(e,{steps:100});assert.ok(Math.abs(r.initialMass-r.finalMass)<1e-8);assert.equal(r.transformed.length,e.points.length);assert.ok(Number.isFinite(r.metrics.rmse))});
+test('rejects invalid grids and steps',()=>{assert.throws(()=>depositTorusSeries(e,{nu:2}));assert.throws(()=>runTorusFieldExperiment(e,{steps:-1}))});

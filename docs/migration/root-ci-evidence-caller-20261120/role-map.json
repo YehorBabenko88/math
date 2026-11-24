@@ -1,0 +1,85 @@
+{
+  "schema": "math.root-ci-evidence-caller-transfer.v1",
+  "base": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+  "root_tool_pin": "82bf1578c5e36bafd76615661fbb3fe4e22dca55",
+  "root_tool_is_current_root_sdk": false,
+  "authority": "NONE_CONFIGURATION_ONLY",
+  "original26": {
+    "Root_hosted_only": 20,
+    "Root_static_loader": 3,
+    "Math_configuration": 3
+  },
+  "caller_roles": [
+    {
+      "name": "qualification caller pins immutable collector with one least-privilege job",
+      "status": "LOCAL_CONFIGURATION_ONLY"
+    },
+    {
+      "name": "G0 integration does not request another issuer token while PR69 run is unresolved",
+      "status": "EXISTING_EXCLUSION_LITERAL_PRESERVED_NOT_AUTH_PROOF"
+    },
+    {
+      "name": "unrelated workflows explicitly exclude the no-native/no-Q01 qualification branch",
+      "status": "ALL_EXISTING_NATIVE_JOB_GUARDS_UNCHANGED"
+    }
+  ],
+  "new_configuration_calibrations": 7,
+  "inputs": [
+    {
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "source": ".github/workflows/confidential-synthetic-e2e.yml",
+      "blob_oid": "a2e010106277a7fa77f321df1d5f3a8a904d59cd",
+      "sha256": "270fee67c04cd6a2ed72afa1ef2814ef2360b057dfe192d6fd3521f83e296d53",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/raw/.github__workflows__confidential-synthetic-e2e.yml.txt"
+    },
+    {
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "source": "tests/confidential-caller.test.mjs",
+      "blob_oid": "64adb44a76fe33365744f498f949c25524c2e21f",
+      "sha256": "a856918bed134fe9e8d2cbb5525cf2934b961f6f3044703b6ca5df9c6c90b596",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/raw/tests__confidential-caller.test.mjs.txt"
+    },
+    {
+      "source_commit": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+      "source": "tests/confidential-workflow-scope.test.mjs",
+      "blob_oid": "9215139ea2a3bd9d88c88f3685567c873207e505",
+      "sha256": "f1076a540cb132fd61ebd2eb898133fd353530f48af37c327e16009b34061127",
+      "archive": "docs/migration/root-ci-evidence-caller-20261120/raw/tests__confidential-workflow-scope.test.mjs.txt"
+    }
+  ],
+  "Root_original24_raw_custody": "YehorBabenko88/unified-system@82bf1578c5e36bafd76615661fbb3fe4e22dca55:tools/ci_evidence/provenance/input-custody.json",
+  "old_Math_collector_retirement": "EXCLUSIVE_18_REMOVED_AFTER_PARENT_CALLER_REVIEW; ROOT_34_RUNTIME_COVERAGE_HELD",
+  "nonexclusive_receiver_holds": [
+    {
+      "source": "src/evidence-receiver/strict.mjs",
+      "consumers": [
+        "scripts/adminit-containment/g0.mjs",
+        "scripts/adminit-containment/token-contract.mjs"
+      ],
+      "action": "DO_NOT_DELETE_WITH_EXCLUSIVE_COLLECTOR"
+    },
+    {
+      "source": "src/evidence-receiver/**",
+      "consumers": [
+        "tests/evidence-receiver*.test.mjs",
+        "tests/fixtures/evidence-receiver/**",
+        ".github/workflows/confidential-evidence-receiver.yml"
+      ],
+      "action": "UNIQUE_REMAINING_ROLES_NOT_COVERED_BY_ROOT26;KEEP_MANDATORY"
+    }
+  ],
+  "native_oidc_signature_sqlite": "NOT_RUN",
+  "production": "NO_GO",
+  "current_Math_terminal_event_ids": 1201,
+  "historical_inventory_terminal_event_ids": 1234,
+  "historical_source_test_files": 188,
+  "historical_destination_archives": 195,
+  "transferred_Root_terminal_events": 34,
+  "Root_hosted_terminal_events": 31,
+  "required_Root_cells": [
+    "linux-22-16",
+    "linux-22-18",
+    "linux-24-16",
+    "linux-24-18"
+  ]
+}

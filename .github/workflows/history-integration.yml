@@ -1,0 +1,151 @@
+name: history-integration
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+jobs:
+  synthetic:
+    # Preserve the existing explicitly scoped no-native/no-Q01 branch policy.
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
+        with:
+          repository: YehorBabenko88/bybit-cluster-grid
+          ref: bf9f108b6777085d6725675eac778d61ec55f42b
+          path: reference-grid
+          persist-credentials: false
+      - name: Raw checkout and source/sdist/wheel refusal controls
+        run: python -B -m unittest discover -s tests -p test_math_sdk_raw_bytes.py -v
+      - name: Exact-head synthetic checks
+        run: python scripts/history_ci.py tests 'test_history*.py'
+        env:
+          GRID_REFERENCE: ${{ github.workspace }}/reference-grid
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
+        with:
+          repository: YehorBabenko88/meta_analyse
+          ref: f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1
+          path: reference-meta
+          persist-credentials: false
+      - name: Verify immutable Meta source and Math numerical parity
+        run: python -B -m unittest discover -s tests -p test_unified_statistics_contract.py -v
+      - name: Enforce independent Math SDK no-trading boundary
+        run: python -B -m unittest discover -s tests -p test_math_sdk_ownership.py -v
+      - name: Qualify installed Math batch package without modifying checkout
+        shell: python {0}
+        run: |
+          import hashlib, os, pathlib, subprocess, sys, tempfile, venv, zipfile
+          root=pathlib.Path.cwd()
+          sys.path.insert(0,str(root/'scripts'))
+          from math_sdk_source_bytes import verify_wheel,verify_sdist,require_checkout,materialize
+          names=['pyproject.toml','python/market_math.py','python/market_compute_api.py','python/history_statistics.py']
+          def call(args,**kwargs):
+              return subprocess.check_output([str(a) for a in args],timeout=120,**kwargs)
+          with tempfile.TemporaryDirectory(prefix='math-package-') as tmp:
+              tmp=pathlib.Path(tmp);source=tmp/'source';source.mkdir()
+              committed_files={};current_files={}
+              for name in names:
+                  committed_files[name]=call(['git','--no-replace-objects','-C',root,'show','HEAD:'+name])
+                  current_files[name]=(root/name).read_bytes()
+              require_checkout(committed_files,current_files)
+              materialize(committed_files,source)
+              # Python 3.12 virtual environments ship without setuptools.
+              builder=tmp/'builder'
+              venv.EnvBuilder(with_pip=True).create(builder)
+              python_path='Scripts/python.exe' if os.name=='nt' else 'bin/python'
+              build_python=builder/python_path
+              call([build_python,'-m','pip','install','--no-deps','--only-binary=:all:',
+                    'setuptools==80.9.0'],cwd=tmp)
+              wheel_dir=tmp/'wheels';wheel_dir.mkdir()
+              build_env={**os.environ,'SOURCE_DATE_EPOCH':'315532800'}
+              call([build_python,'-m','pip','wheel','--no-deps','--no-build-isolation',
+                    '--wheel-dir',wheel_dir,source],cwd=tmp,env=build_env)
+              wheels=list(wheel_dir.glob('*.whl'))
+              if len(wheels)!=1:raise RuntimeError('MATH_PACKAGE_WHEEL_COUNT')
+              with zipfile.ZipFile(wheels[0]) as archive:
+                  members=set(archive.namelist())
+                  if 'market_profile_math.py' in members:raise RuntimeError('RETIRED_MATH_MODULE_IN_WHEEL')
+                  if not {'market_compute_api.py','market_math.py','history_statistics.py'}<=members:
+                      raise RuntimeError('MATH_PACKAGE_MODULES_MISSING')
+              verify_wheel(wheels[0],committed_files)
+              sdists=tmp/'sdists';sdists.mkdir()
+              call([build_python,'-I','-B','-c','from setuptools.build_meta import build_sdist;import sys;build_sdist(sys.argv[1])',sdists],cwd=source,env=build_env)
+              archives=list(sdists.glob('*.tar.gz'))
+              if len(archives)!=1:raise RuntimeError('MATH_SDK_SDIST_COUNT')
+              verify_sdist(archives[0],committed_files)
+              env_dir=tmp/'venv';venv.EnvBuilder(with_pip=True,clear=True).create(env_dir)
+              py=env_dir/python_path
+              call([py,'-m','pip','install','--no-index','--no-deps',wheels[0]],cwd=tmp)
+              program=("import importlib.util,importlib.metadata as metadata,pathlib;"
+                       "import market_math as canonical;"
+                       "assert importlib.util.find_spec('market_profile_math') is None;"
+                       "assert pathlib.Path(canonical.__file__).resolve()==pathlib.Path(metadata.distribution('unified-math-kernels').locate_file('market_math.py')).resolve();"
+                       "from market_compute_api import compute_batch;"
+                       "q={'schema':'math.market.compute.v1','execution_authority':False,"
+                       "'source':{'snapshot_sha256':'a'*64,'as_of_ms':1,"
+                       "'units':{'price':'quote/base','volume':'base'}},"
+                       "'operations':[{'operation':'price_bucket',"
+                       "'input':{'price':'1.235','tick':'0.01'}}]};"
+                       "r=compute_batch(q);"
+                       "assert r['results'][0]['value']=='1.24' and "
+                       "r['provenance']=='CALLER_SUPPLIED_UNATTESTED' and "
+                       "r['execution_authority'] is False and r['trading_authorized'] is False")
+              call([py,'-B','-c',program],cwd=tmp)
+              print('Math wheel SHA-256',hashlib.sha256(wheels[0].read_bytes()).hexdigest())
+      - name: Explicit pinned consolidated kernel profile and original scientific parity
+        run: python scripts/history/parity.py --kernel-profile research-statistics-v7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: history-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            .history-evidence/*.json
+            .history-evidence/SHA256SUMS
+          include-hidden-files: true
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: history-log-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .history-evidence/tests.log
+          include-hidden-files: true
+          if-no-files-found: error
+

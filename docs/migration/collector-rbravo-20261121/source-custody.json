@@ -1,0 +1,171 @@
+{
+  "schema": "math.root-collector-handoff.v1",
+  "collector_repository": "YehorBabenko88/unified-system",
+  "collector_source": "4ba390b8e12070499d54b12e5609c683c00607ee",
+  "source_inputs": [
+    {
+      "path": "tools/ci_evidence/strict.mjs",
+      "sha256": "0728aae4211c32bf0a7f19e91d91a36ebf190a2a95282e716864640e58fc37c8",
+      "git_blob": "62e144841c609b5ee943ffcca385832b7fc9f30f"
+    },
+    {
+      "path": "tools/ci_evidence/github_identity.mjs",
+      "sha256": "71e7fc45cad9846ec8f6750c073616b56796b44151c43de99682b22d36dcfb99",
+      "git_blob": "712eec1c9cb10ff58703fb587050b5fe7d598fe4"
+    },
+    {
+      "path": "tools/ci_evidence/envelope.mjs",
+      "sha256": "b081be5d7789bd508026c748075e2435e4e61df8f21905119f4e1cc2f0508c9f",
+      "git_blob": "63a7d5cab15444c9607313aed156189c5bf9a7e7"
+    },
+    {
+      "path": "tools/ci_evidence/receiver_journal.mjs",
+      "sha256": "f2491c60e7f56b9ce41ce0874d704da2ed8e622dc5bd174013a631de61169911",
+      "git_blob": "d9f64d80622973c8a739edf3d462e1b47fa19618"
+    },
+    {
+      "path": "tools/ci_evidence/zip.mjs",
+      "sha256": "633be9954ee26f182989592a24829de6f2318a5552263c23f2c6b871e98a08f2",
+      "git_blob": "07c36cf0e365e1b63dffb36f2dc80362a1e17af2"
+    },
+    {
+      "path": "tools/ci_evidence/oidc_request.mjs",
+      "sha256": "d7ed8a0b202d49f213480f6fdcc26f06eb604429a14758642d64a59d5cea19c9",
+      "git_blob": "2dd1185831cdfa7d1f997e773a1094876ad1d97f"
+    },
+    {
+      "path": "tools/ci_evidence/context.mjs",
+      "sha256": "1deb79d21868ff0cdc8ce7871b07e696e1c4e11c08ac2cfbc966da3bd0e8cfd4",
+      "git_blob": "af8ef5a38cdd9b3fbc0d36cdc9bbc45a3e426014"
+    },
+    {
+      "path": "tools/ci_evidence/session.mjs",
+      "sha256": "3b7ce1eef8b3b876fe7d505db21db88db28bbc94409fef1fbbe458e2fe45ef0a",
+      "git_blob": "beed539180cb163e62719760c21b646f9f4b28bb"
+    },
+    {
+      "path": "tools/ci_evidence/synthetic_bundle.mjs",
+      "sha256": "459caade33cacf7d50b508225b1dedb435159f69ea0b2560fda68ef9102d522c",
+      "git_blob": "591173d8b78d7291e4f86849f06b3eae8d424282"
+    },
+    {
+      "path": "tools/ci_evidence/public_summary.mjs",
+      "sha256": "3d4f63dd2ceb7766965249acd3aa6aafe6e27f59786449f0633ec353ddd1a1ea",
+      "git_blob": "3406021a4a75f18694bde205976b84f3122b2bfe"
+    },
+    {
+      "path": "tools/ci_evidence/worker.mjs",
+      "sha256": "f582b6121c087cba68e50d5b895476280961185e439504fa607f66619ac9fd53",
+      "git_blob": "d969aa868b9c0abfd673dc391a48ebc98afc7913"
+    },
+    {
+      "path": "tools/ci_evidence/hosted.mjs",
+      "sha256": "2af2b85baba6d9b893982dd7e49a14b9672b2c45bcb228bbfa23e89dacacc6b5",
+      "git_blob": "57d26a54bca3c6527eff11c500e383297524aa94"
+    },
+    {
+      "path": "tools/ci_evidence/diagnostics.mjs",
+      "sha256": "ed9238d1f92bda2296aaa41c24b984d4647417f657573b9e0179309213f2a075",
+      "git_blob": "67e43a943350169e992dab9859ae0b7810d39368"
+    },
+    {
+      "path": "tools/ci_evidence/context_init.mjs",
+      "sha256": "cde73bbfcff528323c4ade54a859ed24d4cf55180239d6460369df95b7983c2c",
+      "git_blob": "620633afdedf3fd5fe5b53a55032cc4be64ce999"
+    },
+    {
+      "path": "tools/ci_evidence/identity_policy.mjs",
+      "sha256": "8b72983e9d558822ab0c7e79140cdcd9e8f071edfcb961da4eb70fe30506e4a4",
+      "git_blob": "b58c56a41c98172054b81bceeef00e6be5f2eae3"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-collector-context.test.mjs",
+      "sha256": "e0d48d41cb0c1e3122869240ba410f661e56a22e60a5da80d2153bb100fd1a41",
+      "git_blob": "f5521da2ad7d2cf4c993b156aecc9f371a46698f"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-collector-oidc.test.mjs",
+      "sha256": "6bf2d64169d5929d17d3d6fa9b520e9900d591bbd9b5695e81a2328915e9d008",
+      "git_blob": "60ea2447216729092dcd7817542b2fc49c441f62"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-pr64-blocked-projection.test.mjs",
+      "sha256": "801fb26109119ff3be23469501b742f787f87f357291d0a16c14e280c50e4e25",
+      "git_blob": "99214898c5e5291c4de17e08af00f9d27d3746cb"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-public-privacy.test.mjs",
+      "sha256": "73d47e8490f66de445c022998efc7e27bdd798cd933e1cd9c1a35ea1e7f12b35",
+      "git_blob": "71434fe7753aa238be601e22da8afd0da820e214"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-receipt-schema.test.mjs",
+      "sha256": "7ec5cee99e715fdf469415f15eb88d6ee820ee8d6ffaa493b889a323a1736fe8",
+      "git_blob": "6d54aa87916eace3b34ab0f8353af8ec33e34ce9"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-stage-codes.test.mjs",
+      "sha256": "ba1f8ea20437a98202e9abd2df8b140a890b7ad84f8725577ad656d20fe06509",
+      "git_blob": "2d92ba3f15e06ed2c8e14467059cdcc5476dd530"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-synthetic-bundle.test.mjs",
+      "sha256": "4ac30205221a156d296f8eeab928b520c8a2036a623673c38e0f67a74865b64d",
+      "git_blob": "6a979f593e628ba19c9be2d2965eca4ef089bc8d"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/confidential-synthetic-session.test.mjs",
+      "sha256": "2734ebd54fa48efd9954755c98221124a52ebc16dc43a1f0ead90d008c2285bb",
+      "git_blob": "5976cf2d55105a140959130c9631389082cad3ea"
+    },
+    {
+      "path": "tools/ci_evidence/tests/hosted/fixtures/context.mjs",
+      "sha256": "0f038a215ba5b458dde42afa9309a4cc84cb99a0e937fb46a50697bd0101193b",
+      "git_blob": "38fc660932092142f8cefb9c8e44fd401584c58b"
+    },
+    {
+      "path": "tools/ci_evidence/tests/inert_initialization.mjs",
+      "sha256": "0625035e72b4d372ccdd463c929c1cbb1c2aef73fa8ccdc57ccc8d3a163c65ad",
+      "git_blob": "4db0be0ba8d72ee9fd25f2f53d8d3a2e64f714b8"
+    },
+    {
+      "path": "tools/ci_evidence/tests/inert_identity_policy.mjs",
+      "sha256": "c28a4f7aa70eaf39ece804d89732d1696254d92bd87d99ed58598c542dec2d85",
+      "git_blob": "166b0c0f016faf4e87ac4b664d41c3ed7a68cdb3"
+    },
+    {
+      "path": "tools/ci_evidence/tests/inert_public_diagnostics.mjs",
+      "sha256": "c8818f5808a0f3d45ed14fea56a1b83bbf0826c7d6c41c9ceb07bf71084ef6ff",
+      "git_blob": "aa499a489a127d9d8f0c5b32ed772384231bf89e"
+    },
+    {
+      "path": "tools/ci_evidence/tests/inert_loader.mjs",
+      "sha256": "da2c0e9081001414f2e794575ccaafbc6fdd912016acaab3d05814461e928d11",
+      "git_blob": "e90375c36fa37d77092adf035a3c648281d35e46"
+    },
+    {
+      "path": "tools/ci_evidence/tests/inert_api_failures.mjs",
+      "sha256": "d4dbc9e2f059f7fd1af7c80eec8b5de7073973a1112e19acdb263a9c4361557b",
+      "git_blob": "e24842761ff3f81352a04e8fc302a22c2f5c8676"
+    },
+    {
+      "path": "tools/ci_evidence/tests/inert_stage_codes.mjs",
+      "sha256": "752e0b41ad1b440030b9294ec274ea340b6b49c48aec72f8f5a53ce01568ba5d",
+      "git_blob": "756d2118c1bcc9c6cfc78c00fb4039071ffeccdc"
+    },
+    {
+      "path": "tools/ci_evidence/http_body.mjs",
+      "sha256": "cab089a1aaac6ef495279acb4967943750604461f9e4711b06cd0a64922c4d91",
+      "git_blob": "d6b92b608de1d83fe72a03f2184dd91645eef162"
+    },
+    {
+      "path": ".github/workflows/ci-evidence-collector.yml",
+      "sha256": "258b830fb825aaff9e533e73bd00314578a8cd722de4ed074f6b3c4d08a0f68a",
+      "git_blob": "74c4ad737701dc39205aab73bda620c76d86f462"
+    }
+  ],
+  "configuration_only": true,
+  "source_authentication": "NOT_EVALUATED",
+  "coverage": "HELD",
+  "production": "NO_GO"
+}

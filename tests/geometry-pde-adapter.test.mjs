@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {circle,rectangle,combineDomains,rasterizeDomain,initializePulse,diffusionStep,totalMass} from '../src/geometry-pde-adapter.mjs';
+test('intersection is contained in both input domains',()=>{const a=circle(-.3,0,1),b=circle(.3,0,1),i=combineDomains(a,b);for(const [x,y] of [[0,0],[.5,0],[-.5,0],[1.1,0]])if(i(x,y)<=0){assert.ok(a(x,y)<=0);assert.ok(b(x,y)<=0)}});
+test('union and difference respect membership',()=>{const a=circle(0,0,1),b=rectangle(.7,0,.2,.2);assert.ok(combineDomains(a,b,'union')(.7,0)<=0);assert.ok(combineDomains(a,b,'difference')(.7,0)>0)});
+test('diffusion preserves total mass with zero-flux walls',()=>{const d=rasterizeDomain(combineDomains(circle(-.3,0,1),circle(.3,0,1)),{size:40});let c=initializePulse(d,{x:0,y:0});const m=totalMass(c,d);for(let i=0;i<60;i++)c=diffusionStep(d,c);assert.ok(Math.abs(totalMass(c,d)-m)<1e-8);assert.ok(c.every((v,i)=>d.mask[i]||v===0))});
+test('reject unstable explicit diffusion step',()=>{const d=rasterizeDomain(circle(0,0,1));assert.throws(()=>diffusionStep(d,initializePulse(d),{dt:100}))});
