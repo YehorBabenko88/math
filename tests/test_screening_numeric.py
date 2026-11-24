@@ -65,7 +65,12 @@ class ScreeningNumericTests(unittest.TestCase):
   key='311' # Explicit ORDERED_BINARY64_V1, independent of host sum implementation.
   for case in GOLDENS[key]:
    r=self.boot(case['values'],runs=case['runs'],seed=case['seed'],confidence=case['confidence']);self.assertEqual(tuple(r),tuple(case['expected']),case)
- def test_iid_repeated_draw_order_deterministic(self):self.assertEqual(self.boot([1.,2.,-1.],runs=37,seed=17),self.boot([1.,2.,-1.],runs=37,seed=17))
+ def test_iid_repeated_draw_order_deterministic(self):
+  self.assertEqual(self.boot([1.,2.,-1.],runs=37,seed=17),self.boot([1.,2.,-1.],runs=37,seed=17))
+  with self.subTest(original_id='tests/research/test_validation_resampling.py::test_bootstrap_expectancy_is_seeded_and_contains_sample_mean'):
+   values=(1.,-1.,2.,.5);first=self.boot(values,runs=200,seed=7,confidence=.95);second=self.boot(values,runs=200,seed=7,confidence=.95)
+   self.assertEqual(first,second);self.assertEqual(first.mean,.625)
+   self.assertLessEqual(first.lower,.625);self.assertLessEqual(.625,first.upper)
  def test_iid_never_mutates_ambient_rng(self):
   state=random.getstate();self.boot([1.,2.],runs=10);self.assertEqual(random.getstate(),state)
  def test_iid_closed_budgets(self):

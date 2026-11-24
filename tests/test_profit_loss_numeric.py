@@ -69,6 +69,14 @@ class DeclaredTradeNumericTests(unittest.TestCase):
   self.assertEqual((out.net.numeric.total,out.net.numeric.mean,out.net.profit_factor.value,out.net.max_drawdown,out.net.max_consecutive_losses),(1.5,.5,1.6,2.5,1))
   self.assertEqual(tuple(out.mae),(2,-4,-2));self.assertEqual(tuple(out.mfe),(2,6,3))
   self.assertEqual(tuple(out.r_multiple),(2,.5,.25));self.assertEqual(tuple(out.holding_ms),(2,180000,90000))
+  with self.subTest(original_id='tests/research/test_statistics_reporting.py::test_statistics_compute_core_metrics_drawdown_and_streaks'):
+   legacy=s((R(2.2,2,.2,-.5,3,1,60),R(-.8,-1,.2,-2,.2,-.5,120),R(-1.8,-2,.2,-3,.1,-1,60)))
+   self.assertEqual((legacy.net.numeric.count,legacy.net.numeric.positive,legacy.net.numeric.negative),(3,1,2))
+   self.assertEqual(round(legacy.net.numeric.positive_fraction,6),round(1/3,6))
+   self.assertEqual(legacy.net.numeric.total,-1);self.assertEqual(round(legacy.fees_total,10),.6)
+   self.assertEqual(legacy.net.numeric.mean,-1/3);self.assertEqual(legacy.net.profit_factor.value,2/3)
+   self.assertEqual(legacy.net.max_drawdown,3);self.assertEqual(legacy.net.max_consecutive_losses,2)
+   self.assertEqual(legacy.holding_ms.mean,80);self.assertLess(legacy.mae.mean,0);self.assertGreater(legacy.mfe.mean,0)
  def test_empty_missing_and_explicit_zero_are_distinct(self):
   h,R,s=self.api()
   for out in (s(()),s((R(0,0,0),))):

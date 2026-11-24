@@ -1,0 +1,136 @@
+{
+  "schema": "math.original-statistics-bootstrap-counterparts.v1",
+  "base": "9379384606492af33619bc9168d259917da296a0",
+  "status": "PRIVATE_TEST_COUNTERPART_PROOF_ONLY_NOT_DATA_RETIREMENT",
+  "originalRoles": [
+    {
+      "originalId": "tests/research/test_statistics_reporting.py::test_statistics_compute_core_metrics_drawdown_and_streaks",
+      "original": {
+        "repository": "YehorBabenko88/strattester",
+        "commit": "104b8474de7870d52921316d345fb5f027d8dbeb",
+        "path": "tests/research/test_statistics_reporting.py",
+        "gitBlob": "7548936243b2e32c94ff0ddb35d022afe71d1a61",
+        "sha256": "2cfddb71a8925ec5989ed666e341b760cefb60a57cef39ea8949afcc58b5473a",
+        "rawFunctionSourceSHA256": "39819b732061ad225e1de7480cb0f6fb5362bc93a99c7549112bdd00eb5a57b0",
+        "assertions": 9
+      },
+      "currentData": {
+        "commit": "cef6365fb9241a62e9ffc3ddb610d2a8575fd6e3",
+        "path": "tests/research/test_statistics_reporting.py",
+        "sha256": "9a404f3c1460e4f85d700e0cb4c80f0fc2d43d772f92b1629676f26dee4ba0ac",
+        "functionBodyComparedToOriginal": true
+      },
+      "rawArchive": "docs/migration/reporting-retirement/raw/tests__research__test_statistics_reporting.py.txt",
+      "canonicalTest": "tests/test_profit_loss_numeric.py::DeclaredTradeNumericTests::test_declared_trade_hand_oracle",
+      "subtestOriginalId": "tests/research/test_statistics_reporting.py::test_statistics_compute_core_metrics_drawdown_and_streaks",
+      "api": "history_statistics.numeric_trade_summary / NumericTradeObservation",
+      "vector": {
+        "net": [
+          2,
+          -1,
+          -2
+        ],
+        "gross": [
+          2.2,
+          -0.8,
+          -1.8
+        ],
+        "fees": [
+          0.2,
+          0.2,
+          0.2
+        ],
+        "mae": [
+          -0.5,
+          -2,
+          -3
+        ],
+        "mfe": [
+          3,
+          0.2,
+          0.1
+        ],
+        "r": [
+          1,
+          -0.5,
+          -1
+        ],
+        "holding_ms": [
+          60,
+          120,
+          60
+        ],
+        "expected": {
+          "count": 3,
+          "wins": 1,
+          "losses": 2,
+          "net": -1,
+          "feesRounded10": 0.6,
+          "expectancy": -0.3333333333333333,
+          "profit_factor": 0.6666666666666666,
+          "max_drawdown": 3,
+          "max_consecutive_losses": 2,
+          "avg_holding_ms": 80,
+          "avg_mae": "NEGATIVE",
+          "avg_mfe": "POSITIVE"
+        }
+      }
+    },
+    {
+      "originalId": "tests/research/test_validation_resampling.py::test_bootstrap_expectancy_is_seeded_and_contains_sample_mean",
+      "original": {
+        "repository": "YehorBabenko88/strattester",
+        "commit": "104b8474de7870d52921316d345fb5f027d8dbeb",
+        "path": "tests/research/test_validation_resampling.py",
+        "gitBlob": "03b8ceac2018580db4c1bc52ef457ad46f60e661",
+        "sha256": "abebf46ae3a067f011e7732d7c674c949cc842a292cf648aa56e9e90c9bd5a71",
+        "rawFunctionSourceSHA256": "14e49e91e96ee50116b90e4b07a7843f1de6919f13dcd1eaaa18fab9ac65ad1d",
+        "assertions": 2
+      },
+      "currentData": {
+        "commit": "cef6365fb9241a62e9ffc3ddb610d2a8575fd6e3",
+        "path": "tests/research/test_validation_resampling.py",
+        "sha256": "4d22060095ce2c3f5bfe782f0bebb10520b7940a2df255d7247713c445f7e215",
+        "functionBodyComparedToOriginal": true
+      },
+      "rawArchive": "docs/migration/scale-mc-retirement/raw/tests__research__test_validation_resampling.py.txt",
+      "canonicalTest": "tests/test_screening_numeric.py::ScreeningNumericTests::test_iid_repeated_draw_order_deterministic",
+      "subtestOriginalId": "tests/research/test_validation_resampling.py::test_bootstrap_expectancy_is_seeded_and_contains_sample_mean",
+      "api": "history_statistics.iid_observation_mean_bootstrap",
+      "vector": {
+        "values": [
+          1,
+          -1,
+          2,
+          0.5
+        ],
+        "runs": 200,
+        "seed": 7,
+        "confidence": 0.95,
+        "expected": {
+          "repeatable": true,
+          "mean": 0.625,
+          "meanWithinInterval": true
+        }
+      }
+    }
+  ],
+  "models": {
+    "statistics": "CALLER_DECLARED_AMOUNTS_OPTIONAL_METRICS_ORDERED_BINARY64_NOT_VERIFIED_PNL_ACCOUNTING",
+    "bootstrap": "IID_MEAN_DESCRIPTIVE_NO_INDEPENDENCE_OR_SOURCE_QUALIFICATION"
+  },
+  "runtimeAPIChanged": false,
+  "newMathAPI": false,
+  "newTestIDs": 0,
+  "newLabelledOriginalSubtests": 2,
+  "mandatoryCases": 186,
+  "markerGroups": 11,
+  "authority": false,
+  "sourceAuthentication": "NOT_EVALUATED",
+  "retirement": {
+    "accepted": 37,
+    "remaining": 510,
+    "deduction": 0
+  },
+  "release": "NO_GO"
+}
