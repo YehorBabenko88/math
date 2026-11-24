@@ -46,3 +46,14 @@ class HistoryWindowTests(unittest.TestCase):
   self.assertTrue(hasattr(api,'HISTORY_WINDOW_NUMERIC_CAPABILITIES'),'missing history capability metadata')
   self.assertIn('history_window_ms',api.HISTORY_WINDOW_NUMERIC_CAPABILITIES)
   self.assertIs(api.history_window_ms,market_math.history_window_ms)
+
+
+if __name__ == '__main__':
+ suite = unittest.defaultTestLoader.loadTestsFromTestCase(HistoryWindowTests)
+ if suite.countTestCases() != 6:
+  raise SystemExit('HISTORY_WINDOW_EXACT_SIX_TESTS_REQUIRED')
+ result = unittest.TextTestRunner(verbosity=2).run(suite)
+ accepted = (result.testsRun == 6 and result.wasSuccessful()
+             and not result.skipped and not result.expectedFailures
+             and not result.unexpectedSuccesses)
+ raise SystemExit(0 if accepted else 1)
