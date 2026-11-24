@@ -315,6 +315,20 @@ def wall_turnover_ratios(price: Decimal, size: Decimal, turnovers, *, ratio_prec
             "observed_turnover": turnovers.copy()}
 
 
+def historical_ohlc_directional_volume_valid(open,high,low,close,buy_volume,sell_volume):
+    """Plain historical int/float OHLC/sign domain; never source authority.
+
+    Preserve binary64-native finite/subnormal values and finite-convertible
+    integers. No Decimal/Paper/lossless policy or foreign coercion is applied.
+    """
+    values=(open,high,low,close,buy_volume,sell_volume)
+    if any(type(value) is not int and type(value) is not float for value in values):return False
+    try:
+        if not all(math.isfinite(value) for value in values):return False
+        return 0<low<=min(open,close)<=max(open,close)<=high and min(buy_volume,sell_volume)>=0
+    except (ValueError,OverflowError):return False
+
+
 def historical_aggregate_integrity(row):
     """Historical binary64 partition/POC integrity; never source authentication.
 
@@ -330,8 +344,7 @@ def historical_aggregate_integrity(row):
         # ULP tolerance applies only inside the strictly positive price domain.
         # Subnormal rounding must never admit zero/negative market prices.
         if row['poc_price']<=0:return False
-        if min(row['buy_volume'],row['sell_volume'])<0:return False
-        if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high']:return False
+        if not historical_ohlc_directional_volume_valid(*(row[k] for k in ('open','high','low','close','buy_volume','sell_volume'))):return False
         if type(row['trade_count']) is not int or row['trade_count']<=0:return False
         levels=row['levels']
         if not isinstance(levels,list) or not 0<len(levels)<=10000:return False
