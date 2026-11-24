@@ -67,10 +67,11 @@ test('snapshot restore only into empty store; corrupt state fails closed; orphan
 });
 test('independent processes deduplicate and acquire only one lease',async t=>{
  const d=directory(t),moduleUrl=new URL('../src/book-ingestion/queue.mjs',import.meta.url).href;
- const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)}});await q.enqueue(${JSON.stringify(input)});console.log(JSON.stringify(await q.acquire({workerId:'process',leaseMs:10000})));`;
+ // Keep both workers and reopen in one logical lease window; expiry is covered separately.
+ const script=`import {openBookQueue} from ${JSON.stringify(moduleUrl)};const q=await openBookQueue({directory:${JSON.stringify(d)},now:()=>100});await q.enqueue(${JSON.stringify(input)});console.log(JSON.stringify(await q.acquire({workerId:'process',leaseMs:10000})));`;
  const results=await Promise.all([1,2].map(()=>promisify(execFile)(process.execPath,['--input-type=module','-e',script])));
  assert.equal(results.map(r=>JSON.parse(r.stdout)).filter(Boolean).length,1);
- const q=await openBookQueue({directory:d});assert.equal((await q.list()).length,1);
+ const q=await openBookQueue({directory:d,now:()=>100});assert.equal((await q.list()).length,1);
 });
 test('OS lock recovers after killed writer and rolls back interrupted transaction',async t=>{
  const d=directory(t),q=await openBookQueue({directory:d});const job=await q.enqueue(input);
