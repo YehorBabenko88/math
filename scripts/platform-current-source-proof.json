@@ -75,7 +75,7 @@
     "tests/book-ingestion-knowledge-boundary.test.mjs": "1988114bd8e0c1d44f269e6e3ff7ad46a40b30d01b6082ee3d16a010c1b62964",
     "tests/book-ingestion-native.test.mjs": "5579f978a446a989ddd41d502b5cf80eb9f9c3cf7dbb717ca3966af028102ea6",
     "tests/book-ingestion-pdf.test.mjs": "15d1dbb5e594eccb09e09555f6368c5daec92f5be4a9df391a084cf5eee4935f",
-    "tests/book-ingestion-queue.test.mjs": "e37a4d935661585cd715a384a3c99f7ed08e1dcd161e2575e0e39defa4a30557",
+    "tests/book-ingestion-queue.test.mjs": "2f37193d6c821492d74249e91580c098d5d3caef484a079ad06f00ac9d70b109",
     "tests/book-ingestion-review.test.mjs": "2ecffccb5337054f318acc78bc88743b4868d8e4c823f6f139591ef262bf2142",
     "tests/book-ingestion-worker.test.mjs": "ee3c1b8c3885c6d906ae28ffb85471c0825e6d3f350641271d9ed639d170a371",
     "tests/book-knowledge-intake.test.mjs": "57c17ef7df374d937935c496d146ca92662132974788201d83753d472aa0b689",
