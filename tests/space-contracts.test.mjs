@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as d from '../src/space-contracts.mjs';
+import {readFileSync} from 'node:fs';
+const f=JSON.parse(readFileSync(new URL('./fixtures/space_contract_v1.json',import.meta.url)));
+test('eight exports',()=>assert.equal(Object.keys(d).length,8));
+for(const [name,fn] of Object.entries(d))test(name+' rejects empty DTO',()=>assert.throws(()=>fn({}),/INVALID_SCHEMA/));
+test('sphere dimensions and detached result',()=>{const v=d.validateSpaceSpec(f.sphere);assert.notEqual(v,f.sphere);assert.throws(()=>d.validateSpaceSpec({...f.sphere,parameters:{...f.sphere.parameters,intrinsicDimension:4}}),/DIMENSION/)});
+test('future fit refuses',()=>assert.throws(()=>d.validateFitArtifact({...f.fit,fitMaxAvailableAtMs:11}),/LOOKAHEAD/));
+test('fit cutoff accepted structurally',()=>assert.equal(d.validateFitArtifact(f.fit).trainCutoffMs,10));
+test('getter not invoked',()=>{let called=false;assert.throws(()=>d.validateSpaceSpec({get schema(){called=true;return ''}}));assert.equal(called,false)});
