@@ -19,6 +19,8 @@ CREATE TABLE math_experiment_lab.attempts (
  fold_ref math_experiment_lab.ref NOT NULL,
  ordinal bigint NOT NULL CHECK(ordinal BETWEEN 0 AND 9007199254740991),
  budget_ref math_experiment_lab.ref NOT NULL REFERENCES math_experiment_lab.budgets,
+ semantic_ref math_experiment_lab.ref NOT NULL UNIQUE,
+ semantic_binding bytea NOT NULL CHECK(octet_length(semantic_binding) BETWEEN 2 AND 262144),
  prereg bytea NOT NULL CHECK(octet_length(prereg) BETWEEN 2 AND 262144),
  state text NOT NULL DEFAULT 'REGISTERED' CHECK(state IN ('REGISTERED','CLAIMED','STARTED','TERMINAL')),
  worker_ref math_experiment_lab.ref,
@@ -47,25 +49,30 @@ BEGIN
  IF old.op<>o OR old.binding<>b THEN RAISE EXCEPTION 'COMMAND_CONFLICT'; END IF;
  RETURN old.outcome;
 END $$;
-CREATE FUNCTION math_experiment_lab.reserve_attempt(c text,a text,p text,i text,f text,o bigint,k text,b bytea)
+CREATE FUNCTION math_experiment_lab.reserve_attempt(c text,a text,p text,i text,f text,o bigint,k text,b bytea,s text,sb bytea)
 RETURNS TABLE(attempt_ref text,prereg_ref text,outcome text) LANGUAGE plpgsql SECURITY DEFINER
 SET search_path=pg_catalog,pg_temp AS $$
 DECLARE old math_experiment_lab.attempts%ROWTYPE; prior text; result text; binding bytea;
 BEGIN
- binding=convert_to(concat_ws(':',a,p,i,f,o,k),'UTF8')||b;
+ binding=convert_to(concat_ws(':',a,p,i,f,o,k,s),'UTF8')||int4send(octet_length(b))||b||sb;
  prior=math_experiment_lab.check_command(c,'reserve',binding);
  IF prior IS NOT NULL THEN RETURN QUERY SELECT a,p,prior; RETURN; END IF;
  UPDATE math_experiment_lab.budgets SET proposals=proposals+1 WHERE policy_ref=k AND proposals<proposal_limit;
  IF NOT FOUND THEN RAISE EXCEPTION 'PROPOSAL_BUDGET'; END IF;
- INSERT INTO math_experiment_lab.attempts(attempt_ref,prereg_ref,intent_ref,fold_ref,ordinal,budget_ref,prereg)
- VALUES(a,p,i,f,o,k,b) ON CONFLICT DO NOTHING;
+ INSERT INTO math_experiment_lab.attempts(attempt_ref,prereg_ref,intent_ref,fold_ref,ordinal,budget_ref,prereg,semantic_ref,semantic_binding)
+ VALUES(a,p,i,f,o,k,b,s,sb) ON CONFLICT DO NOTHING;
  IF FOUND THEN
   UPDATE math_experiment_lab.budgets SET attempts=attempts+1 WHERE policy_ref=k AND attempts<attempt_limit;
   IF NOT FOUND THEN RAISE EXCEPTION 'ATTEMPT_BUDGET'; END IF;
   result='REGISTERED';
  ELSE
   SELECT * INTO old FROM math_experiment_lab.attempts t WHERE t.attempt_ref=a FOR UPDATE;
-  IF NOT FOUND OR old.prereg_ref<>p OR old.prereg<>b OR old.intent_ref<>i OR old.fold_ref<>f OR old.ordinal<>o OR old.budget_ref<>k THEN RAISE EXCEPTION 'CONFLICT'; END IF;
+  IF FOUND THEN
+   IF old.prereg_ref<>p OR old.prereg<>b OR old.intent_ref<>i OR old.fold_ref<>f OR old.ordinal<>o OR old.budget_ref<>k OR old.semantic_ref<>s OR old.semantic_binding<>sb THEN RAISE EXCEPTION 'CONFLICT'; END IF;
+  ELSE
+   SELECT * INTO old FROM math_experiment_lab.attempts t WHERE t.semantic_ref=s FOR UPDATE;
+   IF NOT FOUND OR old.semantic_binding<>sb OR old.budget_ref<>k THEN RAISE EXCEPTION 'SEMANTIC_CONFLICT'; END IF;
+  END IF;
   result='DUPLICATE';
  END IF;
  INSERT INTO math_experiment_lab.commands VALUES(c,'reserve',binding,result);
