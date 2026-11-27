@@ -7,6 +7,8 @@ validates them independently and never reads market or external state.
 from __future__ import annotations
 
 import math
+from contextvars import ContextVar
+from contextlib import contextmanager
 # The sole generic checked arithmetic implementation is owned by Agent C.
 # Keep this source-only development candidate inert until the C module is present.
 try:
@@ -23,11 +25,25 @@ MAX_VECTOR_COMPONENTS = 256
 UNIT_ULPS_PER_COORDINATE = 8.0
 ANTIPODE_GUARD = 1e-8
 
+# The bounded runner installs its single-thread-owned V counter in a scoped
+# context. The token is reset even on numeric/refusal errors. Bare public
+# spherical_apply(budget=...) remains fail-closed without that scope.
+_RUNNER_BUDGET = ContextVar('math_universe_e_runner_budget', default=None)
+
 
 class SphericalError(ValueError):
     def __init__(self, code: str):
         self.code = code
         super().__init__(code)
+
+
+@contextmanager
+def _runner_budget_scope(budget):
+    token = _RUNNER_BUDGET.set(budget)
+    try:
+        yield
+    finally:
+        _RUNNER_BUDGET.reset(token)
 
 
 def _number(value: object) -> float:
@@ -76,7 +92,10 @@ def _checked(value: float, *, nonzero: bool = False) -> float:
 def _c(operation: str, *args: object) -> float:
     core = _metric()
     try:
-        return getattr(core, operation)(*args)
+        budget = _RUNNER_BUDGET.get()
+        if budget is None:
+            return getattr(core, operation)(*args)
+        return getattr(core, operation)(*args, budget=budget)
     except ValueError as exc:
         code = str(exc)
         if code in {'INVALID_NUMBER', 'DIMENSION', 'NUMERIC_OVERFLOW',
@@ -265,7 +284,15 @@ def spherical_apply(op: object, args: object, dimension: object, radius: object,
     A non-None budget is refused until the trusted shared budget contract is present.
     """
     if budget is not None:
-        raise SphericalError('BUDGET_EXCEEDED')
+        # Only the narrow runner can enable real V metering, under one scoped
+        # context. No separate counter, no implicit C or host accounting.
+        try:
+            from math_resource_budget import BudgetCounter
+        except ImportError:
+            raise SphericalError('BUDGET_EXCEEDED') from None
+        if type(budget) is not BudgetCounter or _RUNNER_BUDGET.get() is not budget:
+            raise SphericalError('BUDGET_EXCEEDED')
+        return _budgeted_spherical_apply(op, args, dimension, radius, budget)
     n = _dimension(dimension) + 1
     r = _radius(radius)
     _metric()  # Reject every geometry operation until C is available.
@@ -321,3 +348,38 @@ def spherical_apply(op: object, args: object, dimension: object, radius: object,
         return {'u': _exp(u, tangent, 1.0)}
     tangent = _tangent(u, _vector(args['v'], n))
     return {'tangent': tangent}
+
+
+def _budgeted_spherical_apply(op, args, dimension, radius, budget):
+    """Runner-only abstract E overhead; C computes and charges numerics once.
+
+    Caller preflights aggregate C/E/wrapper/output and reserves intermediate
+    DTO staging before calling. Direct metered public calls remain denied.
+    """
+    n = _dimension(dimension) + 1
+    if type(op) is not str or op not in ('normalize', 'trajectory'):
+        raise SphericalError('INVALID_OPERATION')
+    if type(args) is not dict:
+        raise SphericalError('INVALID_OPERATION')
+    k = len(args['directions']) if op == 'trajectory' and type(args.get('directions')) in (tuple, list) else 1
+    if op == 'trajectory' and not 2 <= k <= 256:
+        raise SphericalError('CADENCE')
+    w = 4096 * (n + 1) * (k + 1)
+    b = 256 * (n + 1) * (k + 1)
+    scratch = 4096 + b
+    out_bytes = 256 + (128 * (k - 1) if op == 'trajectory' else 64 * n)
+    try:
+        budget.reserve_memory(scratch)
+        try:
+            budget.charge('other', ops=w, read_bytes=b, write_bytes=b)
+            # The inner, previously reviewed function preserves exact pure
+            # numerical behavior while _c now delegates its work to real C/V.
+            result = spherical_apply(op, args, dimension, radius)
+            budget.charge_output(out_bytes)
+            return result
+        finally:
+            budget.release_memory(scratch)
+    except ValueError as exc:
+        if str(exc) == 'BUDGET_EXCEEDED':
+            raise SphericalError('BUDGET_EXCEEDED') from None
+        raise
