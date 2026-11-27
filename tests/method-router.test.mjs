@@ -13,3 +13,8 @@ for(const [key,reason] of Object.entries({assumptionsMet:'ASSUMPTIONS',coverageM
 test('empty roster abstains',()=>{assert.equal(run([]).status,'ABSTAIN');});
 test('malformed scalar fields',()=>{for(const x of [{costOps:-1},{costOps:1.5},{uncertaintyBits:'bff0000000000000'},{assumptionsMet:1},{domain:'UNKNOWN'},{requiredPortStateRefs:[id(9),id(9)]}])assert.throws(()=>run([c(1,x)]),/INVALID_SCHEMA/);});
 test('candidate limit',()=>assert.throws(()=>run(Array.from({length:129},(_,i)=>c(i))),/INVALID_SCHEMA/));
+
+test('getter rejected without invocation',()=>{let calls=0;const x=c(1);Object.defineProperty(x,'domain',{enumerable:true,get(){calls++;return 'GRAPH';}});assert.throws(()=>run([x]),/INVALID_SCHEMA/);assert.equal(calls,0);});
+test('proxy rejected without traps',()=>{let calls=0;const x=new Proxy(c(1),{ownKeys(){calls++;throw Error('trap');}});assert.throws(()=>run([x]),/INVALID_SCHEMA/);assert.equal(calls,0);});
+test('overridden array iterator rejected without invocation',()=>{let calls=0;const x=[c(1)];x[Symbol.iterator]=function*(){calls++;yield c(2);};assert.throws(()=>run(x),/INVALID_SCHEMA/);assert.equal(calls,0);});
+test('sparse candidates refused',()=>assert.throws(()=>run(new Array(1)),/INVALID_SCHEMA/));

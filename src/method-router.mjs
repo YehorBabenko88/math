@@ -1,4 +1,5 @@
-// Local pure slice: accepts only inert metadata from protected upstream decoder.
+import {encodeMetadata, decodeMetadata, decodeBinary64Hex} from './math-universe-codec.mjs';
+// Descriptive router: detach input using the shared A codec before inspection.
 // Descriptive selection, not an authorization or independent receipt verifier.
 const flags = {assumptionsMet:'ASSUMPTIONS',coverageMet:'COVERAGE',causalSampleMet:'CAUSAL_SAMPLE',qualityMet:'QUALITY',validationMet:'VALIDATION',resourceMet:'RESOURCE'};
 const domains = new Set(['EUCLIDEAN','SPHERICAL','STATISTICS','DYNAMICS','GRAPH','TOPOLOGY','MANIFOLD','DISTRIBUTION']);
@@ -7,9 +8,9 @@ const fail=()=>{throw new TypeError('INVALID_SCHEMA');};
 function closed(o,keys){if(!o||typeof o!=='object'||Array.isArray(o)||Object.keys(o).length!==keys.length||keys.some(k=>!Object.hasOwn(o,k)))fail();}
 function ref(r){if(typeof r!=='string'||!/^[0-9a-f]{64}$/.test(r))fail();return r;}
 function refs(a,max){if(!Array.isArray(a)||a.length>max)fail();const s=new Set();for(const r of a){ref(r);if(s.has(r))fail();s.add(r);}return s;}
-// Shape-only binary64 reading; no metadata codec or digest implementation.
-function number(h){if(typeof h!=='string'||!/^[0-9a-f]{16}$/.test(h)||h==='8000000000000000')fail();const v=Buffer.from(h,'hex').readDoubleBE();if(!Number.isFinite(v))fail();return v;}
+function number(h){try{return decodeBinary64Hex(h);}catch{fail();}}
 export function selectMethods(request){
+  try{request=decodeMetadata(encodeMetadata(request));}catch{fail();}
   closed(request,['schema','developmentRef','policyRef','portStateRefs','candidates']);
   if(request.schema!=='math.method.request.v1')fail();
   const developmentRef=ref(request.developmentRef),policyRef=ref(request.policyRef),ports=refs(request.portStateRefs,256);
