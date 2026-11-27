@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {assessStructuralApplicability as assess} from '../src/method-applicability.mjs';
+import {binary64Hex as bits} from '../src/math-universe-codec.mjs';
+const req=(d=4,n=3)=>({schema:'math.method.structural.request.v1',sampleIds:Array.from({length:n},(_,i)=>`s${i}`),eventMs:Array.from({length:n},(_,i)=>i*1000),rowsBits:Array.from({length:n},(_,i)=>Array.from({length:d},(_,j)=>bits(i+j+1))),cadenceMs:1000});
+const domain=(r,d)=>r.domains.find(x=>x.domain===d);
+for(const d of [4,32])test(`${d}D actual rows`,()=>{const r=assess(req(d));assert.equal(r.facts.dimension,d);assert.equal(r.facts.sampleCount,3);assert.equal(r.facts.regular,true);assert.deepEqual(r.facts.constantColumns,[]);assert.equal(domain(r,'SPHERICAL').status,'CANDIDATE');assert.equal(domain(r,'DYNAMICS').status,'CANDIDATE');assert.equal(r.executionAuthority,false);assert.equal(r.tradingAuthorized,false);assert.equal(r.domains.length,8);assert.ok(!Object.hasOwn(r,'score'));});
+test('zero and subnormal distinct',()=>{const x=req();x.rowsBits[0].fill(bits(0));x.rowsBits[1].fill(bits(0));x.rowsBits[1][0]=bits(Number.MIN_VALUE);const r=assess(x);assert.deepEqual(r.facts.zeroRowIds,['s0']);assert.equal(domain(r,'SPHERICAL').status,'REFUSED');});
+test('constant column derived',()=>{const x=req();for(const row of x.rowsBits)row[2]=bits(5);const r=assess(x);assert.deepEqual(r.facts.constantColumns,[2]);assert.equal(domain(r,'STATISTICS').status,'PENDING_PREREQUISITE');});
+test('gap does not impute',()=>{const x=req(32);x.eventMs[2]=3000;const r=assess(x);assert.equal(r.facts.gapCount,1);assert.equal(r.facts.sampleCount,3);assert.equal(domain(r,'DYNAMICS').status,'REFUSED');});
+test('two rows insufficient for dynamics',()=>assert.equal(domain(assess(req(4,2)),'DYNAMICS').status,'PENDING_PREREQUISITE'));
+test('specialized prerequisites pending',()=>{const r=assess(req());for(const d of ['GRAPH','TOPOLOGY','MANIFOLD','DISTRIBUTION'])assert.equal(domain(r,d).status,'PENDING_PREREQUISITE');});
+test('invalid input',()=>{for(const mutate of [x=>x.rowsBits[0].pop(),x=>x.eventMs[1]=0,x=>x.sampleIds[1]='s0',x=>x.cadenceMs=0,x=>x.rowsBits[0][0]='7ff0000000000000',x=>x.rowsBits[0][0]='fff0000000000000',x=>x.rowsBits[0][0]='8000000000000000',x=>x.applicable=true,x=>x.holdout=true]){const x=req();mutate(x);assert.throws(()=>assess(x),/INVALID_SCHEMA/);}assert.throws(()=>assess(req(3)),/INVALID_SCHEMA/);assert.throws(()=>assess(req(4,257)),/INVALID_SCHEMA/);});
+test('getter proxy iterator never invoked',()=>{let calls=0;const x=req();Object.defineProperty(x,'rowsBits',{enumerable:true,get(){calls++;return [];}});assert.throws(()=>assess(x),/INVALID_SCHEMA/);assert.throws(()=>assess(new Proxy(req(),{ownKeys(){calls++;return [];}})),/INVALID_SCHEMA/);const y=req();y.rowsBits[Symbol.iterator]=function*(){calls++;};assert.throws(()=>assess(y),/INVALID_SCHEMA/);assert.equal(calls,0);});
+test('maximum shape',()=>assert.equal(assess(req(32,256)).facts.sampleCount,256));
