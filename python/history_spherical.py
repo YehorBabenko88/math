@@ -31,17 +31,11 @@ class SphericalError(ValueError):
 
 
 def _number(value: object) -> float:
-    if type(value) not in (int, float):
+    # A-v1/C ABI admits literal binary64 floats only; never coerce integers,
+    # booleans, subclasses, Decimal, or attacker-controlled __float__ methods.
+    if type(value) is not float or not math.isfinite(value):
         raise SphericalError('INVALID_NUMBER')
-    try:
-        number = float(value)
-    except (OverflowError, ValueError):
-        raise SphericalError('NUMERIC_OVERFLOW') from None
-    if not math.isfinite(number):
-        raise SphericalError('INVALID_NUMBER')
-    if type(value) is int and int(number) != value:
-        raise SphericalError('NUMERIC_OVERFLOW')
-    return number
+    return value
 
 
 def _dimension(dimension: object) -> int:
@@ -102,8 +96,9 @@ def _unit(values: object, n: int) -> tuple[float, ...]:
         raise SphericalError('ZERO_DIRECTION')
     if abs(magnitude - 1.0) > UNIT_ULPS_PER_COORDINATE * n * 2 ** -52:
         raise SphericalError('NOT_UNIT')
-    normalized = tuple(_c('checked_div', v, magnitude) for v in values)
-    return normalized
+    # A-v1 validation is NOT permission to repair an admitted near-unit input.
+    # Preserve its exact represented components and associated provenance.
+    return values
 
 
 def _sum_products(a: tuple[float, ...], b: tuple[float, ...]) -> float:
@@ -140,10 +135,18 @@ def _decode(rho: object, u: object, n: int) -> tuple[float, ...]:
 def _angle(u: tuple[float, ...], w: tuple[float, ...]) -> tuple[float, float]:
     if u == w:
         return 0.0, 2.0
-    a = _c('checked_distance', u, w)
-    b = _norm(tuple(x + y for x, y in zip(u, w)))
+    # Norm-weighted chord lengths depend on direction, not admissible
+    # near-unit magnitudes. Keep the original stored vectors unchanged.
+    nu, nw = _norm(u), _norm(w)
+    left = tuple(_c('checked_mul', nw, x) for x in u)
+    right = tuple(_c('checked_mul', nu, x) for x in w)
+    a = _c('checked_distance', left, right)
+    b = _norm(tuple(_c('checked_dot', (x, y), (1.0, 1.0))
+                    for x, y in zip(left, right)))
+    # Distinct binary64 tuples can lie on exactly the same ray; their
+    # geodesic distance is zero, not an underflow or a cut-locus failure.
     if a == 0.0:
-        raise SphericalError('NUMERIC_UNDERFLOW')
+        return 0.0, b
     # For a=minsubnormal and b>=2, atan(a/b) underflows; refuse
     # before relying on platform-specific libm behavior.
     if a == math.ulp(0.0) and b >= 2.0:
@@ -157,9 +160,24 @@ def _tangent(u: tuple[float, ...], v: tuple[float, ...]) -> tuple[float, ...]:
     if m == 0.0:
         return (0.0,) * len(v)
     s = tuple(_c('checked_div', x, m) for x in v)
+    # An exactly axis-aligned direction has a canonical tangent plane:
+    # set its radial coordinate to exact zero and preserve all admitted
+    # transverse components. No rounded ratio may create fake radial motion.
+    nonzero_axis = [i for i, x in enumerate(u) if x != 0.0]
+    if len(nonzero_axis) == 1:
+        radial_index = nonzero_axis[0]
+        return tuple(0.0 if i == radial_index else value
+                     for i, value in enumerate(v))
+    # For an admitted near-unit u, projection coefficient is <u,s>/<u,u>,
+    # NOT <u,s>; otherwise radial leakage corrupts trajectory tangents.
     radial = _sum_products(u, s)
-    projected = tuple(_c('checked_mul', x - _c('checked_mul', radial, y), m)
-                      for x, y in zip(s, u))
+    squared_u = _sum_products(u, u)
+    coefficient = _c('checked_div', radial, squared_u)
+    projected = tuple(
+        _c('checked_mul',
+           _c('checked_dot', (x, -coefficient), (1.0, y)), m)
+        for x, y in zip(s, u)
+    )
     return projected
 
 
@@ -167,7 +185,10 @@ def _exp(u: tuple[float, ...], v: tuple[float, ...], r: float) -> tuple[float, .
     if not any(v):
         return u
     vnorm = _norm(v)
-    if abs(_sum_products(u, tuple(_c('checked_div', x, vnorm) for x in v))) > UNIT_ULPS_PER_COORDINATE * len(u) * 2 ** -52:
+    unit_tangent = tuple(_c('checked_div', x, vnorm) for x in v)
+    # Relative orthogonality compares |<u,t>| to ||u|| * ||t||.
+    if (abs(_sum_products(u, unit_tangent)) >
+            UNIT_ULPS_PER_COORDINATE * len(u) * 2 ** -52 * _norm(u)):
         raise SphericalError('NOT_TANGENT')
     v = _tangent(u, v)
     vnorm = _norm(v)
@@ -187,10 +208,12 @@ def _log(u: tuple[float, ...], w: tuple[float, ...], r: float) -> tuple[float, .
     if u == w:
         return (0.0,) * len(u)
     angle, b = _angle(u, w)
-    if all(x == -y for x, y in zip(u, w)):
+    if b == 0.0 or all(x == -y for x, y in zip(u, w)):
         raise SphericalError('ANTIPODAL_AMBIGUITY')
     if b <= ANTIPODE_GUARD:
         raise SphericalError('CUT_LOCUS')
+    if angle == 0.0:
+        return (0.0,) * len(u)
     v = _tangent(u, tuple(x - y for x, y in zip(w, u)))
     magnitude = _norm(v)
     if magnitude == 0.0:
@@ -260,7 +283,13 @@ def spherical_apply(op: object, args: object, dimension: object, radius: object,
         times = args['event_ms']
         if (type(directions) not in (list, tuple) or
             type(times) not in (list, tuple) or
-            len(directions) != len(times)):
+            len(directions) != len(times) or
+            not 2 <= len(directions) <= 256):
+            raise SphericalError('CADENCE')
+        # The resource/cadence preflight must precede any temporary row list.
+        cadence_ms = args['cadence_ms']
+        if (type(cadence_ms) is not int or
+            not 1 <= cadence_ms <= 2 ** 53 - 1):
             raise SphericalError('CADENCE')
         rows = [{'event_end_ms': t, 'u': d} for t, d in zip(times, directions)]
         try:

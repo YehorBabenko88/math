@@ -221,5 +221,102 @@ class SphericalAContractTests(unittest.TestCase):
         }, r=2.0)
         self.assertEqual(result, {'angle': 0.0, 'distance': 0.0})
 
+
+
+class Round11AdmissionAndPreflightRegressionTests(unittest.TestCase):
+    def test_collinear_near_unit_directions_have_zero_geodesic(self):
+        u = (math.nextafter(1.0, math.inf), 0.0, 0.0)
+        w = (1.0, 0.0, 0.0)
+        geo = spherical_apply('geodesic', {'u': u, 'v': w}, 2, 2.0)
+        self.assertEqual(geo, {'angle': 0.0, 'distance': 0.0})
+        self.assertEqual(spherical_apply('log', {'u': u, 'v': w}, 2, 2.0),
+                         {'tangent': (0.0, 0.0, 0.0)})
+
+    def test_collinear_near_antipode_is_ambiguous(self):
+        u = (math.nextafter(1.0, math.inf), 0.0, 0.0)
+        w = (-1.0, 0.0, 0.0)
+        geo = spherical_apply('geodesic', {'u': u, 'v': w}, 2, 2.0)
+        self.assertAlmostEqual(geo['angle'], math.pi)
+        with self.assertRaisesRegex(SphericalError, 'ANTIPODAL_AMBIGUITY'):
+            spherical_apply('log', {'u': u, 'v': w}, 2, 1.0)
+
+    def test_non_axis_near_unit_tangent_remains_orthogonal(self):
+        a = math.sqrt(0.5) * math.nextafter(1.0, math.inf)
+        u = (a, a, 0.0)
+        t = spherical_apply('tangent', {'u': u, 'v': (1.0, 0.0, 0.0)},
+                            2, 1.0)['tangent']
+        dot = sphere._metric_core.checked_dot(u, t)
+        self.assertLessEqual(abs(dot), 8.0 * math.ulp(1.0))
+        self.assertAlmostEqual(t[0], 0.5, delta=2e-15)
+        self.assertAlmostEqual(t[1], -0.5, delta=2e-15)
+
+    def test_trajectory_256_rows_is_admitted(self):
+        count = 256
+        result = spherical_apply('trajectory', {
+            'directions': [(1.0, 0.0, 0.0)] * count,
+            'event_ms': list(range(1000, 1000 + count)),
+            'cadence_ms': 1,
+        }, 2, 1.0)
+        self.assertEqual(len(result['angles']), 255)
+        self.assertEqual(result['angles'], [0.0] * 255)
+        self.assertEqual(result['distances'], [0.0] * 255)
+        self.assertEqual(result['speeds'], [0.0] * 255)
+
+    def test_near_unit_tangent_projection_uses_norm_squared(self):
+        u = (math.nextafter(1.0, math.inf), 0.0, 0.0)
+        out = spherical_apply('tangent', {'u': u, 'v': (1.0, 2.0, 0.0)},
+                              2, 1.0)
+        self.assertEqual(out['tangent'], (0.0, 2.0, 0.0))
+        radial = spherical_apply('tangent', {'u': u, 'v': (2.0, 0.0, 0.0)},
+                                 2, 1.0)
+        self.assertEqual(radial['tangent'], (0.0, 0.0, 0.0))
+
+    def test_near_unit_exp_rejects_radial_tangent(self):
+        u = (math.nextafter(1.0, math.inf), 0.0, 0.0)
+        with self.assertRaisesRegex(SphericalError, 'NOT_TANGENT'):
+            spherical_apply('exp', {'u': u, 'tangent': (1.0, 0.0, 0.0)},
+                            2, 1.0)
+
+    def test_near_unit_input_is_preserved_not_silently_repaired(self):
+        slightly_long = math.nextafter(1.0, math.inf)
+        u = (slightly_long, 0.0, 0.0)
+        self.assertEqual(sphere._unit(u, 3), u)
+        result = spherical_apply('exp', {'u': u, 'tangent': (0.0, 0.0, 0.0)},
+                                 2, 1.0)
+        self.assertEqual(result['u'], u)
+
+    def test_materially_non_unit_direction_is_refused(self):
+        with self.assertRaisesRegex(SphericalError, 'NOT_UNIT'):
+            spherical_apply('geodesic', {
+                'u': (1.0 + 1e-10, 0.0, 0.0),
+                'v': (0.0, 1.0, 0.0),
+            }, 2, 1.0)
+
+    def test_float_only_radius_and_vectors(self):
+        for wrong_radius in (1, True, 1.0 + 0j, '1', None):
+            with self.subTest(radius=repr(wrong_radius)):
+                with self.assertRaisesRegex(SphericalError, 'INVALID_NUMBER'):
+                    spherical_apply('normalize', {'x': (3.0, 4.0, 0.0)},
+                                    2, wrong_radius)
+        with self.assertRaisesRegex(SphericalError, 'INVALID_NUMBER'):
+            spherical_apply('normalize', {'x': (3, 4, 0)}, 2, 1.0)
+        self.assertEqual(spherical_apply('normalize', {
+            'x': (3.0, 4.0, 0.0)
+        }, 2, 1.0)['rho'], 5.0)
+
+    def test_trajectory_257_rows_refused_before_zip_allocation(self):
+        payload = {'directions': [(1.0, 0.0, 0.0)] * 257,
+                   'event_ms': list(range(257)), 'cadence_ms': 1}
+        with mock.patch('builtins.zip', side_effect=AssertionError('ZIP_CALLED')):
+            with self.assertRaisesRegex(SphericalError, 'CADENCE'):
+                spherical_apply('trajectory', payload, 2, 1.0)
+
+    def test_trajectory_invalid_cadence_refused_before_zip_allocation(self):
+        payload = {'directions': [(1.0, 0.0, 0.0)] * 2,
+                   'event_ms': [1, 2], 'cadence_ms': 0}
+        with mock.patch('builtins.zip', side_effect=AssertionError('ZIP_CALLED')):
+            with self.assertRaisesRegex(SphericalError, 'CADENCE'):
+                spherical_apply('trajectory', payload, 2, 1.0)
+
 if __name__ == '__main__':
     unittest.main()
