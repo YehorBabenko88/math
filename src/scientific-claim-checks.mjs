@@ -14,12 +14,17 @@ export function assessScientificClaim({claim,referenceId,locator,observations=[]
  if(typeof referenceId!=='string'||!referenceId.trim())throw Error('Missing source reference');
  if(typeof locator!=='string'||!locator.trim())throw Error('Missing source locator');
  if(!Number.isFinite(tolerance)||tolerance<0)throw Error('Invalid tolerance');
- if(!Array.isArray(observations)||observations.length>10000)throw Error('Invalid observations');
+ if(!Array.isArray(observations))throw Error('Invalid observations');
  const view=new DataView(new ArrayBuffer(8));
  const max=binary64Units(Number.MAX_VALUE,view);
  const maxProduct=max<<1074n;
  const toleranceUnits=binary64Units(tolerance,view);
- const checked=observations.map(o=>{
+ const observationCount=observations.length;
+ if(!Number.isSafeInteger(observationCount)||observationCount<0||observationCount>10000)throw Error('Invalid observations');
+ const checked=[];
+ for(let index=0;index<observationCount;index++){
+  if(!Object.hasOwn(observations,index))throw Error('Non-finite observation');
+  const o=observations[index];
   if(!o)throw Error('Non-finite observation');
   const {expected,actual}=o;
   if(!Number.isFinite(expected)||!Number.isFinite(actual))throw Error('Non-finite observation');
@@ -29,8 +34,8 @@ export function assessScientificClaim({claim,referenceId,locator,observations=[]
   // Distance uses units 2^-1074; threshold uses units 2^-2148.
   // Reject exact out-of-range values even when rounding would return MAX.
   if(distance>max||threshold>maxProduct)throw Error('NONFINITE_COMPARISON');
-  return {expected,actual,absoluteError:Math.abs(actual-expected),passes:(distance<<1074n)<=threshold};
- });
+  checked.push({expected,actual,absoluteError:Math.abs(actual-expected),passes:(distance<<1074n)<=threshold});
+ }
  const status=checked.length===0?'untested':checked.every(o=>o.passes)?'reproduced':'contradicted';
  if(!allowed.has(status))throw Error('Invalid claim status');
  return Object.freeze({claim,referenceId,locator,status,tolerance,observations:checked,scope:'numeric-check-only'});
