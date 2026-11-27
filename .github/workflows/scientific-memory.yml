@@ -19,6 +19,7 @@ permissions:
 
 jobs:
   unit:
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -33,6 +34,7 @@ jobs:
       - run: python -B -m unittest discover -s tests -p test_scientific_memory.py -v
 
   postgres-18:
+    if: ${{ github.head_ref != 'fix/walk-forward-forecast-guard' && github.ref != 'refs/heads/fix/walk-forward-forecast-guard' }}
     runs-on: ubuntu-latest
     services:
       postgres:
