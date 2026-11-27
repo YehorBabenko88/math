@@ -12194,13 +12194,90 @@
     },
     {
       "file": "tests/p1-claim-observation-regression.test.mjs",
-      "name": "validation uses one observation count for its bound and iteration",
+      "name": "validation rejects proxied observation counts before reading length",
       "parent": null,
       "line": 41,
       "column": 1,
       "platform": "cross",
       "occurrence": 1,
       "destination": "tests/p1-claim-observation-regression.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "scientific boundaries refuse proxied input without invoking traps",
+      "parent": null,
+      "line": 14,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "scientific boundaries refuse accessors and inherited observation fields",
+      "parent": null,
+      "line": 28,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "validated evidence remains consistent after it is returned",
+      "parent": null,
+      "line": 46,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "scientific boundaries preserve all supported dense observation counts",
+      "parent": null,
+      "line": 56,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "experiment comparison preserves equal values in the same units",
+      "parent": null,
+      "line": 67,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "experiment comparison does not equate a nonzero value to zero after underflow",
+      "parent": null,
+      "line": 76,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/r2-scientific-evidence.test.mjs",
+      "name": "experiment evidence index refuses bare promoted statuses including imported JSON",
+      "parent": null,
+      "line": 85,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/r2-scientific-evidence.test.mjs",
       "added": true
     }
   ]

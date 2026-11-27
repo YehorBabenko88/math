@@ -12,6 +12,7 @@ const key=x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence]);
 const P1_CASE_COUNTS=Object.freeze({
  'tests/independent-numeric-oracle.test.mjs':4,
  'tests/p1-claim-observation-regression.test.mjs':5,
+ 'tests/r2-scientific-evidence.test.mjs':7,
 });
 const P1_SUPPORT_FILE='tests/independent-numeric-oracle.py';
 const ROOT_HOSTED_FILES=["tests/confidential-collector-context.test.mjs","tests/confidential-collector-oidc.test.mjs","tests/confidential-pr64-blocked-projection.test.mjs","tests/confidential-public-privacy.test.mjs","tests/confidential-receipt-schema.test.mjs","tests/confidential-stage-codes.test.mjs","tests/confidential-synthetic-bundle.test.mjs","tests/confidential-synthetic-session.test.mjs"];
@@ -59,7 +60,7 @@ export function verifyTransferLedger(current,historical,transfer){
  assert.deepEqual(current.tests.slice(0,retained.length),retained,'Every remaining original case and metadata must survive unchanged');
  assert.deepEqual(current.tests[retained.length],{file:'tests/confidential-root-caller.test.mjs',name:'Root collector caller is closed configuration only, with refusal calibrations',parent:null,line:10,column:1,platform:'cross',occurrence:1,destination:'tests/confidential-root-caller.test.mjs',added:true});
  const p1=current.tests.slice(retained.length+1);
- assert.equal(p1.length,9);
+ assert.equal(p1.length,16);
  for(const [file,count] of Object.entries(P1_CASE_COUNTS)){
   const entries=p1.filter(x=>x.file===file);
   assert.equal(entries.length,count);
@@ -74,7 +75,7 @@ export function verifyCurrentSourceFiles({read=path=>readFileSync(path)}={}){
  const proof=json('scripts/platform-current-source-proof.json');assert.equal(proof.schema,'math.current-test-source-proof.v2');assert.equal(proof.source_base,SOURCE_BASE);assert.equal(proof.Root_tool,ROOT_TOOL);
  const discover=directory=>readdirSync(directory,{withFileTypes:true}).flatMap(entry=>{const path=directory+'/'+entry.name;return entry.isDirectory()?discover(path):/\.(?:test|windows|cross)\.mjs$/.test(entry.name)?[path]:[];});
  assert.deepEqual(discover('tests').sort(),Object.keys(proof.files).sort(),'Exact current executable test-file inventory required');
- assert.equal(Object.keys(proof.files).length,209);
+ assert.equal(Object.keys(proof.files).length,210);
  for(const [path,expected] of Object.entries(proof.files))assert.equal(digest(read(path)),expected,'Current assertion bytes changed: '+path);
  assert.deepEqual(Object.keys(proof.supportFiles),[P1_SUPPORT_FILE]);
  assert.equal(digest(read(P1_SUPPORT_FILE)),proof.supportFiles[P1_SUPPORT_FILE],'P1 oracle source bytes changed');
