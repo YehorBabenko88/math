@@ -21,7 +21,13 @@ export function evaluateFormulaDocument(d){
     k.attested!==false)throw Error('KNOWLEDGE_SOURCE_UNATTESTED');
  }
  const fn=compileExpression(d.formula);
- const values=d.values.map(x=>fn.evaluate(x));
+ let values;
+ try {
+  values=d.values.map(x=>fn.evaluateFinite(x));
+ } catch(error) {
+  if(error instanceof Error && error.message==='NONFINITE_EXPRESSION')throw Error('NONFINITE_FORMULA_RESULT');
+  throw error;
+ }
  if(values.some(x=>typeof x!=='number'||!Number.isFinite(x)))throw Error('NONFINITE_FORMULA_RESULT');
  return {schema:'math.formula.result.v1',status:'RESEARCH_ONLY',values,
   inputUnit:d.inputUnit,outputUnit:d.outputUnit,knowledge:d.knowledge??null,
