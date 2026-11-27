@@ -43,8 +43,12 @@ def exact_acf(values, max_lag):
     mean = sum(rational) / len(rational)
     centered = [value - mean for value in rational]
     denominator = sum(value * value for value in centered)
+    if denominator == 0:
+        # ACF is a normalized covariance: constant differences have no
+        # denominator and MUST NOT become a reproduced/contradicted claim.
+        raise ValueError('Undefined normalized autocorrelation')
     return [Fraction(1), *[
-        sum(a * b for a, b in zip(centered[lag:], centered)) / denominator if denominator else Fraction(0)
+        sum(a * b for a, b in zip(centered[lag:], centered)) / denominator
         for lag in range(1, max_lag + 1)
     ]]
 
@@ -74,8 +78,10 @@ def build_record(symbol, rows, pinned_sha256, operator, threshold):
         context.prec = 128
         changes = [right - left for left, right in zip(reversed(closes[1:]), reversed(closes[:-1]))]
     max_lag = 2
-    observed = acf(project_decimal_observations(changes), max_lag=max_lag)
+    # Compute the exact denominator first. If zero, never produce a floating
+    # approximation or a scientific claim about an undefined ACF.
     reference = exact_acf(changes, max_lag)
+    observed = acf(project_decimal_observations(changes), max_lag=max_lag)
     error = [str(abs(Fraction(actual) - expected)) for actual, expected in zip(observed, reference)]
     satisfied = reference[1] <= target if operator == 'at_most' else reference[1] >= target
     identity = {'symbol': symbol, 'interval': '1m', 'source': SOURCE, 'sha256': pinned_sha256}
@@ -113,12 +119,60 @@ def decode_record(expected_id, record):
     return record
 
 
+def qualify_historical_record(record):
+    """Fail-closed READ projection; a self-hash is not a source or proof receipt.
+
+    Preserve the immutable v1 record and descriptive outcome verbatim.
+    Nothing supplied in the v1 record can upgrade these trust dimensions.
+    """
+    if not isinstance(record, dict):
+        raise ValueError('Invalid persisted record identity')
+    decode_record(record.get('id'), record)
+    provenance = record.get('provenance')
+    # The original descriptive v1 producer always emitted explicit false
+    # authority flags. A rehashed caller-positive claim is not a verified
+    # result and must fail closed rather than sharing a negative sidecar.
+    if (type(provenance) is not dict
+            or provenance.get('execution_authority') is not False
+            or provenance.get('trading_authorized') is not False):
+        raise ValueError('Untrusted historical authority claim')
+    return {
+        'id': record['id'],
+        'descriptive_outcome': record['status'],
+        'source_authenticity': 'UNATTESTED',
+        'fit_binding': 'NOT_PROVIDED',
+        'method_validation': 'UNVERIFIED',
+        'empirical_reproduction': 'UNKNOWN',
+        'formal_proof': 'NOT_ESTABLISHED',
+        'causal_eligibility': 'UNKNOWN',
+        'execution_authority': False,
+        'trading_authorized': False,
+    }
+
+
 def save(connection, record):
     record_id = record.get('id')
     payload = canonical(decode_record(record_id, record))
     if len(payload) > MAX_RECORD_BYTES:
         raise ValueError('Record too large')
+    # Enter the transaction BEFORE the first SELECT. psycopg with
+    # autocommit=False implicitly starts a transaction on any statement:
+    # doing the initial SELECT outside this block would turn the subsequent
+    # transaction() into a SAVEPOINT and leave new inserts uncommitted.
+    # The caller retains control of an already-open outer transaction.
     with connection.transaction():
+        existing = connection.execute(
+            'SELECT payload FROM public.mu_scientific_runs WHERE id=%s',
+            (record_id,),
+        ).fetchone()
+        if existing is not None:
+            if existing != (payload,):
+                raise ValueError('Persisted content conflict')
+            # Exact replay performs SELECT only, not INSERT/UPDATE/DELETE.
+            # The read-only transaction may still acquire PostgreSQL locks.
+            return record_id
+        # A unique primary key resolves competing first inserts; reconcile
+        # against the original bytes without changing any existing row.
         connection.execute('''INSERT INTO public.mu_scientific_runs (id, symbol, payload)
                               VALUES (%s, %s, %s) ON CONFLICT (id) DO NOTHING''',
                            (record_id, record['symbol'], payload))
@@ -135,11 +189,53 @@ def read(connection, symbol, limit):
                                  ORDER BY stored_at DESC,id DESC LIMIT %s''', (symbol, limit))
     records = []
     for record_id, payload in rows:
+        # A record id is derived from *canonical* JSON, not arbitrary JSONB
+        # reserialization. Noncanonical text, whitespace, duplicate keys and
+        # invalid encodings are NOT historical byte-identity evidence.
+        if type(payload) is not str or not 2 <= len(payload) <= MAX_RECORD_BYTES:
+            raise ValueError('Persisted record payload encoding mismatch')
         record = decode_record(record_id, json.loads(payload))
+        if payload != canonical(record):
+            raise ValueError('Persisted record noncanonical bytes')
         if record.get('symbol') != symbol:
             raise ValueError('Persisted result belongs to another symbol')
         records.append(record)
+    # Legacy /v1 list schema is byte-shape compatible. A trust projection
+    # must never be silently injected into a versioned legacy response.
     return {'schema': LIST, 'symbol': symbol, 'records': records}
+
+
+def qualify_historical_list(response):
+    """Opt-in, negative-only *derived* trust sidecar for existing v1 records.
+
+    This does not assert Grid custody, verify a method, or admit a result.
+    Record IDs, canonical bytes, and legacy list responses remain unchanged.
+    The versioned sidecar is not an authorization receipt or production API.
+    """
+    if (type(response) is not dict or set(response) != {'schema', 'symbol', 'records'}
+            or response['schema'] != LIST or type(response['symbol']) is not str
+            or not SYMBOL.fullmatch(response['symbol'])
+            or type(response['records']) is not list or len(response['records']) > 100):
+        raise ValueError('Invalid historical scientific memory list')
+    qualifications = []
+    seen_ids = set()
+    for record in response['records']:
+        if not isinstance(record, dict) or record.get('symbol') != response['symbol']:
+            raise ValueError('Historical memory record symbol mismatch')
+        qualification = qualify_historical_record(record)
+        if qualification['id'] in seen_ids:
+            raise ValueError('Duplicate historical memory identity')
+        seen_ids.add(qualification['id'])
+        qualifications.append(qualification)
+    return {'schema': LIST, 'symbol': response['symbol'],
+            'records': response['records'],
+            'qualification_schema': 'math.scientific-memory.qualification.v2',
+            'qualifications': qualifications}
+
+
+def read_qualified(connection, symbol, limit):
+    """Dedicated opt-in read; the existing HTTP /v1 route is unchanged."""
+    return qualify_historical_list(read(connection, symbol, limit))
 
 
 def serve(dsn, port):
@@ -171,7 +267,7 @@ def serve(dsn, port):
             try:
                 with psycopg.connect(dsn, connect_timeout=3,
                                      options='-c default_transaction_read_only=on -c statement_timeout=3000') as connection:
-                    result = read(connection, symbol, int(limit_str))
+                    result = read_qualified(connection, symbol, int(limit_str))
                 return self.reply(200, result)
             except (ValueError, psycopg.Error):
                 return self.reply(503, {'error': 'scientific memory unavailable'})
