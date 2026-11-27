@@ -1772,3 +1772,31 @@ def paper_scale_accounting(side,events,fee_rate):
     return PaperScaleState(remaining,cost,basis,opened,exited,
         entry_total,exit_total,mean(entry_total,opened),mean(exit_total,exited),
         gross,entry_fee,exit_fee,fees,net,closed)
+
+
+def aggregate_closed_minute_ohlcv(rows):
+    """Pure bounded numeric rollup; source and causal clocks are caller-owned.
+
+    Accept 1..75 already source-checked minute tuples:
+    (open, high, low, close, buy_volume, sell_volume), all exact Decimal.
+    Each individual OHLC domain and both nonnegative directional volumes are
+    validated using the canonical math predicate. Aggregation is exact through
+    the existing market-amount kernel. No gap, source, completeness, strategy,
+    market provenance or live execution authority is inferred.
+    """
+    if type(rows) not in (list, tuple) or not 1 <= len(rows) <= 75:
+        raise ValueError("CLOSED_MINUTE_OHLCV_ROW_BUDGET")
+    for row in rows:
+        if (type(row) not in (list, tuple) or len(row) != 6
+                or any(type(value) is not Decimal for value in row)):
+            raise ValueError("CLOSED_MINUTE_OHLCV_DECIMAL_ROW_REQUIRED")
+        if (not candle_ohlcv_valid(row[0], row[1], row[2], row[3], row[4])
+                or not candle_ohlcv_valid(row[0], row[1], row[2], row[3], row[5])):
+            raise ValueError("CLOSED_MINUTE_OHLCV_NUMERIC_DOMAIN")
+    opened, closed = rows[0][0], rows[-1][3]
+    high = max(row[1] for row in rows)
+    low = min(row[2] for row in rows)
+    volume = exact_sum(amount for row in rows for amount in (row[4], row[5]))
+    if not candle_ohlcv_valid(opened, high, low, closed, volume):
+        raise ValueError("CLOSED_MINUTE_OHLCV_AGGREGATE_DOMAIN")
+    return (opened, high, low, closed, volume)
