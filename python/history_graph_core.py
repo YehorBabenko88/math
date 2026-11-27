@@ -15,8 +15,12 @@ def kruskal_forest_v1(vertex_ids, weighted_edges, counter):
     n, m = len(vertex_ids), len(weighted_edges)
     if not 1 <= n <= 32 or m > n * (n - 1) // 2:
         raise ValueError("DIMENSION")
-    # V owns enforcement. Until its preflight seam exists, fail closed.
-    if counter is None or not callable(getattr(counter, "preflight", None)):
+    # Only the canonical V counter is accepted; never inspect caller callbacks.
+    try:
+        from math_resource_budget import BudgetCounter
+    except ImportError as exc:
+        raise ValueError("BUDGET_EXCEEDED") from exc
+    if type(counter) is not BudgetCounter:
         raise ValueError("BUDGET_EXCEEDED")
     # Conservative logical bounds (not native RSS); no partial result.
     memory = 4096 + 512*n + 512*m
