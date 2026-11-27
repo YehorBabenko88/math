@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {types} from 'node:util';
 const MAX=262144, DEPTH=24, NODES=100000;
 const fail=()=>{throw new Error('INVALID_METADATA');};
-const keyOK=k=>/^[\x20-\x7e]+$/.test(k)&&!['__proto__','constructor','prototype'].includes(k);
+const keyOK=k=>k.length<=MAX&&/^[\x20-\x7e]+$/.test(k)&&!['__proto__','constructor','prototype'].includes(k);
 function stringOK(s){for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);if(c>=0xd800&&c<=0xdbff){const d=s.charCodeAt(++i);if(!(d>=0xdc00&&d<=0xdfff))fail();}else if(c>=0xdc00&&c<=0xdfff)fail();}return s;}
 export function encodeMetadata(value){
  let count=0, bytes=0;const parts=[], active=new Set();
@@ -11,14 +11,26 @@ export function encodeMetadata(value){
  if(typeof v==='number'){if(!Number.isSafeInteger(v)||Object.is(v,-0))fail();emit(String(v));return;}
  if(typeof v==='string'){if(v.length>MAX)fail();emit(JSON.stringify(stringOK(v)));return;}
  if(typeof v!=='object'||types.isProxy(v)||active.has(v))fail();active.add(v);
+ if(Array.isArray(v)&&(Object.getPrototypeOf(v)!==Array.prototype||v.length>NODES))fail();
  const keys=Reflect.ownKeys(v);if(keys.length>NODES)fail();
  if(Array.isArray(v)){if(v.length>NODES||keys.length!==v.length+1)fail();emit('[');for(let i=0;i<v.length;i++){const p=Object.getOwnPropertyDescriptor(v,String(i));if(!p||!('value' in p)||!p.enumerable)fail();if(i)emit(',');visit(p.value,d+1);}emit(']');}
  else{const proto=Object.getPrototypeOf(v);if(proto!==null&&proto!==Object.prototype)fail();if(keys.some(k=>typeof k!=='string'||!keyOK(k)))fail();keys.sort();emit('{');for(let i=0;i<keys.length;i++){const k=keys[i],p=Object.getOwnPropertyDescriptor(v,k);if(!p.enumerable||!('value' in p))fail();if(i)emit(',');emit(JSON.stringify(k));emit(':');visit(p.value,d+1);}emit('}');}active.delete(v);
  }visit(value,0);return Buffer.from(parts.join(''),'utf8');
 }
 export function decodeMetadata(bytes){
- if(!ArrayBuffer.isView(bytes)||!(bytes instanceof Uint8Array)||types.isProxy(bytes)||bytes.byteLength>MAX)fail();
- const raw=Buffer.from(bytes);if(raw[0]===239&&raw[1]===187&&raw[2]===191)fail();let s;try{s=new TextDecoder('utf-8',{fatal:true}).decode(raw);}catch{fail();}
+ // Check brands and use intrinsic accessors, never caller properties or conversion.
+ if(types.isProxy(bytes)||!types.isUint8Array(bytes))fail();
+ const proto=Object.getPrototypeOf(bytes);
+ if(proto!==Uint8Array.prototype&&proto!==Buffer.prototype)fail();
+ const typed=Object.getPrototypeOf(Uint8Array.prototype);
+ const get=name=>Object.getOwnPropertyDescriptor(typed,name).get.call(bytes);
+ const backing=get('buffer'), length=get('byteLength'), offset=get('byteOffset');
+ if(types.isSharedArrayBuffer(backing)||length>MAX)fail();
+ // Reject own overrides before reading any values. The actual length is bounded.
+ const keys=Reflect.ownKeys(bytes);
+ if(keys.length!==length||keys.some((key,i)=>key!==String(i)))fail();
+ let raw;try{raw=new Uint8Array(length);raw.set(new Uint8Array(backing,offset,length));}catch{fail();}
+ if(raw[0]===239&&raw[1]===187&&raw[2]===191)fail();let s;try{s=new TextDecoder('utf-8',{fatal:true}).decode(raw);}catch{fail();}
  let i=0,count=0;const ws=()=>{while(i<s.length&&/[ \t\r\n]/.test(s[i]))i++;};
  function str(){if(s[i++]!=='"')fail();const start=i-1;while(i<s.length){const c=s[i++];if(c==='"'){let v;try{v=JSON.parse(s.slice(start,i));}catch{fail();}return stringOK(v);}if(c==='\\'){if(i>=s.length)fail();i++;}else if(c.charCodeAt(0)<32)fail();}fail();}
  function read(d){if(++count>NODES||d>DEPTH)fail();ws();const c=s[i];if(c==='"')return str();if(c==='{'){i++;const o=Object.create(null);ws();if(s[i]==='}'){i++;return o;}for(;;){ws();const k=str();if(!keyOK(k)||Object.hasOwn(o,k))fail();ws();if(s[i++]!==':')fail();o[k]=read(d+1);ws();const q=s[i++];if(q==='}')return o;if(q!==',')fail();}}
