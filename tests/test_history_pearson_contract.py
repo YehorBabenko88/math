@@ -1,4 +1,4 @@
-"""UNEXECUTED H-owned candidate tests; U must independently seal its own oracle."""
+"""Developer-only H contract tests; U must independently seal its own oracle."""
 import math
 import pathlib
 import sys
