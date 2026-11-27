@@ -1,0 +1,419 @@
+{
+  "schema": "math-universe-independent-semantic-fixtures",
+  "version": 1,
+  "baseline": "f47d0f1655617639ccdb76d88d6d001e103a12ae",
+  "scope": "C/D/E/M semantic subset; not ABI conformance or runtime acceptance",
+  "vectors": [
+    {
+      "id": "E01",
+      "domain": "sphere",
+      "inputs": {
+        "z": [
+          "0",
+          "0"
+        ]
+      },
+      "expected": {
+        "norm": "0",
+        "direction": null
+      },
+      "operation": "normalize",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "E02",
+      "domain": "sphere",
+      "inputs": {
+        "z": [
+          "3",
+          "4"
+        ]
+      },
+      "expected": {
+        "norm": "5",
+        "direction": [
+          "3/5",
+          "4/5"
+        ]
+      },
+      "operation": "normalize",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "E03",
+      "domain": "sphere",
+      "inputs": {
+        "u": [
+          "1",
+          "0"
+        ],
+        "v": [
+          "-1",
+          "0"
+        ],
+        "R": "2"
+      },
+      "expected": {
+        "distance": "2*pi",
+        "log": "REJECT_ANTIPODAL"
+      },
+      "operation": "geodesic_and_log",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "E04",
+      "domain": "sphere",
+      "inputs": {
+        "u": [
+          "1",
+          "0"
+        ],
+        "v": [
+          "0",
+          "1"
+        ],
+        "R": "2"
+      },
+      "expected": {
+        "distance": "pi",
+        "log_unit_sphere": [
+          "0",
+          "pi/2"
+        ]
+      },
+      "operation": "geodesic_and_log",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "E05",
+      "domain": "sphere",
+      "inputs": {
+        "z": [
+          "1",
+          "2^-1074"
+        ]
+      },
+      "expected": {
+        "exact_squared_norm": "1+2^-2148",
+        "distinct_from_axis": true
+      },
+      "operation": "exact_squared_norm",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "C01",
+      "domain": "metric",
+      "inputs": {
+        "x": [
+          "1",
+          "2"
+        ],
+        "y": [
+          "4",
+          "6"
+        ]
+      },
+      "expected": {
+        "dot": "16",
+        "squared_distance": "25",
+        "distance": "5"
+      },
+      "operation": "dot_and_distance",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "C02",
+      "domain": "metric",
+      "inputs": {
+        "x": [
+          "1",
+          "2"
+        ],
+        "y": [
+          "4"
+        ]
+      },
+      "expected": {
+        "status": "REJECT"
+      },
+      "operation": "dimension_validation",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M01",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "missing_assumptions"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M02",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "unit_mismatch"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M03",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "insufficient_coverage"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M04",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "insufficient_causal_samples"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M05",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "missing_validation"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M06",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "budget_exceeded"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M07",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "nonfinite_score"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M08",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "holdout_injection"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M09",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "missing_fold"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M10",
+      "domain": "router",
+      "inputs": {
+        "otherwise_eligible": true,
+        "fault": "roster_mismatch"
+      },
+      "expected": {
+        "eligible": false,
+        "ranked": false,
+        "reason_required": true
+      },
+      "operation": "method_eligibility",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M11",
+      "domain": "router",
+      "inputs": {
+        "eligible_methods": []
+      },
+      "expected": {
+        "decision": "ABSTAIN"
+      },
+      "operation": "selection",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "M12",
+      "domain": "router",
+      "inputs": {
+        "eligible_methods": [
+          "geometry",
+          "statistics"
+        ]
+      },
+      "expected": {
+        "both_retained": true
+      },
+      "operation": "selection",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "D01",
+      "domain": "space",
+      "inputs": {
+        "fit_rows": [
+          "train",
+          "holdout"
+        ]
+      },
+      "expected": {
+        "status": "REJECT"
+      },
+      "operation": "fit_partition",
+      "comparison": "exact_or_symbolic"
+    },
+    {
+      "id": "C03",
+      "domain": "metric",
+      "inputs": {
+        "x": [
+          "3",
+          "4"
+        ]
+      },
+      "expected": {
+        "squared_norm": "25"
+      },
+      "operation": "squared_norm",
+      "comparison": "exact"
+    },
+    {
+      "id": "D02",
+      "domain": "space",
+      "inputs": {
+        "available_ms": 101,
+        "cutoff_ms": 100
+      },
+      "expected": {
+        "status": "REJECT"
+      },
+      "operation": "fit_availability",
+      "comparison": "exact"
+    },
+    {
+      "id": "D03",
+      "domain": "space",
+      "inputs": {
+        "ambient_dimension": 4,
+        "projection_dimension": 3
+      },
+      "expected": {
+        "research_dimension": 4,
+        "projection_render_only": true
+      },
+      "operation": "projection_role",
+      "comparison": "exact"
+    },
+    {
+      "id": "E06",
+      "domain": "sphere",
+      "inputs": {
+        "u": [
+          "1",
+          "0"
+        ],
+        "tangent": [
+          "0",
+          "pi/2"
+        ]
+      },
+      "expected": {
+        "direction": [
+          "0",
+          "1"
+        ]
+      },
+      "operation": "exp",
+      "comparison": "absolute_error_at_most_1e-14_per_component"
+    },
+    {
+      "id": "E07",
+      "domain": "sphere",
+      "inputs": {
+        "u": [
+          "1",
+          "0"
+        ],
+        "v": [
+          "1",
+          "0"
+        ],
+        "R": "2"
+      },
+      "expected": {
+        "distance": "0"
+      },
+      "operation": "geodesic",
+      "comparison": "exact"
+    }
+  ]
+}

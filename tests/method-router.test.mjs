@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {selectMethods} from '../src/method-router.mjs';
+const id=n=>n.toString(16).padStart(64,'0');
+const c=(n,extra={})=>({methodRef:id(n),domain:'SPHERICAL',requiredPortStateRefs:[id(9)],assumptionsMet:true,coverageMet:true,causalSampleMet:true,qualityMet:true,validationMet:true,resourceMet:true,developmentScoreBits:'3ff0000000000000',uncertaintyBits:'0000000000000000',costOps:5,...extra});
+const run=candidates=>selectMethods({schema:'math.method.request.v1',developmentRef:id(7),policyRef:id(8),portStateRefs:[id(9)],candidates});
+test('parallel selection deterministic',()=>{const a=c(1),b=c(2,{domain:'GRAPH'});assert.deepEqual(run([a,b]),run([b,a]));assert.deepEqual(run([b,a]).selected,[id(1),id(2)]);});
+test('hard gates and port mismatch',()=>{const r=run([c(1,{coverageMet:false,requiredPortStateRefs:[id(10)]})]);assert.equal(r.status,'ABSTAIN');assert.deepEqual(r.decisions[0].reasons,['COVERAGE','PORT_MISMATCH']);});
+test('missing evidence',()=>{assert.deepEqual(run([c(1,{developmentScoreBits:null})]).decisions[0].reasons,['NO_DEVELOPMENT_EVIDENCE']);});
+test('ranking score uncertainty cost id',()=>{assert.deepEqual(run([c(1,{costOps:9}),c(2,{costOps:1}),c(3,{developmentScoreBits:'4000000000000000'}),c(4,{uncertaintyBits:'3ff0000000000000'})]).selected,[id(3),id(2),id(1),id(4)]);});
+test('holdout injection duplicate nonfinite rejected',()=>{assert.throws(()=>run([c(1,{holdout:1})]));assert.throws(()=>run([c(1),c(1)]));assert.throws(()=>run([c(1,{developmentScoreBits:'7ff0000000000000'})]));});
+for(const [key,reason] of Object.entries({assumptionsMet:'ASSUMPTIONS',coverageMet:'COVERAGE',causalSampleMet:'CAUSAL_SAMPLE',qualityMet:'QUALITY',validationMet:'VALIDATION',resourceMet:'RESOURCE'}))test('reject '+key,()=>{const r=run([c(1,{[key]:false})]);assert.equal(r.status,'ABSTAIN');assert.deepEqual(r.decisions[0].reasons,[reason]);});
+test('empty roster abstains',()=>{assert.equal(run([]).status,'ABSTAIN');});
+test('malformed scalar fields',()=>{for(const x of [{costOps:-1},{costOps:1.5},{uncertaintyBits:'bff0000000000000'},{assumptionsMet:1},{domain:'UNKNOWN'},{requiredPortStateRefs:[id(9),id(9)]}])assert.throws(()=>run([c(1,x)]),/INVALID_SCHEMA/);});
+test('candidate limit',()=>assert.throws(()=>run(Array.from({length:129},(_,i)=>c(i))),/INVALID_SCHEMA/));
