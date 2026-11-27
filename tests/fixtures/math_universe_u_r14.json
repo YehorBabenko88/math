@@ -1,0 +1,435 @@
+{
+  "schema": "math-universe-independent-semantic-fixtures",
+  "version": 3,
+  "baseline": "f47d0f1655617639ccdb76d88d6d001e103a12ae",
+  "scope": "semantic fixtures; adapter required; defect-targeted axis/codec cases not blind; no candidate outputs used",
+  "vectors": [
+    {
+      "id": "E-axis-0--1",
+      "op": "tangent",
+      "input": {
+        "u": [
+          "bff0000000000000",
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        "v": [
+          "7fefffffffffffff",
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        "intrinsic": 3,
+        "radius": "4000000000000000"
+      },
+      "expected": {
+        "tangent": [
+          "0000000000000000",
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000"
+        ]
+      }
+    },
+    {
+      "id": "E-axis-0-1",
+      "op": "tangent",
+      "input": {
+        "u": [
+          "3ff0000000000000",
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        "v": [
+          "7fefffffffffffff",
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        "intrinsic": 3,
+        "radius": "4000000000000000"
+      },
+      "expected": {
+        "tangent": [
+          "0000000000000000",
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000"
+        ]
+      }
+    },
+    {
+      "id": "E-axis-1--1",
+      "op": "tangent",
+      "input": {
+        "u": [
+          "0000000000000000",
+          "bff0000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        "v": [
+          "0000000000000000",
+          "7fefffffffffffff",
+          "0000000000000001",
+          "0000000000000000"
+        ],
+        "intrinsic": 3,
+        "radius": "4000000000000000"
+      },
+      "expected": {
+        "tangent": [
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000001",
+          "0000000000000000"
+        ]
+      }
+    },
+    {
+      "id": "E-axis-1-1",
+      "op": "tangent",
+      "input": {
+        "u": [
+          "0000000000000000",
+          "3ff0000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        "v": [
+          "0000000000000000",
+          "7fefffffffffffff",
+          "0000000000000001",
+          "0000000000000000"
+        ],
+        "intrinsic": 3,
+        "radius": "4000000000000000"
+      },
+      "expected": {
+        "tangent": [
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000001",
+          "0000000000000000"
+        ]
+      }
+    },
+    {
+      "id": "E-axis-3--1",
+      "op": "tangent",
+      "input": {
+        "u": [
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000",
+          "bff0000000000000"
+        ],
+        "v": [
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000",
+          "7fefffffffffffff"
+        ],
+        "intrinsic": 3,
+        "radius": "4000000000000000"
+      },
+      "expected": {
+        "tangent": [
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ]
+      }
+    },
+    {
+      "id": "E-axis-3-1",
+      "op": "tangent",
+      "input": {
+        "u": [
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000",
+          "3ff0000000000000"
+        ],
+        "v": [
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000",
+          "7fefffffffffffff"
+        ],
+        "intrinsic": 3,
+        "radius": "4000000000000000"
+      },
+      "expected": {
+        "tangent": [
+          "0000000000000001",
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ]
+      }
+    },
+    {
+      "id": "A-duplicate",
+      "op": "decodeMetadata",
+      "input": {
+        "utf8": "{\"a\":1,\"\\u0061\":2}"
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A-oversize",
+      "op": "decodeMetadata",
+      "input": {
+        "repeatByte": 32,
+        "count": 262145
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A-shared",
+      "op": "decodeMetadata",
+      "input": {
+        "backing": "SharedArrayBuffer",
+        "utf8": "{}"
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A-accessor",
+      "op": "decodeMetadata",
+      "input": {
+        "view": "typed-array-subclass",
+        "overriddenByteLength": true
+      },
+      "expected": {
+        "reject": true,
+        "accessorCalls": 0
+      }
+    },
+    {
+      "id": "I-32-gap",
+      "op": "joint_alignment",
+      "input": {
+        "series": 32,
+        "slots": [
+          0,
+          1000,
+          2000
+        ],
+        "missing": {
+          "series": 31,
+          "slot": 1000
+        }
+      },
+      "expected": {
+        "fullCommonSupport": false,
+        "noImputation": true
+      }
+    },
+    {
+      "id": "I-32-complete",
+      "op": "joint_alignment",
+      "input": {
+        "series": 32,
+        "slots": [
+          0,
+          1000,
+          2000
+        ],
+        "missing": null
+      },
+      "expected": {
+        "commonSlots": 3,
+        "roster": 32
+      }
+    },
+    {
+      "id": "M-zero",
+      "op": "structural",
+      "input": {
+        "ambient": 4,
+        "rows": [
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        "times": [
+          0,
+          1000
+        ]
+      },
+      "expected": {
+        "zeroDirection": true,
+        "trajectoryNotRunnable": true,
+        "predictiveRanking": "ABSTAIN"
+      }
+    },
+    {
+      "id": "M-constant",
+      "op": "structural",
+      "input": {
+        "ambient": 4,
+        "rows": [
+          [
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            1,
+            5,
+            6,
+            7
+          ]
+        ],
+        "times": [
+          0,
+          1000
+        ]
+      },
+      "expected": {
+        "constantColumns": [
+          0
+        ],
+        "predictiveRanking": "ABSTAIN"
+      }
+    },
+    {
+      "id": "M-gap",
+      "op": "structural",
+      "input": {
+        "ambient": 4,
+        "rows": [
+          [
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4,
+            5
+          ],
+          [
+            3,
+            4,
+            5,
+            6
+          ]
+        ],
+        "times": [
+          0,
+          1000,
+          3000
+        ],
+        "cadence": 1000
+      },
+      "expected": {
+        "regular": false,
+        "noImputation": true
+      }
+    },
+    {
+      "id": "C-budget-exact",
+      "op": "checked_dot",
+      "input": {
+        "x": [
+          1,
+          2
+        ],
+        "y": [
+          3,
+          4
+        ],
+        "budget": "exact admitted policy cost"
+      },
+      "expected": {
+        "value": 11,
+        "charged": true
+      }
+    },
+    {
+      "id": "C-budget-short",
+      "op": "checked_dot",
+      "input": {
+        "x": [
+          1,
+          2
+        ],
+        "y": [
+          3,
+          4
+        ],
+        "budget": "one logical operation below admitted policy cost"
+      },
+      "expected": {
+        "reject": true,
+        "noQualifiedPartial": true
+      }
+    },
+    {
+      "id": "H-budget-exact",
+      "op": "pearson",
+      "input": {
+        "x": [
+          1,
+          2,
+          3
+        ],
+        "y": [
+          3,
+          2,
+          1
+        ],
+        "budget": "exact admitted policy cost"
+      },
+      "expected": {
+        "rho": -1,
+        "exactPerfect": true
+      }
+    },
+    {
+      "id": "H-budget-short",
+      "op": "pearson",
+      "input": {
+        "x": [
+          1,
+          2,
+          3
+        ],
+        "y": [
+          3,
+          2,
+          1
+        ],
+        "budget": "one logical operation below admitted policy cost"
+      },
+      "expected": {
+        "reject": true,
+        "noQualifiedPartial": true
+      }
+    }
+  ]
+}
