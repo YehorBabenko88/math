@@ -130,5 +130,52 @@ class StrictMetricTests(unittest.TestCase):
         self.assertEqual(b.snapshot()['output_bytes'], 8)
 
 
+    def test_mismatched_second_shape_before_meter_generous(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        for op in (checked_dot, checked_distance):
+            with self.subTest(op=op.__name__):
+                budget = BudgetCounter(BudgetLimits(10_000_000, 5000, 5000, 2_000_000, 100))
+                before = budget.snapshot()
+                with self.assertRaisesRegex(ValueError, "^DIMENSION$"):
+                    op((1.0,), (1.0,) * 256, budget=budget)
+                self.assertEqual(budget.snapshot(), before)
+
+    def test_mismatched_second_shape_before_meter_exact_budget(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        for op, is_root in ((checked_dot, False), (checked_distance, True)):
+            with self.subTest(op=op.__name__):
+                budget = BudgetCounter(BudgetLimits(32768 + (1048576 if is_root else 0),
+                                                    16, 16, 81920, 8))
+                before = budget.snapshot()
+                with self.assertRaisesRegex(ValueError, "^DIMENSION$"):
+                    op((1.0,), (1.0,) * 256, budget=budget)
+                self.assertEqual(budget.snapshot(), before)
+
+    def test_all_invalid_second_shapes_precede_meter_and_conversion(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        for op in (checked_dot, checked_distance):
+            for bad_y in ((), [1.0, 2.0], [1.0] * 257, "1", None):
+                with self.subTest(op=op.__name__, shape=repr(bad_y)[:24]):
+                    budget = BudgetCounter(BudgetLimits(0, 0, 0, 0, 0))
+                    before = budget.snapshot()
+                    with self.assertRaisesRegex(ValueError, "^DIMENSION$"):
+                        op((1.0,), bad_y, budget=budget)
+                    self.assertEqual(budget.snapshot(), before)
+                with self.subTest(op=op.__name__, pure=repr(bad_y)[:24]):
+                    with self.assertRaisesRegex(ValueError, "^DIMENSION$"):
+                        op((1.0,), bad_y)
+
+    def test_mismatched_second_shape_preserves_existing_shared_counter(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        for op in (checked_dot, checked_distance):
+            with self.subTest(op=op.__name__):
+                budget = BudgetCounter(BudgetLimits(10_000_000, 5000, 5000, 2_000_000, 100))
+                self.assertEqual(checked_mul(2.0, 3.0, budget=budget), 6.0)
+                before = budget.snapshot()
+                with self.assertRaisesRegex(ValueError, "^DIMENSION$"):
+                    op((1.0,), (1.0,) * 256, budget=budget)
+                self.assertEqual(budget.snapshot(), before)
+
+
 if __name__ == "__main__":
     unittest.main()

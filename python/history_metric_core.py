@@ -185,6 +185,8 @@ def checked_norm(x: object, *, budget: object = None) -> float:
 
 def checked_dot(x: object, y: object, *, budget: object = None) -> float:
     n = _shape(x)
+    if _shape(y) != n:
+        raise ValueError("DIMENSION")
     meter = _Meter(budget, n, vectors=2, root=False)
     try:
         a, b = _two_vectors(x, y, meter)
@@ -199,6 +201,8 @@ def checked_dot(x: object, y: object, *, budget: object = None) -> float:
 
 def checked_distance(x: object, y: object, *, budget: object = None) -> float:
     n = _shape(x)
+    if _shape(y) != n:
+        raise ValueError("DIMENSION")
     meter = _Meter(budget, n, vectors=2, root=True)
     try:
         a, b = _two_vectors(x, y, meter)
