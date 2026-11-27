@@ -347,6 +347,62 @@ class ScientificMemoryR09NegativeTest(unittest.TestCase):
         self.assertEqual(db.rows[value['id']], original)
         self.assertTrue(all(command == 'SELECT' for command in db.commands))
 
+    def test_root_flags_positive_nonliteral_refused_before_transaction_and_sql(self):
+        # R17: root authority claims were accepted by the prior source even
+        # when nested provenance was strictly negative. A self-hash is not
+        # privileged evidence and must not cross the SQL boundary.
+        bad = (True, 1, 0, None, 'false', [], {}, 'VERIFIED')
+        for flag in ('execution_authority', 'trading_authorized'):
+            for claim in bad:
+                with self.subTest(flag=flag, claim=repr(claim)):
+                    value = record()
+                    value[flag] = claim
+                    value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+                    self.assertEqual(sm.decode_record(value['id'], value), value)
+                    db = FakeDb()
+                    with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
+                        sm.save(db, value)
+                    self.assertEqual(db.commands, [])
+                    self.assertEqual(db.transaction_count, 0)
+                    self.assertEqual(db.rows, {})
+
+    def test_root_flags_absent_and_literal_false_preserve_original_payload(self):
+        for flags in ({}, {'execution_authority': False},
+                      {'trading_authorized': False},
+                      {'execution_authority': False, 'trading_authorized': False}):
+            for status in ('reproduced', 'contradicted'):
+                with self.subTest(flags=flags, status=status):
+                    value = record(status=status)
+                    value.update(flags)
+                    value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+                    original = sm.canonical(value)
+                    db = FakeDb()
+                    self.assertEqual(sm.save(db, value), value['id'])
+                    self.assertEqual(db.rows[value['id']], original)
+                    self.assertEqual(sm.save(db, value), value['id'])
+                    self.assertEqual(db.rows[value['id']], original)
+                    qualified = sm.read_qualified(db, 'BTCUSDT', 10)
+                    self.assertEqual(qualified['records'], [value])
+                    self.assertEqual(qualified['qualifications'][0]['execution_authority'], False)
+                    self.assertEqual(qualified['qualifications'][0]['trading_authorized'], False)
+
+    def test_poisoned_root_historical_row_refused_without_purge_or_update(self):
+        for flag in ('execution_authority', 'trading_authorized'):
+            with self.subTest(flag=flag):
+                db, value = FakeDb(), record()
+                value[flag] = True
+                value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+                payload = sm.canonical(value)
+                db.rows[value['id']] = payload
+                # Legacy v1 read keeps its old shape, while sidecar refuses.
+                legacy = sm.read(db, 'BTCUSDT', 10)
+                self.assertEqual(set(legacy), {'schema', 'symbol', 'records'})
+                self.assertEqual(legacy['records'], [value])
+                with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
+                    sm.read_qualified(db, 'BTCUSDT', 10)
+                self.assertEqual(db.rows[value['id']], payload)
+                self.assertTrue(all(command == 'SELECT' for command in db.commands))
+
     def test_projection_does_not_change_stored_hash_or_payload(self):
         value = record()
         before = sm.canonical(value)

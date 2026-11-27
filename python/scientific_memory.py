@@ -128,6 +128,12 @@ def qualify_historical_record(record):
     if not isinstance(record, dict):
         raise ValueError('Invalid persisted record identity')
     decode_record(record.get('id'), record)
+    # Align P admission and qualified reads with the S legacy reader:
+    # optional root-level authority flags are DENY-only. A literal False is
+    # the sole admitted explicit value, including 0 (which equals False).
+    for flag in ('execution_authority', 'trading_authorized'):
+        if flag in record and record[flag] is not False:
+            raise ValueError('Untrusted historical authority claim')
     provenance = record.get('provenance')
     # The original descriptive v1 producer always emitted explicit false
     # authority flags. A rehashed caller-positive claim is not a verified
