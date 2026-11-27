@@ -3,17 +3,17 @@ on:
   push:
     paths:
       - .github/workflows/scientific-memory.yml
-      - python/scientific_memory.*
+      - 'python/scientific_memory.*'
       - python/history_statistics.py
       - python/history_timeseries.py
-      - tests/*scientific_memory*.py
+      - 'tests/*scientific_memory*.py'
   pull_request:
     paths:
       - .github/workflows/scientific-memory.yml
-      - python/scientific_memory.*
+      - 'python/scientific_memory.*'
       - python/history_statistics.py
       - python/history_timeseries.py
-      - tests/*scientific_memory*.py
+      - 'tests/*scientific_memory*.py'
 permissions:
   contents: read
 
@@ -54,5 +54,6 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
-      - run: python -m pip install --only-binary=:all: 'psycopg[binary]==3.3.6'
+      - run: |
+          python -m pip install --only-binary=:all: 'psycopg[binary]==3.3.6'
       - run: python -B tests/scientific_memory_postgres.py -v
