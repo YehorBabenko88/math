@@ -1,0 +1,7 @@
+# Experiment preregistration v1 — partial DEV candidate
+Six-path source-only lab slice. Never apply automatically; existing migration manifest unchanged.
+Uses existing A codec and L attempt identity. Exact X5 contains original codec; use hardened A revision in isolated composition before trust review.
+The trusted host must resolve intent, fold, input, availability, fit and cohort refs before reservation. The current validator checks shape only. SQL accepts canonical bytes supplied by trusted host; it does not authenticate them. No public or worker access.
+A unique attempt identity and byte equality guard reserve; STARTED CAS is one-shot, never reclaimed; terminal CAS preserves one outcome. Unknown COMMIT throws, no permission. A crash after STARTED loses work; no same-attempt retry. No dispatch is implemented and all returned authority flags are false.
+This is deliberately incomplete: budget/proposal/command tables, protected claim/lease/revision, metric resolution, committed receipt lookup, role provisioning, explicit clean-connection verification, independent acceptance and real PG18 test harness remain required. No production, ranking, holdout, Scientific Memory writes, or execution. No exactly-once computation claim.
+DDL is guarded by disposable DB name/version/owner; these checks do not prove isolation. Require separate host isolation and owner review before any SQL execution. Owner must separately provision non-superuser host with function-only privileges, no direct table rights, and no PUBLIC grants. Do not run against office DB.

@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validatePreregistration} from '../src/experiment/preregistration-contract.mjs';
+import {registerAttempt} from '../src/experiment/trial-ledger.mjs';
+const r='a'.repeat(64);
+const p={schema:'math.experiment.preregistration.v1',ordinal:0,intentRef:r,foldRef:r,manifestRef:r,cohortRef:r,inputRef:r,seedRef:r,budgetPolicyRef:r,snapshotRef:r,fitRef:r,availabilityRef:r};
+test('identity compatible with terminal DTO',()=>assert.equal(validatePreregistration(p).attemptRef,registerAttempt({schema:'math.experiment.attempt.v1',intentRef:r,foldRef:r,ordinal:0,status:'FAILED',metricRef:null}).attemptRef));
+test('changed binding changes prereg not attempt identity',()=>{const a=validatePreregistration(p),b=validatePreregistration({...p,availabilityRef:'b'.repeat(64)});assert.equal(a.attemptRef,b.attemptRef);assert.notEqual(a.preregRef,b.preregRef);});
+test('holdout refused',()=>assert.throws(()=>validatePreregistration({...p,holdoutRef:r})));
+test('unsafe ordinal refused',()=>assert.throws(()=>validatePreregistration({...p,ordinal:2**53})));
