@@ -283,6 +283,70 @@ class ScientificMemoryR09NegativeTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
                 sm.qualify_historical_record(value)
 
+    def test_save_rejects_self_hashed_positive_or_missing_authority_before_sql(self):
+        # R14 regression: the prior save() accepted self-consistent forged
+        # records even though the later read-side projection rejected them.
+        alterations = (
+            {'execution_authority': True},
+            {'trading_authorized': True},
+            {'execution_authority': 0},
+            {'trading_authorized': None},
+            {'execution_authority': 'false'},
+        )
+        for delta in alterations:
+            with self.subTest(delta=delta):
+                value = record()
+                value['provenance'].update(delta)
+                value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+                db = FakeDb()
+                with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
+                    sm.save(db, value)
+                self.assertEqual(db.commands, [])
+                self.assertEqual(db.transaction_count, 0)
+                self.assertEqual(db.rows, {})
+        for key in ('execution_authority', 'trading_authorized'):
+            with self.subTest(missing=key):
+                value = record()
+                del value['provenance'][key]
+                value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+                db = FakeDb()
+                with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
+                    sm.save(db, value)
+                self.assertEqual(db.commands, [])
+                self.assertEqual(db.transaction_count, 0)
+        value = record()
+        del value['provenance']
+        value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+        db = FakeDb()
+        with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
+            sm.save(db, value)
+        self.assertEqual(db.commands, [])
+        self.assertEqual(db.transaction_count, 0)
+
+    def test_save_preserves_exact_original_bytes_and_replay_for_valid_record(self):
+        db, value = FakeDb(), record(status='contradicted')
+        original = sm.canonical(value)
+        original_id = value['id']
+        self.assertEqual(sm.save(db, value), original_id)
+        self.assertEqual(db.rows[original_id], original)
+        self.assertEqual(sm.save(db, value), original_id)
+        self.assertEqual(db.rows[original_id], original)
+        self.assertEqual(db.commands, ['SELECT', 'INSERT', 'SELECT', 'SELECT'])
+        self.assertEqual(len(db.rows), 1)
+
+    def test_poisoned_historical_rows_refuse_without_cleanup_or_rewrite(self):
+        db, value = FakeDb(), record()
+        value['provenance']['execution_authority'] = True
+        value['id'] = sm.digest({k: v for k, v in value.items() if k != 'id'})
+        original = sm.canonical(value)
+        db.rows[value['id']] = original
+        response = sm.read(db, value['symbol'], 10)
+        self.assertEqual(response['records'], [value])
+        with self.assertRaisesRegex(ValueError, 'Untrusted historical authority claim'):
+            sm.read_qualified(db, value['symbol'], 10)
+        self.assertEqual(db.rows[value['id']], original)
+        self.assertTrue(all(command == 'SELECT' for command in db.commands))
+
     def test_projection_does_not_change_stored_hash_or_payload(self):
         value = record()
         before = sm.canonical(value)

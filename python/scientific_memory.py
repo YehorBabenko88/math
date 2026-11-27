@@ -151,8 +151,12 @@ def qualify_historical_record(record):
 
 
 def save(connection, record):
-    record_id = record.get('id')
-    payload = canonical(decode_record(record_id, record))
+    # Admission is deny-only and MUST precede a transaction or any SQL.
+    # A caller-controlled self-hash is not a protected authority receipt.
+    # Do not persist records the existing read-side projection would refuse.
+    qualify_historical_record(record)
+    record_id = record['id']
+    payload = canonical(record)
     if len(payload) > MAX_RECORD_BYTES:
         raise ValueError('Record too large')
     # Enter the transaction BEFORE the first SELECT. psycopg with
