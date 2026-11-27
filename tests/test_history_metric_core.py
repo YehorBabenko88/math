@@ -81,5 +81,54 @@ class StrictMetricTests(unittest.TestCase):
             checked_norm([1.0], budget=object())
 
 
+    def test_metered_shared_counter_and_actual_output(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        shared = BudgetCounter(BudgetLimits(5_000_000, 128, 128, 2_000_000, 16))
+        self.assertEqual(checked_norm([3.0, 4.0], budget=shared), 5.0)
+        self.assertEqual(checked_dot([3.0, 4.0], [4.0, -3.0], budget=shared), 0.0)
+        state = shared.snapshot()
+        self.assertGreater(state['by_kind']['comparison'], 0)
+        self.assertGreater(state['by_kind']['coordinate'], 0)
+        self.assertEqual(state['output_bytes'], 16)
+        self.assertEqual(state['live_bytes'], 0)
+        self.assertGreater(state['peak_bytes'], 0)
+        self.assertFalse(state['failed'])
+
+    def test_budget_preflight_terminal_without_partial_result(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        exhausted = BudgetCounter(BudgetLimits(10, 128, 128, 2_000_000, 8))
+        with self.assertRaisesRegex(ValueError, 'BUDGET_EXCEEDED'):
+            checked_norm([3.0, 4.0], budget=exhausted)
+        self.assertTrue(exhausted.snapshot()['failed'])
+        self.assertEqual(exhausted.snapshot()['ops'], 0)
+        self.assertEqual(exhausted.snapshot()['live_bytes'], 0)
+        with self.assertRaisesRegex(ValueError, 'BUDGET_EXCEEDED'):
+            checked_norm([1.0], budget=exhausted)
+
+    def test_metered_numeric_failure_releases_memory(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        b = BudgetCounter(BudgetLimits(5_000_000, 128, 128, 2_000_000, 8))
+        with self.assertRaisesRegex(ValueError, 'NUMERIC_OVERFLOW'):
+            checked_norm([sys.float_info.max, 1.0], budget=b)
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertEqual(b.snapshot()['output_bytes'], 0)
+        self.assertGreater(b.snapshot()['ops'], 0)
+
+    def test_metered_division_zero_releases_memory(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        b = BudgetCounter(BudgetLimits(5_000_000, 128, 128, 2_000_000, 8))
+        with self.assertRaisesRegex(ValueError, 'ZERO_DIVISOR'):
+            checked_div(1.0, 0.0, budget=b)
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertEqual(b.snapshot()['output_bytes'], 0)
+
+    def test_metered_zero_output_and_signed_zero(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        b = BudgetCounter(BudgetLimits(5_000_000, 128, 128, 2_000_000, 8))
+        out = checked_norm([0.0], budget=b)
+        self.assertEqual(struct.pack('>d', out).hex(), '0000000000000000')
+        self.assertEqual(b.snapshot()['output_bytes'], 8)
+
+
 if __name__ == "__main__":
     unittest.main()
