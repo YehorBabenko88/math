@@ -50,3 +50,36 @@ class CausalTests(unittest.TestCase):
     def test_constant(self):
         b = self.batch([Row('a','e',i,i+1,0,1.0) for i in (1,2,3)])
         self.assertIn('CONSTANT_SERIES',spectral_eligibility(b,min_samples=3)['reasons'])
+
+
+    def test_32_joint_support(self):
+        roster = tuple(f'f{i:02}' for i in range(32))
+        rows = tuple(Row(s,'e',t,t+1,0,float(t*(i+1)))
+                     for t in range(1,257) for i,s in enumerate(roster))
+        kw = dict(roster=roster,start_ms=0,end_ms=256,step_ms=1,as_of_ms=258)
+        batch = align(rows,**kw)
+        self.assertEqual(len(batch['support']),256)
+        self.assertEqual(batch['support'][255],(256,tuple(float(256*(i+1)) for i in range(32))))
+        self.assertEqual(len(batch['segments']),1)
+        self.assertTrue(spectral_eligibility(batch,min_samples=256)['structurally_eligible'])
+        self.assertFalse(batch['qualified'])
+        self.assertEqual(batch,align(rows[::-1],**kw))
+        self.assertEqual(batch,align(rows+(Row(roster[31],'e',1,258,1,999.0),),**kw))
+        missing = align(tuple(r for r in rows if (r.series,r.end_ms)!=(roster[31],128)),**kw)
+        self.assertEqual(missing['gaps'],(128,))
+        self.assertEqual(missing['missing'],((128,(roster[31],)),))
+        self.assertEqual(tuple(map(len,missing['segments'])),(127,128))
+        self.assertFalse(spectral_eligibility(missing,min_samples=3)['structurally_eligible'])
+
+    def test_roster33(self):
+        with self.assertRaisesRegex(ValueError,'DIMENSION'):
+            self.batch([],tuple(f'f{i}' for i in range(33)))
+
+    def test_row_limit_preflight(self):
+        with self.assertRaisesRegex(ValueError,'DIMENSION'):
+            self.batch([None]*20001)
+
+    def test_grid_limit_preflight(self):
+        roster = tuple(f'f{i}' for i in range(32))
+        with self.assertRaisesRegex(ValueError,'DIMENSION'):
+            align((None,),roster=roster,start_ms=0,end_ms=7501,step_ms=1,as_of_ms=7503)

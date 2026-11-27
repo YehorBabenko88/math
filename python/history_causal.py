@@ -26,11 +26,14 @@ def align(rows, *, roster, start_ms, end_ms, step_ms, as_of_ms):
         raise ValueError('CLOCK')
     if not step_ms or start_ms >= end_ms or (end_ms-start_ms) % step_ms:
         raise ValueError('CLOCK')
-    if type(roster) is not tuple or not 1 <= len(roster) <= 12 or not all(map(_id, roster)) or len(set(roster)) != len(roster):
+    if type(roster) is not tuple or not 1 <= len(roster) <= 32 or not all(map(_id, roster)) or len(set(roster)) != len(roster):
         raise ValueError('DIMENSION')
     if type(rows) is not tuple:
         raise ValueError('INVALID_SCHEMA')
-    if (end_ms-start_ms)//step_ms > 20000 or len(rows) > 20000:
+    slots = (end_ms-start_ms)//step_ms
+    # Bound total grid work before inspecting any input rows. Preserve the
+    # legacy 12 x 20000 maximum number of coordinate slots.
+    if slots > 20000 or len(rows) > 20000 or slots * len(roster) > 240000:
         raise ValueError('DIMENSION')
     selected, epochs, ledger = {}, {}, {}
     for r in rows:
