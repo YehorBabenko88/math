@@ -1,5 +1,5 @@
 // Source-only structural contract. No authority or numerical kernel.
-import {snapshotJSON} from './scientific-data.mjs';
+import {encodeMetadata,decodeMetadata,decodeBinary64Hex} from './math-universe-codec.mjs';
 const fail=(code='INVALID_SCHEMA')=>{throw new Error(code)};
 const check=(ok,code)=>{if(!ok)fail(code)};
 const obj=(v,keys)=>check(v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k)));
@@ -13,10 +13,10 @@ const arr=(v,min=0,max=2000)=>check(Array.isArray(v)&&v.length>=min&&v.length<=m
 const nullable=(v,f)=>{if(v!==null)f(v)};
 const unique=v=>check(new Set(v).size===v.length);
 const ref=v=>{obj(v,fields('schema kind sha256 byteLength encoding'));one(v.schema,'math.artifact-ref.v1');id(v.kind);hash(v.sha256);integer(v.byteLength);id(v.encoding)};
-const bits=v=>{check(typeof v==='string'&&/^[0-9a-f]{16}$/.test(v));check(v!=='8000000000000000'&&!/^[7f]ff/.test(v))};
+const bits=v=>{try{decodeBinary64Hex(v)}catch{fail()}};
 const nonneg=v=>{bits(v);check(v[0]<'8')};
 const axes=v=>{arr(v,1,256);v.forEach(a=>{obj(a,['id','unit']);id(a.id);id(a.unit)});unique(v.map(a=>a.id))};
-const closed=(schema,keys,fn)=>input=>{let v;try{v=snapshotJSON(input)}catch{fail()}obj(v,['schema',...fields(keys)]);one(v.schema,schema);fn(v);return v};
+const closed=(schema,keys,fn)=>input=>{let v;try{v=decodeMetadata(encodeMetadata(input))}catch{fail()}obj(v,['schema',...fields(keys)]);one(v.schema,schema);fn(v);return v};
 export const validateSpaceSpec=closed('math.space.spec.v1','spaceId kind axes numericPolicyRef metric parameters',v=>{
  id(v.spaceId);axes(v.axes);hash(v.numericPolicyRef);obj(v.metric,fields('id version parameters'));id(v.metric.id);id(v.metric.version);check(v.metric.parameters!==null&&typeof v.metric.parameters==='object'&&!Array.isArray(v.metric.parameters));
  const p=v.parameters,d=v.axes.length;
@@ -50,7 +50,9 @@ export const validateSpaceResult=closed('math.space.result.v1','status requestDi
 export const validateLossReport=closed('math.space.loss.v1','class inverseDomain sidecars rawSourceRef comparedCount excludedCount droppedAxes droppedIdsRef perAxis geometry distributionRef alignmentRef',v=>{
  one(v.class,'EXACT','NUMERIC','CONDITIONAL','LOSSY','UNKNOWN');id(v.inverseDomain);arr(v.sidecars,0,32);v.sidecars.forEach(s=>{obj(s,fields('role ref required'));id(s.role);ref(s.ref);bool(s.required)});ref(v.rawSourceRef);integer(v.comparedCount);integer(v.excludedCount);arr(v.droppedAxes,0,256);v.droppedAxes.forEach(id);unique(v.droppedAxes);nullable(v.droppedIdsRef,ref);arr(v.perAxis,0,256);v.perAxis.forEach(a=>{obj(a,fields('axisId unit mae rmse maxAbs relative status'));id(a.axisId);id(a.unit);id(a.status);for(const k of fields('mae rmse maxAbs relative'))nullable(a[k],nonneg)});unique(v.perAxis.map(a=>a.axisId));obj(v.geometry,fields('metricId pairCount distortion neighborK recall status'));id(v.geometry.metricId);integer(v.geometry.pairCount);nullable(v.geometry.distortion,nonneg);nullable(v.geometry.neighborK,integer);nullable(v.geometry.recall,nonneg);id(v.geometry.status);nullable(v.distributionRef,ref);nullable(v.alignmentRef,ref);
 });
-// Packed payload is a separate verified artifact. This validator checks metadata only.
+// Structural validation only: the trusted host must resolve and verify actual packed bytes,
+// digest, diameter, split membership and fit binding before admitting a research operation.
+// Neither a reference nor a successful validator grants execution authority.
 export const validateMetricTable=closed('math.space.metric-table.v1','orderedIds cloudRef fitRef metricSpecRef numericPolicyRef admittedSubsetDigest cohortRef coverageRef maxAvailableAtMs distancesRef diameterBits workReceiptRef',v=>{
  arr(v.orderedIds,1,32);v.orderedIds.forEach(id);for(let i=1;i<v.orderedIds.length;i++)check(v.orderedIds[i]>v.orderedIds[i-1],'METRIC_INVALID');for(const k of fields('cloudRef fitRef metricSpecRef cohortRef coverageRef distancesRef workReceiptRef'))ref(v[k]);hash(v.numericPolicyRef);hash(v.admittedSubsetDigest);integer(v.maxAvailableAtMs);nonneg(v.diameterBits);const n=v.orderedIds.length;check(v.distancesRef.encoding==='binary64-be-hex-v1'&&v.distancesRef.byteLength===8*n*(n-1),'METRIC_INVALID');if(n===1)check(v.diameterBits==='0000000000000000','METRIC_INVALID');
 });
