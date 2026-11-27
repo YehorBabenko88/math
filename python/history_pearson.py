@@ -3,7 +3,7 @@
 Inputs are prealigned, same-support, caller-supplied represented binary64 values.
 The caller (I/A) owns event-time, availability, source, split and unit checks.
 The caller (V) owns shared work/memory quotas; local caps are fail-closed ceilings.
-No tests or code from this candidate have been executed.
+Developer-only candidate; not independently qualified or authorized for trading.
 """
 from __future__ import annotations
 
