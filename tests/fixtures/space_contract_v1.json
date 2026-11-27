@@ -1,0 +1,65 @@
+{
+  "classification": "DEVELOPER_ONLY",
+  "sphere": {
+    "schema": "math.space.spec.v1",
+    "spaceId": "sphere4",
+    "kind": "sphere",
+    "axes": [
+      {
+        "id": "x0",
+        "unit": "1"
+      },
+      {
+        "id": "x1",
+        "unit": "1"
+      },
+      {
+        "id": "x2",
+        "unit": "1"
+      },
+      {
+        "id": "x3",
+        "unit": "1"
+      }
+    ],
+    "numericPolicyRef": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "metric": {
+      "id": "geodesic",
+      "version": "1",
+      "parameters": {}
+    },
+    "parameters": {
+      "ambientDimension": 4,
+      "intrinsicDimension": 3,
+      "radius": "3ff0000000000000",
+      "origin": [
+        "0000000000000000",
+        "0000000000000000",
+        "0000000000000000",
+        "0000000000000000"
+      ],
+      "retainNorm": true
+    }
+  },
+  "fit": {
+    "schema": "math.space.fit.v1",
+    "specDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "trainingSubsetDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "trainIdsDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "trainCutoffMs": 10,
+    "splitPolicyDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "algorithmId": "identity",
+    "algorithmVersion": "1",
+    "mathCommit": "f47d0f1655617639ccdb76d88d6d001e103a12ae",
+    "numericPolicyRef": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "parametersRef": {
+      "schema": "math.artifact-ref.v1",
+      "kind": "parameters",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "byteLength": 0,
+      "encoding": "json-v1"
+    },
+    "fitMaxAvailableAtMs": 10,
+    "seed": 0
+  }
+}
