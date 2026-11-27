@@ -19,7 +19,7 @@ test('platform identity rejects skip todo failed cancelled and fabricated summar
 test('platform inventory preserves baseline1147 identities repeated titles nested children and cross3',()=>{
  const developer=JSON.parse(readFileSync('package.json','utf8'));assert.equal(developer.scripts.test,'node --test tests/*.test.mjs tests/*.windows.mjs tests/*.cross.mjs');
  const inv=loadHistoricalInventory();assert.equal(inv.tests.filter(x=>!x.added).length,1147);
- const current=loadInventory(),transfer=loadTransferLedger();assert.equal(current.tests.length,1201);assert.equal(transfer.events.length,34);assert.equal(heldRootCoverage().status,'HELD');assert.equal(heldRootCoverage().releaseStatus,'NO_GO');
+ const current=loadInventory(),transfer=loadTransferLedger();assert.equal(current.tests.length,1210);assert.equal(transfer.events.length,34);assert.equal(heldRootCoverage().status,'HELD');assert.equal(heldRootCoverage().releaseStatus,'NO_GO');
  assert.doesNotThrow(()=>verifyTransferLedger(current,inv,transfer));
  for(const change of [x=>x.events.pop(),x=>x.events[0].required_cells.pop(),x=>x.events[0].status='PASS',x=>x.coverage='PASS',x=>x.Root_tool='0'.repeat(40),x=>x.events[0].original=inv.tests.find(t=>t.file==='tests/adapter-registry.test.mjs'),x=>x.retired_files[0].source='src/evidence-receiver/strict.mjs',x=>x.retired_files[0].blob_oid='0'.repeat(40)]){const altered=structuredClone(transfer);change(altered);assert.throws(()=>verifyTransferLedger(current,inv,altered));}
  const missing=structuredClone(current);missing.tests.pop();assert.throws(()=>verifyTransferLedger(missing,inv,transfer));
@@ -65,6 +65,9 @@ test('platform inventory preserves baseline1147 identities repeated titles neste
  for(const file of scientificFiles)assert.ok(inv.tests.some(x=>x.added&&x.platform==='cross'&&x.file===file&&x.destination===file));
  assert.equal(inv.tests.filter(x=>x.name==='strict parser rejects malformed or over-limit structured input').length,9);
  assert.doesNotThrow(()=>verifySourceProof());
+ for(const file of ['tests/independent-numeric-oracle.py','tests/independent-numeric-oracle.test.mjs','tests/p1-claim-observation-regression.test.mjs']){
+  assert.throws(()=>verifySourceProof(undefined,{read:path=>path===file?Buffer.from('substituted P1 source'):readFileSync(path)}),/bytes changed/);
+ }
  const proof=JSON.parse(readFileSync('scripts/platform-source-proof.json'));
  assert.throws(()=>verifySourceProof({...proof,testFiles:proof.testFiles.slice(1)}));
  assert.throws(()=>verifySourceProof(proof,{read:path=>Buffer.from('substituted assertion')}));

@@ -9,6 +9,11 @@ export const HISTORICAL_ARCHIVES='docs/migration/root-ci-evidence-caller-2026112
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const json=path=>JSON.parse(readFileSync(path,'utf8'));
 const key=x=>JSON.stringify([x.file,x.parent??null,x.name,x.occurrence]);
+const P1_CASE_COUNTS=Object.freeze({
+ 'tests/independent-numeric-oracle.test.mjs':4,
+ 'tests/p1-claim-observation-regression.test.mjs':5,
+});
+const P1_SUPPORT_FILE='tests/independent-numeric-oracle.py';
 const ROOT_HOSTED_FILES=["tests/confidential-collector-context.test.mjs","tests/confidential-collector-oidc.test.mjs","tests/confidential-pr64-blocked-projection.test.mjs","tests/confidential-public-privacy.test.mjs","tests/confidential-receipt-schema.test.mjs","tests/confidential-stage-codes.test.mjs","tests/confidential-synthetic-bundle.test.mjs","tests/confidential-synthetic-session.test.mjs"];
 const EXCLUSIVE_RETIRED=["src/confidential-collector/oidc-client.mjs","src/confidential-collector/context.mjs","src/confidential-collector/session.mjs","src/confidential-collector/synthetic-bundle.mjs","src/confidential-collector/public-schema.mjs","src/confidential-collector/worker.mjs","scripts/confidential-qualification/hosted.mjs",".github/workflows/confidential-collector.yml","tests/confidential-collector-context.test.mjs","tests/confidential-collector-oidc.test.mjs","tests/confidential-pr64-blocked-projection.test.mjs","tests/confidential-public-privacy.test.mjs","tests/confidential-receipt-schema.test.mjs","tests/confidential-stage-codes.test.mjs","tests/confidential-synthetic-bundle.test.mjs","tests/confidential-synthetic-session.test.mjs","tests/confidential-pinned-loader.test.mjs","tests/fixtures/confidential-collector/context.mjs"];
 export const loadHistoricalInventory=()=>json('scripts/platform-test-inventory.json');
@@ -52,10 +57,16 @@ export function verifyTransferLedger(current,historical,transfer){
  }
  const retained=historical.tests.filter(x=>!moved.has(key(x)));
  assert.deepEqual(current.tests.slice(0,retained.length),retained,'Every remaining original case and metadata must survive unchanged');
- assert.equal(current.tests.length,1201);assert.equal(current.tests.length-retained.length,1);
- assert.deepEqual(current.tests.at(-1),{file:'tests/confidential-root-caller.test.mjs',name:'Root collector caller is closed configuration only, with refusal calibrations',parent:null,line:10,column:1,platform:'cross',occurrence:1,destination:'tests/confidential-root-caller.test.mjs',added:true});
- assert.equal(new Set(current.tests.map(key)).size,1201);assert.equal(transfer.coverage,'HELD');assert.equal(transfer.release_status,'NO_GO');
- return {currentCases:1201,transferredEvents:34,RootHostedEvents:31,RootStaticEvents:3};
+ assert.deepEqual(current.tests[retained.length],{file:'tests/confidential-root-caller.test.mjs',name:'Root collector caller is closed configuration only, with refusal calibrations',parent:null,line:10,column:1,platform:'cross',occurrence:1,destination:'tests/confidential-root-caller.test.mjs',added:true});
+ const p1=current.tests.slice(retained.length+1);
+ assert.equal(p1.length,9);
+ for(const [file,count] of Object.entries(P1_CASE_COUNTS)){
+  const entries=p1.filter(x=>x.file===file);
+  assert.equal(entries.length,count);
+  for(const entry of entries)assert.ok(entry.platform==='cross'&&entry.destination===file&&entry.parent===null&&entry.occurrence===1&&entry.added===true);
+ }
+ assert.equal(new Set(current.tests.map(key)).size,current.tests.length);assert.equal(transfer.coverage,'HELD');assert.equal(transfer.release_status,'NO_GO');
+ return {currentCases:current.tests.length,transferredEvents:34,RootHostedEvents:31,RootStaticEvents:3};
 }
 export function loadCurrentInventory(){const current=json('scripts/platform-current-inventory.json');verifyTransferLedger(current,loadHistoricalInventory(),loadTransferLedger());return current;}
 export function historicalDestination(path,read){return read(HISTORICAL_ARCHIVES+path.replaceAll('/','__')+'.txt');}
@@ -63,8 +74,10 @@ export function verifyCurrentSourceFiles({read=path=>readFileSync(path)}={}){
  const proof=json('scripts/platform-current-source-proof.json');assert.equal(proof.schema,'math.current-test-source-proof.v2');assert.equal(proof.source_base,SOURCE_BASE);assert.equal(proof.Root_tool,ROOT_TOOL);
  const discover=directory=>readdirSync(directory,{withFileTypes:true}).flatMap(entry=>{const path=directory+'/'+entry.name;return entry.isDirectory()?discover(path):/\.(?:test|windows|cross)\.mjs$/.test(entry.name)?[path]:[];});
  assert.deepEqual(discover('tests').sort(),Object.keys(proof.files).sort(),'Exact current executable test-file inventory required');
- assert.equal(Object.keys(proof.files).length,207);
+ assert.equal(Object.keys(proof.files).length,209);
  for(const [path,expected] of Object.entries(proof.files))assert.equal(digest(read(path)),expected,'Current assertion bytes changed: '+path);
+ assert.deepEqual(Object.keys(proof.supportFiles),[P1_SUPPORT_FILE]);
+ assert.equal(digest(read(P1_SUPPORT_FILE)),proof.supportFiles[P1_SUPPORT_FILE],'P1 oracle source bytes changed');
  const current=loadCurrentInventory();assert.deepEqual([...new Set(current.tests.map(x=>x.destination))].sort(),Object.keys(proof.files).sort(),'Current cases must own every executable test source');
  return proof;
 }

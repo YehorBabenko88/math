@@ -65,6 +65,8 @@ jobs:
       - name: Bounded event/progress streaming controls (fake callbacks only)
         run: node --test tests/math-ci-stream-evidence.unit.mjs
       - name: Complete Linux-owned and cross-platform suite (zero skips or todo)
+        env:
+          P1_ORACLE_PYTHON: python
         run: node scripts/test-full-ci.mjs
       - name: Record exact source and dependency provenance
         if: always()
@@ -123,7 +125,12 @@ jobs:
       - name: Verify dependency artifact locks
         run: node scripts/verify-dependency-locks.mjs
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
       - name: Complete Windows-owned and cross-platform suite (zero skips or todo)
+        env:
+          P1_ORACLE_PYTHON: python
         run: node scripts/test-full-ci.mjs
       - name: Record exact source and dependency provenance
         if: always()

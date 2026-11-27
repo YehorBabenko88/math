@@ -129,6 +129,7 @@
     "tests/guarded-selection.test.mjs": "df6d659ddc330f56f2086980daf841b47d64df9cbe6a59e8b0fb6f5e72a06f58",
     "tests/implicit-security.test.mjs": "be1ce9ec234203b8bd12ad839515b9314b96eafda67383392a5eb80e9a222f94",
     "tests/implicit3d.test.mjs": "2ec30422361e51d579910dcaf7fde07aa35a605d8d240e4b648deea9bb12fafd",
+    "tests/independent-numeric-oracle.test.mjs": "8fcb6314dc3817784589d3b9a3736b19ad3c581a6d5ad501de1ed6eed622c79f",
     "tests/ingestion-job-postgres-fenced.test.mjs": "76128bd83deb82c3496b7fec55015764342625b4765ff2926a4ac1c45360f647",
     "tests/ingestion-job-postgres.test.mjs": "89154b58cc4af88f8d9ff216b03f028d8d3c63a803e9de51d3fd8f0b85f54a90",
     "tests/ingestion-job-renew.test.mjs": "8f779a2cb7d3cd9b02d15b3d0464bfd11f83584b3f823e13a7e62322625a1e27",
@@ -163,7 +164,8 @@
     "tests/math-trading-ownership.test.mjs": "f77ac5d7a61a28d83cbe877bf27dd9407848ad6bf15ecca30f4a35c6dc4f0a86",
     "tests/math.test.mjs": "6046470f244490a1337eb84bc2936c81dabd08ac7728b9dd5bda7efbdc2a9c70",
     "tests/model-fitting.test.mjs": "041985c7e393f991205a4260919b36e65bcce02bcb59401838cf44a3fc24a4d0",
-    "tests/platform-coverage.test.mjs": "ea49b8e5f04fb80f4ef2687c76730360f649e37a60562237eaa537f1dd609d27",
+    "tests/p1-claim-observation-regression.test.mjs": "fdf1b287f7c24ecda11cd07d93c58208b26f08d1e6b0b2d24e7036337e4ee333",
+    "tests/platform-coverage.test.mjs": "d1ba60823b153eba3cc3c3b8cdf5084d99473df91bb0de20f7c366134816dfe8",
     "tests/port-graph.test.mjs": "1cbc14d0ffd5a14f96b5824d9cdc1048b3a3b404f8076b4429bd124111e06674",
     "tests/postgres-checkpoint-live.test.mjs": "698ed56d9658d9dbed98405a86b0c954a60e125d238221143df13cc11e88d86c",
     "tests/postgres-ci-evidence.test.mjs": "c548aa3f1a848933d8f6f74d8a5e7f085fbd205fc1b8a30c03d1a8832076c2e1",
@@ -211,5 +213,8 @@
     "tests/walk-forward.test.mjs": "89b0a86533e2bfa45226290275eecc18f5929adeff1e0478c0e2a9e902ed3ca7",
     "tests/windows-checkout-bytes.cross.mjs": "61f1a7ffecc30b2fd0f9d56bb8c31bae271f6ea68950a9615d80aa62d31a52bb",
     "tests/windows-job-containment.test.mjs": "b911c13be5a410c1bd79cff60b579b3e43ca5398922d7b04f365adf1f6dac4f5"
+  },
+  "supportFiles": {
+    "tests/independent-numeric-oracle.py": "78ad49a0ad294b808fa1dc12b59d779e5adeffcc4beceb660b33002a3b76c5b1"
   }
 }

@@ -12103,6 +12103,105 @@
       "occurrence": 1,
       "destination": "tests/confidential-root-caller.test.mjs",
       "added": true
+    },
+    {
+      "file": "tests/independent-numeric-oracle.test.mjs",
+      "name": "independent rational oracle and candidate agree with frozen analytic outcomes",
+      "parent": null,
+      "line": 33,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/independent-numeric-oracle.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/independent-numeric-oracle.test.mjs",
+      "name": "legacy empty, default and mixed observations",
+      "parent": null,
+      "line": 60,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/independent-numeric-oracle.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/independent-numeric-oracle.test.mjs",
+      "name": "formula rejects hidden nonfinite intermediates and whole mixed batch",
+      "parent": null,
+      "line": 67,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/independent-numeric-oracle.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/independent-numeric-oracle.test.mjs",
+      "name": "finite formula parity and authority remain unchanged",
+      "parent": null,
+      "line": 73,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/independent-numeric-oracle.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/p1-claim-observation-regression.test.mjs",
+      "name": "missing observation slots cannot reproduce a claim",
+      "parent": null,
+      "line": 9,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/p1-claim-observation-regression.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/p1-claim-observation-regression.test.mjs",
+      "name": "a caller-provided map cannot replace numeric comparison",
+      "parent": null,
+      "line": 16,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/p1-claim-observation-regression.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/p1-claim-observation-regression.test.mjs",
+      "name": "experiment validation cannot skip unit comparison",
+      "parent": null,
+      "line": 25,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/p1-claim-observation-regression.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/p1-claim-observation-regression.test.mjs",
+      "name": "missing experiment observations cannot reproduce a claim",
+      "parent": null,
+      "line": 34,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/p1-claim-observation-regression.test.mjs",
+      "added": true
+    },
+    {
+      "file": "tests/p1-claim-observation-regression.test.mjs",
+      "name": "validation uses one observation count for its bound and iteration",
+      "parent": null,
+      "line": 41,
+      "column": 1,
+      "platform": "cross",
+      "occurrence": 1,
+      "destination": "tests/p1-claim-observation-regression.test.mjs",
+      "added": true
     }
   ]
 }
