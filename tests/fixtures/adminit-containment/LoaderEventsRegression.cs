@@ -18,6 +18,9 @@ namespace MathUniverse.LoaderRegression {
    Need(!LoaderEventProbe.ClassifyXml((prefix+suffix).Replace("Microsoft-Windows-CodeIntegrity","Unknown"),"CI",42,image,now,now).valid);
    var outside=LoaderEventProbe.ClassifyXml(prefix+suffix,"CI",42,image,now.AddSeconds(1),now.AddSeconds(2));Need(outside.valid&&!outside.pid&&!outside.image);
    using(var process=Process.GetCurrentProcess()){DateTime future=now.AddDays(1);var query=LoaderEventProbe.Query("APPLICATION",(uint)process.Id,process.MainModule.FileName,future,future.AddSeconds(1),Stopwatch.StartNew());Need(query.available&&query.records==0&&query.failure=="NONE");}
+   Need(LoaderEventProbe.RemainingWaitMilliseconds(0)==3000);
+   Need(LoaderEventProbe.RemainingWaitMilliseconds(2970)==30);
+   Need(LoaderEventProbe.RemainingWaitMilliseconds(3000)==0);
    // A missing budget fails closed without opening a log.
    var rejected=LoaderEventProbe.Query("APPLICATION",42,image,now,now,null);Need(!rejected.available&&rejected.failure=="BUDGET_EXHAUSTED");
    return "READ_ONLY_EVENT_CORRELATION_PASSED";

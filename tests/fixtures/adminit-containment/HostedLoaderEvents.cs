@@ -6,7 +6,10 @@
 namespace MathUniverse.AdminitHosted {
  using System;using System.IO;using System.Globalization;using System.Diagnostics;using System.Xml;using System.Runtime.InteropServices;
  public static class LoaderEventProbe {
-  const int MaxEvents=64,MaxBytes=65536;
+  const int MaxEvents=64,MaxBytes=65536,QueryBudgetMilliseconds=3000;
+  internal static uint RemainingWaitMilliseconds(long elapsed){
+   return elapsed>=QueryBudgetMilliseconds?0u:(uint)(QueryBudgetMilliseconds-elapsed);
+  }
   [DllImport("wevtapi.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr EvtQuery(IntPtr session,string path,string query,uint flags);
   [DllImport("wevtapi.dll",SetLastError=true)] static extern bool EvtNext(IntPtr query,uint count,IntPtr[] events,uint timeout,uint flags,out uint returned);
   [DllImport("wevtapi.dll",SetLastError=true)] static extern bool EvtRender(IntPtr context,IntPtr item,uint flags,uint size,IntPtr memory,out uint used,out uint properties);
@@ -40,15 +43,17 @@ namespace MathUniverse.AdminitHosted {
   public static Result Query(string channel,uint pid,string image,DateTime start,DateTime end,Stopwatch budget){
    string path;int[] ids;Configuration(channel,out path,out ids);var result=new Result(ids.Length);IntPtr query=IntPtr.Zero;bool closed=true;
    try{
-    if(budget==null||budget.ElapsedMilliseconds>=3000){result.failure="BUDGET_EXHAUSTED";return result;}
+    if(budget==null||RemainingWaitMilliseconds(budget.ElapsedMilliseconds)==0){result.failure="BUDGET_EXHAUSTED";return result;}
     if(pid==0||start.Kind!=DateTimeKind.Utc||end.Kind!=DateTimeKind.Utc||end<start||end-start>TimeSpan.FromMinutes(3))return result;
     string selection="*[System[TimeCreated[@SystemTime>='"+start.ToString("o",CultureInfo.InvariantCulture)+"' and @SystemTime<='"+end.ToString("o",CultureInfo.InvariantCulture)+"'] and (";for(int i=0;i<ids.Length;i++)selection+=(i==0?"":" or ")+"EventID="+ids[i];selection+=")]]";
     // Fixed local channels only. The existing independent parent watchdog remains the
     // hard whole-process bound; the 3s budget bounds enumeration, not RPC scheduling.
     query=EvtQuery(IntPtr.Zero,path,selection,0x201);if(query==IntPtr.Zero)return result;
     result.available=true;result.failure="NONE";
-    while(result.records<MaxEvents){if(budget.ElapsedMilliseconds>=3000){result.failure="BUDGET_EXHAUSTED";break;}IntPtr[] item=new IntPtr[1];uint returned;
-     if(!EvtNext(query,1,item,50,0,out returned)){int error=Marshal.GetLastWin32Error();if(item[0]!=IntPtr.Zero)closed=EvtClose(item[0])&&closed;if(error!=259){result.available=false;result.failure=error==1460?"BUDGET_EXHAUSTED":"ENUMERATION_UNAVAILABLE";}break;}
+    while(result.records<MaxEvents){uint remaining=RemainingWaitMilliseconds(budget.ElapsedMilliseconds);
+     if(remaining==0){result.available=false;result.failure="BUDGET_EXHAUSTED";break;}
+     IntPtr[] item=new IntPtr[1];uint returned;
+     if(!EvtNext(query,1,item,remaining,0,out returned)){int error=Marshal.GetLastWin32Error();if(item[0]!=IntPtr.Zero)closed=EvtClose(item[0])&&closed;if(error!=259){result.available=false;result.failure=error==1460?"BUDGET_EXHAUSTED":"ENUMERATION_UNAVAILABLE";}break;}
      if(returned!=1||item[0]==IntPtr.Zero){if(item[0]!=IntPtr.Zero)closed=EvtClose(item[0])&&closed;result.available=false;result.failure="ENUMERATION_UNAVAILABLE";break;}
      try{result.records++;string failure;string xml=Render(item[0],out failure);if(xml==null){result.available=false;result.failure=failure;break;}Match match=ClassifyXml(xml,channel,pid,image,start,end);if(!match.valid){result.available=false;result.failure="XML_REJECTED";break;}int index=Array.IndexOf(ids,match.id);if(index<0){result.available=false;result.failure="XML_REJECTED";break;}if(match.pid)result.pid[index]++;else if(match.image)result.image[index]++;}finally{closed=EvtClose(item[0])&&closed;}
     }
