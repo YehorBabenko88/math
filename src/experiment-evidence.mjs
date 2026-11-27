@@ -10,7 +10,7 @@ export function createExperimentEvidenceIndex(){
    checkId(refId,'reference id');
    if(typeof locator!=='string'||!locator.trim()||locator.length>160)throw Error('A precise page or section locator is required');
    if(typeof claim!=='string'||!claim.trim()||claim.length>1000)throw Error('A testable claim is required');
-   if(!['untested','reproduced','contradicted'].includes(status))throw Error('Invalid evidence status');
+   if(status!=='untested')throw Error('Invalid evidence status');
    const entry=Object.freeze({nodeId,referenceId:refId,locator,claim,status});
    const list=records.get(nodeId)??[];records.set(nodeId,[...list,entry]);return entry;
   },

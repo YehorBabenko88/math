@@ -38,7 +38,7 @@ test('missing experiment observations cannot reproduce a claim', () => {
   );
 });
 
-test('validation uses one observation count for its bound and iteration', () => {
+test('validation rejects proxied observation counts before reading length', () => {
   for (const validate of [assessScientificClaim, validateScientificExperiment]) {
     let lengthReads = 0;
     const observations = new Proxy([{expected:1, actual:1, expectedUnit:'m', actualUnit:'m'}], {
@@ -50,7 +50,7 @@ test('validation uses one observation count for its bound and iteration', () => 
         return Reflect.get(target, key, receiver);
       },
     });
-    assert.equal(validate({...claim, observations}).status, 'reproduced');
-    assert.equal(lengthReads, 1);
+    assert.throws(() => validate({...claim, observations}), {message:'Invalid observations'});
+    assert.equal(lengthReads, 0);
   }
 });
