@@ -154,10 +154,37 @@ class SphericalAContractTests(unittest.TestCase):
                                            'v': (1e308, 0.0, 0.0)}),
                          {'tangent': (0.0, 0.0, 0.0)})
 
-    def test_tangent_nonzero_component_loss_refused(self):
+    def test_tangent_axis_preserves_min_subnormal(self):
+        delta = math.ulp(0.0)
+        m = sys.float_info.max
+        self.assertEqual(apply('tangent', {'u': (1.0, 0.0, 0.0),
+                                           'v': (m, delta, 0.0)}),
+                         {'tangent': (0.0, delta, 0.0)})
+
+    def test_tangent_axis_negative_sign_preserves_min_subnormal(self):
+        delta = math.ulp(0.0)
+        m = sys.float_info.max
+        self.assertEqual(apply('tangent', {'u': (0.0, -1.0, 0.0),
+                                           'v': (delta, -m, 0.0)}),
+                         {'tangent': (delta, 0.0, 0.0)})
+
+    def test_tangent_axis_nonzero_component_retained(self):
+        delta = math.ulp(0.0)
+        self.assertEqual(apply('tangent', {'u': (1.0, 0.0, 0.0),
+                                           'v': (1e308, delta, 0.0)}),
+                         {'tangent': (0.0, delta, 0.0)})
+
+    def test_tangent_axis_near_unit_direction_preserved(self):
+        delta = math.ulp(0.0)
+        near = math.nextafter(1.0, math.inf)
+        self.assertEqual(apply('tangent', {'u': (0.0, 0.0, near),
+                                           'v': (delta, 0.0, sys.float_info.max)}),
+                         {'tangent': (delta, 0.0, 0.0)})
+
+    def test_tangent_general_nonlinear_uncertainty_refuses(self):
         with self.assertRaisesRegex(SphericalError, 'NUMERIC_UNDERFLOW'):
-            apply('tangent', {'u': (1.0, 0.0, 0.0),
-                               'v': (1e308, math.ulp(0.0), 0.0)})
+            apply('tangent', {'u': (0.6, 0.8, 0.0),
+                               'v': (sys.float_info.max, math.ulp(0.0), 0.0)})
 
     def test_sphere_one_and_high_dimensional(self):
         self.assertEqual(apply('normalize', {'x': (3.0, 4.0)}, d=1)['rho'], 5.0)

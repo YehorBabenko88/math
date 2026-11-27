@@ -159,7 +159,9 @@ def _tangent(u: tuple[float, ...], v: tuple[float, ...]) -> tuple[float, ...]:
     m = max(map(abs, v), default=0.0)
     if m == 0.0:
         return (0.0,) * len(v)
-    s = tuple(_c('checked_div', x, m) for x in v)
+    # Check exact-axis projections BEFORE any magnitude scaling. Scaling a
+    # minsubnormal transverse coordinate by MAX would underflow needlessly,
+    # even though the true orthogonal projection is exactly representable.
     # An exactly axis-aligned direction has a canonical tangent plane:
     # set its radial coordinate to exact zero and preserve all admitted
     # transverse components. No rounded ratio may create fake radial motion.
@@ -168,6 +170,9 @@ def _tangent(u: tuple[float, ...], v: tuple[float, ...]) -> tuple[float, ...]:
         radial_index = nonzero_axis[0]
         return tuple(0.0 if i == radial_index else value
                      for i, value in enumerate(v))
+    # Non-axis projections still use C-checked arithmetic and refuse
+    # precision loss instead of silently dropping transverse components.
+    s = tuple(_c('checked_div', x, m) for x in v)
     # For an admitted near-unit u, projection coefficient is <u,s>/<u,u>,
     # NOT <u,s>; otherwise radial leakage corrupts trajectory tangents.
     radial = _sum_products(u, s)
