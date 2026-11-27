@@ -301,5 +301,110 @@ class ActualMeteredE(unittest.TestCase):
         self.assertIsInstance(a,dict)
 
 
+
+class R20NewGeometryBudgetRegressions(unittest.TestCase):
+    """New adversarial real-C/V cases only; no alternative geometry engine."""
+
+    @staticmethod
+    def _counter(n, k):
+        q = _budget_quote(n, k)
+        b = BudgetCounter(limits(q))
+        return b, q
+
+    def _compare(self, coordinates, radius=1.0):
+        n, k = len(coordinates[0]), len(coordinates)
+        stamps = tuple(i * 1000 for i in range(k))
+        b, q = self._counter(n, k)
+        error = None
+        try:
+            legacy = run_synthetic_geometry_v1(coordinates, stamps,
+                                               radius=radius, cadence_ms=1000)
+        except SphericalError as exc:
+            error = exc.code
+        try:
+            lease = run_synthetic_geometry_v1(coordinates, stamps,
+                                              radius=radius, cadence_ms=1000,
+                                              budget=b)
+        except SphericalError as exc:
+            self.assertEqual(exc.code, error)
+        else:
+            self.assertIsNone(error)
+            self.assertEqual(lease.result, legacy)
+            self.assertLessEqual(b.snapshot()['ops'], q['ops'])
+            self.assertLessEqual(b.snapshot()['read_bytes'], q['read_bytes'])
+            self.assertLessEqual(b.snapshot()['write_bytes'], q['write_bytes'])
+            self.assertLessEqual(b.snapshot()['peak_bytes'], q['live_bytes'])
+            self.assertLessEqual(b.snapshot()['output_bytes'], q['output_bytes'])
+            lease.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertIs(sphere._RUNNER_BUDGET.get(), None)
+        return error
+
+    def test_r20_new_40_non_axis_sparse_signed_scale_cases(self):
+        for n in (4, 32):
+            for k in (2, 3, 7, 32):
+                for pattern in ('axis', 'dense', 'sparse', 'signed', 'small'):
+                    rr = []
+                    for j in range(k):
+                        if pattern == 'axis':
+                            row = [1.0 if x == j % n else 0.0 for x in range(n)]
+                        elif pattern == 'dense':
+                            row = [0.1 + x % 4 / 10 + j % 3 / 10 for x in range(n)]
+                        elif pattern == 'sparse':
+                            row = [1.0 if (x+j) % 3 == 0 else 0.0 for x in range(n)]
+                        elif pattern == 'signed':
+                            row = [(-1.0 if (x+j)%2 else 1.0)*(x+1)/n for x in range(n)]
+                        else:
+                            row = [0.25 if x == j%n else 0.125 if x == (j+1)%n else 0.0
+                                   for x in range(n)]
+                        rr.append(tuple(row))
+                    with self.subTest(n=n, k=k, pattern=pattern):
+                        self.assertIsNone(self._compare(tuple(rr)))
+
+    def test_r20_new_numeric_refusals_max_subnormal_zero(self):
+        for n in (4, 32):
+            cases = (
+                (sys.float_info.max, sys.float_info.max),
+                (sys.float_info.max, math.ulp(0.0)),
+                (math.ulp(0.0), 0.0),
+                (2.0 ** -500, 2.0 ** -500),
+                (0.0, 0.0),
+                (1.0, math.ulp(0.0)),
+            )
+            for i, (a, b) in enumerate(cases):
+                v = (a, b) + (0.0,) * (n-2)
+                sequence = (v, v, v)
+                with self.subTest(n=n, case=i):
+                    error = self._compare(sequence)
+                    if i == 0:
+                        self.assertEqual(error, 'NUMERIC_OVERFLOW')
+                    elif i == 2:
+                        # A representable minimum-subnormal norm is not an underflow.
+                        self.assertIsNone(error)
+
+    def test_r20_new_full_256_dense_non_axis_real_c_v(self):
+        import random
+        rng = random.Random(202620)
+        rr = tuple(tuple(float(rng.randrange(-2, 3)) / 4 for _ in range(32))
+                   for _ in range(256))
+        self.assertIsNone(self._compare(rr))
+
+    def test_r20_new_retain_after_terminal_denial_and_scope_reset(self):
+        q = _budget_quote(4, 2)
+        # Exact enough for one invocation; too small for a second invocation.
+        b = BudgetCounter(limits(q))
+        lease = run_synthetic_geometry_v1(rows(4,2), clock(2), radius=2.0,
+                                          cadence_ms=1000, budget=b)
+        self.assertEqual(b.snapshot()['live_bytes'], q['retained'])
+        with self.assertRaisesRegex(SphericalError, 'BUDGET_EXCEEDED'):
+            run_synthetic_geometry_v1(rows(4,2), clock(2), radius=2.0,
+                                      cadence_ms=1000, budget=b)
+        self.assertTrue(b.snapshot()['failed'])
+        self.assertIsNone(sphere._RUNNER_BUDGET.get())
+        lease.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertIsNone(lease.result)
+
+
 if __name__ == '__main__':
     unittest.main()
