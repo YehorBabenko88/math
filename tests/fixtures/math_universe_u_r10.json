@@ -1,0 +1,374 @@
+{
+  "schema": "math-universe-independent-semantic-fixtures",
+  "version": 2,
+  "baseline": "f47d0f1655617639ccdb76d88d6d001e103a12ae",
+  "scope": "semantic draft; inputs symbolic; ABI adapters required; known static defects disclosed before freeze",
+  "vectors": [
+    {
+      "id": "A01",
+      "operation": "canonical_metadata",
+      "inputs": {
+        "json": "{\"2\":0,\"10\":1}"
+      },
+      "expected": {
+        "canonical": "{\"10\":1,\"2\":0}"
+      }
+    },
+    {
+      "id": "A02",
+      "operation": "decode_metadata",
+      "inputs": {
+        "json": "{\"a\":1,\"\\u0061\":2}"
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A03",
+      "operation": "decode_metadata",
+      "inputs": {
+        "json": "{\"__proto__\":0}"
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A04",
+      "operation": "decode_metadata",
+      "inputs": {
+        "json": "-0"
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A05",
+      "operation": "decode_metadata",
+      "inputs": {
+        "json": "9007199254740992"
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A06",
+      "operation": "decode_metadata",
+      "inputs": {
+        "json": "\"\\ud800\""
+      },
+      "expected": {
+        "reject": true
+      }
+    },
+    {
+      "id": "A07",
+      "operation": "semantic_digest",
+      "inputs": {
+        "schema": "u.test.v1",
+        "value": {
+          "b": 2,
+          "a": 1
+        }
+      },
+      "expected": {
+        "sha256": "0a69621fbcf0aee36c7325cb52db21ae77eb198019fe7c9ad0f2ed994f9eba01"
+      }
+    },
+    {
+      "id": "C04",
+      "operation": "checked_norm",
+      "inputs": {
+        "x": [
+          "7fefffffffffffff",
+          "0000000000000001"
+        ]
+      },
+      "expected": {
+        "error": "NUMERIC_OVERFLOW"
+      }
+    },
+    {
+      "id": "C05",
+      "operation": "checked_dot",
+      "inputs": {
+        "x": [
+          "3ff0000000000000",
+          "3ca0000000000000"
+        ],
+        "y": [
+          "3ff0000000000000",
+          "3ff0000000000000"
+        ]
+      },
+      "expected": {
+        "bits": "3ff0000000000000"
+      }
+    },
+    {
+      "id": "C06",
+      "operation": "checked_mul",
+      "inputs": {
+        "a": "0000000000000001",
+        "b": "3fe0000000000000"
+      },
+      "expected": {
+        "error": "NUMERIC_UNDERFLOW"
+      }
+    },
+    {
+      "id": "E08",
+      "operation": "tangent",
+      "inputs": {
+        "u": [
+          1,
+          0,
+          0
+        ],
+        "v": [
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "tangent": [
+          0,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "E09",
+      "operation": "trajectory",
+      "inputs": {
+        "directions": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            -1,
+            0,
+            0
+          ]
+        ],
+        "event_ms": [
+          0,
+          1000,
+          2000
+        ],
+        "cadence_ms": 1000,
+        "radius": 2
+      },
+      "expected": {
+        "angles": [
+          "pi/2",
+          "pi/2"
+        ],
+        "distances": [
+          "pi",
+          "pi"
+        ],
+        "speeds": [
+          "pi",
+          "pi"
+        ]
+      }
+    },
+    {
+      "id": "E10",
+      "operation": "trajectory",
+      "inputs": {
+        "event_ms": [
+          0,
+          1000,
+          3000
+        ],
+        "cadence_ms": 1000
+      },
+      "expected": {
+        "error": "CADENCE"
+      }
+    },
+    {
+      "id": "E11",
+      "operation": "trajectory",
+      "inputs": {
+        "repeat_direction": [
+          1,
+          0,
+          0
+        ],
+        "count": 257,
+        "cadence_ms": 1000
+      },
+      "expected": {
+        "reject_before_allocation": true
+      }
+    },
+    {
+      "id": "E12",
+      "operation": "exp",
+      "inputs": {
+        "u": [
+          1,
+          0,
+          0
+        ],
+        "tangent": [
+          0,
+          "pi",
+          0
+        ]
+      },
+      "expected": {
+        "error": "CUT_LOCUS"
+      }
+    },
+    {
+      "id": "M13",
+      "operation": "rank",
+      "inputs": {
+        "candidates": [
+          {
+            "ref": "b",
+            "score": 1,
+            "uncertainty": 0,
+            "cost": 2
+          },
+          {
+            "ref": "a",
+            "score": 1,
+            "uncertainty": 0,
+            "cost": 2
+          },
+          {
+            "ref": "c",
+            "score": 1,
+            "uncertainty": 0,
+            "cost": 1
+          }
+        ]
+      },
+      "expected": {
+        "order": [
+          "c",
+          "a",
+          "b"
+        ],
+        "permutation_invariant": true
+      }
+    },
+    {
+      "id": "M14",
+      "operation": "inert_boundary",
+      "inputs": {
+        "object_kind": "accessor_or_proxy"
+      },
+      "expected": {
+        "reject_or_require_raw_bytes": true,
+        "getter_calls": 0
+      }
+    },
+    {
+      "id": "V01",
+      "operation": "budget_charge",
+      "inputs": {
+        "remaining_ops": 3,
+        "remaining_read_bytes": 2,
+        "charge_ops": 1,
+        "charge_read_bytes": 3
+      },
+      "expected": {
+        "terminal": true,
+        "counters_unchanged": true
+      }
+    },
+    {
+      "id": "V02",
+      "operation": "budget_memory",
+      "inputs": {
+        "reserve_release_sequence": [
+          5,
+          -3,
+          2
+        ]
+      },
+      "expected": {
+        "live": 4,
+        "peak": 5
+      }
+    },
+    {
+      "id": "H01",
+      "operation": "pearson",
+      "inputs": {
+        "x": [
+          -1,
+          0,
+          1
+        ],
+        "y": [
+          -1,
+          "2^-30",
+          1
+        ]
+      },
+      "expected": {
+        "exact_rho": "1/sqrt(1+2^-60/3)",
+        "rounded_rho": 1,
+        "exact_perfect": false
+      }
+    },
+    {
+      "id": "H02",
+      "operation": "pearson",
+      "inputs": {
+        "x": [
+          1,
+          1,
+          1
+        ],
+        "y": [
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "refuse_constant": true
+      }
+    },
+    {
+      "id": "H03",
+      "operation": "pearson",
+      "inputs": {
+        "x": [
+          -1,
+          0,
+          1
+        ],
+        "y": [
+          1,
+          0,
+          -1
+        ]
+      },
+      "expected": {
+        "rho": -1,
+        "exact_perfect": true
+      }
+    }
+  ]
+}
