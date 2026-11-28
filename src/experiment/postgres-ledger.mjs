@@ -3,6 +3,7 @@ import {validatePreregistration,semanticTrialBinding} from './preregistration-co
 import {registerAttempt} from './trial-ledger.mjs';
 import {randomUUID} from 'node:crypto';
 const ref=x=>{if(typeof x!=='string'||!/^[a-f0-9]{64}$/.test(x))throw Error('INVALID_REF');return x;};
+const uuid=x=>{if(typeof x!=='string'||x.length!==36||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x))throw Error('INVALID_TOKEN');return x.toLowerCase();};
 const deny=x=>Object.freeze({...x,executionAuthority:false});
 // Only an isolated trusted host may instantiate this adapter. No kernel dispatch.
 export function createExperimentLedger(pool, trusted){
@@ -16,7 +17,7 @@ export function createExperimentLedger(pool, trusted){
    const g=(await c.query("SELECT current_database() AS db, current_user AS role, current_setting('server_version_num')::int AS version")).rows[0];
    if(g.db!=='math_experiment_test'||g.role!=='math_experiment_host'||g.version<180000||g.version>=190000)throw Error('LAB_ONLY');
    await c.query('SET LOCAL synchronous_commit = on');
-   const result=await fn(c);committing=true;await c.query('COMMIT');begun=false;return result;
+   const result=await fn(c);committing=true;const committed=await c.query('COMMIT');if(committed?.command!=='COMMIT')throw Error('COMMIT_UNKNOWN');begun=false;return result;
   }catch(e){
    if(begun&&!committing)try{await c.query('ROLLBACK');}catch{}
    if(committing)throw Error('COMMIT_UNKNOWN');throw e;
@@ -40,11 +41,11 @@ export function createExperimentLedger(pool, trusted){
    });
   },
   async start(commandRef,attemptRef,workerRef,token){
-   [commandRef,attemptRef,workerRef].forEach(ref);
+   [commandRef,attemptRef,workerRef].forEach(ref);token=uuid(token);
    return tx(async c=>deny({fresh:(await c.query('SELECT math_experiment_lab.start_attempt($1,$2,$3,$4) AS fresh',[commandRef,attemptRef,workerRef,token])).rows[0].fresh===true}));
   },
   async finalize(commandRef,input,workerRef,token){
-   [commandRef,workerRef].forEach(ref);const a=registerAttempt(input);
+   [commandRef,workerRef].forEach(ref);token=uuid(token);const a=registerAttempt(input);
    if(await trusted.resolveTerminal(a)!==true)throw Error('UNVERIFIED_TERMINAL');
    return tx(async c=>deny({outcome:(await c.query('SELECT math_experiment_lab.finish_attempt($1,$2,$3,$4,$5) AS outcome',[commandRef,a.attemptRef,workerRef,token,encodeMetadata(a.attempt)])).rows[0].outcome}));
   },
