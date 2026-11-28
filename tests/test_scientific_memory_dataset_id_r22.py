@@ -3,7 +3,10 @@
 No PostgreSQL, trading, external HTTP or numerical engine executed.
 """
 import unittest
-from tests.test_scientific_memory_r09_negative import FakeDb, record, sm
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_scientific_memory_r09_negative import FakeDb, record, sm
 
 
 def identity(value):
