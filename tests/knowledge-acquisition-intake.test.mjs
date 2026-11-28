@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {quarantineHandoff} from '../src/knowledge/acquisition-intake.mjs';
+const artifactHash='b'.repeat(64),contextHash='a'.repeat(64);
+for(const origin of ['HUMAN','CHATGPT']) test(origin,()=>{const q=quarantineHandoff({artifactHash,contextHash,origin});assert.equal(q.status,'QUARANTINED');assert.equal(q.rights,'UNKNOWN');for(const k of ['verified','exportAuthorized','persistAuthorized','executable'])assert.equal(q[k],false)});
+for(const field of ['verified','rights','status','code','proofReceipt']) test('reject '+field,()=>assert.throws(()=>quarantineHandoff({artifactHash,contextHash,origin:'CHATGPT',[field]:'forged'})));
+test('reject invalid digest',()=>assert.throws(()=>quarantineHandoff({artifactHash:'bad',contextHash,origin:'HUMAN'})));
+test('decoded null-prototype handoff',()=>assert.equal(quarantineHandoff(Object.assign(Object.create(null),{artifactHash,contextHash,origin:'HUMAN'})).rights,'UNKNOWN'));
+test('reject uppercase hash',()=>assert.throws(()=>quarantineHandoff({artifactHash:artifactHash.toUpperCase(),contextHash,origin:'HUMAN'})));
+test('reject duplicate authority through inherited record',()=>assert.throws(()=>quarantineHandoff(Object.assign(Object.create({verified:true}),{artifactHash,contextHash,origin:'HUMAN'}))));
