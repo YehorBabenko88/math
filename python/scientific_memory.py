@@ -10,7 +10,6 @@ import os
 import re
 from urllib.parse import parse_qs, urlsplit
 
-from history_statistics import project_decimal_observations
 from history_timeseries import acf
 
 RECORD = 'math.scientific-memory.record.v1'
@@ -81,7 +80,9 @@ def build_record(symbol, rows, pinned_sha256, operator, threshold):
     # Compute the exact denominator first. If zero, never produce a floating
     # approximation or a scientific claim about an undefined ACF.
     reference = exact_acf(changes, max_lag)
-    observed = acf(project_decimal_observations(changes), max_lag=max_lag)
+    # Preserve original Decimal distinctions until the canonical ACF admits
+    # its binary64 projection. Preprojecting hides distinct-value collisions.
+    observed = acf(changes, max_lag=max_lag)
     error = [str(abs(Fraction(actual) - expected)) for actual, expected in zip(observed, reference)]
     satisfied = reference[1] <= target if operator == 'at_most' else reference[1] >= target
     identity = {'symbol': symbol, 'interval': '1m', 'source': SOURCE, 'sha256': pinned_sha256}
