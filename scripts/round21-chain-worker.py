@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'python'))
 import scientific_memory as memory
 import psycopg
-from pg_lab_guard import lab_config, checked_conninfo, connect_lab
+from pg_lab_guard import lab_config, connect_lab, connect_readonly_lab
 
 SOURCE = 'SYNTHETIC_LOCAL_GRID_FIXTURE'
 PINS = {
@@ -105,10 +105,11 @@ def consume(q):
 if __name__=='__main__':
     mode=sys.argv[1]
     if mode=='serve':
-        # Identity guard precedes the actual P loopback HTTP listener.
-        with connect():
-            pass
-        memory.serve(checked_conninfo(psycopg, dsn(), 'memory_lab'),0)
+        # No raw DSN or unguarded fallback. Requires P's reviewed factory seam.
+        value = dsn()
+        def connection_factory():
+            return connect_readonly_lab(psycopg, value, 'memory_lab')
+        memory.serve('PG_LAB_FACTORY_REQUIRED', 0, connection_factory=connection_factory)
     else:
         raw=sys.stdin.buffer.read(262145)
         if len(raw)>262144:
