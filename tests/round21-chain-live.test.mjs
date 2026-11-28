@@ -4,6 +4,7 @@ import {spawn} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import pg from 'pg';
+import {labConfig,labEnvironment,connectLab} from '../scripts/pg-lab-guard.mjs';
 import {runResearchBridge,inspectGridResearchSnapshot} from '../src/math-universe-research-bridge.mjs';
 import {binary64Hex,semanticDigest} from '../src/math-universe-codec.mjs';
 import {enumerateDiscovery} from '../src/discovery-search.mjs';
@@ -11,10 +12,9 @@ import {createExperimentLedger} from '../src/experiment/postgres-ledger.mjs';
 const worker=fileURLToPath(new URL('../scripts/round21-chain-worker.py',import.meta.url));
 const ownerURL=process.env.MATH_EXPERIMENT_OWNER_URL,hostURL=process.env.MATH_EXPERIMENT_HOST_URL,memoryURL=process.env.SCIENTIFIC_MEMORY_TEST_DSN;
 const hash=(schema,x)=>semanticDigest(schema,x);
-function guard(url,db,user){const u=new URL(url);assert.equal(u.hostname,'127.0.0.1');assert.match(u.port,/^[0-9]+$/);assert.ok(Number(u.port)>0&&Number(u.port)<=65535);assert.equal(u.pathname,'/'+db);assert.equal(u.username,user);return Number(u.port);}
 function python(mode,input={}){
  return new Promise((resolve,reject)=>{
-  const c=spawn('python',['-I','-B',worker,mode],{windowsHide:true,stdio:['pipe','pipe','pipe']});
+  const c=spawn('python',['-I','-B',worker,mode],{windowsHide:true,env:labEnvironment(),stdio:['pipe','pipe','pipe']});
   const out=[],err=[];let bytes=0;const timeout=setTimeout(()=>{c.kill();reject(Error('CHAIN_WORKER_TIMEOUT'));},20000);
   c.stdout.on('data',b=>{bytes+=b.length;if(bytes>262144){c.kill();reject(Error('CHAIN_OUTPUT_LIMIT'));}else out.push(b);});c.stderr.on('data',b=>err.push(b));
   c.on('error',e=>{clearTimeout(timeout);reject(e);});c.on('close',code=>{clearTimeout(timeout);if(code!==0)return reject(Error(Buffer.concat(err).toString()));try{resolve(JSON.parse(Buffer.concat(out)));}catch(e){reject(e);}});
@@ -22,13 +22,13 @@ function python(mode,input={}){
  });
 }
 function serve(){
- const child=spawn('python',['-I','-B',worker,'serve'],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+ const child=spawn('python',['-I','-B',worker,'serve'],{windowsHide:true,env:labEnvironment(),stdio:['ignore','pipe','pipe']});
  const ready=new Promise((resolve,reject)=>{let text='';const timer=setTimeout(()=>{child.kill();reject(Error('P_HTTP_START_TIMEOUT'));},10000);child.stderr.on('data',()=>{});child.stdout.on('data',b=>{text+=b;const m=/SCIENTIFIC_MEMORY_PORT=(\d+)/.exec(text);if(m){clearTimeout(timer);resolve('http://127.0.0.1:'+m[1]);}});child.on('error',e=>{clearTimeout(timer);reject(e);});child.on('close',()=>{clearTimeout(timer);reject(Error('P_HTTP_EXIT'));});});
  return {child,ready};
 }
 // Explicit component-chain lab mode avoids racing the separate L schema-reset suite.
 test('synthetic pinned Grid → A/I/C/E/M → L → P HTTP → pinned Terminan S preserves denial and references',{skip:!process.env.ROUND21_CHAIN_LIVE||!ownerURL||!hostURL||!memoryURL?'Explicit component-chain lab URLs and ROUND21_CHAIN_LIVE required':false},async()=>{
- const port=guard(ownerURL,'math_experiment_test','math_experiment_owner');assert.equal(guard(hostURL,'math_experiment_test','math_experiment_host'),port);assert.equal(guard(memoryURL,'scientific_memory_test','memory_lab'),port);
+ labConfig(ownerURL,'math_experiment_owner');labConfig(hostURL,'math_experiment_host');labConfig(memoryURL,'memory_lab');
  const input=await python('prepare');assert.equal(input.fixture_kind,'SYNTHETIC_LOCAL_GRID_FIXTURE');
  const snapshot=input.snapshot,refusal=inspectGridResearchSnapshot(snapshot);
  assert.equal(refusal.status,'ABSTAIN');assert.equal(refusal.reason,'GRID_AVAILABILITY_UNATTESTED');assert.equal(refusal.coverage.missing_minutes,1);
@@ -44,7 +44,7 @@ test('synthetic pinned Grid → A/I/C/E/M → L → P HTTP → pinned Terminan S
  const manifestRef=hash('math.r21.synthetic.manifest.v1',input.pins);
  const intent=enumerateDiscovery({schema:'math.discovery.request.v1',developmentRef:snapshotRef,policyRef,catalogRef:manifestRef,methodRefs:[hash('math.r21.descriptive.method.v1',{method:'geometry_and_acf'})],portStateRefs:[hash(request.schema,request)],maxIntents:1})[0];
  const prereg={schema:'math.experiment.preregistration.v1',ordinal:0,intentRef:hash(intent.schema,intent),foldRef,manifestRef,cohortRef:hash('math.r21.synthetic.cohort.v1',{roster}),inputRef:hash(request.schema,request),seedRef:hash('math.r21.synthetic.seed.v1',{seed:0}),budgetPolicyRef:policyRef,snapshotRef,fitRef:hash('math.r21.synthetic.fit.v1',{status:'NOT_PROVIDED',scope:'DESCRIPTIVE_ONLY'}),availabilityRef:hash('math.r21.synthetic.availability.v1',{scope:input.fixture_kind,rows:request.rows.map(({series,end_ms,available_ms})=>({series,end_ms,available_ms}))})};
- const owner=new pg.Client({connectionString:ownerURL});await owner.connect();
+ const owner=await connectLab(pg.Client,ownerURL,'math_experiment_owner');
  let receipt;
  try{
   const identity=(await owner.query("SELECT current_database() AS db,current_user AS role,current_setting('server_version_num')::int AS version")).rows[0];
@@ -61,7 +61,7 @@ test('synthetic pinned Grid → A/I/C/E/M → L → P HTTP → pinned Terminan S
    principal.workerRef===workerRef&&principal.attemptRef===expectedAttempt&&
    ['claim','start','finalize'].includes(principal.operation)?workerRef:null
   );
-  const ledger=createExperimentLedger(null,{authenticateWorker,resolvePreregistration:async p=>({verified:p.preregRef===hash(prereg.schema,prereg),intent}),resolveTerminal:async a=>a.attempt.metricRef===researchRef&&a.attempt.status==='COMPLETED',openDedicatedConnection:async()=>{const c=new pg.Client({connectionString:hostURL});await c.connect();return c;}});
+  const ledger=createExperimentLedger(null,{authenticateWorker,resolvePreregistration:async p=>({verified:p.preregRef===hash(prereg.schema,prereg),intent}),resolveTerminal:async a=>a.attempt.metricRef===researchRef&&a.attempt.status==='COMPLETED',openDedicatedConnection:async()=>{return connectLab(pg.Client,hostURL,'math_experiment_host');}});
   const command=op=>hash('math.r21.synthetic.command.v1',{op,inputRef:prereg.inputRef});
   const reserved=await ledger.reserve(command('reserve'),prereg);assert.equal(reserved.outcome,'REGISTERED');assert.equal(reserved.attempt_ref,expectedAttempt);
   const outsider=hash('math.r21.synthetic.worker.v1',{worker:'OUTSIDER'});

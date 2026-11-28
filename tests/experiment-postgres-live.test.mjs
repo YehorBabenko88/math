@@ -1,4 +1,5 @@
 import pg from 'pg';
+import {labConfig,connectLab} from '../scripts/pg-lab-guard.mjs';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,9 +9,8 @@ const ownerURL=process.env.MATH_EXPERIMENT_OWNER_URL,hostURL=process.env.MATH_EX
 const r=n=>n.toString(16).padStart(64,'0');
 // Explicit disposable database only; reset only this test's fixed schema after identity checks.
 test('PG18 atomic semantic dedup, immutable bindings, fenced one-shot start and receipt recovery',{skip:!ownerURL||!hostURL?'Explicit isolated experiment owner and host URLs required':false},async()=>{
- const u=new URL(ownerURL),v=new URL(hostURL);
- assert.equal(u.hostname,'127.0.0.1');assert.equal(v.hostname,u.hostname);assert.equal(v.port,u.port);assert.match(u.port,/^[0-9]+$/);assert.equal(u.pathname,'/math_experiment_test');assert.equal(v.pathname,u.pathname);assert.equal(u.username,'math_experiment_owner');assert.equal(v.username,'math_experiment_host');
- const owner=new pg.Client({connectionString:ownerURL});await owner.connect();
+ labConfig(ownerURL,'math_experiment_owner');labConfig(hostURL,'math_experiment_host');
+ const owner=await connectLab(pg.Client,ownerURL,'math_experiment_owner');
  try{
   const g=(await owner.query('SELECT current_database() db,current_user role,current_setting('server_version_num')::int version')).rows[0];
   assert.equal(g.db,'math_experiment_test');assert.equal(g.role,'math_experiment_owner');assert.ok(g.version>=180000&&g.version<190000);
@@ -21,7 +21,7 @@ test('PG18 atomic semantic dedup, immutable bindings, fenced one-shot start and 
   const intents=[0,1].map(ordinal=>({schema:'math.discovery.intent.v1',developmentRef:r(1),policyRef:r(1),catalogRef:r(1),methodRef:r(1),portStateRef:r(1),ordinal,status:'UNREGISTERED'}));
   const inputs=intents.map(i=>({schema:'math.experiment.preregistration.v1',ordinal:0,intentRef:semanticDigest(i.schema,i),foldRef:r(1),manifestRef:r(1),cohortRef:r(1),inputRef:r(1),seedRef:r(1),budgetPolicyRef:r(1),snapshotRef:r(1),fitRef:r(1),availabilityRef:r(1)}));
   const authorized=new Set(inputs.flatMap(p=>[0,1,2].map(ordinal=>semanticDigest('math.experiment.attempt.identity.v1',{intentRef:p.intentRef,foldRef:p.foldRef,ordinal}))));
-  const trusted={authenticateWorker:async ({workerRef,attemptRef,operation})=>workerRef===r(2)&&authorized.has(attemptRef)&&['claim','start','finalize'].includes(operation)?r(2):null,resolvePreregistration:async p=>({verified:true,intent:intents.find(i=>semanticDigest(i.schema,i)===p.prereg.intentRef)}),resolveTerminal:async()=>true,openDedicatedConnection:async()=>{const c=new pg.Client({connectionString:hostURL});await c.connect();return c;}};
+  const trusted={authenticateWorker:async ({workerRef,attemptRef,operation})=>workerRef===r(2)&&authorized.has(attemptRef)&&['claim','start','finalize'].includes(operation)?r(2):null,resolvePreregistration:async p=>({verified:true,intent:intents.find(i=>semanticDigest(i.schema,i)===p.prereg.intentRef)}),resolveTerminal:async()=>true,openDedicatedConnection:async()=>{return connectLab(pg.Client,hostURL,'math_experiment_host');}};
   const ledger=createExperimentLedger(null,trusted);
   const reservations=await Promise.all(inputs.map((p,n)=>ledger.reserve(r(10+n),p)));
   assert.deepEqual(reservations.map(x=>x.outcome).sort(),['DUPLICATE','REGISTERED']);

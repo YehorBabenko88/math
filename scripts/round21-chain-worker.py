@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from urllib.parse import urlsplit
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
@@ -13,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'python'))
 import scientific_memory as memory
 import psycopg
+from pg_lab_guard import lab_config, checked_conninfo, connect_lab
 
 SOURCE = 'SYNTHETIC_LOCAL_GRID_FIXTURE'
 PINS = {
@@ -42,23 +42,14 @@ def pinned(name):
 
 def dsn():
     value = os.environ['SCIENTIFIC_MEMORY_TEST_DSN']
-    url = urlsplit(value)
-    if (url.hostname, url.path, url.username) != ('127.0.0.1', '/scientific_memory_test', 'memory_lab') or url.port is None or not 1 <= url.port <= 65535:
-        raise ValueError('WORKSPACE_LAB_ONLY')
+    lab_config(value, 'memory_lab')
     for variable, role in (('MATH_EXPERIMENT_OWNER_URL','math_experiment_owner'),('MATH_EXPERIMENT_HOST_URL','math_experiment_host')):
-        other=urlsplit(os.environ[variable])
-        if (other.hostname,other.port,other.path,other.username) != ('127.0.0.1',url.port,'/math_experiment_test',role):
-            raise ValueError('SAME_WORKSPACE_LAB_REQUIRED')
+        lab_config(os.environ[variable], role)
     return value
 
 
 def connect():
-    c = psycopg.connect(dsn(), autocommit=True)
-    db, role, version = c.execute("SELECT current_database(),current_user,current_setting('server_version_num')::int").fetchone()
-    if db != 'scientific_memory_test' or role != 'memory_lab' or not 180000 <= version < 190000:
-        c.close()
-        raise ValueError('WORKSPACE_LAB_ONLY')
-    return c
+    return connect_lab(psycopg, dsn(), 'memory_lab', autocommit=True)
 
 
 def prepare():
@@ -117,7 +108,7 @@ if __name__=='__main__':
         # Identity guard precedes the actual P loopback HTTP listener.
         with connect():
             pass
-        memory.serve(dsn(),0)
+        memory.serve(checked_conninfo(psycopg, dsn(), 'memory_lab'),0)
     else:
         raw=sys.stdin.buffer.read(262145)
         if len(raw)>262144:
