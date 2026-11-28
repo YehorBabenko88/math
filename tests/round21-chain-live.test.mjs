@@ -53,9 +53,22 @@ test('synthetic pinned Grid → A/I/C/E/M → L → P HTTP → pinned Terminan S
   await owner.query(await readFile(new URL('../sql/007_experiment_preregistration.sql',import.meta.url),'utf8'));
   await owner.query('GRANT USAGE ON SCHEMA math_experiment_lab TO math_experiment_host;GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA math_experiment_lab TO math_experiment_host');
   await owner.query('INSERT INTO math_experiment_lab.budgets(policy_ref,proposal_limit,attempt_limit)VALUES($1,12,1)',[policyRef]);
-  const ledger=createExperimentLedger(null,{resolvePreregistration:async p=>({verified:p.preregRef===hash(prereg.schema,prereg),intent}),resolveTerminal:async a=>a.attempt.metricRef===researchRef&&a.attempt.status==='COMPLETED',openDedicatedConnection:async()=>{const c=new pg.Client({connectionString:hostURL});await c.connect();return c;}});
-  const command=op=>hash('math.r21.synthetic.command.v1',{op,inputRef:prereg.inputRef});const workerRef=hash('math.r21.synthetic.worker.v1',{worker:'LOCAL_TEST'});
-  const reserved=await ledger.reserve(command('reserve'),prereg);assert.equal(reserved.outcome,'REGISTERED');
+  // This principal is established by the isolated synthetic fixture, not by a
+  // caller's workerRef. Restrict admission to the exact preregistered attempt.
+  const workerRef=hash('math.r21.synthetic.worker.v1',{worker:'LOCAL_TEST'});
+  const expectedAttempt=hash('math.experiment.attempt.identity.v1',{intentRef:prereg.intentRef,foldRef:prereg.foldRef,ordinal:prereg.ordinal});
+  const authenticateWorker=async principal=>(
+   principal.workerRef===workerRef&&principal.attemptRef===expectedAttempt&&
+   ['claim','start','finalize'].includes(principal.operation)?workerRef:null
+  );
+  const ledger=createExperimentLedger(null,{authenticateWorker,resolvePreregistration:async p=>({verified:p.preregRef===hash(prereg.schema,prereg),intent}),resolveTerminal:async a=>a.attempt.metricRef===researchRef&&a.attempt.status==='COMPLETED',openDedicatedConnection:async()=>{const c=new pg.Client({connectionString:hostURL});await c.connect();return c;}});
+  const command=op=>hash('math.r21.synthetic.command.v1',{op,inputRef:prereg.inputRef});
+  const reserved=await ledger.reserve(command('reserve'),prereg);assert.equal(reserved.outcome,'REGISTERED');assert.equal(reserved.attempt_ref,expectedAttempt);
+  const outsider=hash('math.r21.synthetic.worker.v1',{worker:'OUTSIDER'});
+  await assert.rejects(ledger.claim(command('unauthenticated'),expectedAttempt,outsider),/UNAUTHENTICATED_WORKER/);
+  await assert.rejects(ledger.claim(command('wrong-attempt'),hash('math.r21.synthetic.unrelated.v1',{}),workerRef),/UNAUTHENTICATED_WORKER/);
+  const reserveReceipt=await ledger.lookup(command('reserve'));
+  assert.equal(reserveReceipt.receipt.outcome,'REGISTERED');
   const claimed=await ledger.claim(command('claim'),reserved.attempt_ref,workerRef);assert.equal(claimed.fresh,true);
   const started=await ledger.start(command('start'),reserved.attempt_ref,workerRef,claimed.token);assert.equal(started.fresh,true);assert.equal(started.executionAuthority,false);
   // Actual computation begins only after immutable preregistration and COMMIT.
@@ -64,7 +77,11 @@ test('synthetic pinned Grid → A/I/C/E/M → L → P HTTP → pinned Terminan S
   assert.equal(research.applicability.facts.dimension,4);assert.equal(research.applicability.facts.sampleCount,5);assert.equal(research.research.gaps.length,0);
   const terminal={schema:'math.experiment.attempt.v1',intentRef:prereg.intentRef,foldRef,ordinal:0,status:'COMPLETED',metricRef:researchRef};
   assert.equal((await ledger.finalize(command('finish'),terminal,workerRef,claimed.token)).outcome,'COMMITTED');
-  receipt=await ledger.lookup(command('finish'));assert.equal(receipt.fresh,false);assert.equal(receipt.receipt.state,'TERMINAL');
+  receipt=await ledger.lookup(command('finish'));assert.equal(receipt.fresh,false);assert.equal(receipt.receipt.outcome,'COMMITTED');
+  assert.equal(Object.hasOwn(receipt.receipt,'state'),false);assert.equal(Object.hasOwn(receipt.receipt,'token'),false);
+  assert.equal((await ledger.status(expectedAttempt)).status.state,'TERMINAL');
+  assert.deepEqual(await ledger.lookup(command('reserve')),reserveReceipt);
+  assert.equal(Object.hasOwn((await ledger.lookup(command('claim'))).receipt,'token'),false);
  }finally{await owner.end();}
  const pipeline_refs={snapshot_ref:snapshotRef,research_ref:researchRef,attempt_ref:receipt.receipt.attempt_ref,prereg_ref:receipt.receipt.prereg_ref,fixture_kind:input.fixture_kind};
  const persisted=await python('persist',{snapshot,pipeline_refs});assert.equal(persisted.record.dataset.source,input.fixture_kind);assert.equal(persisted.qualification.source_authenticity,'UNATTESTED');assert.equal(persisted.qualification.execution_authority,false);assert.equal(persisted.qualification.empirical_reproduction,'UNKNOWN');
