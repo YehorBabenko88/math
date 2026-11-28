@@ -14,7 +14,7 @@ test('SQL byte policy survives LF/CRLF checkout settings and verifier rejects mo
   mkdirSync(join(root,'sql','book'),{recursive:true});
   writeFileSync(join(root,'.gitattributes'),readFileSync(new URL('../.gitattributes',import.meta.url)));
   writeFileSync(join(root,'sql','001_adapter_snapshots.sql'),'SELECT 1;\n');writeFileSync(join(root,'sql','book','001_book_queue.sql'),'SELECT 2;\r\n');
-  for(const name of ['002_ingestion_jobs','003_ingestion_claim_fencing','004_ingestion_checkpoints','005_ingestion_service_protocol','006_ingestion_lease_clock'])writeFileSync(join(root,'sql',name+'.sql'),'SELECT 1;\n');
+  for(const name of ['002_ingestion_jobs','003_ingestion_claim_fencing','004_ingestion_checkpoints','005_ingestion_service_protocol','006_ingestion_lease_clock','007_experiment_preregistration'])writeFileSync(join(root,'sql',name+'.sql'),'SELECT 1;\n');
   for(const name of ['002_lossless_json','003_cutover_guard','004_cutover_snapshot_fence','005_control_integrity'])writeFileSync(join(root,'sql','book',name+'.sql'),'SELECT 2;\r\n');
   git(root,'add','.');git(root,'commit','-qm','fixture');
   for(const autocrlf of ['false','true']){
