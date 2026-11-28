@@ -64,6 +64,23 @@ class GeometryResultLease:
     """
     __slots__ = ('result', '_budget', '_retained')
 
+    # A lease is the *sole* release authority for one logical V reservation.
+    # The default Python slot copy/pickle machinery duplicates that authority
+    # without reserving any additional memory, so a copied lease can release
+    # another live result's capacity. Copies of the detached plain result DTO
+    # remain the trusted host's separately accounted responsibility.
+    def __copy__(self):
+        raise TypeError('GeometryResultLease cannot be copied')
+
+    def __deepcopy__(self, memo):
+        raise TypeError('GeometryResultLease cannot be deep-copied')
+
+    def __reduce_ex__(self, protocol):
+        raise TypeError('GeometryResultLease cannot be serialized')
+
+    def __reduce__(self):
+        raise TypeError('GeometryResultLease cannot be serialized')
+
     def __init__(self, result: dict, budget: object, retained: int):
         self.result = result
         self._budget = budget
