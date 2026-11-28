@@ -32,6 +32,6 @@ class MarketMathNamespaceTests(unittest.TestCase):
   import market_compute_api as api
   self.assertIs(api.paper_fill_metrics,canonical.paper_fill_metrics)
   self.assertIs(api.decimal_epoch_units,canonical.decimal_epoch_units)
-  self.assertEqual(set(tomllib.loads((ROOT/'pyproject.toml').read_text())['tool']['setuptools']['py-modules']),{'market_math','market_compute_api','history_statistics'})
+  self.assertEqual(set(tomllib.loads((ROOT/'pyproject.toml').read_text())['tool']['setuptools']['py-modules']),{'market_math','market_compute_api','history_statistics','market_math_wall_tracker'})
 
 if __name__=='__main__':unittest.main()
