@@ -345,5 +345,30 @@ class Round11AdmissionAndPreflightRegressionTests(unittest.TestCase):
             with self.assertRaisesRegex(SphericalError, 'CADENCE'):
                 spherical_apply('trajectory', payload, 2, 1.0)
 
+
+
+class SphereNarrowMeterScopeTests(unittest.TestCase):
+    """Bare E public budget entry must stay closed without trusted runner scope."""
+
+    def test_bare_sphere_meter_is_denied_and_counter_pristine(self):
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        budget=BudgetCounter(BudgetLimits(100_000_000,10_000_000,10_000_000,10_000_000,10_000_000))
+        before=budget.snapshot()
+        with self.assertRaisesRegex(SphericalError,'BUDGET_EXCEEDED'):
+            spherical_apply('normalize',{'x':(1.0,0.0,0.0,0.0)},3,2.0,budget=budget)
+        self.assertEqual(budget.snapshot(),before)
+
+    def test_scope_resets_after_internal_failure(self):
+        from math_universe_research_kernel import run_synthetic_geometry_v1, _budget_quote
+        from math_resource_budget import BudgetCounter, BudgetLimits
+        q=_budget_quote(4,2)
+        b=BudgetCounter(BudgetLimits(q['ops'],q['read_bytes'],q['write_bytes'],q['live_bytes'],q['output_bytes']))
+        rows=((float('inf'),0.0,0.0,0.0),(0.0,1.0,0.0,0.0))
+        with self.assertRaisesRegex(SphericalError,'INVALID_NUMBER'):
+            run_synthetic_geometry_v1(rows,(0,1000),radius=2.0,cadence_ms=1000,budget=b)
+        self.assertEqual(b.snapshot()['ops'],0)
+        with self.assertRaisesRegex(SphericalError,'BUDGET_EXCEEDED'):
+            spherical_apply('normalize',{'x':(1.0,0.0,0.0,0.0)},3,2.0,budget=b)
+
 if __name__ == '__main__':
     unittest.main()
