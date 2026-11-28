@@ -7,12 +7,64 @@ from math import sqrt
 from statistics import mean
 
 def acf(values,max_lag=20):
-    x=[float(v) for v in values]
-    if len(x)<3:return []
-    m=mean(x); den=sum((v-m)**2 for v in x)
-    if den<=1e-18:return [1.0]+[0.0]*min(max_lag,len(x)-1)
-    return [1.0]+[sum((x[t]-m)*(x[t-h]-m) for t in range(h,len(x)))/den
-                 for h in range(1,min(int(max_lag),len(x)-1)+1)]
+    """Normalized, full-support centered ACF of represented binary64 samples.
+
+    Preserve the legacy empty/constant conventions and lag denominator. Refuse
+    nonfinite input, nonzero projection underflow, or distinct inputs that
+    collapse onto the same binary64 value. Exact dyadic centering avoids an
+    absolute variance cutoff and intermediate floating overflow/underflow.
+    """
+    from decimal import Decimal, InvalidOperation
+    from math import isfinite
+    from numbers import Real
+
+    x=[]
+    originals={}
+    for value in values:
+        try:
+            number=float(value)
+            if isinstance(value, (str, bytes, bytearray)):
+                text=value if isinstance(value, str) else value.decode('ascii')
+                original=Decimal(text)
+            elif isinstance(value, (Real, Decimal)):
+                original=value
+            else:
+                raise ValueError('ACF_REAL_INPUT_REQUIRED')
+        except (TypeError, ValueError, OverflowError, InvalidOperation) as exc:
+            raise ValueError('ACF_FINITE_BINARY64_REQUIRED') from exc
+        if not isfinite(number):
+            raise ValueError('ACF_FINITE_BINARY64_REQUIRED')
+        if number==0.0 and original!=0:
+            raise ValueError('ACF_PROJECTION_UNDERFLOW')
+        if number in originals and original!=originals[number]:
+            raise ValueError('ACF_PROJECTION_COLLISION')
+        originals[number]=original
+        x.append(number)
+    n=len(x)
+    if n<3:return []
+    try:
+        lag_count=max(0,min(int(max_lag),n-1))
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError('ACF_INVALID_LAG') from exc
+    if len(originals)==1:return [1.0]+[0.0]*lag_count
+
+    # Every finite binary64 is an exact dyadic rational. Use the largest
+    # denominator to put all samples on one integer grid; n*z-sum(z) is
+    # exactly proportional to the centered sample, with no rounded mean.
+    ratios=[v.as_integer_ratio() for v in x]
+    common=max(d for _,d in ratios)
+    scaled=[p*(common//d) for p,d in ratios]
+    total=sum(scaled)
+    centered=[n*v-total for v in scaled]
+    denominator=sum(v*v for v in centered)
+    result=[1.0]
+    for lag in range(1,lag_count+1):
+        numerator=sum(centered[i]*centered[i-lag] for i in range(lag,n))
+        coefficient=numerator/denominator
+        if numerator and coefficient==0.0:
+            raise ValueError('ACF_RESULT_UNDERFLOW')
+        result.append(coefficient)
+    return result
 
 def difference(values,order=1):
     x=[float(v) for v in values]
