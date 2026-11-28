@@ -68,6 +68,8 @@ export async function runResearchBridge(input){
 export function inspectGridResearchSnapshot(input){
  const q=decodeMetadata(encodeMetadata(input));
  const invalid=()=>{throw Error('GRID_RESEARCH_SCHEMA');};
+ const rootKeys=['schema','read_only','descriptive_only','symbol','timeframe','selection','status','reason','coverage','provenance','execution_authority','trading_authorized','paper_admitted','causal_research_admitted','rows'];
+ if(!closed(q,rootKeys))invalid();
  if(!q||q.schema!=='grid.ohlcv_1m.descriptive.v1'||q.read_only!==true||q.descriptive_only!==true||
  q.timeframe!=='1m'||typeof q.symbol!=='string'||!/^[A-Z0-9]{2,30}$/.test(q.symbol)||
  q.execution_authority!==false||q.trading_authorized!==false||q.paper_admitted!==false||q.causal_research_admitted!==false||
@@ -81,7 +83,40 @@ export function inspectGridResearchSnapshot(input){
  if(q.coverage.expected_minutes!==expected||q.coverage.observed_minutes!==q.rows.length||
  q.coverage.missing_minutes!==expected-q.rows.length)invalid();
  let previous=q.selection.start_ms-1;
- for(const row of q.rows){if(!row||!clock(row.t)||row.t%60000||row.t<q.selection.start_ms||row.t>=q.selection.end_ms||row.t<=previous)invalid();previous=row.t;}
+ const rowKeys=['t','open','high','low','close','volume','turnover','source_declared'];
+ const decimal=v=>typeof v==='string'&&v.length<=4300&&/^-?[0-9]+(?:\.[0-9]+)?$/.test(v);
+ for(const row of q.rows){if(!closed(row,rowKeys)||
+ !['open','high','low','close','volume'].every(k=>decimal(row[k]))||
+ !(row.turnover===null||decimal(row.turnover))||
+ typeof row.source_declared!=='string'||!/^[A-Za-z0-9_./:-]{1,128}$/.test(row.source_declared)||
+ !clock(row.t)||row.t%60000||row.t<q.selection.start_ms||row.t>=q.selection.end_ms||row.t<=previous)invalid();previous=row.t;}
+ // Closed legacy test envelope or exact Grid producer envelope; neither attests source.
+ const p=q.provenance, minimal=['owner','availability_at_decision','source_authenticity'];
+ const full=[...minimal,'dataset','source_declarations','source_revision','raw_frame_sha256','independent_receipt','exchange_completeness','storage_immutability','clock_receipt','numerical_encoding'];
+ if(!closed(p,minimal)&&!closed(p,full))invalid();
+ if(p.source_authenticity!=='UNATTESTED')invalid();
+ if(closed(p,full)){
+  const declarations=[...new Set(q.rows.map(row=>row.source_declared))].sort();
+  if(p.dataset!=='ohlcv_1m'||p.numerical_encoding!=='POSTGRES_NUMERIC_FIXED_DECIMAL_STRING'||
+   p.exchange_completeness!=='NOT_ATTESTED'||p.storage_immutability!=='NOT_ATTESTED'||
+   [p.source_revision,p.raw_frame_sha256,p.independent_receipt,p.clock_receipt].some(v=>v!==null)||
+   !Array.isArray(p.source_declarations)||declarations.some(v=>typeof v!=='string'||!/^[A-Za-z0-9_./:-]{1,128}$/.test(v))||
+   p.source_declarations.length!==declarations.length||declarations.some((v,i)=>v!==p.source_declarations[i]))invalid();
+ }
+ if(!closed(q.selection,['start_ms','end_ms','as_of_ms','interval_semantics'])||
+ !closed(q.coverage,['expected_minutes','observed_minutes','missing_minutes','gaps','basis'])||
+ q.coverage.basis!=='LOCAL_STORED_ROW_OBSERVATION_ONLY'||expected>1000)invalid();
+ const gaps=[];let cursor=q.selection.start_ms;
+ for(const t of [...q.rows.map(row=>row.t),q.selection.end_ms]){
+  if(t>cursor)gaps.push({start_ms:cursor,end_ms:t,missing_minutes:(t-cursor)/60000,reason:'MINUTE_NOT_STORED'});
+  cursor=t+60000;
+ }
+ if(q.coverage.gaps.length!==gaps.length||gaps.some((g,i)=>{
+  const actual=q.coverage.gaps[i];return !closed(actual,Object.keys(g))||Object.keys(g).some(k=>actual[k]!==g[k]);
+ }))invalid();
+ const status=q.rows.length===0?'UNAVAILABLE':gaps.length?'GAP':'PARTIAL';
+ const reason=status==='UNAVAILABLE'?'NO_STORED_MINUTES':status==='GAP'?'INCOMPLETE_STORED_MINUTES':'SOURCE_AVAILABILITY_NOT_ATTESTED';
+ if(q.status!==status||q.reason!==reason)invalid();
  // No stamp conversion, imputation, source receipt, fit or authority is invented.
  return decodeMetadata(encodeMetadata({schema:'math.universe.grid.research.refusal.v1',status:'ABSTAIN',reason:'GRID_AVAILABILITY_UNATTESTED',
   snapshot_ref:semanticDigest(q.schema,q),symbol:q.symbol,requested:q.selection,

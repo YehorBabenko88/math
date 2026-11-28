@@ -8,6 +8,9 @@ const deny=x=>Object.freeze({...x,executionAuthority:false});
 // Only an isolated trusted host may instantiate this adapter. No kernel dispatch.
 export function createExperimentLedger(pool, trusted){
  if(!trusted||typeof trusted.resolvePreregistration!=='function'||typeof trusted.resolveTerminal!=='function'||typeof trusted.openDedicatedConnection!=='function')throw Error('TRUSTED_RESOLVER_REQUIRED');
+ async function authenticate(workerRef,attemptRef,operation){
+  if(typeof trusted.authenticateWorker!=='function'||await trusted.authenticateWorker(Object.freeze({workerRef,attemptRef,operation}))!==workerRef)throw Error('UNAUTHENTICATED_WORKER');
+ }
  async function tx(fn,readOnly=false){
   const c=await trusted.openDedicatedConnection();let begun=false,committing=false;
   try{
@@ -34,6 +37,7 @@ export function createExperimentLedger(pool, trusted){
   },
   async claim(commandRef,attemptRef,workerRef){
    [commandRef,attemptRef,workerRef].forEach(ref);
+   await authenticate(workerRef,attemptRef,'claim');
    const token=randomUUID();
    return tx(async c=>{
     const q=await c.query('SELECT math_experiment_lab.claim_attempt($1,$2,$3,$4) AS fresh',[commandRef,attemptRef,workerRef,token]);
@@ -41,17 +45,28 @@ export function createExperimentLedger(pool, trusted){
    });
   },
   async start(commandRef,attemptRef,workerRef,token){
-   [commandRef,attemptRef,workerRef].forEach(ref);token=uuid(token);
+   [commandRef,attemptRef,workerRef].forEach(ref);token=uuid(token);await authenticate(workerRef,attemptRef,'start');
    return tx(async c=>deny({fresh:(await c.query('SELECT math_experiment_lab.start_attempt($1,$2,$3,$4) AS fresh',[commandRef,attemptRef,workerRef,token])).rows[0].fresh===true}));
   },
   async finalize(commandRef,input,workerRef,token){
-   [commandRef,workerRef].forEach(ref);token=uuid(token);const a=registerAttempt(input);
+   [commandRef,workerRef].forEach(ref);token=uuid(token);const a=registerAttempt(input);await authenticate(workerRef,a.attemptRef,'finalize');
    if(await trusted.resolveTerminal(a)!==true)throw Error('UNVERIFIED_TERMINAL');
    return tx(async c=>deny({outcome:(await c.query('SELECT math_experiment_lab.finish_attempt($1,$2,$3,$4,$5) AS outcome',[commandRef,a.attemptRef,workerRef,token,encodeMetadata(a.attempt)])).rows[0].outcome}));
   },
   async lookup(commandRef){
    ref(commandRef);
-   return tx(async c=>deny({receipt:(await c.query('SELECT * FROM math_experiment_lab.lookup_command($1)',[commandRef])).rows[0]??null,fresh:false}),true);
+   return tx(async c=>{
+    const row=(await c.query('SELECT * FROM math_experiment_lab.lookup_command($1)',[commandRef])).rows[0];
+    const receipt=row?Object.freeze({op:row.op,outcome:row.outcome,attempt_ref:row.attempt_ref,prereg_ref:row.prereg_ref}):null;
+    return deny({receipt,fresh:false});
+   },true);
+  },
+  async status(attemptRef){
+   ref(attemptRef);
+   return tx(async c=>{
+    const row=(await c.query('SELECT * FROM math_experiment_lab.lookup_status($1)',[attemptRef])).rows[0];
+    return deny({status:row?Object.freeze({attempt_ref:row.attempt_ref,state:row.state}):null,fresh:false});
+   },true);
   }
  });
 }
