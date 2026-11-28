@@ -96,3 +96,27 @@ for(const d of [4,32]) test(`A2 ${d}D zero direction retains normalization but r
  assert.ok(r.research.diagnostics);
  assert.equal(r.applicability.domains.find(x=>x.domain==='SPHERICAL').status,'REFUSED');
 });
+
+test('A3 closes Grid root and row schemas before snapshot digest',async()=>{
+ const {inspectGridResearchSnapshot}=await load();
+ const q={schema:'grid.ohlcv_1m.descriptive.v1',read_only:true,descriptive_only:true,symbol:'BTCUSDT',timeframe:'1m',
+ selection:{start_ms:0,end_ms:60000,as_of_ms:120000,interval_semantics:'HALF_OPEN_UTC_MS'},status:'PARTIAL',reason:'SOURCE_AVAILABILITY_NOT_ATTESTED',
+ coverage:{expected_minutes:1,observed_minutes:1,missing_minutes:0,gaps:[],basis:'LOCAL_STORED_ROW_OBSERVATION_ONLY'},
+ provenance:{owner:'Grid',availability_at_decision:'UNATTESTED',source_authenticity:'UNATTESTED',dataset:'ohlcv_1m',source_declarations:['stored'],source_revision:null,raw_frame_sha256:null,independent_receipt:null,exchange_completeness:'NOT_ATTESTED',storage_immutability:'NOT_ATTESTED',clock_receipt:null,numerical_encoding:'POSTGRES_NUMERIC_FIXED_DECIMAL_STRING'},
+ execution_authority:false,trading_authorized:false,paper_admitted:false,causal_research_admitted:false,
+ rows:[{t:0,open:'100.00',high:'103',low:'99',close:'102',volume:'1',turnover:null,source_declared:'stored'}]};
+ const result=inspectGridResearchSnapshot(q);
+ assert.equal(result.status,'ABSTAIN');assert.equal(result.execution_authority,false);assert.equal(result.research,null);
+ for(const claim of [{formalProof:true},{proof_status:'VERIFIED'},{certificate:{formalProof:true}},{executionAuthority:true},{authority:{trading_authorized:true}},{verified:true}]){
+  assert.throws(()=>inspectGridResearchSnapshot({...q,...claim}),/GRID_RESEARCH_SCHEMA/);
+  assert.throws(()=>inspectGridResearchSnapshot({...q,rows:[{...q.rows[0],...claim}]}),/GRID_RESEARCH_SCHEMA/);
+ }
+ for(const claim of [{execution_authority:true},{trading_authorized:true},{causal_research_admitted:true},{paper_admitted:true}])
+  assert.throws(()=>inspectGridResearchSnapshot({...q,rows:[{...q.rows[0],...claim}]}),/GRID_RESEARCH_SCHEMA/);
+ for(const patch of [{open:{formalProof:true}},{close:102},{turnover:'1e3'},{source_declared:{verified:true}}])
+  assert.throws(()=>inspectGridResearchSnapshot({...q,rows:[{...q.rows[0],...patch}]}),/GRID_RESEARCH_SCHEMA/);
+ const {turnover,...missing}=q.rows[0];
+ assert.throws(()=>inspectGridResearchSnapshot({...q,rows:[missing]}),/GRID_RESEARCH_SCHEMA/);
+ const minimal={owner:'Grid',availability_at_decision:'UNATTESTED',source_authenticity:'UNATTESTED'};
+ assert.equal(inspectGridResearchSnapshot({...q,provenance:minimal}).status,'ABSTAIN');
+});

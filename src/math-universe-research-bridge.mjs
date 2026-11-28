@@ -68,6 +68,8 @@ export async function runResearchBridge(input){
 export function inspectGridResearchSnapshot(input){
  const q=decodeMetadata(encodeMetadata(input));
  const invalid=()=>{throw Error('GRID_RESEARCH_SCHEMA');};
+ const rootKeys=['schema','read_only','descriptive_only','symbol','timeframe','selection','status','reason','coverage','provenance','execution_authority','trading_authorized','paper_admitted','causal_research_admitted','rows'];
+ if(!closed(q,rootKeys))invalid();
  if(!q||q.schema!=='grid.ohlcv_1m.descriptive.v1'||q.read_only!==true||q.descriptive_only!==true||
  q.timeframe!=='1m'||typeof q.symbol!=='string'||!/^[A-Z0-9]{2,30}$/.test(q.symbol)||
  q.execution_authority!==false||q.trading_authorized!==false||q.paper_admitted!==false||q.causal_research_admitted!==false||
@@ -81,7 +83,13 @@ export function inspectGridResearchSnapshot(input){
  if(q.coverage.expected_minutes!==expected||q.coverage.observed_minutes!==q.rows.length||
  q.coverage.missing_minutes!==expected-q.rows.length)invalid();
  let previous=q.selection.start_ms-1;
- for(const row of q.rows){if(!row||!clock(row.t)||row.t%60000||row.t<q.selection.start_ms||row.t>=q.selection.end_ms||row.t<=previous)invalid();previous=row.t;}
+ const rowKeys=['t','open','high','low','close','volume','turnover','source_declared'];
+ const decimal=v=>typeof v==='string'&&v.length<=4300&&/^-?[0-9]+(?:\.[0-9]+)?$/.test(v);
+ for(const row of q.rows){if(!closed(row,rowKeys)||
+ !['open','high','low','close','volume'].every(k=>decimal(row[k]))||
+ !(row.turnover===null||decimal(row.turnover))||
+ typeof row.source_declared!=='string'||!/^[A-Za-z0-9_./:-]{1,128}$/.test(row.source_declared)||
+ !clock(row.t)||row.t%60000||row.t<q.selection.start_ms||row.t>=q.selection.end_ms||row.t<=previous)invalid();previous=row.t;}
  // Closed legacy test envelope or exact Grid producer envelope; neither attests source.
  const p=q.provenance, minimal=['owner','availability_at_decision','source_authenticity'];
  const full=[...minimal,'dataset','source_declarations','source_revision','raw_frame_sha256','independent_receipt','exchange_completeness','storage_immutability','clock_receipt','numerical_encoding'];
