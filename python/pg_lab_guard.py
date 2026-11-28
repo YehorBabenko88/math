@@ -64,3 +64,19 @@ def connect_lab(driver, url, role, *, autocommit=False):
             except Exception:
                 pass
         raise ValueError('PG_LAB_REFUSED') from None
+
+
+def connect_readonly_lab(driver, url, role):
+    """Each HTTP request opens and verifies a new connection before reading data."""
+    c = connect_lab(driver, url, role, autocommit=True)
+    try:
+        c.execute('SET default_transaction_read_only = on')
+        c.execute('SET statement_timeout = 3000')
+        c.autocommit = False
+        return c
+    except Exception:
+        try:
+            c.close()
+        except Exception:
+            pass
+        raise ValueError('PG_LAB_REFUSED') from None
