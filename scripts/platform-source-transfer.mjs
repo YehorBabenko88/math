@@ -74,13 +74,25 @@ export function historicalDestination(path,read){return read(HISTORICAL_ARCHIVES
 export function verifyCurrentSourceFiles({read=path=>readFileSync(path)}={}){
  const proof=json('scripts/platform-current-source-proof.json');assert.equal(proof.schema,'math.current-test-source-proof.v2');assert.equal(proof.source_base,SOURCE_BASE);assert.equal(proof.Root_tool,ROOT_TOOL);
  const discover=directory=>readdirSync(directory,{withFileTypes:true}).flatMap(entry=>{const path=directory+'/'+entry.name;return entry.isDirectory()?discover(path):/\.(?:test|windows|cross)\.mjs$/.test(entry.name)?[path]:[];});
- assert.deepEqual(discover('tests').sort(),Object.keys(proof.files).sort(),'Exact current executable test-file inventory required');
+ // Preserve the frozen 210-file proof and its 1217 event ledger verbatim.
+ // Later source additions have separate exact custody, never historical PASS.
+ const extension=json('scripts/platform-round21-source-extension.json');
+ assert.equal(extension.schema,'math.round21.test-source-extension.v1');
+ assert.equal(extension.base,'26a692974768d14de847de0d05244cb9b39667f3');
+ assert.equal(extension.runtimeCoverage,'SEPARATE_REQUIRED');
+ for(const [path,expected] of Object.entries(extension.files)){
+  assert.match(path,/^tests\/[a-zA-Z0-9_./-]+\.(?:test|windows|cross)\.mjs$/);
+  assert.equal(Object.hasOwn(proof.files,path),false,'Extension cannot replace frozen assertion bytes');
+  assert.match(expected,/^[a-f0-9]{64}$/);
+  assert.equal(digest(read(path)),expected,'Extension assertion bytes changed: '+path);
+ }
+ assert.deepEqual(discover('tests').sort(),[...Object.keys(proof.files),...Object.keys(extension.files)].sort(),'Exact current executable test-file inventory required');
  assert.equal(Object.keys(proof.files).length,210);
  for(const [path,expected] of Object.entries(proof.files))assert.equal(digest(read(path)),expected,'Current assertion bytes changed: '+path);
  assert.deepEqual(Object.keys(proof.supportFiles),[P1_SUPPORT_FILE]);
  assert.equal(digest(read(P1_SUPPORT_FILE)),proof.supportFiles[P1_SUPPORT_FILE],'P1 oracle source bytes changed');
  const current=loadCurrentInventory();assert.deepEqual([...new Set(current.tests.map(x=>x.destination))].sort(),Object.keys(proof.files).sort(),'Current cases must own every executable test source');
- return proof;
+ return {...proof,extension};
 }
 export function sourceProofDigest(historical,current){return digest(JSON.stringify({historical,current,transfer:loadTransferLedger(),inventory:loadCurrentInventory()}));}
 /** No source/static mapping is promoted into missing four-cell hosted execution. */
