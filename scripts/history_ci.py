@@ -38,7 +38,8 @@ def main():
  try:
   head,tree,sources=snapshot()
   command=[sys.executable,'-m','unittest','discover','-s',sys.argv[1],'-p',sys.argv[2],'-v']
-  r=subprocess.run(command,cwd=root,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=480)
+  r=subprocess.run(command,cwd=root,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=480,
+                     env={**os.environ,'PYTHONPATH':str(root/'python')})
   (out/'tests.log').write_bytes(r.stdout)
   unchanged=snapshot()==(head,tree,sources);code=r.returncode if unchanged else 1
   receipt={'schema':'history.ci.receipt.v1','head':head,'tree':tree,'parents':gt('show','-s','--format=%P','HEAD'),
