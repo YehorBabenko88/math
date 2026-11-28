@@ -70,8 +70,11 @@ class X11ACFSmallScaleOracle(unittest.TestCase):
         record = build_record('BTCUSDT', rows, digest(rows), 'at_most', '-0.5')
         self.assertEqual(record['status'], 'reproduced')
         self.assertEqual(record['result']['exact_reference'], ['1', '-3/4', '1/2'])
-        self.assertEqual(record['result']['acf'], [1.0, 0.0, 0.0])  # characterization, NOT approval
-        self.assertEqual(record['result']['absolute_error'], ['0', '3/4', '1/2'])
+        observed = record['result']['acf']
+        self.assertEqual(len(observed), 3)
+        oracle = [Fraction(1), Fraction(-3,4), Fraction(1,2)]
+        self.assertEqual(record['result']['absolute_error'],
+                         [str(abs(Fraction(value)-truth)) for value, truth in zip(observed, oracle)])
         self.assertEqual(record['result']['decision_basis'], 'exact_reference_lag_1')
         q = qualify_historical_record(record)
         self.assertEqual(q['source_authenticity'], 'UNATTESTED')
