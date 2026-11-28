@@ -276,8 +276,34 @@ def read_qualified(connection, symbol, limit):
     return qualify_historical_list(read(connection, symbol, limit))
 
 
-def serve(dsn, port):
-    import psycopg
+def serve(dsn, port, *, connection_factory=None):
+    """Serve read-only records; a trusted factory owns guarded connection admission.
+
+    Each valid request calls the supplied zero-argument factory exactly once.
+    It must return a fresh, already verified, read-only connection with close().
+    The factory owns cleanup before return; this server closes every returned
+    connection (including on read failure). No DSN fallback in factory mode.
+    The positional DSN API is retained for existing non-lab callers.
+    """
+    if connection_factory is None:
+        import psycopg
+
+        def open_connection():
+            return psycopg.connect(dsn, connect_timeout=3,
+                                   options='-c default_transaction_read_only=on -c statement_timeout=3000')
+
+        connection_errors = (ValueError, psycopg.Error)
+    else:
+        if not callable(connection_factory):
+            raise TypeError('connection_factory must be callable')
+        from contextlib import closing
+
+        def open_connection():
+            # Read-only transaction is discarded on close; do not commit or
+            # reopen via a raw DSN if the trusted factory refuses admission.
+            return closing(connection_factory())
+
+        connection_errors = (Exception,)
 
     class LoopbackServer(HTTPServer):
         request_queue_size = 32
@@ -303,12 +329,11 @@ def serve(dsn, port):
             except ValueError:
                 return self.reply(400, {'error': 'invalid query'})
             try:
-                with psycopg.connect(dsn, connect_timeout=3,
-                                     options='-c default_transaction_read_only=on -c statement_timeout=3000') as connection:
+                with open_connection() as connection:
                     result = read_qualified(connection, symbol, int(limit_str))
-                return self.reply(200, result)
-            except (ValueError, psycopg.Error):
+            except connection_errors:
                 return self.reply(503, {'error': 'scientific memory unavailable'})
+            return self.reply(200, result)
 
         def reply(self, status, value):
             body = canonical(value).encode('ascii')
