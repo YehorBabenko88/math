@@ -85,12 +85,12 @@ BEGIN
 END $$;
 -- Reuse the policy's proposal admission credit for every new command receipt.
 -- This lock precedes the attempt lock, matching reservation lock order.
-CREATE FUNCTION math_experiment_lab.admit_command(a text) RETURNS void LANGUAGE plpgsql
+CREATE FUNCTION math_experiment_lab.admit_command(a text,credits bigint DEFAULT 1) RETURNS void LANGUAGE plpgsql
 SET search_path=pg_catalog,pg_temp AS $$
 BEGIN
- UPDATE math_experiment_lab.budgets SET proposals=proposals+1
+ UPDATE math_experiment_lab.budgets SET proposals=proposals+credits
  WHERE policy_ref=(SELECT budget_ref FROM math_experiment_lab.attempts WHERE attempt_ref=a)
- AND proposals<proposal_limit;
+ AND credits BETWEEN 1 AND 2 AND proposals<=proposal_limit-credits;
  IF NOT FOUND THEN RAISE EXCEPTION 'COMMAND_BUDGET'; END IF;
 END $$;
 CREATE FUNCTION math_experiment_lab.claim_attempt(c text,a text,w text,t uuid) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
@@ -111,9 +111,11 @@ DECLARE b bytea; fresh boolean;
 BEGIN
  b=convert_to(a||':'||w||':'||t::text,'UTF8');
  IF math_experiment_lab.check_command(c,'start',b) IS NOT NULL THEN RETURN false; END IF;
+ -- Reserve before start; refused starts consume one credit, successful starts two.
  PERFORM math_experiment_lab.admit_command(a);
  UPDATE math_experiment_lab.attempts SET state='STARTED' WHERE attempt_ref=a AND state='CLAIMED' AND worker_ref=w AND token=t;
  fresh=FOUND;
+ IF fresh THEN PERFORM math_experiment_lab.admit_command(a); END IF;
  INSERT INTO math_experiment_lab.commands VALUES(c,'start',b,CASE WHEN fresh THEN 'STARTED' ELSE 'REFUSED' END,a);
  RETURN fresh;
 END $$;
@@ -124,12 +126,12 @@ BEGIN
  binding=convert_to(a||':'||w||':'||t::text,'UTF8')||b;
  prior=math_experiment_lab.check_command(c,'finish',binding);
  IF prior IS NOT NULL THEN RETURN 'REPLAY'; END IF;
- PERFORM math_experiment_lab.admit_command(a);
+ -- The successful START reserved the terminal credit. Lock only this attempt.
  SELECT * INTO old FROM math_experiment_lab.attempts WHERE attempt_ref=a FOR UPDATE;
  IF NOT FOUND OR old.worker_ref IS DISTINCT FROM w OR old.token IS DISTINCT FROM t THEN RAISE EXCEPTION 'CLAIM_MISMATCH'; END IF;
  IF old.state='TERMINAL' THEN
   IF old.terminal<>b THEN RAISE EXCEPTION 'TERMINAL_CONFLICT'; END IF;
-  result='REPLAY';
+  RETURN 'REPLAY';
  ELSIF old.state='STARTED' THEN
   UPDATE math_experiment_lab.attempts SET state='TERMINAL',terminal=b WHERE attempt_ref=a;
   result='COMMITTED';
@@ -138,10 +140,14 @@ BEGIN
  INSERT INTO math_experiment_lab.commands VALUES(c,'finish',binding,result,a);
  RETURN result;
 END $$;
-CREATE FUNCTION math_experiment_lab.lookup_command(c text) RETURNS TABLE(op text,outcome text,attempt_ref text,prereg_ref text,state text,worker_ref text,token uuid,terminal bytea)
+CREATE FUNCTION math_experiment_lab.lookup_command(c text) RETURNS TABLE(op text,outcome text,attempt_ref text,prereg_ref text)
 LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
- SELECT q.op,q.outcome,t.attempt_ref::text,t.prereg_ref::text,t.state,t.worker_ref::text,t.token,t.terminal FROM math_experiment_lab.commands q JOIN math_experiment_lab.attempts t ON t.attempt_ref=q.attempt_ref WHERE q.command_ref=c
+ SELECT q.op,q.outcome,t.attempt_ref::text,t.prereg_ref::text FROM math_experiment_lab.commands q JOIN math_experiment_lab.attempts t ON t.attempt_ref=q.attempt_ref WHERE q.command_ref=c
 $$;
+CREATE FUNCTION math_experiment_lab.lookup_status(a text) RETURNS TABLE(attempt_ref text,state text)
+LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $
+ SELECT t.attempt_ref::text,t.state FROM math_experiment_lab.attempts t WHERE t.attempt_ref=a
+$;
 -- Even the provisioning owner cannot silently rewrite the preregistration or budget policy.
 CREATE FUNCTION math_experiment_lab.guard_immutable() RETURNS trigger LANGUAGE plpgsql
 SET search_path=pg_catalog,pg_temp AS $$

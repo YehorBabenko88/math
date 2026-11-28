@@ -18,7 +18,7 @@ test('PG18 atomic semantic dedup, immutable bindings, fenced one-shot start and 
   await owner.query('INSERT INTO math_experiment_lab.budgets(policy_ref,proposal_limit,attempt_limit) VALUES($1,20,2)',[r(1)]);
   const intents=[0,1].map(ordinal=>({schema:'math.discovery.intent.v1',developmentRef:r(1),policyRef:r(1),catalogRef:r(1),methodRef:r(1),portStateRef:r(1),ordinal,status:'UNREGISTERED'}));
   const inputs=intents.map(i=>({schema:'math.experiment.preregistration.v1',ordinal:0,intentRef:semanticDigest(i.schema,i),foldRef:r(1),manifestRef:r(1),cohortRef:r(1),inputRef:r(1),seedRef:r(1),budgetPolicyRef:r(1),snapshotRef:r(1),fitRef:r(1),availabilityRef:r(1)}));
-  const trusted={resolvePreregistration:async p=>({verified:true,intent:intents.find(i=>semanticDigest(i.schema,i)===p.prereg.intentRef)}),resolveTerminal:async()=>true,openDedicatedConnection:async()=>{const c=new pg.Client({connectionString:hostURL});await c.connect();return c;}};
+  const trusted={authenticateWorker:async ({workerRef})=>workerRef,resolvePreregistration:async p=>({verified:true,intent:intents.find(i=>semanticDigest(i.schema,i)===p.prereg.intentRef)}),resolveTerminal:async()=>true,openDedicatedConnection:async()=>{const c=new pg.Client({connectionString:hostURL});await c.connect();return c;}};
   const ledger=createExperimentLedger(null,trusted);
   const reservations=await Promise.all(inputs.map((p,n)=>ledger.reserve(r(10+n),p)));
   assert.deepEqual(reservations.map(x=>x.outcome).sort(),['DUPLICATE','REGISTERED']);
@@ -32,7 +32,8 @@ test('PG18 atomic semantic dedup, immutable bindings, fenced one-shot start and 
   await assert.rejects(owner.query('UPDATE math_experiment_lab.budgets SET attempt_limit=100'),/IMMUTABLE/);
   await assert.rejects(owner.query('UPDATE math_experiment_lab.attempts SET prereg=$1',[Buffer.from('changed')]),/IMMUTABLE/);
   const claim=await ledger.claim(r(20),a,r(2));assert.equal(claim.fresh,true);
-  assert.equal((await ledger.lookup(r(20))).receipt.token,claim.token);
+  assert.equal(Object.hasOwn((await ledger.lookup(r(20))).receipt,'token'),false);
+  assert.equal(Object.hasOwn((await ledger.lookup(r(10))).receipt,'token'),false);
   assert.equal((await ledger.claim(r(20),a,r(2))).fresh,false);
   assert.equal((await ledger.start(r(21),a,r(3),claim.token)).fresh,false);
   const starts=await Promise.all([22,23].map(n=>ledger.start(r(n),a,r(2),claim.token)));
@@ -59,6 +60,11 @@ test('PG18 atomic semantic dedup, immutable bindings, fenced one-shot start and 
   }
   await assert.rejects(ledger.start(r(70),second.attempt_ref,r(3),secondClaim.token),/COMMAND_BUDGET/);
   assert.equal((await ledger.start(r(43),second.attempt_ref,r(2),secondClaim.token)).fresh,false);
+  const secondTerminal={schema:'math.experiment.attempt.v1',intentRef:inputs[0].intentRef,foldRef:inputs[0].foldRef,ordinal:1,status:'FAILED',metricRef:null};
+  assert.equal((await ledger.finalize(r(71),secondTerminal,r(2),secondClaim.token)).outcome,'COMMITTED');
+  assert.equal((await ledger.status(second.attempt_ref)).status.state,'TERMINAL');
+  assert.equal((await ledger.lookup(r(42))).receipt.outcome,'STARTED');
+  assert.equal(Object.hasOwn((await ledger.lookup(r(42))).receipt,'state'),false);
   assert.deepEqual((await owner.query('SELECT proposals::int,attempts::int FROM math_experiment_lab.budgets')).rows,[{proposals:20,attempts:2}]);
   const host=await trusted.openDedicatedConnection();try{await assert.rejects(host.query('SELECT * FROM math_experiment_lab.attempts'),/permission denied/);}finally{await host.end();}
  }finally{await owner.end();}

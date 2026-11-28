@@ -34,7 +34,7 @@ test('COMMIT transport loss remains unknown even when closing the broken connect
 const validToken='12345678-1234-4234-8234-123456789abc';
 function boundary(commitTag){
  let opens=0,resolves=0;const queries=[];
- const ledger=createExperimentLedger(null,{resolvePreregistration:async()=>null,resolveTerminal:async()=>{resolves++;return true;},openDedicatedConnection:async()=>{opens++;return {query:async(sql,args)=>{queries.push([sql,args]);if(sql.startsWith('SELECT current_database'))return {rows:[{db:'math_experiment_test',role:'math_experiment_host',version:180001}]};if(sql==='COMMIT')return {command:commitTag};return {rows:[{fresh:true,outcome:'COMMITTED'}]};},end:async()=>{}};}});
+ const ledger=createExperimentLedger(null,{authenticateWorker:async ({workerRef})=>workerRef,resolvePreregistration:async()=>null,resolveTerminal:async()=>{resolves++;return true;},openDedicatedConnection:async()=>{opens++;return {query:async(sql,args)=>{queries.push([sql,args]);if(sql.startsWith('SELECT current_database'))return {rows:[{db:'math_experiment_test',role:'math_experiment_host',version:180001}]};if(sql==='COMMIT')return {command:commitTag};return {rows:[{fresh:true,outcome:'COMMITTED'}]};},end:async()=>{}};}});
  return {ledger,queries,opens:()=>opens,resolves:()=>resolves};
 }
 test('ROLLBACK command tag cannot acknowledge a fresh start',async()=>{
@@ -55,4 +55,13 @@ test('nonprimitive or malformed UUID refuses before transport and resolver',asyn
   await assert.rejects(h.ledger.finalize(r,terminal,r,token),/INVALID_TOKEN/);
  }
  assert.equal(h.opens(),0);assert.equal(h.resolves(),0);assert.equal(traps,0);
+});
+
+test('L2 missing worker authenticator refuses before I/O',async()=>{
+ let opens=0;const ledger=createExperimentLedger(null,{resolvePreregistration:async()=>null,resolveTerminal:async()=>true,openDedicatedConnection:async()=>{opens++;throw Error('unexpected');}});
+ await assert.rejects(ledger.claim(r,r,r),/UNAUTHENTICATED_WORKER/);await assert.rejects(ledger.start(r,r,r,validToken),/UNAUTHENTICATED_WORKER/);assert.equal(opens,0);
+});
+test('L2 receipt projection excludes secret and mutable state',async()=>{
+ const ledger=createExperimentLedger(null,{resolvePreregistration:async()=>null,resolveTerminal:async()=>true,openDedicatedConnection:async()=>({query:async sql=>sql==='COMMIT'?{command:'COMMIT'}:sql.startsWith('SELECT current_database')?{rows:[{db:'math_experiment_test',role:'math_experiment_host',version:180001}]}:{rows:[{op:'reserve',outcome:'REGISTERED',attempt_ref:r,prereg_ref:r,token:validToken,state:'STARTED'}]},end:async()=>{}})});
+ const result=await ledger.lookup(r);assert.deepEqual(result.receipt,{op:'reserve',outcome:'REGISTERED',attempt_ref:r,prereg_ref:r});assert.equal(result.fresh,false);assert.equal(Object.isFrozen(result.receipt),true);
 });
