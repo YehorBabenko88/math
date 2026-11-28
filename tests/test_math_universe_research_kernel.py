@@ -406,5 +406,89 @@ class R20NewGeometryBudgetRegressions(unittest.TestCase):
         self.assertIsNone(lease.result)
 
 
+
+
+class R23LeaseCopyProtection(unittest.TestCase):
+    """Owner-only real-V RED/GREEN for the copyable logical reservation."""
+
+    def _live(self):
+        # Two independent output leases deliberately share exactly one V counter.
+        q = _budget_quote(4, 2)
+        doubled = {k: 2 * q[key] for k, key in (
+            ('max_ops', 'ops'), ('max_read_bytes', 'read_bytes'),
+            ('max_write_bytes', 'write_bytes'), ('max_live_bytes', 'live_bytes'),
+            ('max_output_bytes', 'output_bytes'))}
+        b = BudgetCounter(BudgetLimits(**doubled))
+        first = run_synthetic_geometry_v1(rows(4, 2), clock(2),
+                                          radius=1.0, cadence_ms=1000, budget=b)
+        second = run_synthetic_geometry_v1(rows(4, 2), clock(2),
+                                           radius=1.0, cadence_ms=1000, budget=b)
+        self.assertEqual(b.snapshot()['live_bytes'], 2 * q['retained'])
+        return b, first, second, q['retained']
+
+    def test_r23_copy_refuses_without_touching_other_retained_lease(self):
+        import copy
+        b, first, second, unit = self._live()
+        with self.assertRaisesRegex(TypeError, 'GeometryResultLease'):
+            copy.copy(first)
+        self.assertEqual(b.snapshot()['live_bytes'], 2 * unit)
+        first.release()
+        self.assertEqual(b.snapshot()['live_bytes'], unit)
+        self.assertIsNotNone(second.result)
+        second.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertFalse(b.snapshot()['failed'])
+
+    def test_r23_deepcopy_refuses_without_minting_unmetered_ownership(self):
+        import copy
+        b, first, second, unit = self._live()
+        with self.assertRaisesRegex(TypeError, 'GeometryResultLease'):
+            copy.deepcopy(first)
+        self.assertEqual(b.snapshot()['live_bytes'], 2 * unit)
+        second.release()
+        self.assertEqual(b.snapshot()['live_bytes'], unit)
+        first.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertFalse(b.snapshot()['failed'])
+
+    def test_r23_pickle_protocols_refuse_without_leaking_capacity(self):
+        import pickle
+        b, first, second, unit = self._live()
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+            with self.subTest(protocol=protocol):
+                with self.assertRaisesRegex(TypeError, 'GeometryResultLease'):
+                    pickle.dumps(first, protocol=protocol)
+                self.assertEqual(b.snapshot()['live_bytes'], 2 * unit)
+        second.release()
+        first.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertFalse(b.snapshot()['failed'])
+
+    def test_r23_trusted_host_copies_dto_inside_custody_then_releases(self):
+        import copy
+        b, first, second, unit = self._live()
+        detached = copy.deepcopy(first.result)
+        self.assertIsNot(detached, first.result)
+        self.assertEqual(detached, first.result)
+        first.release()
+        self.assertIsNone(first.result)
+        self.assertEqual(b.snapshot()['live_bytes'], unit)
+        self.assertEqual(detached['authority'], 'NONE')
+        self.assertFalse(detached['qualified'])
+        second.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+        self.assertFalse(b.snapshot()['failed'])
+
+    def test_r23_explicit_reduce_hooks_refuse_direct_serialization(self):
+        b, first, second, unit = self._live()
+        for reduction in (first.__reduce__, lambda: first.__reduce_ex__(5)):
+            with self.assertRaisesRegex(TypeError, 'GeometryResultLease'):
+                reduction()
+        self.assertEqual(b.snapshot()['live_bytes'], 2 * unit)
+        first.release()
+        second.release()
+        self.assertEqual(b.snapshot()['live_bytes'], 0)
+
+
 if __name__ == '__main__':
     unittest.main()

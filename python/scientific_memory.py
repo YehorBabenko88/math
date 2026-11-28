@@ -128,6 +128,13 @@ def qualify_historical_record(record):
     if not isinstance(record, dict):
         raise ValueError('Invalid persisted record identity')
     decode_record(record.get('id'), record)
+    # S's consumer requires the dataset identity to be present as lowercase
+    # SHA256 text. A self-hashed record does not validate embedded identities.
+    # Keep decode_record()/legacy read() byte-for-byte compatible with old v1,
+    # but refuse new malformed writes and qualified reads before any SQL.
+    dataset_id = record['dataset'].get('id')
+    if type(dataset_id) is not str or not HASH.fullmatch(dataset_id):
+        raise ValueError('Invalid historical dataset identity')
     # Align P admission and qualified reads with the S legacy reader:
     # optional root-level authority flags are DENY-only. A literal False is
     # the sole admitted explicit value; numeric 0 is rejected.

@@ -114,7 +114,7 @@ class FakePsycopgDb(FakeDb):
 
 def record(status='reproduced', source='FORGED_GRID', symbol='BTCUSDT'):
     value = {'schema': sm.RECORD, 'symbol': symbol,
-             'dataset': {'symbol': symbol, 'sha256': 'a' * 64, 'source': source},
+             'dataset': {'id': 'b' * 64, 'symbol': symbol, 'sha256': 'a' * 64, 'source': source},
              'input_hash': 'a' * 64, 'status': status,
              'provenance': {'collector': source, 'execution_authority': False, 'trading_authorized': False}}
     return {**value, 'id': sm.digest(value)}
