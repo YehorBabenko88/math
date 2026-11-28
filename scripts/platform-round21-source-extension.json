@@ -22,7 +22,6 @@
     "tests/round21-chain-live.test.mjs": "386d5f18d2a23548a655359667ba2ae1417598667d2b00dacc3960644facda28",
     "tests/round21-source-extension.test.mjs": "e5b32374bc923248ab383f9ac4499a8c2126f9c3c1c26c9b05555e009f84dca1",
     "tests/space-contracts-independent-r25.test.mjs": "e778fd3281641301bd4b733ebdcb68dfcba6705f9b5804d9487ac5ac18d44b3f",
-    "tests/space-contracts.test.mjs": "e3dab1d9b2b695e8006af348495902d9fe469eefe69c16b1612e56bb9bdd564c",
-    "tests/test_u_r25_trust.mjs": "07ac17692a3b632bbf0070498abe5d79152fedbe6a7e3520de6b200789861016"
+    "tests/space-contracts.test.mjs": "e3dab1d9b2b695e8006af348495902d9fe469eefe69c16b1612e56bb9bdd564c"
   }
 }
