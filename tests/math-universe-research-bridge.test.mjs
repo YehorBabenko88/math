@@ -66,3 +66,19 @@ test('wire custody is not hidden by cumulative intermediate output credits',asyn
  const r=await runResearchBridge(q);
  assert.ok(r.research.logical_budget.live_bytes>=encodeMetadata(r).length,'public wire must retain actual V custody');
 });
+
+test('A1 rejects contradictory gap complement and unattested provenance claims',async()=>{
+ const {inspectGridResearchSnapshot}=await load();
+ const q={schema:'grid.ohlcv_1m.descriptive.v1',read_only:true,descriptive_only:true,symbol:'BTCUSDT',timeframe:'1m',
+ selection:{start_ms:0,end_ms:180000,as_of_ms:240000,interval_semantics:'HALF_OPEN_UTC_MS'},status:'GAP',reason:'INCOMPLETE_STORED_MINUTES',
+ coverage:{expected_minutes:3,observed_minutes:1,missing_minutes:2,basis:'LOCAL_STORED_ROW_OBSERVATION_ONLY',gaps:[{start_ms:0,end_ms:60000,missing_minutes:1,reason:'MINUTE_NOT_STORED'},{start_ms:120000,end_ms:180000,missing_minutes:1,reason:'MINUTE_NOT_STORED'}]},
+ provenance:{owner:'Grid',availability_at_decision:'UNATTESTED',source_authenticity:'UNATTESTED'},
+ execution_authority:false,trading_authorized:false,paper_admitted:false,causal_research_admitted:false,
+ rows:[{t:60000,open:'100',high:'103',low:'99',close:'102',volume:'1',turnover:null,source_declared:'stored'}]};
+ assert.equal(inspectGridResearchSnapshot(q).status,'ABSTAIN');
+ for(const gaps of [[],[q.coverage.gaps[0],q.coverage.gaps[0]],[{start_ms:60000,end_ms:180000,missing_minutes:2,reason:'MINUTE_NOT_STORED'}]])assert.throws(()=>inspectGridResearchSnapshot({...q,coverage:{...q.coverage,gaps}}),/GRID_RESEARCH_SCHEMA/);
+ for(const claim of [{source_authenticity:'VERIFIED'},{execution_authority:true},{formalProof:true},{proof_status:'VERIFIED'},{typed_goal_hash:'a'.repeat(64)},{certificate:{formalProof:true}}])assert.throws(()=>inspectGridResearchSnapshot({...q,provenance:{...q.provenance,...claim}}),/GRID_RESEARCH_SCHEMA/);
+ const provenance={...q.provenance,dataset:'ohlcv_1m',source_declarations:['stored'],source_revision:null,raw_frame_sha256:null,independent_receipt:null,exchange_completeness:'NOT_ATTESTED',storage_immutability:'NOT_ATTESTED',clock_receipt:null,numerical_encoding:'POSTGRES_NUMERIC_FIXED_DECIMAL_STRING'};
+ assert.equal(inspectGridResearchSnapshot({...q,provenance}).status,'ABSTAIN');
+ assert.throws(()=>inspectGridResearchSnapshot({...q,provenance:{...provenance,independent_receipt:'fake'}}),/GRID_RESEARCH_SCHEMA/);
+});
