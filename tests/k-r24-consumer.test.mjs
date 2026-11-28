@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {inspectGridResearchSnapshot,runResearchBridge} from '../src/math-universe-research-bridge.mjs';
+import {semanticDigest} from '../src/math-universe-codec.mjs';
+import {compareProofBinding} from '../src/proof/goal-binding.mjs';
+const snapshot=()=>({schema:'grid.ohlcv_1m.descriptive.v1',read_only:true,descriptive_only:true,symbol:'BTCUSDT',timeframe:'1m',selection:{start_ms:0,end_ms:60000,as_of_ms:120000,interval_semantics:'HALF_OPEN_UTC_MS'},status:'PARTIAL',reason:'AVAILABILITY_UNATTESTED',coverage:{expected_minutes:1,observed_minutes:1,missing_minutes:0,gaps:[],basis:'LOCAL_STORED_ROW_OBSERVATION_ONLY'},provenance:{owner:'Grid',availability_at_decision:'UNATTESTED',source_authenticity:'UNATTESTED'},execution_authority:false,trading_authorized:false,paper_admitted:false,causal_research_admitted:false,rows:[{t:0,open:'100',high:'103',low:'99',close:'102',volume:'1',turnover:null,source_declared:'stored'}]});
+const fields=['theorem_revision','theorem_content_hash','typed_goal_hash','ordered_context_hash','source_manifest_hash','translation_evidence_hash','profile_hash','admission_policy_hash','verifier_build_hash','verification_policy_hash','request_id'];
+const binding=Object.fromEntries(fields.map(f=>[f,semanticDigest('synthetic.k24.'+f,{claim:'self asserted'})]));
+test('honest descriptive snapshot remains ABSTAIN',()=>{const r=inspectGridResearchSnapshot(snapshot());assert.equal(r.status,'ABSTAIN');assert.equal(r.execution_authority,false);assert.equal(r.trading_authorized,false);assert.equal(r.research,null)});
+test('actual K self-digest match cannot grant proof',()=>assert.deepEqual(compareProofBinding(binding,binding),{status:'BINDING_MATCH_ONLY',formalProof:false}));
+for(const [name,extra] of [['formal proof',{formalProof:true}],['verified proof status',{proof_status:'VERIFIED'}],['self-hashed goal',{typed_goal_hash:binding.typed_goal_hash}],['nested self-asserted certificate',{certificate:{binding,formalProof:true}}]]) test('consumer rejects '+name,()=>{const q=snapshot();Object.assign(q.provenance,extra);assert.throws(()=>inspectGridResearchSnapshot(q),/GRID_RESEARCH_SCHEMA/)});
+test('main research request rejects proof claim before dispatch',async()=>{await assert.rejects(runResearchBridge({schema:'math.universe.research.request.v1',start_ms:0,end_ms:2000,as_of_ms:3000,cadence_ms:1000,roster:['a','b','c','d'],rows:[],formalProof:true}),/INVALID_RESEARCH_REQUEST/)});
