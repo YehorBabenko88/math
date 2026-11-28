@@ -131,7 +131,7 @@ BEGIN
  IF NOT FOUND OR old.worker_ref IS DISTINCT FROM w OR old.token IS DISTINCT FROM t THEN RAISE EXCEPTION 'CLAIM_MISMATCH'; END IF;
  IF old.state='TERMINAL' THEN
   IF old.terminal<>b THEN RAISE EXCEPTION 'TERMINAL_CONFLICT'; END IF;
-  RETURN 'REPLAY';
+  RAISE EXCEPTION 'TERMINAL_ALREADY_RECORDED';
  ELSIF old.state='STARTED' THEN
   UPDATE math_experiment_lab.attempts SET state='TERMINAL',terminal=b WHERE attempt_ref=a;
   result='COMMITTED';
@@ -145,9 +145,9 @@ LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
  SELECT q.op,q.outcome,t.attempt_ref::text,t.prereg_ref::text FROM math_experiment_lab.commands q JOIN math_experiment_lab.attempts t ON t.attempt_ref=q.attempt_ref WHERE q.command_ref=c
 $$;
 CREATE FUNCTION math_experiment_lab.lookup_status(a text) RETURNS TABLE(attempt_ref text,state text)
-LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $
+LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
  SELECT t.attempt_ref::text,t.state FROM math_experiment_lab.attempts t WHERE t.attempt_ref=a
-$;
+$$;
 -- Even the provisioning owner cannot silently rewrite the preregistration or budget policy.
 CREATE FUNCTION math_experiment_lab.guard_immutable() RETURNS trigger LANGUAGE plpgsql
 SET search_path=pg_catalog,pg_temp AS $$

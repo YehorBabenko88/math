@@ -51,7 +51,7 @@ test('synthetic pinned Grid → A/I/C/E/M → L → P HTTP → pinned Terminan S
   assert.equal(identity.db,'math_experiment_test');assert.equal(identity.role,'math_experiment_owner');assert.ok(identity.version>=180000&&identity.version<190000);
   await owner.query('DROP SCHEMA IF EXISTS math_experiment_lab CASCADE');
   await owner.query(await readFile(new URL('../sql/007_experiment_preregistration.sql',import.meta.url),'utf8'));
-  await owner.query('GRANT USAGE ON SCHEMA math_experiment_lab TO math_experiment_host;GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA math_experiment_lab TO math_experiment_host');
+  await owner.query('GRANT USAGE ON SCHEMA math_experiment_lab TO math_experiment_host;GRANT EXECUTE ON FUNCTION math_experiment_lab.reserve_attempt(text,text,text,text,text,bigint,text,bytea,text,bytea), math_experiment_lab.claim_attempt(text,text,text,uuid), math_experiment_lab.start_attempt(text,text,text,uuid), math_experiment_lab.finish_attempt(text,text,text,uuid,bytea), math_experiment_lab.lookup_command(text), math_experiment_lab.lookup_status(text) TO math_experiment_host');
   await owner.query('INSERT INTO math_experiment_lab.budgets(policy_ref,proposal_limit,attempt_limit)VALUES($1,12,1)',[policyRef]);
   // This principal is established by the isolated synthetic fixture, not by a
   // caller's workerRef. Restrict admission to the exact preregistered attempt.
