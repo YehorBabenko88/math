@@ -1,6 +1,7 @@
 // Pure trust-boundary decision: metadata checks cannot authorize publication.
+import {types} from 'node:util';
 export function assessOrchestratorEvidence(evidence){
- if(evidence===null||typeof evidence!=='object'||Array.isArray(evidence)||Object.getPrototypeOf(evidence)!==Object.prototype)throw Error('INVALID_EVIDENCE');
+ if(types.isProxy(evidence)||evidence===null||typeof evidence!=='object'||Array.isArray(evidence)||Object.getPrototypeOf(evidence)!==Object.prototype)throw Error('INVALID_EVIDENCE');
  const keys=Reflect.ownKeys(evidence);
  if(keys.length!==4||!['source','receipt','runner','kernel'].every(k=>Object.hasOwn(evidence,k)))throw Error('INVALID_EVIDENCE');
  const descriptors=Object.getOwnPropertyDescriptors(evidence);

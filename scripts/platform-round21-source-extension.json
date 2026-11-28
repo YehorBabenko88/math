@@ -1,0 +1,27 @@
+{
+  "schema": "math.round21.test-source-extension.v1",
+  "base": "26a692974768d14de847de0d05244cb9b39667f3",
+  "runtimeCoverage": "SEPARATE_REQUIRED",
+  "files": {
+    "tests/ai-orchestrator-evolution.test.mjs": "c02099c265198bac88b707fdbda7e3e379b74b8aee887d9f26b90341ed5a0767",
+    "tests/ai-orchestrator-protected-admission.test.mjs": "898851d8268ee28485c289754681b739417ff402585e1be40fc2d96cbbac5be6",
+    "tests/ai-orchestrator-trust-gate-proxy.test.mjs": "486f58cef1c157f56c3724d1f5029b6cfd72853d597f00ca12d2d259b0cbb964",
+    "tests/discovery-contract.test.mjs": "7fad355a8f30f940579ceabe1d46f923aabfb88f6fb3effcd4abbc8cf5a14b4c",
+    "tests/discovery-search.test.mjs": "415311b5ecd8b4f4c1c4bec115bafa6bede09b22fcc7a23826301f3905c0cc30",
+    "tests/experiment-contract.test.mjs": "88b14ea692603f60cf5d75f9862957f45cb206d7fcb3317b3c74df1325ad51e8",
+    "tests/experiment-postgres-live.test.mjs": "4970c5be14e9749dfda53c30ee9351155d82e131442e35d555610e1cd981850a",
+    "tests/experiment-preregistration.test.mjs": "c2e7b33272fae956b327e18d3e0f83eb8c621b8db9d32af6476431438d9af7bb",
+    "tests/knowledge-acquisition-contract.test.mjs": "4f48fdc06a5e379461dcfb4119274ed6cf2ac826f1dd032c778aba59302d441d",
+    "tests/knowledge-acquisition-intake.test.mjs": "ef5870899efaf42ba1af84af5315202c680c0b41bdfc7a6b4af4e3c0a6a25da9",
+    "tests/literature-method-evidence.test.mjs": "4accb9b5e6124f00fbf23458a64c86f7968caadcf50e4d281a0ba02f813d048c",
+    "tests/math-universe-codec.test.mjs": "11acf9c179b6931fa3fda9394a9d55760b7b143b2054a246cea3c524375f2d8a",
+    "tests/math-universe-research-bridge.test.mjs": "8c59261a72874fd517486f881b8728110c7763d1dba0d8872cef8b1bf9e2699b",
+    "tests/method-applicability.test.mjs": "77d83e6f8af3e1b7387e351a4a58cc03aff03178a97ad6b2c3c8be781cdf40dd",
+    "tests/method-router.test.mjs": "70205d2c3382a825fa33961453b3535b35111573c4983667914a8a6bec76292b",
+    "tests/proof-contract-v1.test.mjs": "88d98bdb5562b4649fcc846c6cd57fc84b5b3cfef10c005376e3df1ecc0d44a3",
+    "tests/round21-chain-live.test.mjs": "386d5f18d2a23548a655359667ba2ae1417598667d2b00dacc3960644facda28",
+    "tests/round21-source-extension.test.mjs": "e5b32374bc923248ab383f9ac4499a8c2126f9c3c1c26c9b05555e009f84dca1",
+    "tests/space-contracts-independent-r25.test.mjs": "e778fd3281641301bd4b733ebdcb68dfcba6705f9b5804d9487ac5ac18d44b3f",
+    "tests/space-contracts.test.mjs": "e3dab1d9b2b695e8006af348495902d9fe469eefe69c16b1612e56bb9bdd564c"
+  }
+}

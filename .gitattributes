@@ -30,3 +30,12 @@ package-lock.json -text
 
 # Raw development-only shared source custody loaded by verified bytes.
 /tests/math_source_transition_custody.py -text
+
+# Executable test custody is SHA-256 over exact Git LF bytes on both hosts.
+/tests/**/*.mjs text eol=lf
+/scripts/platform-round21-source-extension.json -text
+/tests/independent-numeric-oracle.py text eol=lf
+
+# Immutable historical statistics source oracles preserve raw Git bytes.
+/tests/fixtures/history-kernel-profiles/*.py.txt -text
+/python/market_math_wall_tracker.py text eol=lf
