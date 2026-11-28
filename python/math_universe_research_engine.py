@@ -60,11 +60,15 @@ def run_research_v1(request, *, budget=None):
                 applicable=False
                 reason=exc.code
             diagnostics=analyze_aligned_support(aligned['support'],budget=budget)
+        normalization = geometry is not None
+        trajectory = normalization and geometry['trajectory'] is not None
+        if normalization and not trajectory:
+            reason = geometry['reason']
         alignment={**aligned,'selected':tuple(asdict(r) for r in aligned['selected']),
                    'ledger':tuple(asdict(r) for r in aligned['ledger'])}
         result={'schema':'math.universe.research.result.v1','status':'ABSTAIN','authority':'NONE',
                 'qualified':False,'requested':requested,'gaps':aligned['gaps'],'alignment':alignment,
-                'applicability':{'geometry':applicable,'spectral':spectral_eligibility(aligned,min_samples=3)},
+                'applicability':{'geometry':trajectory,'normalization':normalization,'trajectory':trajectory,'spectral':spectral_eligibility(aligned,min_samples=3)},
                 'geometry':geometry,'diagnostics':diagnostics,'reason':reason,'source_authenticity':'NOT_EVALUATED_BY_MATH'}
         if budget:
             size=len(json.dumps(result,separators=(',',':'),allow_nan=False).encode())

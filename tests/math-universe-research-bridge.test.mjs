@@ -82,3 +82,17 @@ test('A1 rejects contradictory gap complement and unattested provenance claims',
  assert.equal(inspectGridResearchSnapshot({...q,provenance}).status,'ABSTAIN');
  assert.throws(()=>inspectGridResearchSnapshot({...q,provenance:{...provenance,independent_receipt:'fake'}}),/GRID_RESEARCH_SCHEMA/);
 });
+
+for(const d of [4,32]) test(`A2 ${d}D zero direction retains normalization but refuses trajectory`,async()=>{
+ const {runResearchBridge}=await load();const q=request(d);
+ for(const row of q.rows)if(row.end_ms===1000)row.value_bits=binary64Hex(0);
+ const r=await runResearchBridge(q);
+ assert.equal(r.status,'ABSTAIN');assert.equal(r.research.reason,'ZERO_DIRECTION');
+ assert.equal(r.research.applicability.normalization,true);
+ assert.equal(r.research.applicability.trajectory,false);
+ assert.equal(r.research.applicability.geometry,false);
+ assert.equal(r.research.geometry.trajectory,null);
+ assert.equal(r.research.geometry.states[0].u,null);
+ assert.ok(r.research.diagnostics);
+ assert.equal(r.applicability.domains.find(x=>x.domain==='SPHERICAL').status,'REFUSED');
+});
